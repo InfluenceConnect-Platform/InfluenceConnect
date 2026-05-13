@@ -5,7 +5,7 @@ const session = require('express-session');
 const passport = require('passport');
 require('dotenv').config();
 
-// Validate required env vars before anything else
+// Validate required env vars
 const required = ['MONGODB_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
 for (const key of required) {
   if (!process.env[key]) {
@@ -19,6 +19,9 @@ require('./config/passport');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// ─────────────────────────────────────────
+// Middleware — MUST come before all routes
+// ─────────────────────────────────────────
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
@@ -32,7 +35,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Connect to MongoDB
+// ─────────────────────────────────────────
+// Database connection
+// ─────────────────────────────────────────
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => {
@@ -40,12 +45,15 @@ mongoose.connect(process.env.MONGODB_URI)
     process.exit(1);
   });
 
-// Routes
+// ─────────────────────────────────────────
+// Routes — MUST come after middleware
+// ─────────────────────────────────────────
 app.use('/api/auth', require('./routes/auth.routes'));
-
-const authenticate = require('./middleware/auth.middleware');
+app.use('/api/influencer', require('./routes/influencer.routes'));
+app.use('/api/upload', require('./routes/upload.routes'));
 
 // Protected test route
+const authenticate = require('./middleware/auth.middleware');
 app.get('/api/protected', authenticate, (req, res) => {
   res.json({
     message: `Hello ${req.user.name}, you are authenticated.`,
