@@ -22,9 +22,23 @@ const PORT = process.env.PORT || 8000;
 // ─────────────────────────────────────────
 // Middleware — MUST come before all routes
 // ─────────────────────────────────────────
+// Allow requests from localhost AND from any device on the local network
+// (e.g. a phone at http://10.15.144.238:3000).  Private LAN ranges are safe
+// to whitelist; this guard is removed in production where FRONTEND_URL is set
+// to the real domain.
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // server-to-server / curl
+    // Explicit allow-list from env (production)
+    const allowed = process.env.FRONTEND_URL;
+    if (allowed && origin === allowed) return callback(null, true);
+    // localhost / 127.0.0.1 (dev machine)
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
+    // Private LAN ranges: 10.x, 172.16-31.x, 192.168.x
+    if (/^https?:\/\/(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin not allowed — ${origin}`));
+  },
+  credentials: true,
 }));
 app.use(express.json());
 app.use(session({

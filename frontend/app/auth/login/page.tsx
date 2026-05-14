@@ -8,8 +8,6 @@ import Input from '@/components/shared/Input';
 import Button from '@/components/shared/Button';
 import api from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,6 +26,22 @@ export default function LoginPage() {
       setAuthConflict('use_password');
     }
   }, [searchParams]);
+
+  // When the user navigates back from the Google consent page the browser
+  // restores this page from the Back-Forward Cache (bfcache) with e.persisted=true.
+  // Without this handler the page is "frozen" and the Google button silently
+  // ignores the next click.  Reset UI state so everything works again.
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        setLoading(false);
+        setError('');
+        setAuthConflict(null);
+      }
+    };
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -64,7 +78,10 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${API_URL}/api/auth/google`;
+    // Derive the backend URL from the current hostname so this works both
+    // from localhost and from a phone on the same network.
+    const backendURL = `${window.location.protocol}//${window.location.hostname}:8000`;
+    window.location.href = `${backendURL}/api/auth/google`;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

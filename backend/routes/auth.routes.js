@@ -16,21 +16,34 @@ router.post('/login', login);
 // POST /api/auth/send-mobile-otp  (Google OAuth completion step)
 router.post('/send-mobile-otp', sendMobileOtp);
 
+// Derive the backend/frontend origin from the incoming request so that OAuth
+// works correctly whether the request comes from localhost or a phone on the
+// local network (e.g. http://10.15.144.238:3000).
+const getBackendUrl = (req) =>
+  `${req.protocol}://${req.hostname}:${process.env.PORT || 8000}`;
+
+const getFrontendUrl = (req) =>
+  `${req.protocol}://${req.hostname}:3000`;
+
 // GET /api/auth/google  — start Google OAuth flow
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email'],
-  prompt: 'select_account consent'   // always show account picker + consent screen
-}));
+router.get('/google', (req, res, next) => {
+  const callbackURL = `${getBackendUrl(req)}/api/auth/google/callback`;
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    prompt: 'select_account consent',
+    callbackURL,
+  })(req, res, next);
+});
 
 // GET /api/auth/google/callback  — Google redirects here
 router.get('/google/callback', (req, res, next) => {
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const callbackURL = `${getBackendUrl(req)}/api/auth/google/callback`;
+  const frontendUrl = getFrontendUrl(req);
 
-  passport.authenticate('google', { session: false }, (err, user, info) => {
+  passport.authenticate('google', { session: false, callbackURL }, (err, user, info) => {
     if (err) return next(err);
 
     if (!user) {
-      // Email is registered via email/password — tell them to use password
       if (info?.message === 'email_exists') {
         return res.redirect(`${frontendUrl}/auth/login?error=email_exists`);
       }
@@ -54,7 +67,7 @@ router.get('/google/callback', (req, res, next) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      plan: user.plan
+      plan: user.plan,
     }));
 
     res.redirect(`${frontendUrl}/auth/google/callback?token=${token}&user=${userPayload}`);
