@@ -69,6 +69,7 @@ app.use('/api/upload', require('./routes/upload.routes'));
 app.use('/api/campaigns', require('./routes/campaign.routes'));
 app.use('/api/messages', require('./routes/message.routes'));
 app.use('/api/brand', require('./routes/brand.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
 // Protected test route
 const authenticate = require('./middleware/auth.middleware');
 app.get('/api/protected', authenticate, (req, res) => {
