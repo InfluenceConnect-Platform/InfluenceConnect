@@ -28,10 +28,12 @@ const getFrontendUrl = (req) =>
 // GET /api/auth/google  — start Google OAuth flow
 router.get('/google', (req, res, next) => {
   const callbackURL = `${getBackendUrl(req)}/api/auth/google/callback`;
+  const role = req.query.role === 'brand' ? 'brand' : 'influencer';
   passport.authenticate('google', {
     scope: ['profile', 'email'],
     prompt: 'select_account consent',
     callbackURL,
+    state: role,
   })(req, res, next);
 });
 

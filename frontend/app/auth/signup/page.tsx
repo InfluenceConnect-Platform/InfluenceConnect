@@ -290,7 +290,7 @@ export default function SignupPage() {
 
             <button
               type="button"
-              onClick={() => { window.location.href = `${API_URL}/api/auth/google`; }}
+              onClick={() => { window.location.href = `${API_URL}/api/auth/google?role=${role}`; }}
               className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all duration-150 cursor-pointer"
             >
               <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 48 48">
