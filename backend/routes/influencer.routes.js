@@ -5,7 +5,8 @@ const {
   createProfile,
   getMyProfile,
   updateProfile,
-  getPublicProfile
+  getPublicProfile,
+  getEarnings 
 } = require('../controllers/influencer.controller');
 
 // All routes below require authentication
@@ -15,5 +16,5 @@ router.put('/profile', authenticate, updateProfile);
 
 // Public route — no auth needed
 router.get('/profile/:slug', getPublicProfile);
-
+router.get('/earnings', authenticate, getEarnings);
 module.exports = router;

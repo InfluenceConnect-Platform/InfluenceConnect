@@ -168,3 +168,56 @@ exports.getPublicProfile = async (req, res) => {
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };
+
+
+// ─────────────────────────────────────────
+// GET EARNINGS
+// ─────────────────────────────────────────
+exports.getEarnings = async (req, res) => {
+  try {
+    const Deal = require('../models/Deal');
+
+    // For now since Deal model is not built yet,
+    // we return a structured empty response
+    // This gets populated when deals module is built in Week 4
+
+    const profile = await InfluencerProfile.findOne({ userId: req.userId });
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    res.json({
+      summary: {
+        totalEarnings: 0,
+        activeDeals: 0,
+        pendingPayout: 0,
+        dealsCompleted: profile.dealsCompleted || 0,
+        avgDealValue: 0
+      },
+      monthlyTrend: generateEmptyMonthlyTrend(),
+      categoryBreakdown: [],
+      dealHistory: []
+    });
+
+  } catch (error) {
+    console.error('Get earnings error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// Generate last 6 months with zero earnings
+function generateEmptyMonthlyTrend() {
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    months.push({
+      month: date.toLocaleString('default', { month: 'short' }),
+      year: date.getFullYear(),
+      earnings: 0,
+      deals: 0
+    });
+  }
+  return months;
+}

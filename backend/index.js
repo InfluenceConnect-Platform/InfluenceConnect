@@ -49,6 +49,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+
 // ─────────────────────────────────────────
 // Database connection
 // ─────────────────────────────────────────
@@ -65,6 +66,8 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/influencer', require('./routes/influencer.routes'));
 app.use('/api/upload', require('./routes/upload.routes'));
+app.use('/api/campaigns', require('./routes/campaign.routes'));
+app.use('/api/messages', require('./routes/message.routes'));
 
 // Protected test route
 const authenticate = require('./middleware/auth.middleware');

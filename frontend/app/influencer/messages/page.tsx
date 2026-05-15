@@ -1,0 +1,635 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import api from '@/lib/api';
+
+const NAV_ITEMS = [
+  { label: 'Dashboard', href: '/influencer/dashboard' },
+  { label: 'Campaigns', href: '/influencer/campaigns' },
+  { label: 'Messages', href: '/influencer/messages', active: true },
+  { label: 'Earnings', href: '/influencer/earnings' },
+  { label: 'Profile', href: '/influencer/profile' },
+  { label: 'Billing', href: '/influencer/billing' },
+];
+
+interface Message {
+  _id: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+  blocked?: boolean;
+  blockReason?: string;
+}
+
+interface Deal {
+  _id: string;
+  campaignId: { title: string; niche: string[] };
+  brandId: { _id: string; name: string };
+  agreedAmount: number;
+  status: string;
+  messages?: Message[];
+}
+
+const BLOCKED_PATTERN =
+  /(\+?\d[\d\s\-()‌]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|instagram|insta\.me|facebook|fb\.com|whatsapp|wa\.me|telegram|t\.me|snapchat)/i;
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+const SendIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13"/>
+    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+  </svg>
+);
+const SearchIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+);
+const ArrowLeftIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+  </svg>
+);
+const ChatBubbleIcon = ({ size = 36 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+const ShieldIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+);
+const LockIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+);
+const XIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+);
+const CheckDoubleIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/><polyline points="17 3 10 10"/>
+  </svg>
+);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const formatTime = (d: string) =>
+  new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+const formatRelativeTime = (d: string) => {
+  const now = Date.now();
+  const then = new Date(d).getTime();
+  const diff = now - then;
+  if (diff < 60_000) return 'Just now';
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return formatTime(d);
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+};
+
+const getInitials = (name: string) =>
+  name?.slice(0, 2).toUpperCase() || 'BR';
+
+const AVATAR_COLORS = [
+  'from-[#7FA8AD] to-[#5D8A8F]',
+  'from-violet-400 to-violet-600',
+  'from-amber-400 to-orange-500',
+  'from-rose-400 to-pink-600',
+  'from-emerald-400 to-teal-600',
+];
+const getAvatarColor = (name: string) =>
+  AVATAR_COLORS[(name?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
+
+// ─── Component ────────────────────────────────────────────────────────────────
+export default function MessagesPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(null);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [blocked, setBlocked] = useState(false);
+  const [messagesUsed, setMessagesUsed] = useState(0);
+  const [search, setSearch] = useState('');
+  const [showChat, setShowChat] = useState(false); // mobile: toggle list vs chat
+
+  const threadRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const FREEMIUM_MSG_LIMIT = 10;
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const stored = localStorage.getItem('user');
+    if (!token || !stored) { router.push('/auth/login'); return; }
+    setUser(JSON.parse(stored));
+    fetchDeals();
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
+
+  useEffect(() => {
+    if (threadRef.current) {
+      threadRef.current.scrollTop = threadRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    if (selectedDeal) {
+      fetchMessages(selectedDeal._id);
+      pollRef.current = setInterval(() => fetchMessages(selectedDeal._id), 3000);
+    }
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [selectedDeal]);
+
+  const fetchDeals = async () => {
+    try {
+      setDeals([]);
+    } catch (error) {
+      console.error('Fetch deals error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async (dealId: string) => {
+    try {
+      const response = await api.get(`/api/messages/${dealId}`);
+      setMessages(response.data.messages || []);
+    } catch {
+      // Messages API not built yet
+    }
+  };
+
+  const handleSend = async () => {
+    if (!newMessage.trim() || !selectedDeal) return;
+    if (BLOCKED_PATTERN.test(newMessage)) {
+      setBlocked(true);
+      setTimeout(() => setBlocked(false), 4000);
+      return;
+    }
+    if (!isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT) return;
+
+    setSending(true);
+    try {
+      await api.post(`/api/messages/${selectedDeal._id}`, { content: newMessage.trim() });
+      setNewMessage('');
+      setMessagesUsed(prev => prev + 1);
+      fetchMessages(selectedDeal._id);
+    } catch (error) {
+      console.error('Send message error:', error);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const selectDeal = (deal: Deal) => {
+    setSelectedDeal(deal);
+    setShowChat(true);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const goBackToList = () => {
+    setShowChat(false);
+  };
+
+  const filteredDeals = deals.filter(d =>
+    d.brandId?.name?.toLowerCase().includes(search.toLowerCase()) ||
+    d.campaignId?.title?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const isPremium = user?.plan === 'premium';
+  const limitReached = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
+
+  return (
+    <div className="h-[100dvh] bg-[#F7F9FA] flex flex-col overflow-hidden">
+
+      {/* Top nav */}
+      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[60px] z-20 shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex-shrink-0">
+        <div className="flex items-center gap-4 lg:gap-8 min-w-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] flex items-center justify-center text-white font-bold text-sm shadow-sm">IC</div>
+            <span className="font-bold text-gray-900 text-[15px] tracking-tight hidden sm:block">Influence Connect</span>
+          </div>
+          <div className="hidden lg:flex gap-0.5">
+            {NAV_ITEMS.map(item => (
+              <Link key={item.href} href={item.href}
+                className={`px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer ${
+                  item.active ? 'bg-[#EEF4F5] text-[#2A3E42]' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
+                }`}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <span className={`hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded-full ${
+            isPremium ? 'bg-amber-100 text-amber-700' : 'bg-[#EEF4F5] text-[#2A3E42]'
+          }`}>
+            {isPremium ? '★ Premium' : 'Freemium'}
+          </span>
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm">
+            {user?.name?.charAt(0).toUpperCase()}
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile tab bar — hidden when viewing chat on mobile */}
+      <div className={`lg:hidden bg-white border-b border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex-shrink-0 ${showChat ? 'hidden' : 'block'}`}>
+        <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden px-3 gap-0.5 py-2">
+          {NAV_ITEMS.map(item => (
+            <Link key={item.href} href={item.href}
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer ${
+                item.active ? 'bg-[#EEF4F5] text-[#2A3E42]' : 'text-gray-500 hover:bg-gray-100'
+              }`}>
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Main messaging layout */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+
+        {/* ── Thread sidebar ── */}
+        <aside className={`
+          w-full lg:w-[320px] xl:w-[360px] flex-shrink-0 flex flex-col
+          bg-white border-r border-gray-200
+          ${showChat ? 'hidden lg:flex' : 'flex'}
+        `}>
+
+          {/* Sidebar header */}
+          <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-lg font-bold text-gray-900">Messages</h1>
+              {!isPremium && (
+                <span className="text-[11px] font-semibold px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                  {messagesUsed}/{FREEMIUM_MSG_LIMIT} used
+                </span>
+              )}
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <SearchIcon />
+              </div>
+              <input
+                type="text"
+                placeholder="Search conversations…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150"
+              />
+            </div>
+          </div>
+
+          {/* Thread list */}
+          <div className="flex-1 overflow-y-auto">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-40 gap-3">
+                <div className="w-6 h-6 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs text-gray-400">Loading conversations…</p>
+              </div>
+            ) : filteredDeals.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-4">
+                  <ChatBubbleIcon size={32} />
+                </div>
+                <p className="text-sm font-bold text-gray-800 mb-1">No conversations yet</p>
+                <p className="text-xs text-gray-400 leading-relaxed max-w-[220px]">
+                  {search
+                    ? 'No conversations match your search.'
+                    : 'Conversations appear here once a brand accepts your campaign application.'}
+                </p>
+                {!search && (
+                  <Link href="/influencer/campaigns"
+                    className="mt-5 text-xs font-semibold text-white bg-[#7FA8AD] hover:bg-[#5D8A8F] px-4 py-2 rounded-xl transition-all duration-150 cursor-pointer shadow-sm">
+                    Browse campaigns →
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <ul className="py-1">
+                {filteredDeals.map(deal => {
+                  const isActive = selectedDeal?._id === deal._id;
+                  const lastMsg = deal.messages?.[deal.messages.length - 1];
+                  const initials = getInitials(deal.brandId?.name);
+                  const avatarColor = getAvatarColor(deal.brandId?.name || '');
+                  return (
+                    <li key={deal._id}>
+                      <button
+                        onClick={() => selectDeal(deal)}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-150 cursor-pointer border-b border-gray-50 ${
+                          isActive
+                            ? 'bg-[#EEF4F5] border-l-2 border-l-[#7FA8AD]'
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        {/* Avatar */}
+                        <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm`}>
+                          {initials}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between mb-0.5">
+                            <span className={`text-[13px] font-bold truncate ${isActive ? 'text-[#2A3E42]' : 'text-gray-900'}`}>
+                              {deal.brandId?.name}
+                            </span>
+                            {lastMsg && (
+                              <span className="text-[10px] text-gray-400 ml-2 flex-shrink-0">
+                                {formatRelativeTime(lastMsg.createdAt)}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 truncate mb-0.5">{deal.campaignId?.title}</p>
+                          {lastMsg ? (
+                            <p className="text-[11px] text-gray-400 truncate">{lastMsg.content}</p>
+                          ) : (
+                            <p className="text-[11px] text-gray-300 italic">No messages yet</p>
+                          )}
+                        </div>
+
+                        {/* Deal status pill */}
+                        <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                          deal.status === 'completed'
+                            ? 'bg-green-50 text-green-600'
+                            : deal.status === 'active'
+                            ? 'bg-blue-50 text-blue-600'
+                            : 'bg-amber-50 text-amber-600'
+                        }`}>
+                          {deal.status}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* Freemium upgrade nudge */}
+          {!isPremium && (
+            <div className="border-t border-gray-100 p-3">
+              <div className="bg-gradient-to-r from-[#EEF4F5] to-[#FDF3DD] border border-[#7FA8AD]/20 rounded-xl p-3 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-[#7FA8AD] text-white flex items-center justify-center flex-shrink-0">
+                  <LockIcon />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-[#2A3E42]">Unlimited messages</p>
+                  <p className="text-[10px] text-gray-500">Upgrade to Premium</p>
+                </div>
+                <Link href="/influencer/billing"
+                  className="text-[11px] font-bold text-white bg-[#7FA8AD] hover:bg-[#5D8A8F] px-2.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex-shrink-0">
+                  Upgrade
+                </Link>
+              </div>
+            </div>
+          )}
+        </aside>
+
+        {/* ── Chat area ── */}
+        <section className={`
+          flex-1 flex flex-col min-w-0
+          ${showChat ? 'flex' : 'hidden lg:flex'}
+        `}>
+
+          {selectedDeal ? (
+            <>
+              {/* Chat header */}
+              <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+                {/* Back button (mobile only) */}
+                <button
+                  onClick={goBackToList}
+                  className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-all duration-150 cursor-pointer flex-shrink-0">
+                  <ArrowLeftIcon />
+                </button>
+
+                {/* Avatar */}
+                <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')} flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0`}>
+                  {getInitials(selectedDeal.brandId?.name)}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-900">{selectedDeal.brandId?.name}</p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {selectedDeal.campaignId?.title}
+                    {selectedDeal.agreedAmount ? ` · ₹${selectedDeal.agreedAmount.toLocaleString()}` : ''}
+                  </p>
+                </div>
+
+                {/* Status + online indicator */}
+                <div className="flex items-center gap-2.5 flex-shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    <span className="text-[11px] text-gray-400 hidden sm:block">Active deal</span>
+                  </div>
+                  <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                    selectedDeal.status === 'completed'
+                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      : selectedDeal.status === 'active'
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : 'bg-amber-50 text-amber-700 border border-amber-200'
+                  }`}>
+                    {selectedDeal.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Platform moderation notice */}
+              <div className="flex items-center gap-2 px-4 sm:px-5 py-2 bg-[#EEF4F5]/60 border-b border-[#7FA8AD]/10 flex-shrink-0">
+                <span className="text-[#7FA8AD]"><ShieldIcon /></span>
+                <p className="text-[11px] text-[#5D8A8F] font-medium">
+                  Sharing phone numbers, emails, or social handles is automatically blocked to protect both parties.
+                </p>
+              </div>
+
+              {/* Messages thread */}
+              <div
+                ref={threadRef}
+                className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 flex flex-col gap-3"
+                style={{ background: 'linear-gradient(180deg, #F7F9FA 0%, #FAFCFC 100%)' }}
+              >
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 shadow-sm text-[#7FA8AD] flex items-center justify-center">
+                      <ChatBubbleIcon size={28} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-700 mb-1">Start the conversation</p>
+                      <p className="text-xs text-gray-400 max-w-[200px] leading-relaxed">
+                        Introduce yourself and discuss campaign expectations with {selectedDeal.brandId?.name}.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Date divider */}
+                    <div className="flex items-center gap-3 my-1">
+                      <div className="flex-1 h-px bg-gray-200" />
+                      <span className="text-[11px] text-gray-400 font-medium px-2 flex-shrink-0">Today</span>
+                      <div className="flex-1 h-px bg-gray-200" />
+                    </div>
+
+                    {messages.map((msg, idx) => {
+                      const isMine = msg.senderId === user?.id;
+                      const showAvatar = !isMine && (idx === 0 || messages[idx - 1]?.senderId !== msg.senderId);
+                      const isLast = idx === messages.length - 1 || messages[idx + 1]?.senderId !== msg.senderId;
+
+                      return (
+                        <div key={msg._id} className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                          {/* Their avatar */}
+                          {!isMine && (
+                            <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')} flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 ${
+                              showAvatar ? 'visible' : 'invisible'
+                            }`}>
+                              {getInitials(selectedDeal.brandId?.name)}
+                            </div>
+                          )}
+
+                          <div className={`flex flex-col gap-0.5 max-w-[72%] sm:max-w-[60%] ${isMine ? 'items-end' : 'items-start'}`}>
+                            <div className={`px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
+                              isMine
+                                ? `bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white ${isLast ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl'}`
+                                : `bg-white border border-gray-200 text-gray-800 ${isLast ? 'rounded-2xl rounded-bl-sm' : 'rounded-2xl'}`
+                            }`}>
+                              {msg.content}
+                            </div>
+                            {isLast && (
+                              <div className={`flex items-center gap-1 ${isMine ? 'flex-row-reverse' : ''}`}>
+                                <span className="text-[10px] text-gray-400">{formatTime(msg.createdAt)}</span>
+                                {isMine && (
+                                  <span className="text-[#7FA8AD]"><CheckDoubleIcon /></span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* My avatar */}
+                          {isMine && (
+                            <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                              showAvatar ? 'visible' : 'invisible'
+                            }`}>
+                              {user?.name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+
+              {/* Blocked alert */}
+              {blocked && (
+                <div className="mx-4 mb-2 flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-700 flex-shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <XIcon />
+                  </div>
+                  <div>
+                    <strong className="block mb-0.5">Message blocked</strong>
+                    <span className="text-xs text-red-600">Sharing contact info, social handles, or external links is not allowed on Influence Connect.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Limit reached banner */}
+              {limitReached && (
+                <div className="mx-4 mb-2 flex items-center gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-2xl flex-shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <LockIcon />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-amber-800">Daily message limit reached</p>
+                    <p className="text-xs text-amber-600">Upgrade to Premium for unlimited messaging.</p>
+                  </div>
+                  <Link href="/influencer/billing"
+                    className="flex-shrink-0 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-xl transition-all duration-150 cursor-pointer">
+                    Upgrade
+                  </Link>
+                </div>
+              )}
+
+              {/* Compose bar */}
+              <div className="px-4 sm:px-5 py-3.5 bg-white border-t border-gray-200 flex-shrink-0">
+                <div className={`flex items-end gap-2.5 p-1 rounded-2xl border transition-all duration-150 ${
+                  limitReached
+                    ? 'bg-gray-50 border-gray-200'
+                    : 'bg-white border-gray-200 focus-within:border-[#7FA8AD] focus-within:ring-2 focus-within:ring-[#7FA8AD]/20 shadow-sm'
+                }`}>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={newMessage}
+                    onChange={e => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={limitReached}
+                    placeholder={
+                      limitReached
+                        ? 'Upgrade to Premium to keep messaging…'
+                        : 'Type a message… (Enter to send, Shift+Enter for new line)'
+                    }
+                    className="flex-1 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 bg-transparent outline-none disabled:text-gray-400 resize-none"
+                  />
+
+                  {/* Character count */}
+                  {newMessage.length > 200 && (
+                    <span className={`text-[11px] font-medium self-center flex-shrink-0 ${newMessage.length > 450 ? 'text-red-500' : 'text-gray-400'}`}>
+                      {500 - newMessage.length}
+                    </span>
+                  )}
+
+                  {/* Send button */}
+                  <button
+                    onClick={handleSend}
+                    disabled={sending || !newMessage.trim() || limitReached}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
+                      newMessage.trim() && !limitReached
+                        ? 'bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white shadow-sm hover:shadow-md cursor-pointer'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {sending ? (
+                      <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <SendIcon />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* No conversation selected — desktop placeholder */
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#EEF4F5] to-[#daeced] text-[#7FA8AD] flex items-center justify-center mb-5 shadow-sm">
+                <ChatBubbleIcon size={40} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Your messages</h3>
+              <p className="text-sm text-gray-400 max-w-[260px] leading-relaxed mb-6">
+                Select a conversation from the sidebar to start chatting with a brand.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-[#5D8A8F] bg-[#EEF4F5] px-4 py-2.5 rounded-xl border border-[#7FA8AD]/20">
+                <ShieldIcon />
+                <span className="font-medium">End-to-end moderated for your safety</span>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
