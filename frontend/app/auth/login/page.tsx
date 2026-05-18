@@ -7,6 +7,7 @@ import AuthLayout from '@/components/shared/AuthLayout';
 import Input from '@/components/shared/Input';
 import Button from '@/components/shared/Button';
 import api from '@/lib/api';
+import ForgotPasswordModal from '@/components/shared/ForgotPasswordModal';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [authConflict, setAuthConflict] = useState<'use_google' | 'use_password' | null>(null);
+  const [showForgotPw, setShowForgotPw] = useState(false);
 
   useEffect(() => {
     const errorCode = searchParams.get('error');
@@ -99,6 +101,14 @@ export default function LoginPage() {
       text: 'Secure JWT sessions with 7-day expiry',
     },
   ];
+
+  const handleForgotPwSuccess = (resetEmail: string) => {
+    setShowForgotPw(false);
+    setEmail(resetEmail);
+    setPassword('');
+    setError('');
+    setAuthConflict(null);
+  };
 
   return (
     <AuthLayout>
@@ -223,7 +233,11 @@ export default function LoginPage() {
             </div>
 
             <div className="flex justify-end mt-2 mb-5">
-              <button className="text-xs text-[#5D8A8F] hover:underline font-semibold cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setShowForgotPw(true)}
+                className="text-xs text-[#5D8A8F] hover:underline font-semibold cursor-pointer"
+              >
                 Forgot password?
               </button>
             </div>
@@ -284,6 +298,13 @@ export default function LoginPage() {
         </div>
 
       </div>
+
+      {showForgotPw && (
+        <ForgotPasswordModal
+          onClose={() => setShowForgotPw(false)}
+          onSuccess={handleForgotPwSuccess}
+        />
+      )}
     </AuthLayout>
   );
 }

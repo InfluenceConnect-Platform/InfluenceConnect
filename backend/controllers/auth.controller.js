@@ -309,6 +309,144 @@ exports.login = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// FORGOT PASSWORD
+// ─────────────────────────────────────────
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      // Don't leak whether the email exists
+      return res.json({ message: 'If an account exists with this email, a reset code has been sent.' });
+    }
+
+    if (user.signupMethod === 'google') {
+      return res.status(400).json({
+        error: 'This account uses Google Sign-In. Password reset is not available.',
+        code: 'USE_GOOGLE'
+      });
+    }
+
+    // Invalidate previous unused reset OTPs
+    await OTP.deleteMany({ userId: user._id, type: 'password_reset', used: false });
+
+    const otp = generateOTP();
+    await OTP.create({ userId: user._id, type: 'password_reset', otp });
+
+    const devBypass = process.env.DEV_OTP_EMAIL;
+    const recipient = devBypass || email;
+
+    const { error: emailError } = await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: recipient,
+      subject: devBypass
+        ? `[DEV] Password Reset for ${email} — Influence Connect`
+        : 'Reset your Influence Connect password',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"></head>
+        <body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
+            <tr><td align="center">
+              <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+                <tr><td style="height:4px;background:linear-gradient(90deg,#7FA8AD,#5D8A8F,#3D5087)"></td></tr>
+                <tr><td style="padding:36px 40px 28px;">
+                  <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:28px;">
+                    <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7FA8AD,#3D5087);display:inline-flex;align-items:center;justify-content:center;">
+                      <span style="color:#fff;font-weight:700;font-size:12px;">IC</span>
+                    </div>
+                    <span style="font-weight:600;font-size:14px;color:#374151;">Influence Connect</span>
+                  </div>
+                  ${devBypass ? `<p style="color:#888;font-size:11px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;margin-bottom:20px;">DEV BYPASS — original recipient: ${email}</p>` : ''}
+                  <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">Reset your password</h1>
+                  <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
+                    We received a request to reset the password for your Influence Connect account.
+                    Use the code below — it expires in <strong>10 minutes</strong>.
+                  </p>
+                  <div style="text-align:center;background:linear-gradient(135deg,#f0f9fa,#e8f4f5);border:1px solid #c5dfe2;border-radius:12px;padding:28px;margin-bottom:28px;">
+                    <p style="margin:0 0 8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:#5D8A8F;">Your reset code</p>
+                    <p style="margin:0;font-size:38px;font-weight:800;letter-spacing:10px;color:#1e3a5f;font-family:'Courier New',monospace;">${otp}</p>
+                  </div>
+                  <p style="margin:0 0 24px;font-size:13px;color:#9ca3af;line-height:1.6;">
+                    If you did not request a password reset, you can safely ignore this email.
+                    Your password will remain unchanged.
+                  </p>
+                  <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0;">
+                  <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">
+                    © ${new Date().getFullYear()} Influence Connect · India
+                  </p>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+        </body>
+        </html>
+      `
+    });
+
+    if (emailError) {
+      console.error('Resend error:', emailError);
+      return res.status(500).json({ error: 'Failed to send reset email. Please try again.' });
+    }
+
+    res.json({ message: 'Reset code sent.', userId: user._id });
+
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// RESET PASSWORD
+// ─────────────────────────────────────────
+exports.resetPassword = async (req, res) => {
+  try {
+    const { userId, otp, newPassword } = req.body;
+
+    if (!userId || !otp || !newPassword) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+    }
+
+    const otpRecord = await OTP.findOne({ userId, type: 'password_reset', used: false });
+
+    if (!otpRecord) {
+      return res.status(400).json({ error: 'Reset code not found or already used.' });
+    }
+
+    if (otpRecord.expiresAt < new Date()) {
+      return res.status(400).json({ error: 'Reset code has expired. Please request a new one.' });
+    }
+
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({ error: 'Incorrect code. Please try again.' });
+    }
+
+    await OTP.findByIdAndUpdate(otpRecord._id, { used: true });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password reset successfully. You can now log in.' });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // SEND MOBILE OTP  (Google OAuth completion)
 // ─────────────────────────────────────────
 exports.sendMobileOtp = async (req, res) => {

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-const { register, verifyOTP, resendOTP, login, sendMobileOtp } = require('../controllers/auth.controller');
+const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
 router.post('/register', register);
@@ -18,6 +18,12 @@ router.post('/login', login);
 
 // POST /api/auth/send-mobile-otp  (Google OAuth completion step)
 router.post('/send-mobile-otp', sendMobileOtp);
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', forgotPassword);
+
+// POST /api/auth/reset-password
+router.post('/reset-password', resetPassword);
 
 // Derive the backend/frontend origin from the incoming request so that OAuth
 // works correctly whether the request comes from localhost or a phone on the

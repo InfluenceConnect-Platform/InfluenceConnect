@@ -73,6 +73,26 @@ const UserIcon = () => (
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
   </svg>
 );
+const GridIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+  </svg>
+);
+const ReelIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+  </svg>
+);
+const PhotoTabIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+  </svg>
+);
+const ProductIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+  </svg>
+);
 
 const formatFollowers = (n: number): string => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -109,6 +129,7 @@ export default function InfluencerProfile() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'reels' | 'photos' | 'products'>('all');
 
   const [bio, setBio] = useState('');
   const [niche, setNiche] = useState<string[]>([]);
@@ -145,7 +166,7 @@ export default function InfluencerProfile() {
       const p = response.data.profile;
       if (portfolioOnlyUpdate) {
         // Only refresh portfolio items — don't overwrite unsaved form edits
-        setProfile(prev => prev ? { ...prev, portfolioItems: p.portfolioItems } : p);
+        setProfile((prev: typeof p | null) => prev ? { ...prev, portfolioItems: p.portfolioItems } : p);
       } else {
         setProfile(p);
         setBio(p.bio || '');
@@ -265,6 +286,30 @@ export default function InfluencerProfile() {
     }
   };
 
+  // Merge saved + pending uploads for the content grid
+  const allPortfolioItems: Array<{
+    _id: string; type: string; cloudinaryUrl: string; thumbnailUrl: string;
+    isVisible?: boolean; pending: boolean; fileSize?: number; duration?: number;
+  }> = [
+    ...(profile?.portfolioItems || []).map((i: { _id: string; type: string; cloudinaryUrl: string; thumbnailUrl: string; isVisible: boolean }) => ({ ...i, pending: false })),
+    ...pendingUploads.map((i, idx) => ({ ...i, _id: `pending-${idx}`, isVisible: true, pending: true })),
+  ];
+  const filteredPortfolioItems = activeTab === 'all'
+    ? allPortfolioItems
+    : activeTab === 'reels'
+      ? allPortfolioItems.filter(i => i.type === 'video')
+      : activeTab === 'photos'
+        ? allPortfolioItems.filter(i => i.type === 'image')
+        : [];
+
+  const totalFollowers = (profile?.platforms || []).reduce((acc: number, p: { followers?: number }) => acc + (p.followers || 0), 0);
+  const engagingPlatforms = (profile?.platforms || []).filter((p: { followers?: number }) => (p.followers || 0) > 0);
+  const avgEngagement = engagingPlatforms.length > 0
+    ? (engagingPlatforms.reduce((acc: number, p: { followers?: number; avgLikes?: number; avgComments?: number }) =>
+        acc + (((p.avgLikes || 0) + (p.avgComments || 0)) / (p.followers || 1) * 100), 0) / engagingPlatforms.length
+      ).toFixed(1)
+    : null;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F7F9FA] flex items-center justify-center">
@@ -379,8 +424,83 @@ export default function InfluencerProfile() {
           </div>
         )}
 
+        {/* ── Profile hero card ── */}
+        {profile && (
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm mb-5 md:mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
+              {/* Avatar */}
+              <div className="relative flex-shrink-0">
+                <div className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white text-2xl font-bold shadow-md select-none">
+                  {(profile?.userId?.name || 'I')[0].toUpperCase()}
+                </div>
+                <div className={`absolute -bottom-1 -right-1 rounded-full border-2 border-white shadow-sm ${(profile?.platforms?.length || 0) > 0 ? 'bg-green-500' : 'bg-gray-300'}`} style={{ width: 18, height: 18 }} />
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight leading-tight">
+                      {profile?.userId?.name || 'Influencer'}
+                    </h2>
+                    <p className="text-xs text-gray-400 mt-0.5">{profile?.userId?.email}</p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
+                    profile?.userId?.plan === 'premium'
+                      ? 'bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 border-amber-200'
+                      : 'bg-[#EEF4F5] text-[#2A3E42] border-[#7FA8AD]/30'
+                  }`}>
+                    {profile?.userId?.plan === 'premium' ? '★ Premium' : 'Freemium'}
+                  </span>
+                </div>
+
+                {profile?.bio && (
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-2 max-w-lg">{profile.bio}</p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  {profile?.city && (
+                    <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">
+                      <MapPinIcon />{profile.city}
+                    </span>
+                  )}
+                  {(profile?.niche || []).slice(0, 3).map((n: string, idx: number) => {
+                    const chipColors = ['bg-teal-100 text-teal-700','bg-violet-100 text-violet-700','bg-amber-100 text-amber-700'];
+                    return (
+                      <span key={n} className={`text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${chipColors[idx % chipColors.length]}`}>{n}</span>
+                    );
+                  })}
+                  {(profile?.niche?.length || 0) > 3 && (
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">+{profile.niche.length - 3}</span>
+                  )}
+                  {(profile?.priceRangeMin || profile?.priceRangeMax) && (
+                    <span className="inline-flex items-center text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full font-semibold border border-emerald-200/60">
+                      ₹{(profile.priceRangeMin || 0).toLocaleString()} – ₹{(profile.priceRangeMax || 0).toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Stats row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-5 pt-4 border-t border-gray-100">
+              {[
+                { value: String(profile?.portfolioItems?.length || 0), label: 'Posts', accent: 'text-gray-900' },
+                { value: formatFollowers(totalFollowers), label: 'Followers', accent: 'text-[#5D8A8F]' },
+                { value: String(profile?.platforms?.length || 0), label: 'Platforms', accent: 'text-gray-900' },
+                { value: avgEngagement ? `${avgEngagement}%` : '—', label: 'Avg. Engagement', accent: 'text-emerald-600' },
+              ].map((stat, i) => (
+                <div key={i} className="flex flex-col items-center text-center px-2 py-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <span className={`text-xl font-bold tabular-nums ${stat.accent}`}>{stat.value}</span>
+                  <span className="text-[11px] text-gray-400 font-medium mt-0.5 leading-tight">{stat.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Main grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.8fr] gap-5 md:gap-6">
 
           {/* Left column */}
           <div className="flex flex-col gap-5">
@@ -680,136 +800,249 @@ export default function InfluencerProfile() {
 
           </div>
 
-          {/* Right column — Portfolio */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm h-fit lg:sticky lg:top-[76px]">
-            <div className="flex items-start justify-between mb-1">
+          {/* Right column — Content with tabs */}
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+
+            {/* Section header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                   <ImageIcon />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-[15px]">Portfolio</h3>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-[15px]">Content</h3>
+                  <p className="text-xs text-gray-400">{allPortfolioItems.length} item{allPortfolioItems.length !== 1 ? 's' : ''} total</p>
+                </div>
               </div>
-              <span className="flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full font-semibold">
-                {profile?.portfolioItems?.length || 0} items
-              </span>
-            </div>
-            <p className="text-xs text-gray-400 mb-5 ml-[37px]">
-              Freemium shows your 3 most recent items to brands.
-            </p>
-
-            {/* Upload area — only in edit mode */}
-            {isEditing && (
-              <>
-                <div
+              {isEditing && (
+                <button
                   onClick={() => !uploading && fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-6 sm:p-7 text-center transition-all duration-200 mb-5 ${
-                    uploading
-                      ? 'border-[#7FA8AD]/40 bg-[#EEF4F5]/50 cursor-not-allowed'
-                      : 'border-gray-200 hover:border-[#7FA8AD] hover:bg-[#EEF4F5]/30 cursor-pointer group'
-                  }`}
+                  disabled={uploading}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 bg-[#EEF4F5] text-[#2A3E42] border border-[#7FA8AD]/40 rounded-xl hover:bg-[#7FA8AD]/10 transition-all duration-150 cursor-pointer disabled:opacity-50"
                 >
                   {uploading ? (
-                    <div className="flex flex-col items-center gap-2.5">
-                      <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
-                      <p className="text-sm font-semibold text-[#5D8A8F]">Uploading…</p>
-                    </div>
-                  ) : (
                     <>
-                      <div className="text-gray-300 group-hover:text-[#7FA8AD] transition-colors duration-200 flex justify-center mb-3">
-                        <UploadCloudIcon />
-                      </div>
-                      <p className="text-sm font-semibold text-gray-700 mb-1">Tap to upload</p>
-                      <p className="text-xs text-gray-400">Photos · Videos · Max 10 MB / 100 MB</p>
+                      <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                      </svg>
+                      Uploading…
                     </>
+                  ) : (
+                    <><PlusIcon /> Add content</>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* Tab bar */}
+            <div className="flex items-center px-2 border-b border-gray-100 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+              {([
+                {
+                  id: 'all' as const,
+                  label: 'All Posts',
+                  count: allPortfolioItems.length,
+                  icon: <GridIcon />,
+                },
+                {
+                  id: 'reels' as const,
+                  label: 'Reels',
+                  count: allPortfolioItems.filter(i => i.type === 'video').length,
+                  icon: <ReelIcon />,
+                },
+                {
+                  id: 'photos' as const,
+                  label: 'Photos',
+                  count: allPortfolioItems.filter(i => i.type === 'image').length,
+                  icon: <PhotoTabIcon />,
+                },
+                {
+                  id: 'products' as const,
+                  label: 'Products',
+                  count: 0,
+                  icon: <ProductIcon />,
+                },
+              ] as const).map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-3.5 py-3 text-[13px] font-semibold border-b-2 transition-all duration-150 cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                    activeTab === tab.id
+                      ? 'border-[#7FA8AD] text-[#2A3E42]'
+                      : 'border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200'
+                  }`}
+                >
+                  <span className={`transition-colors duration-150 ${activeTab === tab.id ? 'text-[#7FA8AD]' : 'text-gray-300'}`}>
+                    {tab.icon}
+                  </span>
+                  {tab.label}
+                  <span className={`ml-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-all duration-150 ${
+                    activeTab === tab.id ? 'bg-[#EEF4F5] text-[#5D8A8F]' : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Content area */}
+            <div className="p-5">
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file);
+                  e.target.value = '';
+                }}
+              />
+
+              {/* Pending uploads banner */}
+              {pendingUploads.length > 0 && (
+                <div className="mb-4 flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                  <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <p className="text-[11px] text-amber-700 font-medium">
+                    {pendingUploads.length} upload{pendingUploads.length > 1 ? 's' : ''} pending — click <strong>Save changes</strong> to publish.
+                  </p>
+                </div>
+              )}
+
+              {/* Upload drop zone (edit mode, only on relevant tabs) */}
+              {isEditing && activeTab !== 'products' && allPortfolioItems.length === 0 && !uploading && (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-200 hover:border-[#7FA8AD] hover:bg-[#EEF4F5]/30 rounded-xl p-8 text-center transition-all duration-200 mb-5 cursor-pointer group"
+                >
+                  <div className="text-gray-300 group-hover:text-[#7FA8AD] transition-colors duration-200 flex justify-center mb-3">
+                    <UploadCloudIcon />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700 mb-1">Tap to upload</p>
+                  <p className="text-xs text-gray-400">Photos · Videos · Max 10 MB / 100 MB</p>
+                </div>
+              )}
+
+              {/* Products tab — coming soon */}
+              {activeTab === 'products' ? (
+                <div className="py-16 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#EEF4F5] to-teal-50 border border-[#7FA8AD]/20 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Product showcase coming soon</p>
+                  <p className="text-xs text-gray-400 max-w-[220px] mx-auto leading-relaxed">
+                    Tag products from your posts so brands can see exactly what you promote.
+                  </p>
+                  <span className="mt-4 inline-block text-xs font-semibold px-3 py-1.5 bg-[#EEF4F5] text-[#5D8A8F] rounded-full border border-[#7FA8AD]/30">
+                    Launching soon
+                  </span>
+                </div>
+              ) : filteredPortfolioItems.length === 0 ? (
+                /* Empty state per tab */
+                <div className="py-16 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-[#EEF4F5] flex items-center justify-center mx-auto mb-4">
+                    {activeTab === 'reels' ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="#7FA8AD" stroke="none"/>
+                      </svg>
+                    ) : (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700 mb-1.5">
+                    {activeTab === 'reels' ? 'No reels yet' : 'No photos yet'}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {isEditing
+                      ? activeTab === 'reels' ? 'Upload a video to showcase your Reels.' : 'Upload photos to build your portfolio.'
+                      : activeTab === 'reels' ? 'No video content uploaded yet.' : 'No photo content uploaded yet.'}
+                  </p>
+                  {isEditing && (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
+                    >
+                      <PlusIcon /> Upload now
+                    </button>
                   )}
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  className="hidden"
-                  onChange={e => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFileUpload(file);
-                  }}
-                />
-              </>
-            )}
+              ) : (
+                /* Content grid */
+                <div className="grid grid-cols-3 gap-2">
+                  {filteredPortfolioItems.map((item, index) => (
+                    <div
+                      key={item._id}
+                      className={`relative aspect-square rounded-xl overflow-hidden group border-2 transition-all duration-150 ${
+                        item.pending
+                          ? 'border-amber-400'
+                          : (item.isVisible === false)
+                            ? 'border-gray-200 opacity-60'
+                            : 'border-transparent hover:border-[#7FA8AD]/40'
+                      }`}
+                    >
+                      {item.type === 'image' ? (
+                        <img
+                          src={item.cloudinaryUrl}
+                          alt={`Content ${index + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden">
+                          {item.thumbnailUrl ? (
+                            <img src={item.thumbnailUrl} alt={`Reel ${index + 1}`} className="w-full h-full object-cover opacity-75" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
+                          )}
+                          {/* Play button */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
-            {/* Pending uploads notice */}
-            {pendingUploads.length > 0 && (
-              <div className="mb-3 flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
-                <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                <p className="text-[11px] text-amber-700 font-medium">
-                  {pendingUploads.length} upload{pendingUploads.length > 1 ? 's' : ''} pending — click <strong>Save changes</strong> to publish.
-                </p>
-              </div>
-            )}
-
-            {/* Portfolio grid */}
-            {(profile?.portfolioItems?.length > 0 || pendingUploads.length > 0) ? (
-              <div className="grid grid-cols-3 gap-2 mb-5">
-                {/* Saved items */}
-                {profile?.portfolioItems?.map((item: any, index: number) => (
-                  <div key={item._id}
-                    className={`aspect-square rounded-xl overflow-hidden relative border-2 ${
-                      item.isVisible ? 'border-[#7FA8AD]/50' : 'border-gray-200 opacity-55'
-                    }`}>
-                    {item.type === 'image' ? (
-                      <img src={item.cloudinaryUrl} alt={`Portfolio ${index + 1}`} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                          <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all duration-200 flex items-end justify-between p-2">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 ${
+                          item.type === 'video'
+                            ? 'bg-purple-600/90 text-white backdrop-blur-sm'
+                            : 'bg-[#5D8A8F]/90 text-white backdrop-blur-sm'
+                        }`}>
+                          {item.type === 'video' ? 'REEL' : 'PHOTO'}
+                        </span>
+                        {item.pending ? (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400 text-white">Unsaved</span>
+                        ) : item.isVisible === false ? (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-black/50 text-white backdrop-blur-sm">Hidden</span>
+                        ) : null}
                       </div>
-                    )}
-                    <div className={`absolute top-1.5 right-1.5 text-[10px] px-1.5 py-0.5 rounded-md font-semibold backdrop-blur-sm ${
-                      item.isVisible ? 'bg-white/90 text-[#5D8A8F]' : 'bg-white/80 text-gray-400'
-                    }`}>
-                      {item.isVisible ? 'Visible' : 'Hidden'}
                     </div>
-                  </div>
-                ))}
-                {/* Pending (unsaved) items */}
-                {pendingUploads.map((item, index) => (
-                  <div key={`pending-${index}`}
-                    className="aspect-square rounded-xl overflow-hidden relative border-2 border-amber-400">
-                    {item.type === 'image' ? (
-                      <img src={item.cloudinaryUrl} alt={`Pending ${index + 1}`} className="w-full h-full object-cover opacity-80" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                          <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                      </div>
-                    )}
-                    <div className="absolute top-1.5 right-1.5 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-amber-400 text-white">
-                      Unsaved
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-6 text-center mb-5">
-                <p className="text-xs text-gray-400">
-                  {isEditing ? 'No items yet — upload your first piece of work above.' : 'No portfolio items yet.'}
-                </p>
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            {/* Freemium notice */}
-            <div className="p-3.5 bg-[#EEF4F5] border border-[#7FA8AD]/30 rounded-xl text-xs text-[#2A3E42] leading-relaxed">
-              <div className="flex items-start gap-2">
-                <span className="text-[#7FA8AD] mt-0.5 flex-shrink-0"><LockIcon /></span>
-                <p>
-                  <strong>Upload freely.</strong> On freemium, brands see your 3 most recent items.{' '}
-                  <Link href="/influencer/billing" className="text-[#5D8A8F] font-semibold hover:underline cursor-pointer">
-                    Upgrade to show all →
-                  </Link>
-                </p>
+              {/* Freemium notice */}
+              <div className="mt-5 p-3.5 bg-[#EEF4F5] border border-[#7FA8AD]/30 rounded-xl text-xs text-[#2A3E42] leading-relaxed">
+                <div className="flex items-start gap-2">
+                  <span className="text-[#7FA8AD] mt-0.5 flex-shrink-0"><LockIcon /></span>
+                  <p>
+                    <strong>Upload freely.</strong> On freemium, brands see your 3 most recent items.{' '}
+                    <Link href="/influencer/billing" className="text-[#5D8A8F] font-semibold hover:underline cursor-pointer">
+                      Upgrade to show all →
+                    </Link>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
