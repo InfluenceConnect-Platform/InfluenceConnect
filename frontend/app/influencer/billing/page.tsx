@@ -184,78 +184,83 @@ export default function BillingPage() {
 
         {/* Already on Premium — special state */}
         {isPremium && (
-          <div className="mb-8 bg-gradient-to-br from-[#EEF4F5] via-white to-[#f0f6f7] border border-[#7FA8AD]/30 rounded-2xl p-5 sm:p-7 shadow-sm flex flex-col sm:flex-row sm:items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] flex items-center justify-center text-white shadow-md flex-shrink-0">
+          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-md flex-shrink-0 border border-white/20">
               <StarIcon />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-[#5D8A8F] uppercase tracking-wider mb-1">Active plan</p>
-              <h2 className="text-lg font-bold text-[#2A3E42]">You're on Premium — enjoy every feature</h2>
-              <p className="text-sm text-gray-500 mt-1">Your subscription renews automatically. You can cancel anytime from below.</p>
+            <div className="flex-1 min-w-0 relative">
+              <p className="text-xs font-semibold text-teal-200 uppercase tracking-wider mb-1">Active plan</p>
+              <h2 className="text-lg font-bold text-white">You&apos;re on Premium — enjoy every feature</h2>
+              <p className="text-sm text-teal-100/80 mt-1">Your subscription renews automatically. You can cancel anytime from below.</p>
             </div>
-            <button className="flex-shrink-0 self-start sm:self-auto flex items-center gap-2 text-sm text-gray-500 border border-gray-200 bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-150 cursor-pointer font-medium shadow-sm">
+            <button className="relative flex-shrink-0 self-start sm:self-auto flex items-center gap-2 text-sm text-[#1C4A52] font-semibold bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-150 cursor-pointer shadow-sm">
               <RefreshIcon />
               Manage plan
             </button>
           </div>
         )}
 
-        {/* Page header */}
-        <div className="text-center mb-8 md:mb-10">
-          <div className="inline-flex items-center gap-1.5 bg-[#EEF4F5] text-[#5D8A8F] text-xs font-bold px-3 py-1.5 rounded-full border border-[#7FA8AD]/20 mb-4">
-            <SparkIcon />
-            Simple, transparent pricing
-          </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mb-3 leading-tight">
-            Grow faster.<br className="sm:hidden" /> Earn more.
-          </h1>
-          <p className="text-gray-500 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-            Start free forever. Upgrade when you're ready to take your creator career to the next level.
-          </p>
-
-          {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <div className="flex items-center bg-gray-100 rounded-2xl p-1 gap-0.5">
-              <button
-                onClick={() => setBilling('monthly')}
-                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
-                  billing === 'monthly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBilling('yearly')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
-                  billing === 'yearly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Yearly
-                <span className="text-[11px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
-                  −20%
-                </span>
-              </button>
+        {/* Hero header */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
+          <div className="absolute -top-14 -right-14 w-52 h-52 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />
+          <div className="relative">
+            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 mb-4">
+              <SparkIcon />
+              Simple, transparent pricing
             </div>
-          </div>
-          {billing === 'yearly' && (
-            <p className="text-xs text-green-600 font-semibold mt-2">
-              You save ₹{YEARLY_SAVINGS.toLocaleString()} per year — 2 months free
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight mb-3 leading-tight">
+              Grow faster.<br className="sm:hidden" /> Earn more.
+            </h1>
+            <p className="text-teal-100/80 text-sm sm:text-base max-w-md mx-auto leading-relaxed mb-6">
+              Start free forever. Upgrade when you&apos;re ready to take your creator career to the next level.
             </p>
-          )}
-        </div>
+
+            {/* Billing toggle */}
+            <div className="flex items-center justify-center">
+              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-2xl p-1 gap-0.5 border border-white/10">
+                <button
+                  onClick={() => setBilling('monthly')}
+                  className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
+                    billing === 'monthly'
+                      ? 'bg-white text-[#1C4A52] shadow-sm'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBilling('yearly')}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
+                    billing === 'yearly'
+                      ? 'bg-white text-[#1C4A52] shadow-sm'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  Yearly
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full">
+                    −20%
+                  </span>
+                </button>
+              </div>
+            </div>
+            {billing === 'yearly' && (
+              <p className="text-xs text-emerald-300 font-semibold mt-2">
+                You save ₹{YEARLY_SAVINGS.toLocaleString()} per year — 2 months free
+              </p>
+            )}
+          </div>
+        </section>
 
         {/* Plan cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
 
           {/* Freemium */}
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col">
-            <div className="px-6 pt-6 pb-5 border-b border-gray-100">
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Freemium</p>
-              <div className="flex items-baseline gap-1.5 mb-1">
+            <div className="px-6 pt-6 pb-5 border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full uppercase tracking-widest mb-2">Freemium</span>
+              <div className="flex items-baseline gap-1.5 mb-1 mt-1">
                 <span className="text-4xl font-bold text-gray-900 tracking-tight">₹0</span>
                 <span className="text-gray-400 text-sm font-medium">/ forever</span>
               </div>
@@ -266,7 +271,7 @@ export default function BillingPage() {
 
             <div className="px-6 py-5 flex-1 flex flex-col">
               <button disabled
-                className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-400 cursor-not-allowed mb-5 bg-gray-50">
+                className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 cursor-not-allowed mb-5 bg-gray-50">
                 {isPremium ? 'Downgrade' : 'Current plan'}
               </button>
 
@@ -274,7 +279,9 @@ export default function BillingPage() {
                 {FREEMIUM_FEATURES.map((f, i) => (
                   <div key={i} className="flex items-start gap-2.5">
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                      f.included ? 'bg-[#EEF4F5] text-[#7FA8AD]' : 'bg-gray-100 text-gray-300'
+                      f.included
+                        ? 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-300'
                     }`}>
                       {f.included ? <CheckIcon /> : <XIcon />}
                     </span>
@@ -347,7 +354,7 @@ export default function BillingPage() {
               <div className="flex flex-col gap-2.5 flex-1">
                 {PREMIUM_FEATURES.map((f, i) => (
                   <div key={i} className="flex items-start gap-2.5">
-                    <span className="w-4 h-4 rounded-full bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="w-4 h-4 rounded-full bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
                       <CheckIcon />
                     </span>
                     <span className="text-sm text-gray-700 leading-snug">{f.text}</span>
@@ -363,21 +370,21 @@ export default function BillingPage() {
         <div className="bg-white border border-gray-200 rounded-2xl px-4 sm:px-6 py-4 mb-8 shadow-sm">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span className="w-7 h-7 rounded-lg bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
+              <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <LockIcon />
               </span>
               <span><strong className="text-gray-700">Razorpay</strong> secured checkout</span>
             </div>
             <div className="hidden sm:block w-px h-5 bg-gray-200" />
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span className="w-7 h-7 rounded-lg bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
+              <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <RefreshIcon />
               </span>
               <span>Cancel <strong className="text-gray-700">anytime</strong>, no questions asked</span>
             </div>
             <div className="hidden sm:block w-px h-5 bg-gray-200" />
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span className="w-7 h-7 rounded-lg bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
+              <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <ShieldIcon />
               </span>
               <span>We <strong className="text-gray-700">never</strong> store card details</span>
@@ -387,12 +394,13 @@ export default function BillingPage() {
 
         {/* FAQ */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-5 sm:px-6 py-4 border-b border-gray-100">
+          <div className="px-5 sm:px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-teal-50/60 to-white flex items-center gap-3">
+            <div className="w-1 h-7 rounded-full bg-gradient-to-b from-[#7FA8AD] to-[#5D8A8F]" />
             <h3 className="font-bold text-gray-900">Frequently asked questions</h3>
           </div>
           <div className="divide-y divide-gray-100">
             {FAQS.map((faq, i) => (
-              <div key={i} className="px-5 sm:px-6 py-4 sm:py-5">
+              <div key={i} className="px-5 sm:px-6 py-4 sm:py-5 hover:bg-teal-50/20 transition-colors duration-100">
                 <p className="text-sm font-bold text-gray-900 mb-1.5">{faq.q}</p>
                 <p className="text-sm text-gray-500 leading-relaxed">{faq.a}</p>
               </div>

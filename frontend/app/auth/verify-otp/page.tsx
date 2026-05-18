@@ -15,21 +15,31 @@ export default function VerifyOTPPage() {
   const [mobileVerified, setMobileVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [timer, setTimer] = useState(42);
+  const [success, setSuccess] = useState('');
+  const [emailTimer, setEmailTimer] = useState(42);
+  const [mobileTimer, setMobileTimer] = useState(42);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [resendingMobile, setResendingMobile] = useState(false);
 
   const emailRefs = useRef<(HTMLInputElement | null)[]>([]);
   const mobileRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const userId = typeof window !== 'undefined' 
-    ? localStorage.getItem('pendingUserId') 
+  const userId = typeof window !== 'undefined'
+    ? localStorage.getItem('pendingUserId')
     : null;
 
-  // Countdown timer
+  // Separate countdown timers
   useEffect(() => {
-    if (timer <= 0) return;
-    const interval = setInterval(() => setTimer(t => t - 1), 1000);
+    if (emailTimer <= 0) return;
+    const interval = setInterval(() => setEmailTimer(t => t - 1), 1000);
     return () => clearInterval(interval);
-  }, [timer]);
+  }, [emailTimer]);
+
+  useEffect(() => {
+    if (mobileTimer <= 0) return;
+    const interval = setInterval(() => setMobileTimer(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [mobileTimer]);
 
   // Handle digit input with auto advance
   const handleInput = (
@@ -43,20 +53,72 @@ export default function VerifyOTPPage() {
     const newOTP = [...otpArray];
     newOTP[index] = digit;
     setOTP(newOTP);
-    // Auto advance
     if (digit && index < 5) {
       refs.current[index + 1]?.focus();
     }
+  };
+
+  // Handle paste — distribute all digits across boxes
+  const handlePaste = (
+    e: React.ClipboardEvent,
+    otpArray: string[],
+    setOTP: (v: string[]) => void,
+    refs: React.MutableRefObject<(HTMLInputElement | null)[]>
+  ) => {
+    e.preventDefault();
+    const digits = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6).split('');
+    if (digits.length === 0) return;
+    const newOTP = [...otpArray];
+    digits.forEach((d, i) => { if (i < 6) newOTP[i] = d; });
+    setOTP(newOTP);
+    const lastFilled = Math.min(digits.length, 5);
+    refs.current[lastFilled]?.focus();
   };
 
   // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent,
     index: number,
+    otpArray: string[],
+    setOTP: (v: string[]) => void,
     refs: React.MutableRefObject<(HTMLInputElement | null)[]>
   ) => {
-    if (e.key === 'Backspace' && index > 0) {
-      refs.current[index - 1]?.focus();
+    if (e.key === 'Backspace') {
+      if (otpArray[index]) {
+        const newOTP = [...otpArray];
+        newOTP[index] = '';
+        setOTP(newOTP);
+      } else if (index > 0) {
+        refs.current[index - 1]?.focus();
+      }
+    }
+  };
+
+  // Resend OTP for email or mobile
+  const handleResend = async (type: 'email' | 'mobile') => {
+    setError('');
+    setSuccess('');
+    if (type === 'email') setResendingEmail(true);
+    else setResendingMobile(true);
+
+    try {
+      await api.post('/api/auth/resend-otp', { userId, type });
+      if (type === 'email') {
+        setEmailOTP(['', '', '', '', '', '']);
+        setEmailTimer(42);
+        emailRefs.current[0]?.focus();
+      } else {
+        setMobileOTP(['', '', '', '', '', '']);
+        setMobileTimer(42);
+        mobileRefs.current[0]?.focus();
+      }
+      setSuccess(`New ${type} code sent!`);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || `Failed to resend ${type} code.`);
+    } finally {
+      if (type === 'email') setResendingEmail(false);
+      else setResendingMobile(false);
     }
   };
 
@@ -173,15 +235,17 @@ export default function VerifyOTPPage() {
                   key={i}
                   ref={el => { emailRefs.current[i] = el; }}
                   type="text"
+                  inputMode="numeric"
                   maxLength={1}
                   value={digit}
                   onChange={e => handleInput(i, e.target.value, emailOTP, setEmailOTP, emailRefs)}
-                  onKeyDown={e => handleKeyDown(e, i, emailRefs)}
+                  onKeyDown={e => handleKeyDown(e, i, emailOTP, setEmailOTP, emailRefs)}
+                  onPaste={e => handlePaste(e, emailOTP, setEmailOTP, emailRefs)}
                   disabled={emailVerified}
                   className={`
                     flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-lg
                     focus:outline-none focus:border-[#7FA8AD] transition-all
-                    ${emailVerified ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-200'}
+                    ${emailVerified ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-200 text-gray-900'}
                   `}
                 />
               ))}
@@ -189,13 +253,14 @@ export default function VerifyOTPPage() {
 
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500">
-                {timer > 0 ? `Resend in 0:${String(timer).padStart(2, '0')}` : 'Code expired'}
+                {emailTimer > 0 ? `Resend in 0:${String(emailTimer).padStart(2, '0')}` : 'Code expired'}
               </span>
               <button
-                className="text-[#5D8A8F] font-medium hover:underline"
-                onClick={() => setTimer(42)}
+                disabled={emailTimer > 0 || resendingEmail || emailVerified}
+                onClick={() => handleResend('email')}
+                className="text-[#5D8A8F] font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
               >
-                Resend code
+                {resendingEmail ? 'Sending…' : 'Resend code'}
               </button>
             </div>
           </div>
@@ -228,15 +293,17 @@ export default function VerifyOTPPage() {
                   key={i}
                   ref={el => { mobileRefs.current[i] = el; }}
                   type="text"
+                  inputMode="numeric"
                   maxLength={1}
                   value={digit}
                   onChange={e => handleInput(i, e.target.value, mobileOTP, setMobileOTP, mobileRefs)}
-                  onKeyDown={e => handleKeyDown(e, i, mobileRefs)}
+                  onKeyDown={e => handleKeyDown(e, i, mobileOTP, setMobileOTP, mobileRefs)}
+                  onPaste={e => handlePaste(e, mobileOTP, setMobileOTP, mobileRefs)}
                   disabled={mobileVerified}
                   className={`
                     flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-lg
                     focus:outline-none focus:border-[#7FA8AD] transition-all
-                    ${mobileVerified ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-200'}
+                    ${mobileVerified ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-200 text-gray-900'}
                   `}
                 />
               ))}
@@ -244,10 +311,14 @@ export default function VerifyOTPPage() {
 
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500">
-                SMS via MSG91 (coming soon)
+                {mobileTimer > 0 ? `Resend in 0:${String(mobileTimer).padStart(2, '0')}` : 'Code expired'}
               </span>
-              <button className="text-[#5D8A8F] font-medium hover:underline">
-                Resend code
+              <button
+                disabled={mobileTimer > 0 || resendingMobile || mobileVerified}
+                onClick={() => handleResend('mobile')}
+                className="text-[#5D8A8F] font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
+              >
+                {resendingMobile ? 'Sending…' : 'Resend code'}
               </button>
             </div>
           </div>
@@ -264,7 +335,12 @@ export default function VerifyOTPPage() {
           Check your email inbox for the 6-digit code. Mobile OTP will be sent via SMS once MSG91 is configured.
         </div>
 
-        {/* Error */}
+        {/* Success / Error */}
+        {success && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+            {success}
+          </div>
+        )}
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
             {error}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -116,6 +116,10 @@ export default function InfluencerProfile() {
   const [priceRangeMin, setPriceRangeMin] = useState('');
   const [priceRangeMax, setPriceRangeMax] = useState('');
   const [platforms, setPlatforms] = useState<any[]>([]);
+  // Uploads buffered locally — only written to DB when "Save changes" is clicked
+  const [pendingUploads, setPendingUploads] = useState<{
+    cloudinaryUrl: string; thumbnailUrl: string; type: string; fileSize: number; duration: number;
+  }[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -129,17 +133,28 @@ export default function InfluencerProfile() {
     }
   }, [searchParams]);
 
-  const fetchProfile = async () => {
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/auth/login');
+  };
+
+  const fetchProfile = async (portfolioOnlyUpdate = false) => {
     try {
       const response = await api.get('/api/influencer/profile/me');
       const p = response.data.profile;
-      setProfile(p);
-      setBio(p.bio || '');
-      setNiche(p.niche || []);
-      setCity(p.city || '');
-      setPriceRangeMin(p.priceRangeMin?.toString() || '');
-      setPriceRangeMax(p.priceRangeMax?.toString() || '');
-      setPlatforms(p.platforms || []);
+      if (portfolioOnlyUpdate) {
+        // Only refresh portfolio items — don't overwrite unsaved form edits
+        setProfile(prev => prev ? { ...prev, portfolioItems: p.portfolioItems } : p);
+      } else {
+        setProfile(p);
+        setBio(p.bio || '');
+        setNiche(p.niche || []);
+        setCity(p.city || '');
+        setPriceRangeMin(p.priceRangeMin?.toString() || '');
+        setPriceRangeMax(p.priceRangeMax?.toString() || '');
+        setPlatforms(p.platforms || []);
+      }
     } catch (err) {
       console.error('Fetch profile error:', err);
     } finally {
@@ -159,6 +174,7 @@ export default function InfluencerProfile() {
 
   const handleCancelEdit = () => {
     resetFormToProfile();
+    setPendingUploads([]);
     setIsEditing(false);
     setError('');
   };
@@ -190,6 +206,11 @@ export default function InfluencerProfile() {
         priceRangeMax: parseInt(priceRangeMax) || 0,
         platforms,
       });
+      // Now persist any buffered portfolio uploads
+      for (const item of pendingUploads) {
+        await api.post('/api/upload/portfolio', item);
+      }
+      setPendingUploads([]);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
       await fetchProfile();
@@ -229,14 +250,14 @@ export default function InfluencerProfile() {
       const uploadData = await uploadResponse.json();
       if (uploadData.error) throw new Error(uploadData.error.message);
 
-      await api.post('/api/upload/portfolio', {
+      // Buffer locally — will be written to DB only when "Save changes" is clicked
+      setPendingUploads(prev => [...prev, {
         cloudinaryUrl: uploadData.secure_url,
         thumbnailUrl: isVideo ? uploadData.secure_url.replace('/upload/', '/upload/so_0/') : '',
         type: isVideo ? 'video' : 'image',
         fileSize: file.size,
         duration: uploadData.duration || 0,
-      });
-      fetchProfile();
+      }]);
     } catch (err: any) {
       setError(err.message || 'Upload failed. Please try again.');
     } finally {
@@ -282,6 +303,11 @@ export default function InfluencerProfile() {
             className="hidden sm:flex items-center text-xs text-gray-500 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-all duration-150 cursor-pointer">
             ← Dashboard
           </Link>
+          <button
+            onClick={handleLogout}
+            className="text-xs text-red-500 px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all duration-150 cursor-pointer font-medium">
+            Log out
+          </button>
         </div>
       </nav>
 
@@ -419,10 +445,9 @@ export default function InfluencerProfile() {
                         <button key={n} type="button" onClick={() => toggleNiche(n)}
                           className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-all duration-150 border cursor-pointer ${
                             niche.includes(n)
-                              ? 'bg-[#EEF4F5] border-[#7FA8AD] text-[#2A3E42] shadow-sm'
-                              : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                              ? 'bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] border-transparent text-white shadow-sm'
+                              : 'bg-white border-gray-200 text-gray-500 hover:border-[#7FA8AD]/50 hover:bg-teal-50/50 hover:text-[#2A3E42]'
                           }`}>
-                          {niche.includes(n) && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#7FA8AD] mr-1.5 align-middle" />}
                           {n}
                         </button>
                       ))}
@@ -489,11 +514,14 @@ export default function InfluencerProfile() {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Niche</p>
                       {(profile?.niche?.length ?? 0) > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
-                          {profile.niche.map((n: string) => (
-                            <span key={n} className="bg-[#EEF4F5] border border-[#7FA8AD]/40 text-[#2A3E42] px-3 py-1 rounded-full text-xs font-semibold capitalize">
+                          {profile.niche.map((n: string, idx: number) => {
+                            const colors = ['bg-teal-100 text-teal-800 border-teal-200','bg-violet-100 text-violet-800 border-violet-200','bg-amber-100 text-amber-800 border-amber-200','bg-pink-100 text-pink-800 border-pink-200','bg-emerald-100 text-emerald-800 border-emerald-200','bg-indigo-100 text-indigo-800 border-indigo-200','bg-orange-100 text-orange-800 border-orange-200','bg-cyan-100 text-cyan-800 border-cyan-200'];
+                            return (
+                            <span key={n} className={`border px-3 py-1 rounded-full text-xs font-semibold capitalize ${colors[idx % colors.length]}`}>
                               {n}
                             </span>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="text-sm text-gray-400 italic">No niches selected</p>
@@ -520,7 +548,7 @@ export default function InfluencerProfile() {
             <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                     <BarChartIcon />
                   </div>
                   <div>
@@ -558,7 +586,11 @@ export default function InfluencerProfile() {
                       <div key={platform.name} className="border border-gray-200 rounded-xl overflow-hidden">
                         <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-[10px] font-bold text-[#2A3E42] uppercase shadow-sm">
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-white uppercase shadow-sm ${
+                              platform.name === 'instagram' ? 'bg-gradient-to-br from-[#ee2a7b] to-[#6228d7]' :
+                              platform.name === 'youtube' ? 'bg-gradient-to-br from-[#FF0000] to-[#CC0000]' :
+                              'bg-gradient-to-br from-[#1877F2] to-[#0a5ed1]'
+                            }`}>
                               {platform.name.slice(0, 2)}
                             </div>
                             <span className="text-sm font-bold capitalize text-gray-900">{platform.name}</span>
@@ -610,22 +642,32 @@ export default function InfluencerProfile() {
                         : '0.00';
                       return (
                         <div key={platform.name}
-                          className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100">
-                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[11px] font-bold text-[#2A3E42] uppercase shadow-sm flex-shrink-0">
+                          className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-sm transition-all duration-150">
+                          <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-[11px] font-bold text-white uppercase shadow-sm flex-shrink-0 ${
+                            platform.name === 'instagram' ? 'bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]' :
+                            platform.name === 'youtube' ? 'bg-gradient-to-br from-[#FF0000] to-[#CC0000]' :
+                            'bg-gradient-to-br from-[#1877F2] to-[#0a5ed1]'
+                          }`}>
                             {platform.name.slice(0, 2)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
                               <p className="text-sm font-semibold capitalize text-gray-900">{platform.name}</p>
-                              <span className="text-sm font-bold text-[#5D8A8F] tabular-nums">{engagementRate}%</span>
+                              <span className={`text-sm font-bold tabular-nums ${
+                                platform.name === 'instagram' ? 'text-pink-600' :
+                                platform.name === 'youtube' ? 'text-red-600' : 'text-blue-600'
+                              }`}>{engagementRate}%</span>
                             </div>
                             <div className="flex items-center justify-between mb-2">
                               <p className="text-xs text-gray-400">{formatFollowers(platform.followers)} followers</p>
                               <p className="text-xs text-gray-400 hidden sm:block">engagement</p>
                             </div>
-                            <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] rounded-full"
-                                style={{ width: `${Math.min((parseFloat(engagementRate) / 10) * 100, 100)}%` }} />
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full bg-gradient-to-r ${
+                                platform.name === 'instagram' ? 'from-[#ee2a7b] to-[#6228d7]' :
+                                platform.name === 'youtube' ? 'from-[#FF0000] to-[#FF6B6B]' :
+                                'from-[#1877F2] to-[#42A5F5]'
+                              }`} style={{ width: `${Math.min((parseFloat(engagementRate) / 10) * 100, 100)}%` }} />
                             </div>
                           </div>
                         </div>
@@ -642,7 +684,7 @@ export default function InfluencerProfile() {
           <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm h-fit lg:sticky lg:top-[76px]">
             <div className="flex items-start justify-between mb-1">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                   <ImageIcon />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-[15px]">Portfolio</h3>
@@ -694,10 +736,23 @@ export default function InfluencerProfile() {
               </>
             )}
 
+            {/* Pending uploads notice */}
+            {pendingUploads.length > 0 && (
+              <div className="mb-3 flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p className="text-[11px] text-amber-700 font-medium">
+                  {pendingUploads.length} upload{pendingUploads.length > 1 ? 's' : ''} pending — click <strong>Save changes</strong> to publish.
+                </p>
+              </div>
+            )}
+
             {/* Portfolio grid */}
-            {profile?.portfolioItems?.length > 0 ? (
+            {(profile?.portfolioItems?.length > 0 || pendingUploads.length > 0) ? (
               <div className="grid grid-cols-3 gap-2 mb-5">
-                {profile.portfolioItems.map((item: any, index: number) => (
+                {/* Saved items */}
+                {profile?.portfolioItems?.map((item: any, index: number) => (
                   <div key={item._id}
                     className={`aspect-square rounded-xl overflow-hidden relative border-2 ${
                       item.isVisible ? 'border-[#7FA8AD]/50' : 'border-gray-200 opacity-55'
@@ -715,6 +770,24 @@ export default function InfluencerProfile() {
                       item.isVisible ? 'bg-white/90 text-[#5D8A8F]' : 'bg-white/80 text-gray-400'
                     }`}>
                       {item.isVisible ? 'Visible' : 'Hidden'}
+                    </div>
+                  </div>
+                ))}
+                {/* Pending (unsaved) items */}
+                {pendingUploads.map((item, index) => (
+                  <div key={`pending-${index}`}
+                    className="aspect-square rounded-xl overflow-hidden relative border-2 border-amber-400">
+                    {item.type === 'image' ? (
+                      <img src={item.cloudinaryUrl} alt={`Pending ${index + 1}`} className="w-full h-full object-cover opacity-80" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                      </div>
+                    )}
+                    <div className="absolute top-1.5 right-1.5 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-amber-400 text-white">
+                      Unsaved
                     </div>
                   </div>
                 ))}

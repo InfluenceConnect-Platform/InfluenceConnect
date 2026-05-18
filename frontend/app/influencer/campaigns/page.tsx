@@ -304,39 +304,43 @@ export default function InfluencerCampaigns() {
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
 
-        {/* Page header */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5 md:mb-6">
-          <div>
-            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Browse opportunities</p>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Campaigns for you</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {loading ? 'Fetching live opportunities…' : `${sortedCampaigns.length} campaign${sortedCampaigns.length !== 1 ? 's' : ''} available`}
-            </p>
-          </div>
-          {/* Sort */}
-          <div className="relative self-start sm:self-auto">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-              <SortIcon />
+        {/* Hero banner */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl px-5 sm:px-7 py-5 mb-5 shadow-lg">
+          <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 relative">
+            <div>
+              <p className="text-xs text-teal-200 font-semibold uppercase tracking-wider mb-1.5">Browse opportunities</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Campaigns for you</h1>
+              <p className="text-teal-200/80 text-sm mt-1">
+                {loading ? 'Fetching live opportunities…' : `${sortedCampaigns.length} campaign${sortedCampaigns.length !== 1 ? 's' : ''} available`}
+              </p>
             </div>
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              className="pl-8 pr-8 py-2 text-xs font-semibold border border-gray-200 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] appearance-none cursor-pointer shadow-sm transition-all duration-150"
-            >
-              {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-            <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
+            {/* Sort */}
+            <div className="relative self-start sm:self-auto">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none">
+                <SortIcon />
+              </div>
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="pl-8 pr-8 py-2 text-xs font-semibold border border-white/20 rounded-xl bg-white/15 backdrop-blur-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30 appearance-none cursor-pointer transition-all duration-150"
+              >
+                {SORT_OPTIONS.map(o => <option key={o.value} value={o.value} className="text-gray-900 bg-white">{o.label}</option>)}
+              </select>
+              <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
           </div>
-        </div>
+        </section>
 
         {/* Freemium application cap */}
         {!isPremium && (
-          <div className="bg-white border border-[#7FA8AD]/30 rounded-2xl px-4 py-3.5 mb-5 shadow-sm">
+          <div className="bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-200 rounded-2xl px-4 py-3.5 mb-5 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                   <InfoIcon />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -415,12 +419,9 @@ export default function InfluencerCampaigns() {
               <button key={niche} onClick={() => toggleNiche(niche)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all duration-150 cursor-pointer ${
                   selectedNiches.includes(niche)
-                    ? 'bg-[#EEF4F5] border-[#7FA8AD] text-[#2A3E42] shadow-sm'
-                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] border-transparent text-white shadow-sm'
+                    : 'bg-white border-gray-200 text-gray-500 hover:border-[#7FA8AD]/50 hover:bg-teal-50/50 hover:text-[#2A3E42]'
                 }`}>
-                {selectedNiches.includes(niche) && (
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#7FA8AD] mr-1.5 align-middle" />
-                )}
                 {niche}
               </button>
             ))}
@@ -491,23 +492,25 @@ export default function InfluencerCampaigns() {
               return (
                 <div
                   key={campaign._id}
-                  className={`bg-white rounded-2xl border shadow-sm flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+                  className={`rounded-2xl border shadow-sm flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
                     alreadyApplied
-                      ? 'border-green-200'
+                      ? 'bg-gradient-to-br from-white to-green-50/40 border-green-200'
                       : urgency
-                      ? 'border-red-200'
-                      : 'border-gray-200 hover:border-[#7FA8AD]/50'
+                      ? 'bg-gradient-to-br from-white to-red-50/40 border-red-200'
+                      : 'bg-white border-gray-200 hover:border-[#7FA8AD]/50'
                   }`}
                 >
                   {/* Card top accent strip */}
-                  <div className={`h-1 w-full rounded-t-2xl ${
-                    alreadyApplied ? 'bg-green-400' : urgency ? 'bg-red-400' : soonish ? 'bg-amber-400' : 'bg-gradient-to-r from-[#7FA8AD] to-[#9fc5c9]'
+                  <div className={`h-1.5 w-full rounded-t-2xl ${
+                    alreadyApplied ? 'bg-gradient-to-r from-emerald-400 to-green-500' : urgency ? 'bg-gradient-to-r from-red-400 to-rose-500' : soonish ? 'bg-gradient-to-r from-amber-400 to-orange-400' : 'bg-gradient-to-r from-[#7FA8AD] via-[#5BA8B5] to-[#9fc5c9]'
                   }`} />
 
                   <div className="p-4 sm:p-5 flex flex-col flex-1">
                     {/* Brand row */}
                     <div className="flex items-center gap-3 mb-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#EEF4F5] to-[#daeced] flex items-center justify-center text-[11px] font-bold text-[#2A3E42] flex-shrink-0 shadow-sm border border-[#7FA8AD]/20">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 shadow-sm ${
+                        ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'][(campaign.brandId?.name?.charCodeAt(0) || 0) % 6]
+                      }`}>
                         {campaign.brandId?.name?.slice(0, 2).toUpperCase() || 'BR'}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -516,7 +519,11 @@ export default function InfluencerCampaigns() {
                           <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
                           <p className="text-[11px] text-gray-400 font-medium">Verified brand</p>
                           {campaign.targetPlatform && campaign.targetPlatform !== 'any' && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-md ml-1 uppercase tracking-wide">
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ml-1 uppercase tracking-wide text-white ${
+                              campaign.targetPlatform === 'instagram' ? 'bg-gradient-to-r from-[#ee2a7b] to-[#6228d7]' :
+                              campaign.targetPlatform === 'youtube' ? 'bg-[#FF0000]' :
+                              campaign.targetPlatform === 'facebook' ? 'bg-[#1877F2]' : 'bg-gray-500'
+                            }`}>
                               {PLATFORM_ICONS[campaign.targetPlatform] || campaign.targetPlatform}
                             </span>
                           )}
@@ -540,12 +547,12 @@ export default function InfluencerCampaigns() {
                     {/* Stats row */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {/* Budget */}
-                      <div className="bg-gradient-to-br from-[#EEF4F5] to-[#f0f6f7] border border-[#7FA8AD]/20 rounded-xl p-3">
-                        <p className="text-[10px] text-[#5D8A8F]/70 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
-                        <p className="text-[13px] font-bold text-[#2A3E42] leading-tight">
+                      <div className="bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200 rounded-xl p-3">
+                        <p className="text-[10px] text-emerald-600/80 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
+                        <p className="text-[13px] font-bold text-emerald-900 leading-tight">
                           ₹{campaign.budgetMin.toLocaleString()}
                         </p>
-                        <p className="text-[10px] text-[#5D8A8F]/60">– ₹{campaign.budgetMax.toLocaleString()}</p>
+                        <p className="text-[10px] text-emerald-600/60">– ₹{campaign.budgetMax.toLocaleString()}</p>
                       </div>
 
                       {/* Deadline */}
@@ -630,7 +637,7 @@ export default function InfluencerCampaigns() {
                         <button
                           onClick={() => handleApply(campaign._id)}
                           disabled={isApplying}
-                          className="flex-shrink-0 text-xs px-4 py-2 bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white rounded-xl font-bold transition-all duration-150 disabled:opacity-60 cursor-pointer shadow-sm hover:shadow-md">
+                          className="flex-shrink-0 text-xs px-4 py-2 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white rounded-xl font-bold transition-all duration-150 disabled:opacity-60 cursor-pointer shadow-sm hover:shadow-md">
                           {isApplying ? (
                             <span className="flex items-center gap-1.5">
                               <span className="w-3 h-3 border border-white/50 border-t-white rounded-full animate-spin" />
@@ -650,9 +657,12 @@ export default function InfluencerCampaigns() {
         {/* My Applications */}
         <section className="mt-8 md:mt-10">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">My applications</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Track your submitted campaign applications</p>
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-[#7FA8AD] to-[#5D8A8F]" />
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">My applications</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Track your submitted campaign applications</p>
+              </div>
             </div>
           </div>
           <MyApplications />

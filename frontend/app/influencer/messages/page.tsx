@@ -273,11 +273,14 @@ export default function MessagesPage() {
         `}>
 
           {/* Sidebar header */}
-          <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+          <div className="px-4 pt-4 pb-3 border-b border-gray-100 bg-gradient-to-r from-teal-50/70 to-white">
             <div className="flex items-center justify-between mb-3">
-              <h1 className="text-lg font-bold text-gray-900">Messages</h1>
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-6 rounded-full bg-gradient-to-b from-[#7FA8AD] to-[#5D8A8F]" />
+                <h1 className="text-lg font-bold text-gray-900">Messages</h1>
+              </div>
               {!isPremium && (
-                <span className="text-[11px] font-semibold px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                <span className="text-[11px] font-semibold px-2 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full shadow-sm">
                   {messagesUsed}/{FREEMIUM_MSG_LIMIT} used
                 </span>
               )}
@@ -307,7 +310,7 @@ export default function MessagesPage() {
               </div>
             ) : filteredDeals.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
                   <ChatBubbleIcon size={32} />
                 </div>
                 <p className="text-sm font-bold text-gray-800 mb-1">No conversations yet</p>
@@ -336,7 +339,7 @@ export default function MessagesPage() {
                         onClick={() => selectDeal(deal)}
                         className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-150 cursor-pointer border-b border-gray-50 ${
                           isActive
-                            ? 'bg-[#EEF4F5] border-l-2 border-l-[#7FA8AD]'
+                            ? 'bg-gradient-to-r from-teal-50 to-cyan-50 border-l-[3px] border-l-[#7FA8AD]'
                             : 'hover:bg-gray-50'
                         }`}
                       >
@@ -365,12 +368,12 @@ export default function MessagesPage() {
                         </div>
 
                         {/* Deal status pill */}
-                        <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                        <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md text-white ${
                           deal.status === 'completed'
-                            ? 'bg-green-50 text-green-600'
+                            ? 'bg-gradient-to-r from-emerald-500 to-green-600'
                             : deal.status === 'active'
-                            ? 'bg-blue-50 text-blue-600'
-                            : 'bg-amber-50 text-amber-600'
+                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                            : 'bg-gradient-to-r from-amber-500 to-orange-500'
                         }`}>
                           {deal.status}
                         </span>
@@ -385,16 +388,17 @@ export default function MessagesPage() {
           {/* Freemium upgrade nudge */}
           {!isPremium && (
             <div className="border-t border-gray-100 p-3">
-              <div className="bg-gradient-to-r from-[#EEF4F5] to-[#FDF3DD] border border-[#7FA8AD]/20 rounded-xl p-3 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-[#7FA8AD] text-white flex items-center justify-center flex-shrink-0">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-xl p-3 flex items-center gap-2.5">
+                <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/5 rounded-full pointer-events-none" />
+                <div className="w-7 h-7 rounded-lg bg-white/20 text-white flex items-center justify-center flex-shrink-0">
                   <LockIcon />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-[#2A3E42]">Unlimited messages</p>
-                  <p className="text-[10px] text-gray-500">Upgrade to Premium</p>
+                <div className="flex-1 min-w-0 relative">
+                  <p className="text-[11px] font-bold text-white">Unlimited messages</p>
+                  <p className="text-[10px] text-teal-200">Upgrade to Premium</p>
                 </div>
                 <Link href="/influencer/billing"
-                  className="text-[11px] font-bold text-white bg-[#7FA8AD] hover:bg-[#5D8A8F] px-2.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex-shrink-0">
+                  className="text-[11px] font-bold text-[#1C4A52] bg-white hover:bg-gray-50 px-2.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex-shrink-0 shadow-sm relative">
                   Upgrade
                 </Link>
               </div>
@@ -411,7 +415,7 @@ export default function MessagesPage() {
           {selectedDeal ? (
             <>
               {/* Chat header */}
-              <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+              <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 bg-gradient-to-r from-teal-50/80 via-white to-white border-b border-gray-200 shadow-sm flex-shrink-0">
                 {/* Back button (mobile only) */}
                 <button
                   onClick={goBackToList}
@@ -438,12 +442,12 @@ export default function MessagesPage() {
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                     <span className="text-[11px] text-gray-400 hidden sm:block">Active deal</span>
                   </div>
-                  <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                  <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full text-white ${
                     selectedDeal.status === 'completed'
-                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      ? 'bg-gradient-to-r from-emerald-500 to-green-600'
                       : selectedDeal.status === 'active'
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                      : 'bg-gradient-to-r from-amber-500 to-orange-500'
                   }`}>
                     {selectedDeal.status}
                   </span>
@@ -451,9 +455,9 @@ export default function MessagesPage() {
               </div>
 
               {/* Platform moderation notice */}
-              <div className="flex items-center gap-2 px-4 sm:px-5 py-2 bg-[#EEF4F5]/60 border-b border-[#7FA8AD]/10 flex-shrink-0">
-                <span className="text-[#7FA8AD]"><ShieldIcon /></span>
-                <p className="text-[11px] text-[#5D8A8F] font-medium">
+              <div className="flex items-center gap-2 px-4 sm:px-5 py-2 bg-gradient-to-r from-teal-50 to-cyan-50/50 border-b border-teal-200/40 flex-shrink-0">
+                <span className="text-teal-600 flex-shrink-0"><ShieldIcon /></span>
+                <p className="text-[11px] text-teal-700 font-medium">
                   Sharing phone numbers, emails, or social handles is automatically blocked to protect both parties.
                 </p>
               </div>
@@ -466,7 +470,7 @@ export default function MessagesPage() {
               >
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 shadow-sm text-[#7FA8AD] flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center shadow-md">
                       <ChatBubbleIcon size={28} />
                     </div>
                     <div>
@@ -504,7 +508,7 @@ export default function MessagesPage() {
                           <div className={`flex flex-col gap-0.5 max-w-[72%] sm:max-w-[60%] ${isMine ? 'items-end' : 'items-start'}`}>
                             <div className={`px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
                               isMine
-                                ? `bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white ${isLast ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl'}`
+                                ? `bg-gradient-to-br from-[#27717E] to-[#5BA8B5] text-white ${isLast ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl'}`
                                 : `bg-white border border-gray-200 text-gray-800 ${isLast ? 'rounded-2xl rounded-bl-sm' : 'rounded-2xl'}`
                             }`}>
                               {msg.content}
@@ -599,7 +603,7 @@ export default function MessagesPage() {
                     disabled={sending || !newMessage.trim() || limitReached}
                     className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
                       newMessage.trim() && !limitReached
-                        ? 'bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white shadow-sm hover:shadow-md cursor-pointer'
+                        ? 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white shadow-sm hover:shadow-md cursor-pointer'
                         : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -615,14 +619,14 @@ export default function MessagesPage() {
           ) : (
             /* No conversation selected — desktop placeholder */
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#EEF4F5] to-[#daeced] text-[#7FA8AD] flex items-center justify-center mb-5 shadow-sm">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] text-white flex items-center justify-center mb-5 shadow-lg">
                 <ChatBubbleIcon size={40} />
               </div>
               <h3 className="text-lg font-bold text-gray-800 mb-2">Your messages</h3>
               <p className="text-sm text-gray-400 max-w-[260px] leading-relaxed mb-6">
                 Select a conversation from the sidebar to start chatting with a brand.
               </p>
-              <div className="flex items-center gap-2 text-xs text-[#5D8A8F] bg-[#EEF4F5] px-4 py-2.5 rounded-xl border border-[#7FA8AD]/20">
+              <div className="flex items-center gap-2 text-xs text-teal-700 bg-teal-50 px-4 py-2.5 rounded-xl border border-teal-200">
                 <ShieldIcon />
                 <span className="font-medium">End-to-end moderated for your safety</span>
               </div>

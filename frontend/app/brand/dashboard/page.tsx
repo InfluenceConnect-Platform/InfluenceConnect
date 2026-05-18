@@ -13,6 +13,20 @@ const STATUS_STYLES: Record<string, string> = {
   rejected:    'bg-red-50 text-red-600 border border-red-100',
 };
 
+const BRAND_STAT_STYLES = [
+  { iconBg: 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-sm', cardBg: 'bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200', valueClass: 'text-blue-900', subClass: 'text-blue-500' },
+  { iconBg: 'bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-sm', cardBg: 'bg-gradient-to-br from-violet-50 to-purple-100 border-violet-200', valueClass: 'text-violet-900', subClass: 'text-violet-500' },
+  { iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-sm', cardBg: 'bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200', valueClass: 'text-amber-900', subClass: 'text-amber-600' },
+  { iconBg: 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-sm', cardBg: 'bg-gradient-to-br from-emerald-50 to-green-100 border-emerald-200', valueClass: 'text-emerald-900', subClass: 'text-emerald-600' },
+];
+
+const BRAND_ACTION_COLORS = [
+  'bg-gradient-to-br from-[#3D5087] to-[#2B3B68]',
+  'bg-gradient-to-br from-violet-500 to-purple-600',
+  'bg-gradient-to-br from-amber-500 to-orange-500',
+  'bg-gradient-to-br from-emerald-500 to-green-600',
+];
+
 export default function BrandDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -71,7 +85,7 @@ export default function BrandDashboard() {
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-blue-200/90 text-sm font-medium mb-1">
-                Welcome back, {user?.name?.split(' ')[0]}
+                Welcome, {user?.name?.split(' ')[0]}
               </p>
               <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
                 Your campaign command center
@@ -169,20 +183,20 @@ export default function BrandDashboard() {
           ].map((stat, i) => (
             <div
               key={i}
-              className={`bg-white border rounded-2xl p-4 sm:p-5 shadow-sm transition-shadow ${
-                stat.warn ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200/80 hover:shadow-md'
+              className={`border rounded-2xl p-4 sm:p-5 shadow-sm transition-all ${
+                stat.warn ? 'border-amber-300 bg-amber-50/50' : `${BRAND_STAT_STYLES[i].cardBg} hover:shadow-md`
               }`}
             >
               <div className="flex items-start justify-between mb-3 sm:mb-4">
-                <p className="text-xs font-medium text-gray-500 leading-tight pr-2">{stat.label}</p>
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.iconBg}`}>
+                <p className="text-xs font-medium text-gray-600 leading-tight pr-2">{stat.label}</p>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.warn ? 'bg-amber-100 text-amber-600' : BRAND_STAT_STYLES[i].iconBg}`}>
                   {stat.icon}
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 leading-none mb-1.5 tabular-nums">
+              <p className={`text-2xl sm:text-3xl font-bold leading-none mb-1.5 tabular-nums ${stat.warn ? 'text-amber-900' : BRAND_STAT_STYLES[i].valueClass}`}>
                 {stat.value}
               </p>
-              <p className={`text-xs font-medium ${stat.warn ? 'text-amber-600' : 'text-gray-400'}`}>
+              <p className={`text-xs font-medium ${stat.warn ? 'text-amber-600' : BRAND_STAT_STYLES[i].subClass}`}>
                 {stat.sub}
               </p>
             </div>
@@ -224,7 +238,7 @@ export default function BrandDashboard() {
               <div className="divide-y divide-gray-50">
                 {recentApplications.map((app, i) => (
                   <div key={i} className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50/50 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#EAEDF6] to-[#d0d5ea] text-[#3D5087] flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3D5087] to-[#6B7FBB] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
                       {app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -292,13 +306,13 @@ export default function BrandDashboard() {
                       </svg>
                     ),
                   },
-                ].map(action => (
+                ].map((action, i) => (
                   <Link
                     key={action.href + action.label}
                     href={action.href}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#F4F6FB] transition-all group cursor-pointer"
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all group cursor-pointer"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-[#EAEDF6] text-[#3D5087] flex items-center justify-center flex-shrink-0 group-hover:bg-[#3D5087] group-hover:text-white transition-all">
+                    <div className={`w-8 h-8 rounded-lg text-white flex items-center justify-center flex-shrink-0 shadow-sm ${BRAND_ACTION_COLORS[i]}`}>
                       {action.icon}
                     </div>
                     <div className="flex-1 min-w-0">

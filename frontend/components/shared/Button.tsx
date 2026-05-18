@@ -18,10 +18,10 @@ export default function Button({
   loading = false
 }: ButtonProps) {
 
-  const base = 'inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-150 cursor-pointer';
+  const base = 'inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-all duration-150 cursor-pointer';
 
   const variants = {
-    primary: 'bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white border border-[#7FA8AD]',
+    primary: 'bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white shadow-sm hover:shadow-md',
     secondary: 'bg-white hover:bg-gray-50 text-gray-800 border border-gray-200',
     ghost: 'bg-transparent hover:bg-gray-100 text-gray-600 border border-transparent'
   };
@@ -44,7 +44,7 @@ export default function Button({
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
           </svg>
-          Please wait...
+          Please wait…
         </>
       ) : children}
     </button>

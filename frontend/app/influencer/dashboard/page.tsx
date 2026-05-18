@@ -91,6 +91,53 @@ const CheckIcon = () => (
   </svg>
 );
 
+const InstagramIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+  </svg>
+);
+
+const YoutubeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/>
+  </svg>
+);
+
+const FacebookIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
+const TiktokIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34l-.01-8.42a8.18 8.18 0 0 0 4.78 1.52V5.0a4.85 4.85 0 0 1-1-.31z"/>
+  </svg>
+);
+
+const TwitterXIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
+
+const LinkedinIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+  </svg>
+);
+
+const getPlatformIcon = (name: string) => {
+  const n = name.toLowerCase();
+  if (n === 'instagram') return <InstagramIcon />;
+  if (n === 'youtube') return <YoutubeIcon />;
+  if (n === 'facebook') return <FacebookIcon />;
+  if (n === 'tiktok') return <TiktokIcon />;
+  if (n === 'twitter' || n === 'x') return <TwitterXIcon />;
+  if (n === 'linkedin') return <LinkedinIcon />;
+  return <span className="text-[11px] font-bold uppercase">{name.slice(0, 2)}</span>;
+};
+
 const formatFollowers = (n: number): string => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
@@ -112,6 +159,7 @@ export default function InfluencerDashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [primaryPlatform, setPrimaryPlatform] = useState<Platform | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -144,6 +192,8 @@ export default function InfluencerDashboard() {
     localStorage.removeItem('user');
     router.push('/auth/login');
   };
+
+  const confirmLogout = () => setShowLogoutModal(true);
 
   if (loading) {
     return (
@@ -201,12 +251,12 @@ export default function InfluencerDashboard() {
           }`}>
             {isPremium ? '★ Premium' : 'Freemium'}
           </span>
-          <button onClick={handleLogout}
-            className="hidden sm:block text-xs text-gray-500 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-all duration-150 cursor-pointer">
+          <button onClick={confirmLogout}
+            className="text-xs text-red-500 px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all duration-150 cursor-pointer font-medium">
             Log out
           </button>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm cursor-pointer"
-            onClick={handleLogout} title="Tap to log out">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm cursor-pointer hover:ring-[#7FA8AD] transition-all duration-150"
+            onClick={() => router.push('/influencer/profile')} title="View profile">
             {user?.name?.charAt(0).toUpperCase()}
           </div>
         </div>
@@ -229,30 +279,32 @@ export default function InfluencerDashboard() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
 
         {/* Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-r from-[#EEF4F5] via-[#f0ecf5] to-[#FDE5DC] border border-[rgba(127,168,173,0.2)] rounded-2xl px-5 sm:px-7 py-5 sm:py-6 mb-5 md:mb-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl px-5 sm:px-7 py-5 sm:py-6 mb-5 md:mb-6 shadow-lg">
+          <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 relative">
             {/* Left: avatar + info */}
             <div className="flex items-center gap-4 sm:gap-5">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-md flex-shrink-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-md flex-shrink-0 border border-white/30">
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 font-medium mb-0.5 uppercase tracking-wider">Welcome back</p>
-                <h1 className="text-xl sm:text-2xl font-bold text-[#2A3E42] tracking-tight leading-none truncate">
+                <p className="text-xs text-teal-200 font-medium mb-0.5 uppercase tracking-wider">Welcome back</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-none truncate">
                   {user?.name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="inline-flex items-center gap-1.5 bg-[#F0ECFA] text-[#3C3489] px-2.5 py-1 rounded-full text-xs font-semibold capitalize">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#B4A8E8]" />
+                  <span className="inline-flex items-center gap-1.5 bg-white/20 text-white px-2.5 py-1 rounded-full text-xs font-semibold capitalize border border-white/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
                     {profile?.level || 'Starter'}
                   </span>
                   {profile?.city && (
-                    <span className="text-xs text-gray-500 bg-white/60 px-2.5 py-1 rounded-full border border-white/80 hidden sm:inline">
+                    <span className="text-xs text-teal-100 bg-white/10 px-2.5 py-1 rounded-full border border-white/20 hidden sm:inline">
                       {profile.city}
                     </span>
                   )}
                   {(profile?.niche?.length ?? 0) > 0 && (
-                    <span className="text-xs text-gray-500 bg-white/60 px-2.5 py-1 rounded-full border border-white/80 capitalize hidden sm:inline">
+                    <span className="text-xs text-teal-100 bg-white/10 px-2.5 py-1 rounded-full border border-white/20 capitalize hidden sm:inline">
                       {profile!.niche.slice(0, 2).join(' · ')}
                     </span>
                   )}
@@ -261,20 +313,21 @@ export default function InfluencerDashboard() {
             </div>
 
             {/* Profile strength ring — hidden on very small, shown from sm */}
-            <div className="hidden sm:flex items-center gap-3 bg-white/70 backdrop-blur-sm rounded-2xl px-4 sm:px-5 py-3 sm:py-3.5 border border-white/80 shadow-sm flex-shrink-0">
+            <div className="hidden sm:flex items-center gap-3 bg-white/15 backdrop-blur-sm rounded-2xl px-4 sm:px-5 py-3 sm:py-3.5 border border-white/20 shadow-sm flex-shrink-0">
               <div className="relative w-12 h-12 flex items-center justify-center">
                 <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
-                  <circle cx="24" cy="24" r="18" fill="none" stroke="#E5E7EB" strokeWidth="3.5" />
-                  <circle cx="24" cy="24" r="18" fill="none" stroke="#7FA8AD" strokeWidth="3.5"
+                  <circle cx="24" cy="24" r="18" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="3.5" />
+                  <circle cx="24" cy="24" r="18" fill="none" stroke="white" strokeWidth="3.5"
                     strokeDasharray={`${(completionPct / 100) * CIRCUMFERENCE} ${CIRCUMFERENCE}`}
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className="absolute text-[10px] font-bold text-[#2A3E42]">{completionPct}%</span>
+                <span className="absolute text-[10px] font-bold text-white">{completionPct}%</span>
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-900">Profile strength</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs font-semibold text-white">Profile strength</p>
+                <p className="text-xs text-teal-200 mt-0.5">
+
                   {completionFlags.filter(Boolean).length}/{completionFlags.length} steps done
                 </p>
               </div>
@@ -290,53 +343,61 @@ export default function InfluencerDashboard() {
               value: profile?.credibilityScore ?? 0,
               sub: 'Out of 100',
               Icon: ShieldIcon,
-              iconClass: 'bg-[#EEF4F5] text-[#7FA8AD]',
-              accentClass: 'border-l-[#7FA8AD]',
+              iconClass: 'bg-gradient-to-br from-[#7FA8AD] to-[#4A8D95] text-white shadow-sm',
+              cardClass: 'bg-gradient-to-br from-teal-50 to-cyan-100 border border-teal-200',
+              valueClass: 'text-[#1C4A52]',
+              subClass: 'text-teal-600',
             },
             {
               label: 'Engagement rate',
               value: primaryPlatform ? `${primaryPlatform.engagementRate}%` : '—',
               sub: primaryPlatform ? primaryPlatform.name : 'No platform',
               Icon: TrendingUpIcon,
-              iconClass: 'bg-[#F0ECFA] text-[#3C3489]',
-              accentClass: 'border-l-[#B4A8E8]',
+              iconClass: 'bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-sm',
+              cardClass: 'bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200',
+              valueClass: 'text-violet-900',
+              subClass: 'text-violet-500',
             },
             {
               label: 'Portfolio items',
               value: profile?.portfolioItems?.length ?? 0,
               sub: `${visiblePortfolio.length} visible`,
               Icon: GridIcon,
-              iconClass: 'bg-[#FDF3DD] text-amber-600',
-              accentClass: 'border-l-amber-400',
+              iconClass: 'bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-sm',
+              cardClass: 'bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200',
+              valueClass: 'text-amber-900',
+              subClass: 'text-amber-600',
             },
             {
               label: 'Deals done',
               value: profile?.dealsCompleted ?? 0,
               sub: 'All time',
               Icon: CheckCircleIcon,
-              iconClass: 'bg-green-50 text-green-600',
-              accentClass: 'border-l-green-400',
+              iconClass: 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-sm',
+              cardClass: 'bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200',
+              valueClass: 'text-emerald-900',
+              subClass: 'text-emerald-600',
             },
           ].map((stat) => (
             <div key={stat.label}
-              className={`bg-white border border-gray-200 border-l-4 ${stat.accentClass} rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow duration-200`}>
+              className={`rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-all duration-200 ${stat.cardClass}`}>
               <div className="flex items-start justify-between mb-3">
-                <p className="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider leading-tight pr-1">{stat.label}</p>
+                <p className="text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wider leading-tight pr-1">{stat.label}</p>
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${stat.iconClass}`}>
                   <stat.Icon />
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight leading-none mb-1.5 tabular-nums">
+              <p className={`text-2xl sm:text-3xl font-bold tracking-tight leading-none mb-1.5 tabular-nums ${stat.valueClass}`}>
                 {stat.value}
               </p>
-              <p className="text-xs text-gray-400 capitalize font-medium truncate">{stat.sub}</p>
+              <p className={`text-xs capitalize font-medium truncate ${stat.subClass}`}>{stat.sub}</p>
             </div>
           ))}
         </section>
 
         {/* Profile completion prompt */}
         {completionPct < 100 && (
-          <section className="bg-white border border-[#7FA8AD]/30 rounded-xl p-4 sm:p-5 mb-5 md:mb-6 shadow-sm">
+          <section className="bg-gradient-to-br from-teal-50 via-cyan-50 to-white border border-teal-200 rounded-xl p-4 sm:p-5 mb-5 md:mb-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
               <div className="flex items-start gap-4 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
@@ -387,22 +448,43 @@ export default function InfluencerDashboard() {
                 <div className="flex flex-col gap-3">
                   {profile!.platforms.map((platform) => (
                     <div key={platform.name}
-                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-[#7FA8AD]/30 hover:bg-[#EEF4F5]/40 transition-all duration-150 group">
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[11px] font-bold text-[#2A3E42] uppercase shadow-sm flex-shrink-0">
-                        {platform.name.slice(0, 2)}
+                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-sm transition-all duration-150">
+                      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-sm flex-shrink-0 ${
+                        platform.name.toLowerCase() === 'instagram' ? 'bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]' :
+                        platform.name.toLowerCase() === 'youtube' ? 'bg-gradient-to-br from-[#FF0000] to-[#CC0000]' :
+                        platform.name.toLowerCase() === 'facebook' ? 'bg-gradient-to-br from-[#1877F2] to-[#0a5ed1]' :
+                        platform.name.toLowerCase() === 'tiktok' ? 'bg-gradient-to-br from-[#010101] to-[#69C9D0]' :
+                        platform.name.toLowerCase() === 'twitter' || platform.name.toLowerCase() === 'x' ? 'bg-black' :
+                        platform.name.toLowerCase() === 'linkedin' ? 'bg-gradient-to-br from-[#0077B5] to-[#005885]' :
+                        'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F]'
+                      }`}>
+                        {getPlatformIcon(platform.name)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <p className="text-sm font-semibold capitalize text-gray-900">{platform.name}</p>
-                          <span className="text-sm font-bold text-[#5D8A8F] tabular-nums">{platform.engagementRate}%</span>
+                          <span className={`text-sm font-bold tabular-nums ${
+                            platform.name.toLowerCase() === 'instagram' ? 'text-pink-600' :
+                            platform.name.toLowerCase() === 'youtube' ? 'text-red-600' :
+                            platform.name.toLowerCase() === 'tiktok' ? 'text-cyan-600' :
+                            platform.name.toLowerCase() === 'twitter' || platform.name.toLowerCase() === 'x' ? 'text-gray-800' :
+                            platform.name.toLowerCase() === 'linkedin' ? 'text-sky-700' :
+                            'text-blue-600'
+                          }`}>{platform.engagementRate}%</span>
                         </div>
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-xs text-gray-400">{formatFollowers(platform.followers)} followers</p>
                           <p className="text-xs text-gray-400 hidden sm:block">engagement</p>
                         </div>
-                        <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] rounded-full"
-                            style={{ width: `${Math.min((platform.engagementRate / 10) * 100, 100)}%` }} />
+                        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${
+                            platform.name.toLowerCase() === 'instagram' ? 'from-[#ee2a7b] to-[#6228d7]' :
+                            platform.name.toLowerCase() === 'youtube' ? 'from-[#FF0000] to-[#FF6B6B]' :
+                            platform.name.toLowerCase() === 'tiktok' ? 'from-[#010101] to-[#69C9D0]' :
+                            platform.name.toLowerCase() === 'twitter' || platform.name.toLowerCase() === 'x' ? 'from-gray-700 to-gray-400' :
+                            platform.name.toLowerCase() === 'linkedin' ? 'from-[#0077B5] to-[#42A5F5]' :
+                            'from-[#1877F2] to-[#42A5F5]'
+                          }`} style={{ width: `${Math.min((platform.engagementRate / 10) * 100, 100)}%` }} />
                         </div>
                       </div>
                     </div>
@@ -434,14 +516,14 @@ export default function InfluencerDashboard() {
               </div>
               <div className="p-2">
                 {[
-                  { label: 'Browse campaigns', href: '/influencer/campaigns', desc: 'Find brand opportunities', Icon: SearchIcon },
-                  { label: 'Edit profile', href: '/influencer/profile?edit=true', desc: 'Update bio and stats', Icon: PencilIcon },
-                  { label: 'View earnings', href: '/influencer/earnings', desc: 'Track your revenue', Icon: CurrencyIcon },
-                  { label: 'Messages', href: '/influencer/messages', desc: 'Chat with brands', Icon: MessageIcon },
+                  { label: 'Browse campaigns', href: '/influencer/campaigns', desc: 'Find brand opportunities', Icon: SearchIcon, iconClass: 'bg-gradient-to-br from-indigo-500 to-blue-600' },
+                  { label: 'Edit profile', href: '/influencer/profile?edit=true', desc: 'Update bio and stats', Icon: PencilIcon, iconClass: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F]' },
+                  { label: 'View earnings', href: '/influencer/earnings', desc: 'Track your revenue', Icon: CurrencyIcon, iconClass: 'bg-gradient-to-br from-amber-500 to-orange-500' },
+                  { label: 'Messages', href: '/influencer/messages', desc: 'Chat with brands', Icon: MessageIcon, iconClass: 'bg-gradient-to-br from-emerald-500 to-green-600' },
                 ].map((action) => (
                   <Link key={action.href} href={action.href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#EEF4F5] transition-all duration-150 group cursor-pointer">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-white group-hover:text-[#7FA8AD] text-gray-400 flex items-center justify-center flex-shrink-0 transition-all duration-150 border border-transparent group-hover:border-gray-200">
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-150 group cursor-pointer">
+                    <div className={`w-8 h-8 rounded-lg text-white flex items-center justify-center flex-shrink-0 shadow-sm ${action.iconClass}`}>
                       <action.Icon />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -493,6 +575,44 @@ export default function InfluencerDashboard() {
         </section>
 
       </main>
+
+      {/* Logout confirmation modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setShowLogoutModal(false)}
+          />
+          {/* Modal card */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col items-center text-center animate-[fadeInScale_0.18s_ease-out]">
+            {/* Icon */}
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <h2 className="text-[17px] font-bold text-gray-900 mb-1">Log out?</h2>
+            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+              You&apos;ll need to sign in again to access your dashboard.
+            </p>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all duration-150 cursor-pointer">
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-sm font-semibold text-white transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer">
+                Yes, log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -181,90 +181,94 @@ export default function EarningsPage() {
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
 
-        {/* Page header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6 md:mb-7">
-          <div>
-            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Revenue & partnerships</p>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Earnings</h1>
-            <p className="text-sm text-gray-500 mt-1">Track your revenue and brand deal history.</p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex bg-gray-100 rounded-xl p-1 gap-0.5">
-              {(['6months', '1year'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 cursor-pointer ${
-                    activeTab === tab
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {tab === '6months' ? '6 months' : '1 year'}
-                </button>
-              ))}
+        {/* Hero banner */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl px-5 sm:px-7 py-5 mb-6 shadow-lg">
+          <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 relative">
+            <div>
+              <p className="text-xs text-teal-200 font-semibold uppercase tracking-wider mb-1.5">Revenue & partnerships</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Earnings</h1>
+              <p className="text-teal-200/80 text-sm mt-1">Track your revenue and brand deal history.</p>
             </div>
-            {isPremium && (
-              <button className="flex items-center gap-1.5 text-xs text-gray-600 px-3 py-2 border border-gray-200 bg-white rounded-xl hover:bg-gray-50 transition-all duration-150 cursor-pointer font-medium shadow-sm">
-                <DownloadIcon />
-                <span className="hidden sm:inline">Export CSV</span>
-              </button>
-            )}
+            <div className="flex items-center gap-2.5">
+              <div className="flex bg-white/10 backdrop-blur-sm rounded-xl p-1 gap-0.5 border border-white/10">
+                {(['6months', '1year'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 cursor-pointer ${
+                      activeTab === tab
+                        ? 'bg-white text-[#1C4A52] shadow-sm'
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                  >
+                    {tab === '6months' ? '6 months' : '1 year'}
+                  </button>
+                ))}
+              </div>
+              {isPremium && (
+                <button className="flex items-center gap-1.5 text-xs text-white/90 px-3 py-2 border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-150 cursor-pointer font-medium">
+                  <DownloadIcon />
+                  <span className="hidden sm:inline">Export CSV</span>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
 
         {/* Stat cards — 2-col mobile, 4-col desktop */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5 md:mb-6">
 
           {/* Total earnings — featured */}
-          <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-[#FDF3DD] via-[#fef8ec] to-[#EEF4F5] border border-amber-200 rounded-2xl p-4 md:p-5 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-amber-100/40 rounded-full -translate-y-6 translate-x-6 pointer-events-none" />
-            <div className="w-9 h-9 rounded-xl bg-white/80 shadow-sm flex items-center justify-center mb-3 text-[#854F0B]">
+          <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-amber-500 via-yellow-500 to-orange-500 rounded-2xl p-4 md:p-5 shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-8 translate-x-8 pointer-events-none" />
+            <div className="w-9 h-9 rounded-xl bg-white/20 shadow-sm flex items-center justify-center mb-3 text-white">
               <RupeeIcon />
             </div>
-            <p className="text-[11px] text-amber-800/70 font-semibold uppercase tracking-wider mb-1">Total earnings</p>
-            <p className="text-2xl sm:text-3xl font-bold text-[#854F0B] tracking-tight tabular-nums leading-none">
+            <p className="text-[11px] text-amber-100/80 font-semibold uppercase tracking-wider mb-1">Total earnings</p>
+            <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight tabular-nums leading-none">
               ₹{(summary?.totalEarnings || 0).toLocaleString()}
             </p>
-            <p className="text-xs text-amber-700/60 mt-1.5 font-medium">All completed deals</p>
+            <p className="text-xs text-amber-100/70 mt-1.5 font-medium">All completed deals</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm border-l-4 border-l-[#FCA5A5] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-red-50 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
-            <div className="w-9 h-9 rounded-xl bg-[#FDE5DC] flex items-center justify-center mb-3 text-[#9C4A33]">
+          <div className="bg-gradient-to-br from-rose-50 to-red-100 border border-rose-200 rounded-2xl p-4 md:p-5 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-rose-200/30 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-sm flex items-center justify-center mb-3">
               <BriefcaseIcon />
             </div>
-            <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Active deals</p>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight tabular-nums leading-none">
+            <p className="text-[11px] text-rose-600/70 font-semibold uppercase tracking-wider mb-1">Active deals</p>
+            <p className="text-2xl sm:text-3xl font-bold text-rose-900 tracking-tight tabular-nums leading-none">
               {summary?.activeDeals || 0}
             </p>
-            <p className="text-xs text-gray-400 mt-1.5 font-medium truncate">
+            <p className="text-xs text-rose-600/60 mt-1.5 font-medium truncate">
               ₹{(summary?.pendingPayout || 0).toLocaleString()} pending
             </p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm border-l-4 border-l-[#86EFAC] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-green-50 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
-            <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center mb-3 text-green-600">
+          <div className="bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200 rounded-2xl p-4 md:p-5 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-200/30 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-sm flex items-center justify-center mb-3">
               <CheckCircleIcon />
             </div>
-            <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Deals done</p>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight tabular-nums leading-none">
+            <p className="text-[11px] text-emerald-600/70 font-semibold uppercase tracking-wider mb-1">Deals done</p>
+            <p className="text-2xl sm:text-3xl font-bold text-emerald-900 tracking-tight tabular-nums leading-none">
               {summary?.dealsCompleted || 0}
             </p>
-            <p className="text-xs text-gray-400 mt-1.5 font-medium">All time</p>
+            <p className="text-xs text-emerald-600/60 mt-1.5 font-medium">All time</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm border-l-4 border-l-[#C4B5FD] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-purple-50 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
-            <div className="w-9 h-9 rounded-xl bg-[#F0ECFA] flex items-center justify-center mb-3 text-[#3C3489]">
+          <div className="bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200 rounded-2xl p-4 md:p-5 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-violet-200/30 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-sm flex items-center justify-center mb-3">
               <TrendingUpIcon />
             </div>
-            <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Avg deal value</p>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight tabular-nums leading-none">
+            <p className="text-[11px] text-violet-600/70 font-semibold uppercase tracking-wider mb-1">Avg deal value</p>
+            <p className="text-2xl sm:text-3xl font-bold text-violet-900 tracking-tight tabular-nums leading-none">
               ₹{(summary?.avgDealValue || 0).toLocaleString()}
             </p>
-            <p className="text-xs text-gray-400 mt-1.5 font-medium">Per campaign</p>
+            <p className="text-xs text-violet-600/60 mt-1.5 font-medium">Per campaign</p>
           </div>
 
         </section>
@@ -280,7 +284,7 @@ export default function EarningsPage() {
                   <h3 className="font-semibold text-gray-900">Earnings overview</h3>
                   <p className="text-xs text-gray-400 mt-0.5">Monthly earnings from completed deals</p>
                 </div>
-                <span className="self-start text-xs font-semibold px-2.5 py-1 bg-[#EEF4F5] text-[#2A3E42] rounded-full">
+                <span className="self-start text-xs font-semibold px-2.5 py-1 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] text-white rounded-full shadow-sm">
                   ₹{(summary?.totalEarnings || 0).toLocaleString()} total
                 </span>
               </div>
@@ -299,8 +303,8 @@ export default function EarningsPage() {
                           <div
                             className={`w-full rounded-t-lg transition-all duration-200 cursor-pointer relative ${
                               isMax
-                                ? 'bg-gradient-to-t from-[#5D8A8F] to-[#7FA8AD]'
-                                : 'bg-gradient-to-t from-[#c5dde0] to-[#daeced] group-hover:from-[#7FA8AD] group-hover:to-[#9fc5c9]'
+                                ? 'bg-gradient-to-t from-[#1C4A52] to-[#5BA8B5] shadow-sm'
+                                : 'bg-gradient-to-t from-teal-200 to-cyan-100 group-hover:from-[#5D8A8F] group-hover:to-[#7FA8AD]'
                             }`}
                             style={{ height: `${pct}%` }}
                           >
@@ -331,7 +335,7 @@ export default function EarningsPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[140px] text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
                     <TrendingUpIcon />
                   </div>
                   <p className="text-sm font-semibold text-gray-700 mb-1">No data yet</p>
@@ -346,24 +350,30 @@ export default function EarningsPage() {
         ) : (
           /* Freemium gate */
           <section className="mb-5 md:mb-6">
-            <div className="bg-gradient-to-br from-[#EEF4F5] via-white to-[#FDF3DD] border border-[#7FA8AD]/30 rounded-2xl p-5 sm:p-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+            <div className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl p-5 sm:p-6 shadow-lg">
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
+              <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                 <div className="flex items-start gap-4 flex-1 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-[#7FA8AD] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm text-white flex items-center justify-center flex-shrink-0 border border-white/20">
                     <LockIcon />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-[#2A3E42] text-[15px] mb-1">
+                    <h3 className="font-bold text-white text-[15px] mb-1">
                       Unlock earnings analytics with Premium
                     </h3>
-                    <p className="text-sm text-gray-500 leading-relaxed">
+                    <p className="text-sm text-teal-100/80 leading-relaxed">
                       See your full monthly trend, earnings by category, top brand insights, and export your data as CSV.
                     </p>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {['Monthly chart', 'Category breakdown', 'Brand insights', 'CSV export'].map(f => (
-                        <span key={f} className="inline-flex items-center gap-1 text-xs bg-white border border-[#7FA8AD]/30 text-[#2A3E42] px-2.5 py-1 rounded-full font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#7FA8AD]" />
-                          {f}
+                      {[
+                        { label: 'Monthly chart', color: 'bg-teal-400/20 border-teal-300/30 text-teal-100' },
+                        { label: 'Category breakdown', color: 'bg-violet-400/20 border-violet-300/30 text-violet-100' },
+                        { label: 'Brand insights', color: 'bg-amber-400/20 border-amber-300/30 text-amber-100' },
+                        { label: 'CSV export', color: 'bg-emerald-400/20 border-emerald-300/30 text-emerald-100' },
+                      ].map(f => (
+                        <span key={f.label} className={`inline-flex items-center gap-1 text-xs border px-2.5 py-1 rounded-full font-medium ${f.color}`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+                          {f.label}
                         </span>
                       ))}
                     </div>
@@ -371,7 +381,7 @@ export default function EarningsPage() {
                 </div>
                 <Link
                   href="/influencer/billing"
-                  className="flex-shrink-0 bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap">
+                  className="flex-shrink-0 bg-white hover:bg-gray-50 text-[#1C4A52] px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap">
                   Upgrade · ₹299/mo
                 </Link>
               </div>
@@ -381,13 +391,16 @@ export default function EarningsPage() {
 
         {/* Deal history */}
         <section className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-4 border-b border-gray-100">
-            <div>
-              <h3 className="font-semibold text-gray-900">Deal history</h3>
-              <p className="text-xs text-gray-400 mt-0.5">Completed and in-progress deals, newest first</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-teal-50/60 to-white">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-[#7FA8AD] to-[#5D8A8F]" />
+              <div>
+                <h3 className="font-semibold text-gray-900">Deal history</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Completed and in-progress deals, newest first</p>
+              </div>
             </div>
             <Link href="/influencer/campaigns"
-              className="self-start sm:self-auto text-xs text-[#5D8A8F] font-semibold hover:text-[#2A3E42] transition-colors duration-150 bg-[#EEF4F5] px-3 py-1.5 rounded-lg">
+              className="self-start sm:self-auto text-xs text-white font-semibold transition-colors duration-150 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md">
               Browse campaigns →
             </Link>
           </div>
@@ -398,7 +411,7 @@ export default function EarningsPage() {
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-50/80 border-b border-gray-100">
+                    <tr className="bg-gradient-to-r from-teal-50/60 to-cyan-50/30 border-b border-gray-100">
                       {['Brand', 'Campaign', 'Category', 'Date', 'Status', 'Amount'].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                           {h}
@@ -408,25 +421,39 @@ export default function EarningsPage() {
                   </thead>
                   <tbody>
                     {dealHistory.map((deal, index) => (
-                      <tr key={index} className="border-b border-gray-50 hover:bg-[#EEF4F5]/40 transition-colors duration-100">
-                        <td className="px-4 py-3.5 text-sm font-semibold text-gray-900">{deal.brandName}</td>
+                      <tr key={index} className="border-b border-gray-50 hover:bg-teal-50/30 transition-colors duration-100">
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-7 h-7 rounded-lg text-[10px] font-bold text-white flex items-center justify-center flex-shrink-0 ${
+                              ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500'][(deal.brandName?.charCodeAt(0) || 0) % 5]
+                            }`}>
+                              {deal.brandName?.slice(0, 1).toUpperCase() || '?'}
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900">{deal.brandName}</span>
+                          </div>
+                        </td>
                         <td className="px-4 py-3.5 text-sm text-gray-500 max-w-[200px] truncate">{deal.campaignTitle}</td>
                         <td className="px-4 py-3.5">
-                          <span className="text-xs px-2.5 py-1 bg-[#EEF4F5] text-[#2A3E42] rounded-full capitalize font-medium">
-                            {deal.category}
-                          </span>
+                          {(() => {
+                            const catColors: Record<string, string> = { beauty: 'bg-pink-100 text-pink-800', fashion: 'bg-rose-100 text-rose-800', food: 'bg-orange-100 text-orange-800', fitness: 'bg-amber-100 text-amber-800', lifestyle: 'bg-purple-100 text-purple-800', travel: 'bg-emerald-100 text-emerald-800', tech: 'bg-blue-100 text-blue-800', books: 'bg-violet-100 text-violet-800' };
+                            return (
+                              <span className={`text-xs px-2.5 py-1 rounded-full capitalize font-semibold ${catColors[deal.category] || 'bg-teal-100 text-teal-800'}`}>
+                                {deal.category}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="px-4 py-3.5 text-sm text-gray-400 whitespace-nowrap">{deal.completedAt}</td>
                         <td className="px-4 py-3.5">
                           <span className={`text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${
                             deal.status === 'completed'
-                              ? 'bg-green-50 text-green-700 border border-green-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white'
+                              : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
                           }`}>
                             {deal.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-sm font-bold text-gray-900 text-right tabular-nums">
+                        <td className="px-4 py-3.5 text-sm font-bold text-emerald-700 text-right tabular-nums">
                           ₹{deal.amount.toLocaleString()}
                         </td>
                       </tr>
@@ -449,13 +476,14 @@ export default function EarningsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[11px] px-2 py-0.5 bg-[#EEF4F5] text-[#2A3E42] rounded-full capitalize font-medium">
-                        {deal.category}
-                      </span>
+                      {(() => {
+                        const catColors: Record<string, string> = { beauty: 'bg-pink-100 text-pink-800', fashion: 'bg-rose-100 text-rose-800', food: 'bg-orange-100 text-orange-800', fitness: 'bg-amber-100 text-amber-800', lifestyle: 'bg-purple-100 text-purple-800', travel: 'bg-emerald-100 text-emerald-800', tech: 'bg-blue-100 text-blue-800', books: 'bg-violet-100 text-violet-800' };
+                        return <span className={`text-[11px] px-2 py-0.5 rounded-full capitalize font-semibold ${catColors[deal.category] || 'bg-teal-100 text-teal-800'}`}>{deal.category}</span>;
+                      })()}
                       <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${
                         deal.status === 'completed'
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-amber-50 text-amber-700'
+                          ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white'
+                          : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
                       }`}>
                         {deal.status}
                       </span>
@@ -467,7 +495,7 @@ export default function EarningsPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-14 sm:py-20 px-4 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
                 <SearchIcon />
               </div>
               <h3 className="font-bold text-gray-800 text-[15px] mb-1.5">No deals yet</h3>
@@ -476,7 +504,7 @@ export default function EarningsPage() {
               </p>
               <Link
                 href="/influencer/campaigns"
-                className="bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer">
+                className="bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer">
                 Browse campaigns →
               </Link>
             </div>

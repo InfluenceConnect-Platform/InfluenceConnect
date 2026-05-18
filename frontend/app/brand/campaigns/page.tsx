@@ -9,10 +9,10 @@ const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', '
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
 const CAMPAIGN_STATUS_STYLES: Record<string, string> = {
-  active:    'bg-green-50 text-green-700 border border-green-100',
-  draft:     'bg-gray-100 text-gray-600 border border-gray-200',
-  closed:    'bg-red-50 text-red-600 border border-red-100',
-  completed: 'bg-blue-50 text-blue-700 border border-blue-100',
+  active:    'bg-gradient-to-r from-emerald-500 to-green-600 text-white',
+  draft:     'bg-gray-200 text-gray-700',
+  closed:    'bg-gradient-to-r from-red-500 to-rose-600 text-white',
+  completed: 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white',
 };
 
 const TABS = ['active', 'draft', 'closed', 'completed', 'all'] as const;
@@ -267,8 +267,8 @@ export default function BrandCampaigns() {
                         }))}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
                           form.niche.includes(n)
-                            ? 'bg-[#EAEDF6] border-[#3D5087] text-[#1B2444]'
-                            : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                            ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm'
+                            : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
                         }`}
                       >
                         {n}
@@ -330,22 +330,30 @@ export default function BrandCampaigns() {
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
-        <div className="flex items-end justify-between mb-5">
-          <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Your campaigns</p>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Campaigns</h1>
+        {/* Hero banner */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#2B3B68] via-[#3D5087] to-[#4a5fa0] rounded-2xl px-5 sm:px-8 py-5 sm:py-6 mb-5 shadow-lg">
+          <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-blue-200/90 text-xs font-semibold uppercase tracking-wider mb-1">Your campaigns</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Campaigns</h1>
+              <p className="text-blue-200/70 text-sm mt-1">
+                {campaigns.length} total · {campaigns.filter(c => c.status === 'active').length} active
+              </p>
+            </div>
+            <button
+              onClick={() => setShowForm(true)}
+              className="self-start sm:self-auto flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/20 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              <span className="hidden sm:inline">New campaign</span>
+              <span className="sm:hidden">New</span>
+            </button>
           </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-[#3D5087] hover:bg-[#2B3B68] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer shadow-sm"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            <span className="hidden sm:inline">New campaign</span>
-            <span className="sm:hidden">New</span>
-          </button>
-        </div>
+        </section>
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit mb-5 overflow-x-auto max-w-full">
@@ -355,13 +363,13 @@ export default function BrandCampaigns() {
               onClick={() => setActiveTab(tab)}
               className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all cursor-pointer ${
                 activeTab === tab
-                  ? 'bg-white text-gray-900 shadow-sm'
+                  ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {tab}
               {tab !== 'all' && (
-                <span className={`ml-1.5 text-[11px] font-bold ${activeTab === tab ? 'text-gray-500' : 'text-gray-400'}`}>
+                <span className={`ml-1.5 text-[11px] font-bold ${activeTab === tab ? 'text-blue-200' : 'text-gray-400'}`}>
                   {campaigns.filter(c => c.status === tab).length}
                 </span>
               )}
@@ -408,12 +416,20 @@ export default function BrandCampaigns() {
                 <button
                   key={campaign._id}
                   onClick={() => handleSelectCampaign(campaign)}
-                  className={`w-full text-left bg-white border rounded-2xl p-5 transition-all shadow-sm cursor-pointer ${
+                  className={`w-full text-left bg-white border rounded-2xl overflow-hidden transition-all shadow-sm cursor-pointer ${
                     selectedCampaign?._id === campaign._id
-                      ? 'border-[#3D5087] shadow-md ring-1 ring-[#3D5087]/10'
+                      ? 'border-[#3D5087] shadow-md ring-2 ring-[#3D5087]/15'
                       : 'border-gray-200/80 hover:border-[#3D5087]/50 hover:shadow-md'
                   }`}
                 >
+                  {/* Top accent strip by status */}
+                  <div className={`h-1 w-full ${
+                    campaign.status === 'active' ? 'bg-gradient-to-r from-emerald-400 to-green-500' :
+                    campaign.status === 'draft' ? 'bg-gradient-to-r from-gray-300 to-gray-400' :
+                    campaign.status === 'closed' ? 'bg-gradient-to-r from-red-400 to-rose-500' :
+                    'bg-gradient-to-r from-blue-400 to-indigo-500'
+                  }`} />
+                  <div className="p-5">
                   <div className="flex items-start justify-between mb-3 gap-2">
                     <div className="min-w-0">
                       <h3 className="font-semibold text-gray-900 mb-0.5 truncate">{campaign.title}</h3>
@@ -428,23 +444,29 @@ export default function BrandCampaigns() {
 
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { value: campaign.applicantCount ?? 0, label: 'Applicants' },
+                      { value: campaign.applicantCount ?? 0, label: 'Applicants', cardClass: 'bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200', valueClass: 'text-blue-900', labelClass: 'text-blue-500/70' },
                       {
                         value: (campaign.budgetMin > 0 || campaign.budgetMax > 0)
                           ? `₹${(campaign.budgetMin || 0).toLocaleString('en-IN')}–${(campaign.budgetMax || 0).toLocaleString('en-IN')}`
                           : 'Open',
                         label: 'Budget',
+                        cardClass: 'bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200',
+                        valueClass: 'text-emerald-900',
+                        labelClass: 'text-emerald-600/70',
                       },
                       {
                         value: campaign.deadline
                           ? new Date(campaign.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
                           : '—',
                         label: 'Deadline',
+                        cardClass: 'bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200',
+                        valueClass: 'text-amber-900',
+                        labelClass: 'text-amber-600/70',
                       },
                     ].map((item, i) => (
-                      <div key={i} className="p-2.5 bg-[#F4F6FB] rounded-xl text-center">
-                        <p className="text-sm font-bold text-gray-900 truncate">{item.value}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">{item.label}</p>
+                      <div key={i} className={`p-2.5 rounded-xl text-center ${item.cardClass}`}>
+                        <p className={`text-sm font-bold truncate ${item.valueClass}`}>{item.value}</p>
+                        <p className={`text-[11px] mt-0.5 ${item.labelClass}`}>{item.label}</p>
                       </div>
                     ))}
                   </div>
@@ -453,6 +475,7 @@ export default function BrandCampaigns() {
                   <p className="text-[11px] text-[#3D5087] font-medium mt-3 lg:hidden">
                     Tap to view applications →
                   </p>
+                  </div>
                 </button>
               ))
             )}
@@ -523,7 +546,9 @@ function ApplicationsList({
       {applications.map((app, i) => (
         <div key={i} className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#EAEDF6] to-[#d0d5ea] text-[#3D5087] flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <div className={`w-9 h-9 rounded-full text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm ${
+              ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'][(app.influencerId?.name?.charCodeAt(0) || 0) % 6]
+            }`}>
               {app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'}
             </div>
             <div className="flex-1 min-w-0">
@@ -546,7 +571,7 @@ function ApplicationsList({
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => onUpdateStatus(app._id, 'shortlisted')}
-                className="py-2 text-xs font-semibold border border-gray-200 rounded-lg hover:bg-gray-50 transition-all cursor-pointer text-gray-700"
+                className="py-2 text-xs font-semibold bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg hover:from-amber-100 hover:to-orange-100 transition-all cursor-pointer text-amber-700"
               >
                 Shortlist
               </button>
