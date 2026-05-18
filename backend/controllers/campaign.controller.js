@@ -108,6 +108,13 @@ exports.applyToCampaign = async (req, res) => {
       return res.status(400).json({ error: 'This campaign is no longer accepting applications.' });
     }
 
+    // Block if there's already an accepted deal for this campaign
+    const Deal = require('../models/Deal');
+    const acceptedDeal = await Deal.findOne({ campaignId, status: { $in: ['in-progress', 'content-submitted', 'completed'] } });
+    if (acceptedDeal) {
+      return res.status(400).json({ error: 'This campaign is no longer accepting applications.' });
+    }
+
     // Check freemium limit — 5 applications per month
     const isPremium = req.user.plan === 'premium';
     if (!isPremium) {
@@ -180,6 +187,43 @@ exports.getMyApplications = async (req, res) => {
 
   } catch (error) {
     console.error('Get applications error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// WITHDRAW APPLICATION (influencer)
+// ─────────────────────────────────────────
+exports.withdrawApplication = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Only the influencer who applied can withdraw
+    if (application.influencerId.toString() !== req.userId.toString()) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Only allow withdrawal if still in 'applied' state
+    if (application.status !== 'applied') {
+      return res.status(400).json({ error: 'You can only withdraw applications that are still pending.' });
+    }
+
+    await Application.findByIdAndDelete(applicationId);
+
+    // Decrement applicant count on the campaign
+    await Campaign.findByIdAndUpdate(application.campaignId, {
+      $inc: { applicantCount: -1 }
+    });
+
+    res.json({ message: 'Application withdrawn successfully' });
+
+  } catch (error) {
+    console.error('Withdraw application error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

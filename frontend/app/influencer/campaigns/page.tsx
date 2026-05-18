@@ -676,6 +676,7 @@ export default function InfluencerCampaigns() {
 function MyApplications() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
   useEffect(() => {
     api.get('/api/campaigns/my-applications')
@@ -683,6 +684,20 @@ function MyApplications() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const handleWithdraw = async (applicationId: string) => {
+    if (!window.confirm('Withdraw this application?')) return;
+    setWithdrawingId(applicationId);
+    try {
+      await api.delete(`/api/influencer/applications/${applicationId}`);
+      setApplications(prev => prev.filter(a => a._id !== applicationId));
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string } } };
+      alert(e.response?.data?.error || 'Failed to withdraw.');
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
 
   const STATUS_CONFIG: Record<string, { cls: string; label: string }> = {
     applied:     { cls: 'bg-blue-50 text-blue-700 border border-blue-200',   label: 'Applied' },
@@ -719,7 +734,7 @@ function MyApplications() {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50/80 border-b border-gray-100">
-              {['Campaign', 'Brand', 'Budget', 'Applied on', 'Status'].map(h => (
+              {['Campaign', 'Brand', 'Budget', 'Applied on', 'Status', 'Actions'].map(h => (
                 <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                   {h}
                 </th>
@@ -745,6 +760,17 @@ function MyApplications() {
                     <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${cfg.cls}`}>
                       {cfg.label}
                     </span>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    {app.status === 'applied' && (
+                      <button
+                        onClick={() => handleWithdraw(app._id)}
+                        disabled={withdrawingId === app._id}
+                        className="text-xs text-red-500 hover:text-red-700 font-semibold border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50 transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        {withdrawingId === app._id ? 'Withdrawing…' : 'Withdraw'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
@@ -775,6 +801,17 @@ function MyApplications() {
                 <span>·</span>
                 <span>{new Date(app.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
               </div>
+              {app.status === 'applied' && (
+                <div className="mt-2">
+                  <button
+                    onClick={() => handleWithdraw(app._id)}
+                    disabled={withdrawingId === app._id}
+                    className="text-xs text-red-500 hover:text-red-700 font-semibold border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {withdrawingId === app._id ? 'Withdrawing…' : 'Withdraw'}
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}

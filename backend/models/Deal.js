@@ -44,7 +44,21 @@ const dealSchema = new mongoose.Schema({
   completedAt: {
     type: Date,
     default: null
-  }
+  },
+
+  negotiationStatus: {
+    type: String,
+    enum: ['open', 'agreed'],
+    default: 'open'
+  },
+
+  offers: [{
+    amount: { type: Number, required: true },
+    proposedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    proposedByRole: { type: String, enum: ['brand', 'influencer'], required: true },
+    status: { type: String, enum: ['pending', 'accepted', 'countered'], default: 'pending' },
+    createdAt: { type: Date, default: Date.now }
+  }]
 
 }, { timestamps: true });
 

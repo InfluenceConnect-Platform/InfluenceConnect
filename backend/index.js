@@ -68,6 +68,7 @@ app.use('/api/influencer', require('./routes/influencer.routes'));
 app.use('/api/upload', require('./routes/upload.routes'));
 app.use('/api/campaigns', require('./routes/campaign.routes'));
 app.use('/api/messages', require('./routes/message.routes'));
+app.use('/api/deals', require('./routes/deal.routes'));
 app.use('/api/brand', require('./routes/brand.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 // Protected test route

@@ -1,5 +1,7 @@
 const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
+const Deal = require('../models/Deal');
+const Message = require('../models/Message');
 
 // ─────────────────────────────────────────
 // Generate slug from name
@@ -171,33 +173,144 @@ exports.getPublicProfile = async (req, res) => {
 
 
 // ─────────────────────────────────────────
+// GET MY DEALS (for messaging inbox)
+// ─────────────────────────────────────────
+exports.getMyDeals = async (req, res) => {
+  try {
+    const deals = await Deal.find({ influencerId: req.userId })
+      .populate('campaignId', 'title niche deliverables budgetMin budgetMax')
+      .populate('brandId', 'name')
+      .sort({ updatedAt: -1 });
+
+    const dealsWithPreview = await Promise.all(
+      deals.map(async (deal) => {
+        const lastMessage = await Message.findOne({ dealId: deal._id })
+          .sort({ createdAt: -1 })
+          .select('content senderId createdAt');
+        const obj = deal.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          offers: (obj.offers || []).map(o => ({
+            ...o,
+            _id: o._id.toString(),
+            proposedBy: o.proposedBy.toString(),
+          })),
+          lastMessage: lastMessage || null,
+        };
+      })
+    );
+
+    res.json({ deals: dealsWithPreview });
+  } catch (error) {
+    console.error('Get influencer deals error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// UPDATE DEAL STATUS (influencer)
+// ─────────────────────────────────────────
+exports.updateDealStatus = async (req, res) => {
+  try {
+    const { dealId } = req.params;
+    const { status } = req.body;
+
+    if (status !== 'content-submitted') {
+      return res.status(400).json({ error: 'Influencers can only Mark As Done (content-submitted).' });
+    }
+
+    const deal = await Deal.findById(dealId);
+    if (!deal) {
+      return res.status(404).json({ error: 'Deal not found' });
+    }
+
+    if (deal.influencerId.toString() !== req.userId.toString()) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (deal.status !== 'in-progress') {
+      return res.status(400).json({ error: 'Deal must be in-progress to submit content.' });
+    }
+
+    deal.status = 'content-submitted';
+    await deal.save();
+
+    res.json({ message: 'Content submitted successfully', deal });
+
+  } catch (error) {
+    console.error('Update deal status (influencer) error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET EARNINGS
 // ─────────────────────────────────────────
 exports.getEarnings = async (req, res) => {
   try {
-    const Deal = require('../models/Deal');
-
-    // For now since Deal model is not built yet,
-    // we return a structured empty response
-    // This gets populated when deals module is built in Week 4
-
     const profile = await InfluencerProfile.findOne({ userId: req.userId });
 
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
     }
 
+    // Fetch all deals for this influencer
+    const allDeals = await Deal.find({ influencerId: req.userId })
+      .populate('campaignId', 'title niche')
+      .populate('brandId', 'name');
+
+    const completedDeals = allDeals.filter(d => d.status === 'completed');
+    const activeDeals = allDeals.filter(d => ['in-progress', 'content-submitted'].includes(d.status));
+    const pendingPayoutDeals = allDeals.filter(d => d.status === 'content-submitted');
+
+    const totalEarnings = completedDeals.reduce((sum, d) => sum + (d.agreedAmount || 0), 0);
+    const pendingPayout = pendingPayoutDeals.reduce((sum, d) => sum + (d.agreedAmount || 0), 0);
+    const dealsCompleted = completedDeals.length;
+    const avgDealValue = dealsCompleted > 0 ? Math.round(totalEarnings / dealsCompleted) : 0;
+
+    // Last 6 months trend
+    const monthlyTrend = generateEmptyMonthlyTrend();
+    completedDeals.forEach(deal => {
+      if (!deal.completedAt) return;
+      const completedDate = new Date(deal.completedAt);
+      const monthIdx = monthlyTrend.findIndex(m => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (5 - monthlyTrend.indexOf(m)));
+        return (
+          completedDate.getMonth() === new Date(d).getMonth() &&
+          completedDate.getFullYear() === new Date(d).getFullYear()
+        );
+      });
+      if (monthIdx !== -1) {
+        monthlyTrend[monthIdx].earnings += deal.agreedAmount || 0;
+        monthlyTrend[monthIdx].deals += 1;
+      }
+    });
+
+    // Rebuild monthly trend properly
+    const trend = buildMonthlyTrend(completedDeals);
+
+    // Deal history
+    const dealHistory = completedDeals.map(d => ({
+      _id: d._id,
+      campaignTitle: d.campaignId?.title || 'Campaign',
+      brandName: d.brandId?.name || 'Brand',
+      amount: d.agreedAmount || 0,
+      completedAt: d.completedAt
+    }));
+
     res.json({
       summary: {
-        totalEarnings: 0,
-        activeDeals: 0,
-        pendingPayout: 0,
-        dealsCompleted: profile.dealsCompleted || 0,
-        avgDealValue: 0
+        totalEarnings,
+        activeDeals: activeDeals.length,
+        pendingPayout,
+        dealsCompleted,
+        avgDealValue
       },
-      monthlyTrend: generateEmptyMonthlyTrend(),
+      monthlyTrend: trend,
       categoryBreakdown: [],
-      dealHistory: []
+      dealHistory
     });
 
   } catch (error) {
@@ -206,7 +319,37 @@ exports.getEarnings = async (req, res) => {
   }
 };
 
-// Generate last 6 months with zero earnings
+// Build last 6 months earnings trend from completed deals
+function buildMonthlyTrend(completedDeals) {
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(1);
+    date.setMonth(date.getMonth() - i);
+    months.push({
+      month: date.toLocaleString('default', { month: 'short' }),
+      year: date.getFullYear(),
+      monthNum: date.getMonth(),
+      earnings: 0,
+      deals: 0
+    });
+  }
+
+  completedDeals.forEach(deal => {
+    if (!deal.completedAt) return;
+    const d = new Date(deal.completedAt);
+    const entry = months.find(m => m.monthNum === d.getMonth() && m.year === d.getFullYear());
+    if (entry) {
+      entry.earnings += deal.agreedAmount || 0;
+      entry.deals += 1;
+    }
+  });
+
+  // Remove internal monthNum before returning
+  return months.map(({ monthNum, ...rest }) => rest);
+}
+
+// Generate last 6 months with zero earnings (kept for backward compat)
 function generateEmptyMonthlyTrend() {
   const months = [];
   for (let i = 5; i >= 0; i--) {

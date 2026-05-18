@@ -10,7 +10,10 @@ const {
   getCampaignApplications,
   updateApplicationStatus,
   discoverInfluencers,
-  getDashboardStats
+  getDashboardStats,
+  getMyDeals,
+  updateDealStatus,
+  deleteCampaign,
 } = require('../controllers/brand.controller');
 
 router.post('/profile', authenticate, createProfile);
@@ -19,8 +22,11 @@ router.put('/profile', authenticate, updateProfile);
 router.get('/dashboard/stats', authenticate, getDashboardStats);
 router.post('/campaigns', authenticate, createCampaign);
 router.get('/campaigns', authenticate, getMyCampaigns);
+router.delete('/campaigns/:campaignId', authenticate, deleteCampaign);
 router.get('/campaigns/:campaignId/applications', authenticate, getCampaignApplications);
 router.put('/applications/:applicationId/status', authenticate, updateApplicationStatus);
+router.get('/deals', authenticate, getMyDeals);
+router.put('/deals/:dealId/status', authenticate, updateDealStatus);
 router.get('/discover', authenticate, discoverInfluencers);
 
 module.exports = router;

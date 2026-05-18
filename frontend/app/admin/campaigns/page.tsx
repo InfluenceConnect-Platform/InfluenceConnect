@@ -6,10 +6,19 @@ import api from '@/lib/api';
 import AdminNav from '@/components/shared/AdminNav';
 
 const STATUS_STYLES: Record<string, string> = {
-  active:    'bg-green-100 text-green-700',
-  draft:     'bg-gray-100 text-gray-600',
-  closed:    'bg-red-100 text-red-600',
-  completed: 'bg-blue-100 text-blue-700',
+  active:        'bg-green-100 text-green-700',
+  draft:         'bg-gray-100 text-gray-600',
+  'in-progress': 'bg-amber-100 text-amber-700',
+  completed:     'bg-blue-100 text-blue-700',
+  closed:        'bg-red-100 text-red-600',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  active:        'Active',
+  draft:         'Draft',
+  'in-progress': 'In Progress',
+  completed:     'Completed',
+  closed:        'Closed',
 };
 
 export default function AdminCampaigns() {
@@ -122,8 +131,8 @@ export default function AdminCampaigns() {
                         {c.applicantCount ?? 0}
                       </td>
                       <td className="px-4 py-3.5">
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                          {c.status}
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {STATUS_LABELS[c.status] ?? c.status}
                         </span>
                       </td>
                       <td className="px-4 py-3.5">
@@ -163,8 +172,8 @@ export default function AdminCampaigns() {
                           {c.niche?.join(', ') || 'No niche'}
                         </p>
                       </div>
-                      <span className={`flex-shrink-0 text-[11px] px-2 py-1 rounded-full font-semibold capitalize ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {c.status}
+                      <span className={`flex-shrink-0 text-[11px] px-2 py-1 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {STATUS_LABELS[c.status] ?? c.status}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mb-3">

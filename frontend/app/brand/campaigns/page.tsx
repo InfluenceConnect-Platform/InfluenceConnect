@@ -9,13 +9,23 @@ const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', '
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
 const CAMPAIGN_STATUS_STYLES: Record<string, string> = {
-  active:    'bg-gradient-to-r from-emerald-500 to-green-600 text-white',
-  draft:     'bg-gray-200 text-gray-700',
-  closed:    'bg-gradient-to-r from-red-500 to-rose-600 text-white',
-  completed: 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white',
+  active:        'bg-gradient-to-r from-emerald-500 to-green-600 text-white',
+  draft:         'bg-gray-200 text-gray-700',
+  'in-progress': 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
+  completed:     'bg-gradient-to-r from-blue-500 to-indigo-600 text-white',
+  closed:        'bg-gradient-to-r from-red-500 to-rose-600 text-white',
 };
 
-const TABS = ['active', 'draft', 'closed', 'completed', 'all'] as const;
+const CAMPAIGN_STATUS_LABELS: Record<string, string> = {
+  active:        'Active',
+  draft:         'Draft',
+  'in-progress': 'In Progress',
+  completed:     'Completed',
+  closed:        'Closed',
+  all:           'All',
+};
+
+const TABS = ['active', 'draft', 'in-progress', 'completed', 'all'] as const;
 
 export default function BrandCampaigns() {
   const router = useRouter();
@@ -29,6 +39,7 @@ export default function BrandCampaigns() {
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('active');
   const [toast, setToast] = useState('');
   const [showPanel, setShowPanel] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     title: '',
@@ -110,6 +121,21 @@ export default function BrandCampaigns() {
       showToast(error.response?.data?.message || 'Failed to create campaign.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
+    if (!window.confirm(`Delete "${campaignTitle}"? This will also remove all applications. This cannot be undone.`)) return;
+    setDeletingId(campaignId);
+    try {
+      await api.delete(`/api/brand/campaigns/${campaignId}`);
+      setCampaigns(prev => prev.filter(c => c._id !== campaignId));
+      if (selectedCampaign?._id === campaignId) { setSelectedCampaign(null); setShowPanel(false); }
+      showToast('Campaign deleted.');
+    } catch (error: any) {
+      showToast(error.response?.data?.error || 'Failed to delete campaign.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -361,13 +387,13 @@ export default function BrandCampaigns() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all cursor-pointer ${
+              className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 activeTab === tab
                   ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {tab}
+              {CAMPAIGN_STATUS_LABELS[tab] ?? tab}
               {tab !== 'all' && (
                 <span className={`ml-1.5 text-[11px] font-bold ${activeTab === tab ? 'text-blue-200' : 'text-gray-400'}`}>
                   {campaigns.filter(c => c.status === tab).length}
@@ -426,6 +452,7 @@ export default function BrandCampaigns() {
                   <div className={`h-1 w-full ${
                     campaign.status === 'active' ? 'bg-gradient-to-r from-emerald-400 to-green-500' :
                     campaign.status === 'draft' ? 'bg-gradient-to-r from-gray-300 to-gray-400' :
+                    campaign.status === 'in-progress' ? 'bg-gradient-to-r from-amber-400 to-orange-500' :
                     campaign.status === 'closed' ? 'bg-gradient-to-r from-red-400 to-rose-500' :
                     'bg-gradient-to-r from-blue-400 to-indigo-500'
                   }`} />
@@ -437,9 +464,27 @@ export default function BrandCampaigns() {
                         {campaign.niche?.join(', ') || 'No niche'} · {campaign.deliverables}
                       </p>
                     </div>
-                    <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
-                      {campaign.status}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
+                        {CAMPAIGN_STATUS_LABELS[campaign.status] ?? campaign.status}
+                      </span>
+                      {(campaign.status === 'draft' || campaign.status === 'active') && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleDeleteCampaign(campaign._id, campaign.title); }}
+                          disabled={deletingId === campaign._id}
+                          title="Delete campaign"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 cursor-pointer disabled:opacity-50"
+                        >
+                          {deletingId === campaign._id ? (
+                            <span className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                            </svg>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
@@ -608,11 +653,19 @@ function ApplicationsList({
           )}
 
           {app.status === 'accepted' && (
-            <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              Deal created — chat in Messages
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Deal active
+              </div>
+              <a href="/brand/messages" className="flex items-center gap-1 text-xs font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#5D8A8F] px-2.5 py-1 rounded-lg hover:shadow-md transition-all duration-150 cursor-pointer">
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Chat now →
+              </a>
             </div>
           )}
         </div>

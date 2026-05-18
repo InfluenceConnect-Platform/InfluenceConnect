@@ -6,15 +6,22 @@ const {
   getMyProfile,
   updateProfile,
   getPublicProfile,
-  getEarnings 
+  getEarnings,
+  getMyDeals,
+  updateDealStatus,
 } = require('../controllers/influencer.controller');
+const { withdrawApplication } = require('../controllers/campaign.controller');
 
 // All routes below require authentication
 router.post('/profile', authenticate, createProfile);
 router.get('/profile/me', authenticate, getMyProfile);
 router.put('/profile', authenticate, updateProfile);
+router.get('/deals', authenticate, getMyDeals);
+router.put('/deals/:dealId/status', authenticate, updateDealStatus);
+router.get('/earnings', authenticate, getEarnings);
+router.delete('/applications/:applicationId', authenticate, withdrawApplication);
 
 // Public route — no auth needed
 router.get('/profile/:slug', getPublicProfile);
-router.get('/earnings', authenticate, getEarnings);
+
 module.exports = router;

@@ -23,9 +23,19 @@ exports.getMessages = async (req, res) => {
     }
 
     const messages = await Message.find({ dealId })
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .lean();
 
-    res.json({ messages });
+    // Ensure ObjectIds are plain strings so frontend === comparison works
+    const normalized = messages.map(m => ({
+      ...m,
+      _id: m._id.toString(),
+      senderId: m.senderId.toString(),
+      receiverId: m.receiverId.toString(),
+      dealId: m.dealId.toString(),
+    }));
+
+    res.json({ messages: normalized });
 
   } catch (error) {
     console.error('Get messages error:', error);
@@ -96,7 +106,16 @@ exports.sendMessage = async (req, res) => {
       content: content.trim()
     });
 
-    res.status(201).json({ message });
+    // Return plain strings so frontend === comparison works reliably
+    res.status(201).json({
+      message: {
+        ...message.toObject(),
+        _id: message._id.toString(),
+        senderId: message.senderId.toString(),
+        receiverId: message.receiverId.toString(),
+        dealId: message.dealId.toString(),
+      }
+    });
 
   } catch (error) {
     console.error('Send message error:', error);

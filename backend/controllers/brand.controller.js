@@ -164,6 +164,37 @@ exports.getMyCampaigns = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// DELETE CAMPAIGN (only if no deal exists)
+// ─────────────────────────────────────────
+exports.deleteCampaign = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+
+    const campaign = await Campaign.findOne({ _id: campaignId, brandId: req.userId });
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found.' });
+    }
+
+    // Block deletion if a deal has already been created for this campaign
+    const existingDeal = await Deal.findOne({ campaignId });
+    if (existingDeal) {
+      return res.status(400).json({
+        error: 'This campaign cannot be deleted because a deal is already in progress. You can cancel the deal first.'
+      });
+    }
+
+    // Delete all applications and then the campaign
+    await Application.deleteMany({ campaignId });
+    await Campaign.findByIdAndDelete(campaignId);
+
+    res.json({ message: 'Campaign deleted successfully.' });
+  } catch (error) {
+    console.error('Delete campaign error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET APPLICATIONS FOR A CAMPAIGN
 // ─────────────────────────────────────────
 exports.getCampaignApplications = async (req, res) => {
@@ -248,6 +279,21 @@ exports.updateApplicationStatus = async (req, res) => {
           status: 'in-progress'
         });
       }
+
+      // Mark campaign as in-progress while the deal is active
+      await Campaign.findByIdAndUpdate(application.campaignId._id, {
+        status: 'in-progress'
+      });
+
+      // Bulk-reject all other pending applications for this campaign
+      await Application.updateMany(
+        {
+          campaignId: application.campaignId._id,
+          _id: { $ne: application._id },
+          status: { $in: ['applied', 'shortlisted'] }
+        },
+        { $set: { status: 'rejected' } }
+      );
     }
 
     res.json({
@@ -257,6 +303,101 @@ exports.updateApplicationStatus = async (req, res) => {
 
   } catch (error) {
     console.error('Update application status error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// GET MY DEALS (for brand messaging inbox)
+// ─────────────────────────────────────────
+exports.getMyDeals = async (req, res) => {
+  try {
+    const Message = require('../models/Message');
+
+    const deals = await Deal.find({ brandId: req.userId })
+      .populate('campaignId', 'title niche deliverables budgetMin budgetMax')
+      .populate('influencerId', 'name')
+      .sort({ updatedAt: -1 });
+
+    const dealsWithPreview = await Promise.all(
+      deals.map(async (deal) => {
+        const profile = await InfluencerProfile.findOne({ userId: deal.influencerId._id })
+          .select('niche city platforms');
+        const lastMessage = await Message.findOne({ dealId: deal._id })
+          .sort({ createdAt: -1 })
+          .select('content senderId createdAt');
+        const obj = deal.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          offers: (obj.offers || []).map(o => ({
+            ...o,
+            _id: o._id.toString(),
+            proposedBy: o.proposedBy.toString(),
+          })),
+          influencerProfile: profile,
+          lastMessage: lastMessage || null,
+        };
+      })
+    );
+
+    res.json({ deals: dealsWithPreview });
+  } catch (error) {
+    console.error('Get brand deals error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// UPDATE DEAL STATUS (brand)
+// ─────────────────────────────────────────
+exports.updateDealStatus = async (req, res) => {
+  try {
+    const { dealId } = req.params;
+    const { status } = req.body;
+
+    if (!['completed', 'cancelled'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be completed or cancelled.' });
+    }
+
+    const deal = await Deal.findById(dealId);
+    if (!deal) {
+      return res.status(404).json({ error: 'Deal not found' });
+    }
+
+    if (deal.brandId.toString() !== req.userId.toString()) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (status === 'completed') {
+      if (deal.status !== 'content-submitted') {
+        return res.status(400).json({ error: 'Deal must be in content-submitted state to mark complete.' });
+      }
+      deal.status = 'completed';
+      deal.completedAt = new Date();
+      await deal.save();
+
+      // Mark campaign as completed
+      await Campaign.findByIdAndUpdate(deal.campaignId, { status: 'completed' });
+
+      // Increment influencer's dealsCompleted counter
+      await InfluencerProfile.findOneAndUpdate(
+        { userId: deal.influencerId },
+        { $inc: { dealsCompleted: 1 } }
+      );
+    } else {
+      // cancelled
+      deal.status = 'cancelled';
+      await deal.save();
+
+      // Reopen the campaign
+      await Campaign.findByIdAndUpdate(deal.campaignId, { status: 'active' });
+    }
+
+    res.json({ message: `Deal ${status} successfully`, deal });
+
+  } catch (error) {
+    console.error('Update deal status (brand) error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

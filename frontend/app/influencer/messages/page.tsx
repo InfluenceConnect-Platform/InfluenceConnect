@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/influencer/dashboard' },
@@ -25,11 +26,13 @@ interface Message {
 
 interface Deal {
   _id: string;
-  campaignId: { title: string; niche: string[] };
+  campaignId: { title: string; niche: string[]; deliverables?: string; budgetMin: number; budgetMax: number };
   brandId: { _id: string; name: string };
   agreedAmount: number;
   status: string;
-  messages?: Message[];
+  negotiationStatus: 'open' | 'agreed';
+  offers: Offer[];
+  lastMessage?: { content: string; senderId: string; createdAt: string } | null;
 }
 
 const BLOCKED_PATTERN =
@@ -119,6 +122,7 @@ export default function MessagesPage() {
   const [messagesUsed, setMessagesUsed] = useState(0);
   const [search, setSearch] = useState('');
   const [showChat, setShowChat] = useState(false); // mobile: toggle list vs chat
+  const [actionLoading, setActionLoading] = useState(false);
 
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -144,14 +148,19 @@ export default function MessagesPage() {
     if (pollRef.current) clearInterval(pollRef.current);
     if (selectedDeal) {
       fetchMessages(selectedDeal._id);
-      pollRef.current = setInterval(() => fetchMessages(selectedDeal._id), 3000);
+      fetchDealState(selectedDeal._id);
+      pollRef.current = setInterval(() => {
+        fetchMessages(selectedDeal._id);
+        fetchDealState(selectedDeal._id);
+      }, 3000);
     }
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [selectedDeal]);
+  }, [selectedDeal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchDeals = async () => {
     try {
-      setDeals([]);
+      const res = await api.get('/api/influencer/deals');
+      setDeals(res.data.deals || []);
     } catch (error) {
       console.error('Fetch deals error:', error);
     } finally {
@@ -163,9 +172,24 @@ export default function MessagesPage() {
     try {
       const response = await api.get(`/api/messages/${dealId}`);
       setMessages(response.data.messages || []);
-    } catch {
-      // Messages API not built yet
-    }
+    } catch { /* ignore */ }
+  };
+
+  const fetchDealState = async (dealId: string) => {
+    try {
+      const res = await api.get(`/api/deals/${dealId}`);
+      const { status, offers, negotiationStatus, agreedAmount } = res.data;
+      setSelectedDeal(prev =>
+        prev && prev._id === dealId
+          ? { ...prev, status, offers, negotiationStatus, agreedAmount }
+          : prev
+      );
+      setDeals(prev =>
+        prev.map(d =>
+          d._id === dealId ? { ...d, status, offers, negotiationStatus, agreedAmount } : d
+        )
+      );
+    } catch { /* ignore — don't disrupt chat if this fails */ }
   };
 
   const handleSend = async () => {
@@ -176,6 +200,7 @@ export default function MessagesPage() {
       return;
     }
     if (!isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT) return;
+    if (dealClosed) return;
 
     setSending(true);
     try {
@@ -207,6 +232,22 @@ export default function MessagesPage() {
     setShowChat(false);
   };
 
+  const handleSubmitContent = async () => {
+    if (!selectedDeal) return;
+    if (!window.confirm('Mark your content as submitted? The brand will be notified to review.')) return;
+    setActionLoading(true);
+    try {
+      await api.put(`/api/influencer/deals/${selectedDeal._id}/status`, { status: 'content-submitted' });
+      setSelectedDeal(prev => prev ? { ...prev, status: 'content-submitted' } : prev);
+      setDeals(prev => prev.map(d => d._id === selectedDeal._id ? { ...d, status: 'content-submitted' } : d));
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string } } };
+      alert(e.response?.data?.error || 'Failed to update status.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const filteredDeals = deals.filter(d =>
     d.brandId?.name?.toLowerCase().includes(search.toLowerCase()) ||
     d.campaignId?.title?.toLowerCase().includes(search.toLowerCase())
@@ -214,6 +255,7 @@ export default function MessagesPage() {
 
   const isPremium = user?.plan === 'premium';
   const limitReached = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
+  const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
 
   return (
     <div className="h-[100dvh] bg-[#F7F9FA] flex flex-col overflow-hidden">
@@ -330,7 +372,7 @@ export default function MessagesPage() {
               <ul className="py-1">
                 {filteredDeals.map(deal => {
                   const isActive = selectedDeal?._id === deal._id;
-                  const lastMsg = deal.messages?.[deal.messages.length - 1];
+                  const lastMsg = deal.lastMessage || null;
                   const initials = getInitials(deal.brandId?.name);
                   const avatarColor = getAvatarColor(deal.brandId?.name || '');
                   return (
@@ -430,14 +472,47 @@ export default function MessagesPage() {
 
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-gray-900">{selectedDeal.brandId?.name}</p>
-                  <p className="text-xs text-gray-400 truncate">
-                    {selectedDeal.campaignId?.title}
-                    {selectedDeal.agreedAmount ? ` · ₹${selectedDeal.agreedAmount.toLocaleString()}` : ''}
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-xs text-gray-400 truncate">{selectedDeal.campaignId?.title}</p>
+                    {selectedDeal.negotiationStatus === 'agreed' ? (
+                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200/60 flex-shrink-0">
+                        ₹{selectedDeal.agreedAmount.toLocaleString()} agreed
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/60 flex-shrink-0">
+                        Negotiating…
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* Status + online indicator */}
+                {/* Status + online indicator + action buttons */}
                 <div className="flex items-center gap-2.5 flex-shrink-0">
+                  {/* Deal action buttons */}
+                  {selectedDeal.status === 'in-progress' && (
+                    <button
+                      onClick={handleSubmitContent}
+                      disabled={actionLoading}
+                      className="text-xs font-bold px-3 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white transition-all duration-150 cursor-pointer disabled:opacity-60 shadow-sm"
+                    >
+                      {actionLoading ? 'Submitting…' : 'Mark As Done'}
+                    </button>
+                  )}
+                  {selectedDeal.status === 'content-submitted' && (
+                    <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-700 border border-amber-200">
+                      Awaiting Brand Review
+                    </span>
+                  )}
+                  {selectedDeal.status === 'completed' && (
+                    <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-200">
+                      Deal Complete ✅
+                    </span>
+                  )}
+                  {selectedDeal.status === 'cancelled' && (
+                    <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-100 text-red-700 border border-red-200">
+                      Cancelled
+                    </span>
+                  )}
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                     <span className="text-[11px] text-gray-400 hidden sm:block">Active deal</span>
@@ -453,6 +528,24 @@ export default function MessagesPage() {
                   </span>
                 </div>
               </div>
+
+              {/* Offer negotiation panel */}
+              {!dealClosed && (
+                <OfferPanel
+                  dealId={selectedDeal._id}
+                  budgetMin={selectedDeal.campaignId?.budgetMin ?? 0}
+                  budgetMax={selectedDeal.campaignId?.budgetMax ?? 0}
+                  offers={selectedDeal.offers ?? []}
+                  negotiationStatus={selectedDeal.negotiationStatus ?? 'open'}
+                  agreedAmount={selectedDeal.agreedAmount}
+                  currentUserId={user?.id ?? ''}
+                  dealClosed={dealClosed}
+                  onUpdated={patch => {
+                    setSelectedDeal(prev => prev ? { ...prev, ...patch } : prev);
+                    setDeals(prev => prev.map(d => d._id === selectedDeal._id ? { ...d, ...patch } : d));
+                  }}
+                />
+              )}
 
               {/* Platform moderation notice */}
               <div className="flex items-center gap-2 px-4 sm:px-5 py-2 bg-gradient-to-r from-teal-50 to-cyan-50/50 border-b border-teal-200/40 flex-shrink-0">
@@ -490,7 +583,7 @@ export default function MessagesPage() {
                     </div>
 
                     {messages.map((msg, idx) => {
-                      const isMine = msg.senderId === user?.id;
+                      const isMine = msg.senderId?.toString() === user?.id?.toString();
                       const showAvatar = !isMine && (idx === 0 || messages[idx - 1]?.senderId !== msg.senderId);
                       const isLast = idx === messages.length - 1 || messages[idx + 1]?.senderId !== msg.senderId;
 
@@ -568,53 +661,70 @@ export default function MessagesPage() {
                 </div>
               )}
 
-              {/* Compose bar */}
-              <div className="px-4 sm:px-5 py-3.5 bg-white border-t border-gray-200 flex-shrink-0">
-                <div className={`flex items-end gap-2.5 p-1 rounded-2xl border transition-all duration-150 ${
-                  limitReached
-                    ? 'bg-gray-50 border-gray-200'
-                    : 'bg-white border-gray-200 focus-within:border-[#7FA8AD] focus-within:ring-2 focus-within:ring-[#7FA8AD]/20 shadow-sm'
-                }`}>
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={limitReached}
-                    placeholder={
-                      limitReached
-                        ? 'Upgrade to Premium to keep messaging…'
-                        : 'Type a message… (Enter to send, Shift+Enter for new line)'
-                    }
-                    className="flex-1 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 bg-transparent outline-none disabled:text-gray-400 resize-none"
-                  />
-
-                  {/* Character count */}
-                  {newMessage.length > 200 && (
-                    <span className={`text-[11px] font-medium self-center flex-shrink-0 ${newMessage.length > 450 ? 'text-red-500' : 'text-gray-400'}`}>
-                      {500 - newMessage.length}
-                    </span>
-                  )}
-
-                  {/* Send button */}
-                  <button
-                    onClick={handleSend}
-                    disabled={sending || !newMessage.trim() || limitReached}
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
-                      newMessage.trim() && !limitReached
-                        ? 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white shadow-sm hover:shadow-md cursor-pointer'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {sending ? (
-                      <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+              {/* Compose bar / closed-deal notice */}
+              {dealClosed ? (
+                <div className="px-4 sm:px-5 py-4 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+                  <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
+                    selectedDeal.status === 'completed'
+                      ? 'bg-emerald-50 border-emerald-200'
+                      : 'bg-red-50 border-red-200'
+                  }`}>
+                    {selectedDeal.status === 'completed' ? (
+                      <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                      </svg>
                     ) : (
-                      <SendIcon />
+                      <svg className="w-4 h-4 text-red-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                      </svg>
                     )}
-                  </button>
+                    <p className={`text-sm font-medium ${selectedDeal.status === 'completed' ? 'text-emerald-700' : 'text-red-600'}`}>
+                      {selectedDeal.status === 'completed'
+                        ? 'This deal is complete. Messaging is closed — the chat history is preserved above.'
+                        : 'This deal was cancelled. Messaging is disabled.'}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="px-4 sm:px-5 py-3.5 bg-white border-t border-gray-200 flex-shrink-0">
+                  <div className={`flex items-end gap-2.5 p-1 rounded-2xl border transition-all duration-150 ${
+                    limitReached
+                      ? 'bg-gray-50 border-gray-200'
+                      : 'bg-white border-gray-200 focus-within:border-[#7FA8AD] focus-within:ring-2 focus-within:ring-[#7FA8AD]/20 shadow-sm'
+                  }`}>
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      disabled={limitReached}
+                      placeholder={limitReached ? 'Upgrade to Premium to keep messaging…' : 'Type a message… (Enter to send)'}
+                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 bg-transparent outline-none disabled:text-gray-400 resize-none"
+                    />
+                    {newMessage.length > 200 && (
+                      <span className={`text-[11px] font-medium self-center flex-shrink-0 ${newMessage.length > 450 ? 'text-red-500' : 'text-gray-400'}`}>
+                        {500 - newMessage.length}
+                      </span>
+                    )}
+                    <button
+                      onClick={handleSend}
+                      disabled={sending || !newMessage.trim() || limitReached}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
+                        newMessage.trim() && !limitReached
+                          ? 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white shadow-sm hover:shadow-md cursor-pointer'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {sending ? (
+                        <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <SendIcon />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             /* No conversation selected — desktop placeholder */
