@@ -294,6 +294,10 @@ exports.discoverInfluencers = async (req, res) => {
       query.city = city;
     }
 
+    if (platform) {
+      query['platforms.name'] = platform;
+    }
+
     if (minFollowers || maxFollowers) {
       query['platforms.followers'] = {};
       if (minFollowers) query['platforms.followers'].$gte = parseInt(minFollowers);

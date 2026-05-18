@@ -2,13 +2,16 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-const { register, verifyOTP, login, sendMobileOtp } = require('../controllers/auth.controller');
+const { register, verifyOTP, resendOTP, login, sendMobileOtp } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
 router.post('/register', register);
 
 // POST /api/auth/verify-otp
 router.post('/verify-otp', verifyOTP);
+
+// POST /api/auth/resend-otp
+router.post('/resend-otp', resendOTP);
 
 // POST /api/auth/login
 router.post('/login', login);

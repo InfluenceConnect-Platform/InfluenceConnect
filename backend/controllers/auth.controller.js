@@ -55,14 +55,21 @@ exports.register = async (req, res) => {
     await OTP.create({ userId: user._id, type: 'email', otp: emailOTP });
     await OTP.create({ userId: user._id, type: 'mobile', otp: mobileOTP });
 
+    // In dev, redirect all OTPs to the bypass inbox; in prod, send to the real address
+    const devBypass = process.env.DEV_OTP_EMAIL;
+    const emailRecipient = devBypass || email;
+
     // Send email OTP via Resend
     const { error: emailError } = await resend.emails.send({
       from: 'onboarding@resend.dev',
-      to: email,
-      subject: 'Your Influence Connect verification code',
+      to: emailRecipient,
+      subject: devBypass
+        ? `[DEV] OTP for ${email} — Influence Connect`
+        : 'Your Influence Connect verification code',
       html: `
         <h2>Verify your email</h2>
-        <p>Your OTP is <strong style="font-size: 24px;">${emailOTP}</strong></p>
+        ${devBypass ? `<p style="color:#888;font-size:12px;">DEV BYPASS — original recipient: ${email}</p>` : ''}
+        <p>Your email OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${emailOTP}</strong></p>
         <p>Valid for 10 minutes. Do not share this with anyone.</p>
       `
     });
@@ -72,8 +79,21 @@ exports.register = async (req, res) => {
       return res.status(500).json({ error: 'Failed to send verification email. Please try again.' });
     }
 
-    // Mobile OTP — will be sent via MSG91 (added when MSG91 is set up)
-    console.log(`Mobile OTP for ${mobile}: ${mobileOTP}`); // temporary for testing
+    // Mobile OTP — send to bypass email in dev; MSG91 in prod
+    if (devBypass) {
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: devBypass,
+        subject: `[DEV] Mobile OTP for +91${mobile} — Influence Connect`,
+        html: `
+          <h2>Mobile OTP (dev bypass)</h2>
+          <p style="color:#888;font-size:12px;">Original recipient: +91${mobile}</p>
+          <p>Your mobile OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${mobileOTP}</strong></p>
+          <p>Valid for 10 minutes.</p>
+        `
+      });
+    }
+    console.log(`[OTP] Mobile OTP for ${mobile}: ${mobileOTP}`);
 
     res.status(201).json({
       message: 'Registration successful. Please verify your email and mobile.',
@@ -153,6 +173,80 @@ exports.verifyOTP = async (req, res) => {
 
   } catch (error) {
     console.error('Verify OTP error:', error);
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// RESEND OTP
+// ─────────────────────────────────────────
+exports.resendOTP = async (req, res) => {
+  try {
+    const { userId, type } = req.body;
+    if (!userId || !type) {
+      return res.status(400).json({ error: 'userId and type are required.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (type === 'email' && user.emailVerified) {
+      return res.status(400).json({ error: 'Email is already verified.' });
+    }
+    if (type === 'mobile' && user.mobileVerified) {
+      return res.status(400).json({ error: 'Mobile is already verified.' });
+    }
+
+    // Invalidate previous unused OTPs of this type
+    await OTP.deleteMany({ userId, type, used: false });
+
+    const newOTP = generateOTP();
+    await OTP.create({ userId, type, otp: newOTP });
+
+    const devBypass = process.env.DEV_OTP_EMAIL;
+
+    if (type === 'email') {
+      const recipient = devBypass || user.email;
+      const { error: emailError } = await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: recipient,
+        subject: devBypass
+          ? `[DEV] New OTP for ${user.email} — Influence Connect`
+          : 'Your new Influence Connect verification code',
+        html: `
+          <h2>New verification code</h2>
+          ${devBypass ? `<p style="color:#888;font-size:12px;">DEV BYPASS — original recipient: ${user.email}</p>` : ''}
+          <p>Your new email OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${newOTP}</strong></p>
+          <p>Valid for 10 minutes. Do not share this with anyone.</p>
+        `
+      });
+      if (emailError) {
+        console.error('Resend error:', emailError);
+        return res.status(500).json({ error: 'Failed to send email. Please try again.' });
+      }
+    }
+
+    if (type === 'mobile') {
+      if (devBypass) {
+        await resend.emails.send({
+          from: 'onboarding@resend.dev',
+          to: devBypass,
+          subject: `[DEV] New Mobile OTP for ${user.mobile} — Influence Connect`,
+          html: `
+            <h2>New mobile OTP (dev bypass)</h2>
+            <p style="color:#888;font-size:12px;">Original recipient: ${user.mobile}</p>
+            <p>Your new mobile OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${newOTP}</strong></p>
+            <p>Valid for 10 minutes.</p>
+          `
+        });
+      }
+      console.log(`[OTP] New mobile OTP for ${user.mobile}: ${newOTP}`);
+    }
+
+    res.json({ message: `New ${type} OTP sent successfully.` });
+
+  } catch (error) {
+    console.error('Resend OTP error:', error);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 };
@@ -249,7 +343,21 @@ exports.sendMobileOtp = async (req, res) => {
     const mobileOTP = generateOTP();
     await OTP.create({ userId, type: 'mobile', otp: mobileOTP });
 
-    // TODO: Send via MSG91 when configured. Logging for now.
+    // Send to bypass email in dev; MSG91 in prod
+    const devBypass = process.env.DEV_OTP_EMAIL;
+    if (devBypass) {
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: devBypass,
+        subject: `[DEV] Mobile OTP for ${cleanMobile} — Influence Connect`,
+        html: `
+          <h2>Mobile OTP (dev bypass)</h2>
+          <p style="color:#888;font-size:12px;">Original recipient: ${cleanMobile}</p>
+          <p>Your mobile OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${mobileOTP}</strong></p>
+          <p>Valid for 10 minutes.</p>
+        `
+      });
+    }
     console.log(`[OTP] Mobile OTP for ${cleanMobile}: ${mobileOTP}`);
 
     res.json({ message: 'OTP sent to your mobile number.' });
