@@ -29,27 +29,35 @@ const BRAND_ACTION_COLORS = [
 
 export default function BrandDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => {
+    if (typeof window === 'undefined') return null;
+    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
   const [stats, setStats] = useState<any>(null);
   const [recentApplications, setRecentApplications] = useState<any[]>([]);
+  const [logoUrl, setLogoUrl] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
-    const parsed = JSON.parse(stored);
-    if (parsed.role !== 'brand') { router.push('/auth/login'); return; }
-    setUser(parsed);
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     fetchDashboard();
   }, []);
 
   const fetchDashboard = async () => {
     try {
       try { await api.post('/api/brand/profile'); } catch { /* already exists */ }
-      const response = await api.get('/api/brand/dashboard/stats');
-      setStats(response.data.stats);
-      setRecentApplications(response.data.recentApplications);
+      const [statsRes, profileRes] = await Promise.all([
+        api.get('/api/brand/dashboard/stats'),
+        api.get('/api/brand/profile/me').catch(() => null),
+      ]);
+      setStats(statsRes.data.stats);
+      setRecentApplications(statsRes.data.recentApplications);
+      if (profileRes?.data?.profile?.logoUrl) {
+        setLogoUrl(profileRes.data.profile.logoUrl);
+      }
     } catch (error) {
       console.error('Fetch dashboard error:', error);
     } finally {
@@ -72,7 +80,7 @@ export default function BrandDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F4F6FB]">
-      <BrandNav user={user} />
+      <BrandNav user={user} logoUrl={logoUrl} />
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 

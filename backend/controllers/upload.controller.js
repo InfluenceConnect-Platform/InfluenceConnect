@@ -1,5 +1,6 @@
 const cloudinary = require('cloudinary').v2;
 const InfluencerProfile = require('../models/InfluencerProfile');
+const BrandProfile = require('../models/BrandProfile');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -15,8 +16,18 @@ cloudinary.config({
 exports.getSignature = async (req, res) => {
   try {
     const timestamp = Math.round(new Date().getTime() / 1000);
+    const context = req.query.context || 'portfolio';
 
-    const folder = `influence-connect/portfolio/${req.userId}`;
+    let folder;
+    if (context === 'profile-pic') {
+      folder = `influence-connect/profile-pics`;
+    } else if (context === 'brand-logo') {
+      folder = `influence-connect/brand-logos`;
+    } else if (context === 'cover-photo') {
+      folder = `influence-connect/cover-photos`;
+    } else {
+      folder = `influence-connect/portfolio/${req.userId}`;
+    }
 
     const signature = cloudinary.utils.api_sign_request(
       { timestamp, folder },
@@ -33,6 +44,117 @@ exports.getSignature = async (req, res) => {
 
   } catch (error) {
     console.error('Get signature error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// REMOVE PROFILE PICTURE (influencer)
+// ─────────────────────────────────────────
+exports.removeProfilePicture = async (req, res) => {
+  try {
+    const profile = await InfluencerProfile.findOne({ userId: req.userId });
+    if (!profile) return res.status(404).json({ error: 'Profile not found.' });
+    profile.profilePicUrl = '';
+    await profile.save();
+    res.json({ message: 'Profile picture removed.' });
+  } catch (error) {
+    console.error('Remove profile picture error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// REMOVE BRAND LOGO
+// ─────────────────────────────────────────
+exports.removeBrandLogo = async (req, res) => {
+  try {
+    const profile = await BrandProfile.findOne({ userId: req.userId });
+    if (!profile) return res.status(404).json({ error: 'Brand profile not found.' });
+    profile.logoUrl = '';
+    await profile.save();
+    res.json({ message: 'Brand logo removed.' });
+  } catch (error) {
+    console.error('Remove brand logo error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// SAVE PROFILE PICTURE (influencer)
+// ─────────────────────────────────────────
+exports.saveProfilePicture = async (req, res) => {
+  try {
+    const { profilePicUrl } = req.body;
+    if (!profilePicUrl) return res.status(400).json({ error: 'profilePicUrl is required.' });
+
+    const profile = await InfluencerProfile.findOne({ userId: req.userId });
+    if (!profile) return res.status(404).json({ error: 'Profile not found.' });
+
+    profile.profilePicUrl = profilePicUrl;
+    await profile.save();
+
+    res.json({ message: 'Profile picture updated.', profilePicUrl });
+  } catch (error) {
+    console.error('Save profile picture error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// SAVE BRAND LOGO
+// ─────────────────────────────────────────
+exports.saveBrandLogo = async (req, res) => {
+  try {
+    const { logoUrl } = req.body;
+    if (!logoUrl) return res.status(400).json({ error: 'logoUrl is required.' });
+
+    const profile = await BrandProfile.findOne({ userId: req.userId });
+    if (!profile) return res.status(404).json({ error: 'Brand profile not found.' });
+
+    profile.logoUrl = logoUrl;
+    await profile.save();
+
+    res.json({ message: 'Brand logo updated.', logoUrl });
+  } catch (error) {
+    console.error('Save brand logo error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// SAVE COVER PHOTO (influencer)
+// ─────────────────────────────────────────
+exports.saveCoverPhoto = async (req, res) => {
+  try {
+    const { coverPhotoUrl } = req.body;
+    if (!coverPhotoUrl) return res.status(400).json({ error: 'coverPhotoUrl is required.' });
+
+    const profile = await InfluencerProfile.findOne({ userId: req.userId });
+    if (!profile) return res.status(404).json({ error: 'Profile not found.' });
+
+    profile.coverPhotoUrl = coverPhotoUrl;
+    await profile.save();
+
+    res.json({ message: 'Cover photo updated.', coverPhotoUrl });
+  } catch (error) {
+    console.error('Save cover photo error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// REMOVE COVER PHOTO (influencer)
+// ─────────────────────────────────────────
+exports.removeCoverPhoto = async (req, res) => {
+  try {
+    const profile = await InfluencerProfile.findOne({ userId: req.userId });
+    if (!profile) return res.status(404).json({ error: 'Profile not found.' });
+    profile.coverPhotoUrl = '';
+    await profile.save();
+    res.json({ message: 'Cover photo removed.' });
+  } catch (error) {
+    console.error('Remove cover photo error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

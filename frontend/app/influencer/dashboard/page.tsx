@@ -31,6 +31,7 @@ interface Profile {
   dealsCompleted: number;
   portfolioItems: any[];
   platforms: Platform[];
+  profilePicUrl?: string;
 }
 
 const ShieldIcon = () => (
@@ -255,10 +256,15 @@ export default function InfluencerDashboard() {
             className="text-xs text-red-500 px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all duration-150 cursor-pointer font-medium">
             Log out
           </button>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm cursor-pointer hover:ring-[#7FA8AD] transition-all duration-150"
-            onClick={() => router.push('/influencer/profile')} title="View profile">
-            {user?.name?.charAt(0).toUpperCase()}
-          </div>
+          <Link href="/influencer/profile" title="View profile"
+            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm cursor-pointer hover:ring-[#7FA8AD] transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0]">
+            {profile?.profilePicUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[#9C4A33] font-bold text-sm">{user?.name?.charAt(0).toUpperCase()}</span>
+            )}
+          </Link>
         </div>
       </nav>
 
@@ -285,8 +291,13 @@ export default function InfluencerDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 relative">
             {/* Left: avatar + info */}
             <div className="flex items-center gap-4 sm:gap-5">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-md flex-shrink-0 border border-white/30">
-                {user?.name?.charAt(0).toUpperCase()}
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-md flex-shrink-0 border border-white/30 flex items-center justify-center bg-white/20 backdrop-blur-sm">
+                {profile?.profilePicUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={profile.profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-lg sm:text-xl">{user?.name?.charAt(0).toUpperCase()}</span>
+                )}
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-teal-200 font-medium mb-0.5 uppercase tracking-wider">Welcome back</p>

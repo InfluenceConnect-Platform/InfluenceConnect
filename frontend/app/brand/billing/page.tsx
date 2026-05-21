@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import BrandNav from '@/components/shared/BrandNav';
+import api from '@/lib/api';
 
 const FREEMIUM_FEATURES = [
   { text: 'Up to 2 active campaigns',           included: true  },
@@ -90,10 +91,15 @@ const SparkIcon = () => (
 
 export default function BrandBillingPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string; plan?: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; plan?: string } | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
+  const [downgrading, setDowngrading] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [toast, setToast] = useState('');
 
   const MONTHLY_PRICE = 1499;
   const YEARLY_PRICE = Math.round(MONTHLY_PRICE * 12 * 0.8);
@@ -109,12 +115,45 @@ export default function BrandBillingPage() {
     setUser(parsed);
   }, [router]);
 
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 4000);
+  };
+
+  const syncUserToStorage = (updatedUser: any) => {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const merged = { ...parsed, plan: updatedUser.plan };
+      localStorage.setItem('user', JSON.stringify(merged));
+      setUser(merged);
+    }
+  };
+
   const handleUpgrade = async () => {
     setLoading(true);
     try {
-      alert('Razorpay checkout will open here in production. Payment gateway is configured and ready.');
+      const res = await api.post('/api/auth/upgrade');
+      syncUserToStorage(res.data.user);
+      showToast('🎉 Welcome to Premium! All features are now unlocked.');
+    } catch (error: any) {
+      showToast(error.response?.data?.error || 'Upgrade failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDowngrade = async () => {
+    if (!confirm('Downgrade to Freemium? You will lose Premium features.')) return;
+    setDowngrading(true);
+    try {
+      const res = await api.post('/api/auth/downgrade');
+      syncUserToStorage(res.data.user);
+      showToast('Plan downgraded to Freemium.');
+    } catch (error: any) {
+      showToast(error.response?.data?.error || 'Downgrade failed. Please try again.');
+    } finally {
+      setDowngrading(false);
     }
   };
 
@@ -122,6 +161,13 @@ export default function BrandBillingPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F6FB]">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-5 right-4 sm:right-6 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl max-w-sm animate-in fade-in slide-in-from-bottom-2">
+          {toast}
+        </div>
+      )}
+
       <BrandNav user={user} />
 
       <main className="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -138,9 +184,13 @@ export default function BrandBillingPage() {
               <h2 className="text-lg font-bold text-white">You&apos;re on Premium — enjoy every feature</h2>
               <p className="text-sm text-blue-100/80 mt-1">Your subscription renews automatically. You can cancel anytime.</p>
             </div>
-            <button className="relative flex-shrink-0 self-start sm:self-auto flex items-center gap-2 text-sm text-[#2B3B68] font-semibold bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-all cursor-pointer shadow-sm">
+            <button
+              onClick={handleDowngrade}
+              disabled={downgrading}
+              className="relative flex-shrink-0 self-start sm:self-auto flex items-center gap-2 text-sm text-[#2B3B68] font-semibold bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-all cursor-pointer shadow-sm disabled:opacity-60"
+            >
               <RefreshIcon />
-              Manage plan
+              {downgrading ? 'Downgrading…' : 'Cancel plan'}
             </button>
           </div>
         )}
@@ -214,9 +264,19 @@ export default function BrandBillingPage() {
             </div>
 
             <div className="px-6 py-5 flex-1 flex flex-col">
-              <div className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 text-center mb-5 bg-gray-50 select-none">
-                {isPremium ? 'Downgrade' : 'Current plan'}
-              </div>
+              {isPremium ? (
+                <button
+                  onClick={handleDowngrade}
+                  disabled={downgrading}
+                  className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all mb-5 cursor-pointer disabled:opacity-50"
+                >
+                  {downgrading ? 'Downgrading…' : 'Downgrade to Freemium'}
+                </button>
+              ) : (
+                <div className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-400 text-center mb-5 bg-gray-50 select-none">
+                  Current plan
+                </div>
+              )}
 
               <div className="flex flex-col gap-2.5 flex-1">
                 {FREEMIUM_FEATURES.map((f, i) => (

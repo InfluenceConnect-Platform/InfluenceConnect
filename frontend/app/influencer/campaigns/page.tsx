@@ -37,6 +37,8 @@ interface Campaign {
   minFollowers: number;
   applicantCount: number;
   brandId: { name: string };
+  brandLogoUrl?: string;
+  brandWebsite?: string;
 }
 
 const NICHE_COLORS: Record<string, string> = {
@@ -129,6 +131,7 @@ const formatDate = (d: string) =>
 export default function InfluencerCampaigns() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [profilePicUrl, setProfilePicUrl] = useState('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState<string | null>(null);
@@ -150,6 +153,7 @@ export default function InfluencerCampaigns() {
     const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     setUser(JSON.parse(stored));
+    api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchCampaigns();
     fetchMyApplications();
   }, []);
@@ -282,9 +286,15 @@ export default function InfluencerCampaigns() {
           }`}>
             {isPremium ? '★ Premium' : 'Freemium'}
           </span>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm">
-            {user?.name?.charAt(0).toUpperCase()}
-          </div>
+          <Link href="/influencer/profile" title="View profile"
+            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm cursor-pointer hover:ring-[#7FA8AD] transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0]">
+            {profilePicUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[#9C4A33] font-bold text-sm">{user?.name?.charAt(0).toUpperCase()}</span>
+            )}
+          </Link>
         </div>
       </nav>
 
@@ -508,18 +518,39 @@ export default function InfluencerCampaigns() {
                   <div className="p-4 sm:p-5 flex flex-col flex-1">
                     {/* Brand row */}
                     <div className="flex items-center gap-3 mb-3.5">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 shadow-sm ${
-                        ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'][(campaign.brandId?.name?.charCodeAt(0) || 0) % 6]
-                      }`}>
-                        {campaign.brandId?.name?.slice(0, 2).toUpperCase() || 'BR'}
+                      {/* Brand logo / initials */}
+                      <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${!campaign.brandLogoUrl ? ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'][(campaign.brandId?.name?.charCodeAt(0) || 0) % 6] : 'bg-gray-100'}`}>
+                        {campaign.brandLogoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={campaign.brandLogoUrl} alt={campaign.brandId?.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[11px] font-bold text-white">{campaign.brandId?.name?.slice(0, 2).toUpperCase() || 'BR'}</span>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-bold text-gray-900 truncate">{campaign.brandId?.name || 'Brand'}</p>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                          <p className="text-[11px] text-gray-400 font-medium">Verified brand</p>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          {campaign.brandWebsite ? (
+                            <a
+                              href={campaign.brandWebsite.startsWith('http') ? campaign.brandWebsite : `https://${campaign.brandWebsite}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={e => e.stopPropagation()}
+                              className="flex items-center gap-1 text-[11px] text-[#3D5087] hover:text-[#2B3B68] font-medium hover:underline transition-colors"
+                            >
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                              </svg>
+                              {campaign.brandWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                            </a>
+                          ) : (
+                            <>
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                              <p className="text-[11px] text-gray-400 font-medium">Verified brand</p>
+                            </>
+                          )}
                           {campaign.targetPlatform && campaign.targetPlatform !== 'any' && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ml-1 uppercase tracking-wide text-white ${
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide text-white ${
                               campaign.targetPlatform === 'instagram' ? 'bg-gradient-to-r from-[#ee2a7b] to-[#6228d7]' :
                               campaign.targetPlatform === 'youtube' ? 'bg-[#FF0000]' :
                               campaign.targetPlatform === 'facebook' ? 'bg-[#1877F2]' : 'bg-gray-500'

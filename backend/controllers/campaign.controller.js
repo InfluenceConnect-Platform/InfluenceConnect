@@ -1,6 +1,7 @@
 const Campaign = require('../models/Campaign');
 const Application = require('../models/Application');
 const InfluencerProfile = require('../models/InfluencerProfile');
+const BrandProfile = require('../models/BrandProfile');
 
 // ─────────────────────────────────────────
 // GET ALL CAMPAIGNS (for influencer browse)
@@ -45,8 +46,23 @@ exports.getCampaigns = async (req, res) => {
       Campaign.countDocuments(query)
     ]);
 
+    // Batch-fetch brand profiles for logo and website
+    const brandIds = [...new Set(campaigns.map(c => c.brandId?._id?.toString()).filter(Boolean))];
+    const brandProfiles = await BrandProfile.find(
+      { userId: { $in: brandIds } },
+      { userId: 1, logoUrl: 1, website: 1 }
+    );
+    const brandProfileMap = {};
+    brandProfiles.forEach(bp => { brandProfileMap[bp.userId.toString()] = bp; });
+
+    const enriched = campaigns.map(c => {
+      const obj = c.toObject();
+      const bp = brandProfileMap[obj.brandId?._id?.toString()];
+      return { ...obj, brandLogoUrl: bp?.logoUrl || '', brandWebsite: bp?.website || '' };
+    });
+
     res.json({
-      campaigns,
+      campaigns: enriched,
       pagination: {
         total,
         page: parseInt(page),

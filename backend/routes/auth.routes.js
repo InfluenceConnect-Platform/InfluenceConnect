@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword } = require('../controllers/auth.controller');
+const authenticate = require('../middleware/auth.middleware');
+const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
 router.post('/register', register);
@@ -24,6 +25,12 @@ router.post('/forgot-password', forgotPassword);
 
 // POST /api/auth/reset-password
 router.post('/reset-password', resetPassword);
+
+// POST /api/auth/upgrade  — bypass payment, set plan = premium
+router.post('/upgrade', authenticate, upgradePlan);
+
+// POST /api/auth/downgrade  — revert to freemium
+router.post('/downgrade', authenticate, downgradePlan);
 
 // Derive the backend/frontend origin from the incoming request so that OAuth
 // works correctly whether the request comes from localhost or a phone on the

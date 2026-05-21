@@ -2,25 +2,63 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '@/lib/api';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/brand/dashboard' },
   { label: 'Campaigns', href: '/brand/campaigns' },
   { label: 'Discover', href: '/brand/discover' },
   { label: 'Messages', href: '/brand/messages' },
+  { label: 'Profile', href: '/brand/profile' },
   { label: 'Billing', href: '/brand/billing' },
 ];
 
 interface BrandNavProps {
   user: { name: string; plan?: string } | null;
+  // logoUrl can be passed as a prop (for the profile page which already has it loaded)
+  // or omitted — BrandNav will fetch it itself
+  logoUrl?: string;
 }
 
-export default function BrandNav({ user }: BrandNavProps) {
+export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: BrandNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [fetchedLogoUrl, setFetchedLogoUrl] = useState('');
+
+  // Self-sufficient user state: reads localStorage directly so the nav
+  // never shows '?' even when the parent page hasn't populated its own
+  // user state yet (e.g. after a full-page reload / bfcache miss).
+  const [localUser, setLocalUser] = useState<any>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const s = localStorage.getItem('user');
+      return s ? JSON.parse(s) : null;
+    } catch { return null; }
+  });
+
+  // Keep localUser in sync if localStorage changes (e.g. after plan upgrade)
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem('user');
+      if (s) setLocalUser(JSON.parse(s));
+    } catch {}
+  }, []);
+
+  // Prefer the prop (parent may have fresher data), fall back to local read
+  const user = userProp ?? localUser;
   const isPremium = user?.plan === 'premium';
+
+  // Fetch brand profile logo when no prop is provided
+  useEffect(() => {
+    if (logoUrlProp !== undefined) return;
+    api.get('/api/brand/profile/me')
+      .then(res => setFetchedLogoUrl(res.data?.profile?.logoUrl || ''))
+      .catch(() => {});
+  }, [logoUrlProp]);
+
+  const logoUrl = logoUrlProp !== undefined ? logoUrlProp : fetchedLogoUrl;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -69,9 +107,16 @@ export default function BrandNav({ user }: BrandNavProps) {
           >
             Log out
           </button>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#EAEDF6] to-[#D4D9EE] text-[#3D5087] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm flex-shrink-0 select-none">
-            {user?.name?.charAt(0).toUpperCase() ?? '?'}
-          </div>
+          {/* Avatar — shows logo if uploaded, falls back to initial; links to profile */}
+          <Link href="/brand/profile" title="Brand profile"
+            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm flex-shrink-0 select-none bg-gradient-to-br from-[#EAEDF6] to-[#D4D9EE] flex items-center justify-center hover:ring-[#3D5087] transition-all duration-150 cursor-pointer">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt="Brand logo" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[#3D5087] font-bold text-sm">{user?.name?.charAt(0).toUpperCase() ?? '?'}</span>
+            )}
+          </Link>
           <button
             onClick={() => setMobileOpen(v => !v)}
             aria-label="Toggle navigation"

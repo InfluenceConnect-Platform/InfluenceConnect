@@ -55,7 +55,7 @@ exports.updateProfile = async (req, res) => {
   try {
     const {
       companyName, description, industry,
-      city, website, gstin
+      website, gstin
     } = req.body;
 
     const profile = await BrandProfile.findOne({ userId: req.userId });
@@ -66,7 +66,6 @@ exports.updateProfile = async (req, res) => {
     if (companyName !== undefined) profile.companyName = companyName;
     if (description !== undefined) profile.description = description;
     if (industry !== undefined)    profile.industry = industry;
-    if (city !== undefined)        profile.city = city;
     if (website !== undefined)     profile.website = website;
 
     // GSTIN submission — triggers manual admin review
@@ -219,7 +218,7 @@ exports.getCampaignApplications = async (req, res) => {
       applications.map(async (app) => {
         const profile = await InfluencerProfile.findOne({
           userId: app.influencerId._id
-        });
+        }).select('niche city platforms profilePicUrl credibilityScore level');
         return {
           ...app.toObject(),
           influencerProfile: profile
@@ -322,7 +321,7 @@ exports.getMyDeals = async (req, res) => {
     const dealsWithPreview = await Promise.all(
       deals.map(async (deal) => {
         const profile = await InfluencerProfile.findOne({ userId: deal.influencerId._id })
-          .select('niche city platforms');
+          .select('niche city platforms profilePicUrl');
         const lastMessage = await Message.findOne({ dealId: deal._id })
           .sort({ createdAt: -1 })
           .select('content senderId createdAt');
@@ -380,11 +379,18 @@ exports.updateDealStatus = async (req, res) => {
       // Mark campaign as completed
       await Campaign.findByIdAndUpdate(deal.campaignId, { status: 'completed' });
 
-      // Increment influencer's dealsCompleted counter
-      await InfluencerProfile.findOneAndUpdate(
+      // Increment dealsCompleted, then recalculate credibility score and level
+      const influencerProfile = await InfluencerProfile.findOneAndUpdate(
         { userId: deal.influencerId },
-        { $inc: { dealsCompleted: 1 } }
+        { $inc: { dealsCompleted: 1 } },
+        { new: true }
       );
+
+      if (influencerProfile) {
+        influencerProfile.level = influencerProfile.calculateLevel();
+        influencerProfile.credibilityScore = influencerProfile.calculateCredibilityScore();
+        await influencerProfile.save();
+      }
     } else {
       // cancelled
       deal.status = 'cancelled';
@@ -472,6 +478,26 @@ exports.discoverInfluencers = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// GET INFLUENCER PUBLIC PROFILE BY SLUG
+// ─────────────────────────────────────────
+exports.getInfluencerBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const profile = await InfluencerProfile.findOne({ slug })
+      .populate('userId', 'name email');
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Influencer not found.' });
+    }
+
+    res.json({ profile });
+  } catch (error) {
+    console.error('Get influencer by slug error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET BRAND DASHBOARD STATS
 // ─────────────────────────────────────────
 exports.getDashboardStats = async (req, res) => {
@@ -500,7 +526,7 @@ exports.getDashboardStats = async (req, res) => {
       recentApplications.map(async (app) => {
         const profile = await InfluencerProfile.findOne({
           userId: app.influencerId._id
-        });
+        }).select('niche city platforms profilePicUrl credibilityScore level');
         return { ...app.toObject(), influencerProfile: profile };
       })
     );

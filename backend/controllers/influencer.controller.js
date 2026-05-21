@@ -115,12 +115,7 @@ exports.updateProfile = async (req, res) => {
     }
 
     // Recalculate credibility score and level
-   try {
-  profile.credibilityScore = profile.calculateCredibilityScore();
-  profile.level = profile.calculateLevel();
-} catch(e) {
-  console.log('Score calculation error:', e.message);
-}
+    profile.credibilityScore = profile.calculateCredibilityScore();
     profile.level = profile.calculateLevel();
 
     await profile.save();
@@ -182,11 +177,16 @@ exports.getMyDeals = async (req, res) => {
       .populate('brandId', 'name')
       .sort({ updatedAt: -1 });
 
+    const BrandProfile = require('../models/BrandProfile');
+
     const dealsWithPreview = await Promise.all(
       deals.map(async (deal) => {
-        const lastMessage = await Message.findOne({ dealId: deal._id })
-          .sort({ createdAt: -1 })
-          .select('content senderId createdAt');
+        const [lastMessage, brandProfile] = await Promise.all([
+          Message.findOne({ dealId: deal._id })
+            .sort({ createdAt: -1 })
+            .select('content senderId createdAt'),
+          BrandProfile.findOne({ userId: deal.brandId }).select('logoUrl'),
+        ]);
         const obj = deal.toObject();
         return {
           ...obj,
@@ -196,6 +196,7 @@ exports.getMyDeals = async (req, res) => {
             _id: o._id.toString(),
             proposedBy: o.proposedBy.toString(),
           })),
+          brandLogoUrl: brandProfile?.logoUrl || '',
           lastMessage: lastMessage || null,
         };
       })

@@ -26,11 +26,6 @@ const brandProfileSchema = new mongoose.Schema({
     default: 'other'
   },
 
-  city: {
-    type: String,
-    default: ''
-  },
-
   website: {
     type: String,
     default: ''

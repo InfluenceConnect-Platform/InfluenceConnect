@@ -82,6 +82,9 @@ const influencerProfileSchema = new mongoose.Schema({
 
   dealsCompleted: { type: Number, default: 0 },
 
+  profilePicUrl: { type: String, default: '' },
+  coverPhotoUrl: { type: String, default: '' },
+
 }, { timestamps: true });
 
 // ─────────────────────────────────────────

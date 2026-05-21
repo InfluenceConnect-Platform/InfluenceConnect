@@ -96,12 +96,14 @@ export default function EarningsPage() {
   const [dealHistory, setDealHistory] = useState<DealHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'6months' | '1year'>('6months');
+  const [profilePicUrl, setProfilePicUrl] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     setUser(JSON.parse(stored));
+    api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchEarnings();
   }, []);
 
@@ -159,9 +161,15 @@ export default function EarningsPage() {
           }`}>
             {isPremium ? '★ Premium' : 'Freemium'}
           </span>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm">
-            {user?.name?.charAt(0).toUpperCase()}
-          </div>
+          <Link href="/influencer/profile" title="View profile"
+            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm cursor-pointer hover:ring-[#7FA8AD] transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0]">
+            {profilePicUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[#9C4A33] font-bold text-sm">{user?.name?.charAt(0).toUpperCase()}</span>
+            )}
+          </Link>
         </div>
       </nav>
 

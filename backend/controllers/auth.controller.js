@@ -10,6 +10,71 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Professional email OTP template
+function buildOtpEmail({ title, heading, body, otp, codeLabel, devNote }) {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Top accent bar -->
+        <tr><td style="height:4px;background:linear-gradient(90deg,#7FA8AD,#5D8A8F,#3D5087);"></td></tr>
+
+        <tr><td style="padding:36px 40px 32px;">
+
+          <!-- Logo -->
+          <div style="margin-bottom:28px;">
+            <table cellpadding="0" cellspacing="0"><tr>
+              <td style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7FA8AD,#3D5087);text-align:center;vertical-align:middle;">
+                <span style="color:#fff;font-weight:700;font-size:12px;line-height:32px;">IC</span>
+              </td>
+              <td style="padding-left:10px;vertical-align:middle;">
+                <span style="font-weight:600;font-size:14px;color:#374151;">Influence Connect</span>
+              </td>
+            </tr></table>
+          </div>
+
+          ${devNote ? `<p style="color:#92400e;font-size:11px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 12px;margin:0 0 20px;">${devNote}</p>` : ''}
+
+          <!-- Heading -->
+          <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">${heading}</h1>
+          <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">${body}</p>
+
+          <!-- OTP box -->
+          <div style="text-align:center;background:linear-gradient(135deg,#f0f9fa,#e8f4f5);border:1px solid #c5dfe2;border-radius:12px;padding:28px 20px;margin-bottom:28px;">
+            <p style="margin:0 0 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:#5D8A8F;">${codeLabel}</p>
+            <p style="margin:0;font-size:38px;font-weight:800;letter-spacing:10px;color:#1e3a5f;font-family:'Courier New',monospace;">${otp}</p>
+            <p style="margin:10px 0 0;font-size:12px;color:#9ca3af;">Expires in 10 minutes</p>
+          </div>
+
+          <!-- Warning -->
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
+            <tr>
+              <td width="4" style="background:linear-gradient(180deg,#7FA8AD,#3D5087);border-radius:4px;">&nbsp;</td>
+              <td style="padding:10px 14px;">
+                <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
+                  Never share this code with anyone. Influence Connect will <strong>never</strong> ask for your OTP.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <hr style="border:none;border-top:1px solid #f3f4f6;margin:0 0 20px;">
+          <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">
+            © ${new Date().getFullYear()} Influence Connect · India
+          </p>
+
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // Generate JWT token
 function generateToken(userId) {
   return jwt.sign(
@@ -65,13 +130,14 @@ exports.register = async (req, res) => {
       to: emailRecipient,
       subject: devBypass
         ? `[DEV] OTP for ${email} — Influence Connect`
-        : 'Your Influence Connect verification code',
-      html: `
-        <h2>Verify your email</h2>
-        ${devBypass ? `<p style="color:#888;font-size:12px;">DEV BYPASS — original recipient: ${email}</p>` : ''}
-        <p>Your email OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${emailOTP}</strong></p>
-        <p>Valid for 10 minutes. Do not share this with anyone.</p>
-      `
+        : 'Verify your Influence Connect account',
+      html: buildOtpEmail({
+        heading: 'Verify your email address',
+        body: `Welcome to Influence Connect! Use the code below to confirm your email address and activate your account.`,
+        otp: emailOTP,
+        codeLabel: 'Email verification code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: ${email}` : null
+      })
     });
 
     if (emailError) {
@@ -85,12 +151,13 @@ exports.register = async (req, res) => {
         from: 'onboarding@resend.dev',
         to: devBypass,
         subject: `[DEV] Mobile OTP for +91${mobile} — Influence Connect`,
-        html: `
-          <h2>Mobile OTP (dev bypass)</h2>
-          <p style="color:#888;font-size:12px;">Original recipient: +91${mobile}</p>
-          <p>Your mobile OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${mobileOTP}</strong></p>
-          <p>Valid for 10 minutes.</p>
-        `
+        html: buildOtpEmail({
+          heading: 'Verify your mobile number',
+          body: `Use the code below to verify the mobile number <strong>+91${mobile}</strong> on your Influence Connect account.`,
+          otp: mobileOTP,
+          codeLabel: 'Mobile verification code',
+          devNote: `DEV BYPASS — original recipient: +91${mobile}`
+        })
       });
     }
     console.log(`[OTP] Mobile OTP for ${mobile}: ${mobileOTP}`);
@@ -213,12 +280,13 @@ exports.resendOTP = async (req, res) => {
         subject: devBypass
           ? `[DEV] New OTP for ${user.email} — Influence Connect`
           : 'Your new Influence Connect verification code',
-        html: `
-          <h2>New verification code</h2>
-          ${devBypass ? `<p style="color:#888;font-size:12px;">DEV BYPASS — original recipient: ${user.email}</p>` : ''}
-          <p>Your new email OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${newOTP}</strong></p>
-          <p>Valid for 10 minutes. Do not share this with anyone.</p>
-        `
+        html: buildOtpEmail({
+          heading: 'New verification code',
+          body: `You requested a new code to verify your email address. Use the code below — your previous code has been invalidated.`,
+          otp: newOTP,
+          codeLabel: 'Email verification code',
+          devNote: devBypass ? `DEV BYPASS — original recipient: ${user.email}` : null
+        })
       });
       if (emailError) {
         console.error('Resend error:', emailError);
@@ -232,12 +300,13 @@ exports.resendOTP = async (req, res) => {
           from: 'onboarding@resend.dev',
           to: devBypass,
           subject: `[DEV] New Mobile OTP for ${user.mobile} — Influence Connect`,
-          html: `
-            <h2>New mobile OTP (dev bypass)</h2>
-            <p style="color:#888;font-size:12px;">Original recipient: ${user.mobile}</p>
-            <p>Your new mobile OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${newOTP}</strong></p>
-            <p>Valid for 10 minutes.</p>
-          `
+          html: buildOtpEmail({
+            heading: 'New mobile verification code',
+            body: `You requested a new code to verify the mobile number <strong>${user.mobile}</strong>. Your previous code has been invalidated.`,
+            otp: newOTP,
+            codeLabel: 'Mobile verification code',
+            devNote: `DEV BYPASS — original recipient: ${user.mobile}`
+          })
         });
       }
       console.log(`[OTP] New mobile OTP for ${user.mobile}: ${newOTP}`);
@@ -488,12 +557,13 @@ exports.sendMobileOtp = async (req, res) => {
         from: 'onboarding@resend.dev',
         to: devBypass,
         subject: `[DEV] Mobile OTP for ${cleanMobile} — Influence Connect`,
-        html: `
-          <h2>Mobile OTP (dev bypass)</h2>
-          <p style="color:#888;font-size:12px;">Original recipient: ${cleanMobile}</p>
-          <p>Your mobile OTP is <strong style="font-size: 24px; letter-spacing: 4px;">${mobileOTP}</strong></p>
-          <p>Valid for 10 minutes.</p>
-        `
+        html: buildOtpEmail({
+          heading: 'Verify your mobile number',
+          body: `Use the code below to verify the mobile number <strong>${cleanMobile}</strong> linked to your Influence Connect account.`,
+          otp: mobileOTP,
+          codeLabel: 'Mobile verification code',
+          devNote: `DEV BYPASS — original recipient: ${cleanMobile}`
+        })
       });
     }
     console.log(`[OTP] Mobile OTP for ${cleanMobile}: ${mobileOTP}`);
@@ -503,5 +573,62 @@ exports.sendMobileOtp = async (req, res) => {
   } catch (error) {
     console.error('Send mobile OTP error:', error);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// UPGRADE PLAN  (payment bypass for dev/testing)
+// ─────────────────────────────────────────
+exports.upgradePlan = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    user.plan = 'premium';
+    user.premiumUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year
+    await user.save();
+
+    res.json({
+      message: 'Plan upgraded to Premium.',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        plan: user.plan,
+        premiumUntil: user.premiumUntil,
+      },
+    });
+  } catch (error) {
+    console.error('Upgrade plan error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// DOWNGRADE PLAN  (back to freemium)
+// ─────────────────────────────────────────
+exports.downgradePlan = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    user.plan = 'freemium';
+    user.premiumUntil = null;
+    await user.save();
+
+    res.json({
+      message: 'Plan downgraded to Freemium.',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        plan: user.plan,
+      },
+    });
+  } catch (error) {
+    console.error('Downgrade plan error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
   }
 };

@@ -29,7 +29,10 @@ const TABS = ['active', 'draft', 'in-progress', 'completed', 'all'] as const;
 
 export default function BrandCampaigns() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => {
+    if (typeof window === 'undefined') return null;
+    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [applications, setApplications] = useState<any[]>([]);
@@ -56,9 +59,7 @@ export default function BrandCampaigns() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    setUser(JSON.parse(stored));
+    if (!token || !localStorage.getItem('user')) { router.push('/auth/login'); return; }
     fetchCampaigns();
   }, []);
 
@@ -105,12 +106,30 @@ export default function BrandCampaigns() {
       showToast('Please fill in campaign title, description, and deliverables.');
       return;
     }
+    if (!form.deadline) {
+      showToast('Please set a campaign deadline.');
+      return;
+    }
+    const budgetMin = parseInt(form.budgetMin);
+    const budgetMax = parseInt(form.budgetMax);
+    if (!form.budgetMin || isNaN(budgetMin) || budgetMin <= 0) {
+      showToast('Budget min must be a positive value.');
+      return;
+    }
+    if (!form.budgetMax || isNaN(budgetMax) || budgetMax <= 0) {
+      showToast('Budget max must be a positive value.');
+      return;
+    }
+    if (budgetMin > budgetMax) {
+      showToast('Budget min cannot be greater than budget max.');
+      return;
+    }
     setCreating(true);
     try {
       await api.post('/api/brand/campaigns', {
         ...form,
-        budgetMin: parseInt(form.budgetMin) || 0,
-        budgetMax: parseInt(form.budgetMax) || 0,
+        budgetMin,
+        budgetMax,
         minFollowers: parseInt(form.minFollowers) || 0,
       });
       showToast('Campaign created successfully!');
@@ -221,7 +240,7 @@ export default function BrandCampaigns() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Deadline</label>
+                  <label className={labelClass}>Deadline <span className="text-red-400">*</span></label>
                   <input
                     type="date"
                     value={form.deadline}
@@ -231,9 +250,10 @@ export default function BrandCampaigns() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Budget min (₹)</label>
+                  <label className={labelClass}>Budget min (₹) <span className="text-red-400">*</span></label>
                   <input
                     type="number"
+                    min={1}
                     value={form.budgetMin}
                     onChange={e => setForm(p => ({ ...p, budgetMin: e.target.value }))}
                     placeholder="e.g. 5000"
@@ -242,9 +262,10 @@ export default function BrandCampaigns() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Budget max (₹)</label>
+                  <label className={labelClass}>Budget max (₹) <span className="text-red-400">*</span></label>
                   <input
                     type="number"
+                    min={1}
                     value={form.budgetMax}
                     onChange={e => setForm(p => ({ ...p, budgetMax: e.target.value }))}
                     placeholder="e.g. 15000"
@@ -591,10 +612,17 @@ function ApplicationsList({
       {applications.map((app, i) => (
         <div key={i} className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className={`w-9 h-9 rounded-full text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm ${
-              ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'][(app.influencerId?.name?.charCodeAt(0) || 0) % 6]
+            <div className={`w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${
+              !app.influencerProfile?.profilePicUrl
+                ? ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'][(app.influencerId?.name?.charCodeAt(0) || 0) % 6]
+                : ''
             }`}>
-              {app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'}
+              {app.influencerProfile?.profilePicUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={app.influencerProfile.profilePicUrl} alt={app.influencerId?.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white font-bold text-sm">{app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'}</span>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">
@@ -660,7 +688,10 @@ function ApplicationsList({
                 </svg>
                 Deal active
               </div>
-              <a href="/brand/messages" className="flex items-center gap-1 text-xs font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#5D8A8F] px-2.5 py-1 rounded-lg hover:shadow-md transition-all duration-150 cursor-pointer">
+              <a
+                href={`/brand/messages${app.influencerId?._id ? `?influencerId=${app.influencerId._id}` : ''}`}
+                className="flex items-center gap-1 text-xs font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#5D8A8F] px-2.5 py-1 rounded-lg hover:shadow-md transition-all duration-150 cursor-pointer"
+              >
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>

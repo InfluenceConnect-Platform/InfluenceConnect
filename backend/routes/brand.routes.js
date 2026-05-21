@@ -14,6 +14,7 @@ const {
   getMyDeals,
   updateDealStatus,
   deleteCampaign,
+  getInfluencerBySlug,
 } = require('../controllers/brand.controller');
 
 router.post('/profile', authenticate, createProfile);
@@ -28,5 +29,6 @@ router.put('/applications/:applicationId/status', authenticate, updateApplicatio
 router.get('/deals', authenticate, getMyDeals);
 router.put('/deals/:dealId/status', authenticate, updateDealStatus);
 router.get('/discover', authenticate, discoverInfluencers);
+router.get('/influencer/:slug', authenticate, getInfluencerBySlug);
 
 module.exports = router;

@@ -28,6 +28,7 @@ interface Deal {
   _id: string;
   campaignId: { title: string; niche: string[]; deliverables?: string; budgetMin: number; budgetMax: number };
   brandId: { _id: string; name: string };
+  brandLogoUrl?: string;
   agreedAmount: number;
   status: string;
   negotiationStatus: 'open' | 'agreed';
@@ -112,6 +113,7 @@ const getAvatarColor = (name: string) =>
 export default function MessagesPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(null);
+  const [profilePicUrl, setProfilePicUrl] = useState('');
   const [deals, setDeals] = useState<Deal[]>([]);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -127,6 +129,7 @@ export default function MessagesPage() {
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const activeIdRef = useRef<string | null>(null); // tracks which deal is active to discard stale responses
   const FREEMIUM_MSG_LIMIT = 10;
 
   useEffect(() => {
@@ -134,6 +137,7 @@ export default function MessagesPage() {
     const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     setUser(JSON.parse(stored));
+    api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchDeals();
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
@@ -144,18 +148,21 @@ export default function MessagesPage() {
     }
   }, [messages]);
 
+  // Depend only on the deal _id string, not the whole object.
+  // fetchDealState spreads selectedDeal into a new reference every tick which would
+  // otherwise reset the interval and fire a cascade of overlapping fetches.
+  const selectedDealId = selectedDeal?._id ?? null;
   useEffect(() => {
     if (pollRef.current) clearInterval(pollRef.current);
-    if (selectedDeal) {
-      fetchMessages(selectedDeal._id);
-      fetchDealState(selectedDeal._id);
-      pollRef.current = setInterval(() => {
-        fetchMessages(selectedDeal._id);
-        fetchDealState(selectedDeal._id);
-      }, 3000);
-    }
+    if (!selectedDealId) return;
+    fetchMessages(selectedDealId);
+    fetchDealState(selectedDealId);
+    pollRef.current = setInterval(() => {
+      fetchMessages(selectedDealId);
+      fetchDealState(selectedDealId);
+    }, 3000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [selectedDeal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedDealId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchDeals = async () => {
     try {
@@ -171,6 +178,8 @@ export default function MessagesPage() {
   const fetchMessages = async (dealId: string) => {
     try {
       const response = await api.get(`/api/messages/${dealId}`);
+      // Discard response if the user switched to a different deal while this was in-flight
+      if (activeIdRef.current !== dealId) return;
       setMessages(response.data.messages || []);
     } catch { /* ignore */ }
   };
@@ -178,6 +187,7 @@ export default function MessagesPage() {
   const fetchDealState = async (dealId: string) => {
     try {
       const res = await api.get(`/api/deals/${dealId}`);
+      if (activeIdRef.current !== dealId) return;
       const { status, offers, negotiationStatus, agreedAmount } = res.data;
       setSelectedDeal(prev =>
         prev && prev._id === dealId
@@ -223,6 +233,10 @@ export default function MessagesPage() {
   };
 
   const selectDeal = (deal: Deal) => {
+    activeIdRef.current = deal._id; // update before any async fetches fire
+    setMessages([]); // clear immediately so stale messages never show
+    setNewMessage('');
+    setBlocked(false);
     setSelectedDeal(deal);
     setShowChat(true);
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -284,9 +298,15 @@ export default function MessagesPage() {
           }`}>
             {isPremium ? '★ Premium' : 'Freemium'}
           </span>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm">
-            {user?.name?.charAt(0).toUpperCase()}
-          </div>
+          <Link href="/influencer/profile" title="View profile"
+            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm cursor-pointer hover:ring-[#7FA8AD] transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0]">
+            {profilePicUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[#9C4A33] font-bold text-sm">{user?.name?.charAt(0).toUpperCase()}</span>
+            )}
+          </Link>
         </div>
       </nav>
 
@@ -386,8 +406,13 @@ export default function MessagesPage() {
                         }`}
                       >
                         {/* Avatar */}
-                        <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm`}>
-                          {initials}
+                        <div className={`w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${!deal.brandLogoUrl ? `bg-gradient-to-br ${avatarColor}` : 'bg-gray-100'}`}>
+                          {deal.brandLogoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={deal.brandLogoUrl} alt={deal.brandId?.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white font-bold text-sm">{initials}</span>
+                          )}
                         </div>
 
                         <div className="flex-1 min-w-0">
@@ -466,8 +491,13 @@ export default function MessagesPage() {
                 </button>
 
                 {/* Avatar */}
-                <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')} flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0`}>
-                  {getInitials(selectedDeal.brandId?.name)}
+                <div className={`w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${!selectedDeal.brandLogoUrl ? `bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')}` : 'bg-gray-100'}`}>
+                  {selectedDeal.brandLogoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={selectedDeal.brandLogoUrl} alt={selectedDeal.brandId?.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white font-bold text-sm">{getInitials(selectedDeal.brandId?.name)}</span>
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -591,10 +621,13 @@ export default function MessagesPage() {
                         <div key={msg._id} className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
                           {/* Their avatar */}
                           {!isMine && (
-                            <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')} flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 ${
-                              showAvatar ? 'visible' : 'invisible'
-                            }`}>
-                              {getInitials(selectedDeal.brandId?.name)}
+                            <div className={`w-7 h-7 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center ${showAvatar ? 'visible' : 'invisible'} ${!selectedDeal.brandLogoUrl ? `bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')}` : 'bg-gray-100'}`}>
+                              {selectedDeal.brandLogoUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={selectedDeal.brandLogoUrl} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-white text-[10px] font-bold">{getInitials(selectedDeal.brandId?.name)}</span>
+                              )}
                             </div>
                           )}
 
@@ -618,10 +651,13 @@ export default function MessagesPage() {
 
                           {/* My avatar */}
                           {isMine && (
-                            <div className={`w-7 h-7 rounded-full bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] text-[#9C4A33] flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                              showAvatar ? 'visible' : 'invisible'
-                            }`}>
-                              {user?.name?.charAt(0).toUpperCase()}
+                            <div className={`w-7 h-7 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center ${showAvatar ? 'visible' : 'invisible'} bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0]`}>
+                              {profilePicUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={profilePicUrl} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-[#9C4A33] text-[10px] font-bold">{user?.name?.charAt(0).toUpperCase()}</span>
+                              )}
                             </div>
                           )}
                         </div>
