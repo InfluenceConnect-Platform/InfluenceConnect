@@ -9,6 +9,166 @@ const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', '
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 
+/* ─── brand-view style constants ───────────────────── */
+const NICHE_CHIPS: Record<string, string> = {
+  beauty:    'bg-pink-50 text-pink-700 border-pink-200',
+  fashion:   'bg-purple-50 text-purple-700 border-purple-200',
+  food:      'bg-orange-50 text-orange-700 border-orange-200',
+  fitness:   'bg-amber-50 text-amber-700 border-amber-200',
+  lifestyle: 'bg-violet-50 text-violet-700 border-violet-200',
+  travel:    'bg-teal-50 text-teal-700 border-teal-200',
+  tech:      'bg-blue-50 text-blue-700 border-blue-200',
+  books:     'bg-indigo-50 text-indigo-700 border-indigo-200',
+};
+const LEVEL_BADGE: Record<string, string> = {
+  elite:        'bg-amber-50 text-amber-700 border border-amber-200',
+  professional: 'bg-violet-50 text-violet-700 border border-violet-200',
+  growing:      'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  starter:      'bg-gray-100 text-gray-500 border border-gray-200',
+};
+const AVATAR_GRADS = [
+  'from-[#5D8A8F] to-[#7FA8AD]',
+  'from-violet-500 to-purple-600',
+  'from-teal-500 to-cyan-600',
+  'from-rose-500 to-pink-600',
+  'from-amber-500 to-orange-500',
+  'from-emerald-500 to-green-600',
+];
+const PLATFORM_ACCENT: Record<string, { bar: string; label: string }> = {
+  instagram: { bar: 'border-l-pink-400',  label: 'text-pink-600' },
+  youtube:   { bar: 'border-l-red-400',   label: 'text-red-600'  },
+  facebook:  { bar: 'border-l-blue-500',  label: 'text-blue-600' },
+};
+const formatNum = (n: number) => {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`;
+  return `${n}`;
+};
+
+/* ─── platform logos ───────────────────────────────── */
+const InstagramLogo = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <defs>
+      <radialGradient id="ig-pf-grad" cx="30%" cy="110%" r="130%">
+        <stop offset="0%" stopColor="#ffd676"/>
+        <stop offset="25%" stopColor="#f46f30"/>
+        <stop offset="50%" stopColor="#e1306c"/>
+        <stop offset="75%" stopColor="#833ab4"/>
+        <stop offset="100%" stopColor="#4a23a8"/>
+      </radialGradient>
+    </defs>
+    <rect width="24" height="24" rx="6" fill="url(#ig-pf-grad)"/>
+    <rect x="6.5" y="6.5" width="11" height="11" rx="3.5" fill="none" stroke="white" strokeWidth="1.6"/>
+    <circle cx="12" cy="12" r="3" fill="none" stroke="white" strokeWidth="1.6"/>
+    <circle cx="17.2" cy="6.8" r="1.1" fill="white"/>
+  </svg>
+);
+const YouTubeLogo = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <rect width="24" height="24" rx="5" fill="#FF0000"/>
+    <path d="M17.8 8.6c-.2-.7-.8-1.3-1.5-1.5C15 6.8 12 6.8 12 6.8s-3 0-4.3.3c-.7.2-1.3.8-1.5 1.5C6 9.9 6 12 6 12s0 2.1.2 3.4c.2.7.8 1.3 1.5 1.5C9 17.2 12 17.2 12 17.2s3 0 4.3-.3c.7-.2 1.3-.8 1.5-1.5.2-1.3.2-3.4.2-3.4s0-2.1-.2-3.4z" fill="white"/>
+    <polygon points="10.5,9.5 10.5,14.5 14.5,12" fill="#FF0000"/>
+  </svg>
+);
+const FacebookLogo = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <rect width="24" height="24" rx="5" fill="#1877F2"/>
+    <path d="M16 4h-2.5C11.6 4 10 5.6 10 7.7V10H7.5v3H10v7h3v-7h2.5l.5-3H13V7.7c0-.4.3-.7.7-.7H16V4z" fill="white"/>
+  </svg>
+);
+
+/* ─── media modal ──────────────────────────────────── */
+type MediaItem = { type: 'image' | 'video'; src: string; thumbnail?: string; label?: string };
+
+function MediaModal({ items, startIndex, onClose }: { items: MediaItem[]; startIndex: number; onClose: () => void }) {
+  const [idx, setIdx] = useState(startIndex);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const current = items[idx];
+
+  const prev = useCallback(() => setIdx(i => (i - 1 + items.length) % items.length), [items.length]);
+  const next = useCallback(() => setIdx(i => (i + 1) % items.length), [items.length]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape')     onClose();
+      if (e.key === 'ArrowLeft')  prev();
+      if (e.key === 'ArrowRight') next();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, prev, next]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+      videoRef.current.load();
+    }
+  }, [idx]);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const single = items.length === 1;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }} onClick={onClose}>
+      <button onClick={onClose}
+        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+        aria-label="Close">
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      {!single && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-black/50 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          {idx + 1} / {items.length}
+        </div>
+      )}
+      {!single && (
+        <button onClick={e => { e.stopPropagation(); prev(); }}
+          className="absolute left-3 sm:left-5 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors cursor-pointer"
+          aria-label="Previous">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </button>
+      )}
+      <div className="relative flex items-center justify-center w-full h-full px-16 sm:px-20" onClick={e => e.stopPropagation()}>
+        {current.type === 'video' ? (
+          <video ref={videoRef} key={current.src} src={current.src} controls autoPlay playsInline
+            className="max-w-full max-h-[88vh] w-auto h-auto rounded-xl shadow-2xl object-contain"
+            style={{ maxWidth: 'min(680px, 90vw)' }} />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={current.src} src={current.src} alt={current.label ?? 'media'}
+            className="max-w-full max-h-[88vh] w-auto h-auto rounded-xl shadow-2xl object-contain"
+            style={{ maxWidth: 'min(680px, 90vw)' }} />
+        )}
+      </div>
+      {!single && (
+        <button onClick={e => { e.stopPropagation(); next(); }}
+          className="absolute right-3 sm:right-5 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors cursor-pointer"
+          aria-label="Next">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      )}
+      {!single && items.length <= 20 && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+          {items.map((_, i) => (
+            <button key={i} onClick={e => { e.stopPropagation(); setIdx(i); }}
+              className={`rounded-full transition-all cursor-pointer ${i === idx ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/influencer/dashboard' },
   { label: 'Campaigns', href: '/influencer/campaigns' },
@@ -134,6 +294,21 @@ export default function InfluencerProfile() {
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'reels' | 'photos' | 'products'>('all');
+
+  // Brand-view-style portfolio tab (used in view mode)
+  const [viewTab, setViewTab] = useState<'all' | 'reels' | 'photos'>('all');
+
+  // Media modal (view mode)
+  const [modalItems,      setModalItems]      = useState<MediaItem[]>([]);
+  const [modalStartIndex, setModalStartIndex] = useState(0);
+  const [modalOpen,       setModalOpen]       = useState(false);
+
+  const openModal = (items: MediaItem[], startIndex = 0) => {
+    setModalItems(items);
+    setModalStartIndex(startIndex);
+    setModalOpen(true);
+  };
+  const closeModal = () => setModalOpen(false);
 
   const [bio, setBio] = useState('');
   const [niche, setNiche] = useState<string[]>([]);
@@ -443,45 +618,106 @@ export default function InfluencerProfile() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
 
         {/* Page header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6 md:mb-7">
-          <div>
-            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Your public profile</p>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-              {isEditing ? 'Edit profile' : 'Profile'}
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {isEditing ? 'Update your details below and save when ready.' : 'This is what brands see when they discover you.'}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {saved && !isEditing && (
-              <span className="flex items-center gap-1.5 text-sm text-green-600 font-semibold bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
-                <CheckIcon />
-                Saved
-              </span>
-            )}
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancelEdit}
-                  className="text-sm text-gray-500 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 hover:text-gray-700 transition-all duration-150 cursor-pointer font-medium">
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="flex-1 sm:flex-none bg-[#7FA8AD] hover:bg-[#5D8A8F] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer text-center">
-                  {saving ? 'Saving…' : 'Save changes'}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer">
-                <PencilIcon />
-                Edit profile
-              </button>
-            )}
+        <div className="relative overflow-hidden mb-6 md:mb-7 rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+          {/* Decorative gradient layer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#EEF4F5] via-white to-[#F4FBFB] pointer-events-none" />
+          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#7FA8AD]/10 blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-10 w-52 h-52 rounded-full bg-[#5D8A8F]/10 blur-2xl pointer-events-none" />
+          <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
+            <defs>
+              <pattern id="hdr-dots" width="14" height="14" patternUnits="userSpaceOnUse">
+                <circle cx="1.5" cy="1.5" r="1" fill="#2A3E42"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#hdr-dots)"/>
+          </svg>
+
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-5 sm:px-7 py-5 sm:py-6">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#EEF4F5] text-[#2A3E42] border border-[#7FA8AD]/30">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? 'bg-amber-500' : 'bg-emerald-500'} animate-pulse`} />
+                  {isEditing ? 'Editing' : 'Live preview'}
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  Brand-facing
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
+                {isEditing ? (
+                  <>Edit your <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] bg-clip-text text-transparent">profile</span></>
+                ) : (
+                  <>Your <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] bg-clip-text text-transparent">creator</span> profile</>
+                )}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1.5 max-w-md leading-relaxed">
+                {isEditing
+                  ? 'Polish your bio, niches, and social stats — changes go live once you save.'
+                  : 'This is exactly what brands see when they discover you. Make every detail count.'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-shrink-0">
+              {saved && !isEditing && (
+                <span className="flex items-center gap-1.5 text-sm text-emerald-700 font-semibold bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 shadow-sm">
+                  <CheckIcon />
+                  Saved
+                </span>
+              )}
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="text-sm text-gray-600 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300 transition-all duration-150 cursor-pointer font-semibold shadow-sm">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="group relative flex items-center gap-2 bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] hover:from-[#4A7378] hover:to-[#6B9499] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
+                    {saving ? (
+                      <>
+                        <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                        </svg>
+                        Saving…
+                      </>
+                    ) : (
+                      <>
+                        <CheckIcon />
+                        Save changes
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <a
+                    href={profile?.slug ? `/brand/creator/${profile.slug}` : '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300 transition-all duration-150 cursor-pointer font-semibold shadow-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                    Open public link
+                  </a>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="group relative inline-flex items-center gap-2 bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] hover:from-[#4A7378] hover:to-[#6B9499] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer overflow-hidden">
+                    <span className="absolute inset-0 bg-[radial-gradient(circle_at_20%_-20%,rgba(255,255,255,0.35),transparent_60%)] pointer-events-none" />
+                    <span className="relative flex items-center gap-2">
+                      <PencilIcon />
+                      Edit profile
+                    </span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -494,6 +730,410 @@ export default function InfluencerProfile() {
           </div>
         )}
 
+        {/* ═══════════════════════════════════════════════════════
+            VIEW MODE — brand-creator-style profile
+            ═══════════════════════════════════════════════════════ */}
+        {!isEditing && profile && (() => {
+          const name       = profile.userId?.name ?? 'Creator';
+          const code       = name.charCodeAt(0) || 0;
+          const avatarGrad = AVATAR_GRADS[code % AVATAR_GRADS.length];
+
+          const primary = (profile.platforms ?? []).reduce(
+            (mx: any, p: any) => p.followers > (mx?.followers ?? 0) ? p : mx, null as any
+          );
+          const totalFollowersV = (profile.platforms ?? []).reduce((s: number, p: any) => s + (p.followers ?? 0), 0);
+          const avgEngV = profile.platforms?.length
+            ? ((profile.platforms.reduce((s: number, p: any) => s + (p.engagementRate ?? 0), 0)) / profile.platforms.length).toFixed(1)
+            : '0';
+
+          const visible = (profile.portfolioItems ?? []).filter((i: any) => i.isVisible);
+          const reels   = visible.filter((i: any) => i.type === 'video');
+          const photos  = visible.filter((i: any) => i.type === 'image');
+          const tabMedia: Record<'all' | 'reels' | 'photos', any[]> = { all: visible, reels, photos };
+
+          const buildMediaItems = (list: any[]): MediaItem[] =>
+            list.map(item => ({
+              type:      item.type === 'video' ? 'video' : 'image',
+              src:       item.cloudinaryUrl,
+              thumbnail: item.thumbnailUrl || undefined,
+              label:     item.type === 'video' ? 'Reel' : 'Photo',
+            }));
+
+          const TABS: { key: 'all' | 'reels' | 'photos'; label: string; count: number }[] = [
+            { key: 'all',    label: 'All Posts', count: visible.length },
+            { key: 'reels',  label: 'Reels',     count: reels.length   },
+            { key: 'photos', label: 'Photos',    count: photos.length  },
+          ];
+
+          const card = 'bg-white rounded-2xl border border-gray-200/80 shadow-sm';
+
+          return (
+            <>
+              {modalOpen && (
+                <MediaModal items={modalItems} startIndex={modalStartIndex} onClose={closeModal} />
+              )}
+
+              <div className="max-w-3xl mx-auto space-y-4">
+
+                {/* HERO */}
+                <div className={`${card} overflow-hidden`}>
+                  <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#1f3438] via-[#2A3E42] to-[#7FA8AD]">
+                    {!profile.coverPhotoUrl && <>
+                      <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
+                      <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-white/5 pointer-events-none" />
+                      <div className="absolute top-4 right-1/3 w-20 h-20 rounded-full bg-white/[0.03] pointer-events-none" />
+                      <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
+                        <defs>
+                          <pattern id="infl-diag" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+                            <line x1="0" y1="0" x2="0" y2="20" stroke="white" strokeWidth="1"/>
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#infl-diag)"/>
+                      </svg>
+                    </>}
+                    {profile.coverPhotoUrl ? (
+                      <div className="w-full h-full cursor-zoom-in"
+                        onClick={() => openModal([{ type: 'image', src: profile.coverPhotoUrl, label: 'Cover Photo' }], 0)}
+                        title="Click to view cover photo">
+                        <img src={profile.coverPhotoUrl} alt="cover" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
+                      </div>
+                    ) : null}
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+                  </div>
+
+                  <div className="px-5 sm:px-7 pt-0 pb-6">
+                    <div className="-mt-10 mb-4">
+                      <div className={`relative z-10 w-[78px] h-[78px] sm:w-[88px] sm:h-[88px] rounded-full border-[3px] border-white ring-2 ring-[#5D8A8F]/20 shadow-lg overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center ${profile.profilePicUrl ? 'cursor-zoom-in' : ''}`}
+                        onClick={() => {
+                          if (profile.profilePicUrl)
+                            openModal([{ type: 'image', src: profile.profilePicUrl, label: `${name}'s profile picture` }], 0);
+                        }}
+                        title={profile.profilePicUrl ? 'Click to view profile picture' : undefined}>
+                        {profile.profilePicUrl
+                          ? <img src={profile.profilePicUrl} alt={name} className="w-full h-full object-cover" />
+                          : <span className="text-white font-bold text-3xl select-none">{name.charAt(0).toUpperCase()}</span>}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2.5 mb-1">
+                      <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{name}</h1>
+                      {profile.level && (
+                        <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${LEVEL_BADGE[profile.level] ?? LEVEL_BADGE.starter}`}>
+                          {profile.level}
+                        </span>
+                      )}
+                    </div>
+                    {profile.slug && <p className="text-sm text-gray-400 font-mono mb-3">@{profile.slug}</p>}
+
+                    {(profile.niche ?? []).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {profile.niche.map((n: string) => (
+                          <span key={n} className={`text-[12px] font-semibold px-2.5 py-0.5 rounded-full capitalize border ${NICHE_CHIPS[n] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                            {n}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {profile.bio && (
+                      <p className="text-[14px] text-gray-600 leading-relaxed mb-4 max-w-lg">{profile.bio}</p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-3 text-[13px] text-gray-500 mb-5">
+                      {profile.city && (
+                        <span className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
+                          <svg className="w-3 h-3 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                          </svg>
+                          {profile.city}
+                        </span>
+                      )}
+                      {(profile.platforms ?? []).map((p: any) => p.profileUrl && (
+                        <a key={p.name} href={p.profileUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full hover:border-[#5D8A8F]/30 hover:bg-[#EEF4F5] transition-all">
+                          {p.name === 'instagram' && <InstagramLogo size={13} />}
+                          {p.name === 'youtube'   && <YouTubeLogo size={13} />}
+                          {p.name === 'facebook'  && <FacebookLogo size={13} />}
+                          <span className="capitalize text-[12px]">{p.name}</span>
+                        </a>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
+                      {[
+                        { value: String(visible.length), label: 'Posts',
+                          bg: 'bg-[#EEF4F5]', text: 'text-[#5D8A8F]',
+                          icon: (<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>),
+                        },
+                        { value: formatNum(totalFollowersV), label: 'Followers',
+                          bg: 'bg-violet-50', text: 'text-violet-600',
+                          icon: (<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>),
+                        },
+                        { value: primary ? formatNum(primary.avgLikes ?? 0) : '—', label: 'Avg Likes',
+                          bg: 'bg-rose-50', text: 'text-rose-500',
+                          icon: (<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>),
+                        },
+                        { value: `${avgEngV}%`, label: 'Engagement',
+                          bg: 'bg-emerald-50', text: 'text-emerald-600',
+                          icon: (<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>),
+                        },
+                      ].map((s, i) => (
+                        <div key={i} className={`relative ${s.bg} rounded-xl px-2 py-3 flex flex-col items-center gap-1 overflow-hidden`}>
+                          <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-black/[0.04] pointer-events-none" />
+                          <span className={`relative ${s.text}`}>{s.icon}</span>
+                          <p className="relative text-sm font-bold text-gray-900 tabular-nums leading-none">{s.value}</p>
+                          <p className="relative text-[10px] text-gray-400 font-medium">{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* PLATFORM BREAKDOWN */}
+                {(profile.platforms ?? []).length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2.5 px-1">
+                      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#5D8A8F] to-[#7FA8AD]" />
+                      <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Platform Stats</h2>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {profile.platforms.map((p: any) => {
+                        const acc = PLATFORM_ACCENT[p.name] ?? { bar: 'border-l-gray-300', label: 'text-gray-500' };
+                        return (
+                          <div key={p.name} className={`${card} border-l-4 ${acc.bar} overflow-hidden`}>
+                            <div className="relative flex items-center justify-between px-4 py-3 bg-gray-50/80 border-b border-gray-100 overflow-hidden">
+                              <div className="relative flex items-center gap-2">
+                                {p.name === 'instagram' && <InstagramLogo size={18} />}
+                                {p.name === 'youtube'   && <YouTubeLogo size={18} />}
+                                {p.name === 'facebook'  && <FacebookLogo size={18} />}
+                                <span className={`text-sm font-bold capitalize ${acc.label}`}>{p.name}</span>
+                              </div>
+                              {p.profileUrl && (
+                                <a href={p.profileUrl} target="_blank" rel="noopener noreferrer"
+                                  className="relative flex items-center gap-1 text-[11px] font-semibold text-[#5D8A8F] hover:underline">
+                                  Visit
+                                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                                  </svg>
+                                </a>
+                              )}
+                            </div>
+                            <div className="relative px-4 py-4 grid grid-cols-2 gap-x-4 gap-y-3.5">
+                              <div className="absolute -bottom-6 -right-6 w-20 h-20 rounded-full bg-gray-100/60 pointer-events-none" />
+                              {[
+                                { v: formatNum(p.followers ?? 0),   l: 'Followers'    },
+                                { v: `${p.engagementRate ?? 0}%`,   l: 'Engagement'   },
+                                { v: formatNum(p.avgLikes ?? 0),    l: 'Avg Likes'    },
+                                { v: formatNum(p.avgComments ?? 0), l: 'Avg Comments' },
+                              ].map((st, i) => (
+                                <div key={i} className="relative">
+                                  <p className="text-base font-bold text-gray-900 tabular-nums leading-tight">{st.v}</p>
+                                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">{st.l}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* COLLAB DETAILS */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2.5 px-1">
+                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#5D8A8F] to-[#7FA8AD]" />
+                    <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Collaboration Details</h2>
+                  </div>
+
+                  <div className={`relative ${card} p-5 mb-3 overflow-hidden`}>
+                    <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-emerald-50 pointer-events-none" />
+                    <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-emerald-100/60 pointer-events-none" />
+                    <div className="relative flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Collaboration Rate</p>
+                          <p className={`text-xl font-bold mt-0.5 leading-tight ${profile.priceRangeMin > 0 ? 'text-gray-900' : 'text-gray-400 italic text-base'}`}>
+                            {profile.priceRangeMin > 0
+                              ? <>₹{profile.priceRangeMin.toLocaleString('en-IN')}<span className="text-gray-400 font-normal mx-1">–</span>₹{profile.priceRangeMax.toLocaleString('en-IN')}</>
+                              : 'Not specified'}
+                          </p>
+                        </div>
+                      </div>
+                      {profile.priceRangeMin > 0 && (
+                        <span className="text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">per post</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className={`relative ${card} p-5 overflow-hidden`}>
+                      <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full bg-[#EEF4F5] pointer-events-none" />
+                      <div className="absolute -bottom-4 -right-4 w-14 h-14 rounded-full bg-[#C9DCDE]/60 pointer-events-none" />
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-7 h-7 rounded-lg bg-[#EEF4F5] flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                            </svg>
+                          </div>
+                          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Score</p>
+                        </div>
+                        <div className="flex items-end gap-1 mb-3">
+                          <p className="text-3xl font-bold text-gray-900 leading-none tabular-nums">{profile.credibilityScore ?? 0}</p>
+                          <p className="text-sm text-gray-400 font-medium mb-0.5">/100</p>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] rounded-full transition-all duration-700"
+                            style={{ width: `${profile.credibilityScore ?? 0}%` }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={`relative ${card} p-5 overflow-hidden`}>
+                      <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-amber-50 pointer-events-none" />
+                      <div className="absolute -top-3 -right-3 w-12 h-12 rounded-full bg-amber-100/70 pointer-events-none" />
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                          </div>
+                          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Level</p>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900 capitalize mb-1">{profile.level ?? 'Starter'}</p>
+                        <p className="text-xs text-gray-400 font-medium">{profile.dealsCompleted ?? 0} deals done</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PORTFOLIO */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2.5 px-1">
+                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#5D8A8F] to-[#7FA8AD]" />
+                    <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Portfolio</h2>
+                  </div>
+                  <div className={`${card} overflow-hidden`}>
+                    <div className="flex bg-gray-50/60 border-b border-gray-100">
+                      {TABS.map(tab => (
+                        <button key={tab.key}
+                          onClick={() => setViewTab(tab.key)}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-xs font-bold transition-all cursor-pointer relative ${
+                            viewTab === tab.key
+                              ? 'text-[#5D8A8F] bg-white shadow-[inset_0_-2px_0_#5D8A8F]'
+                              : 'text-gray-400 hover:text-gray-600 hover:bg-white/60'
+                          }`}>
+                          {tab.label}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${viewTab === tab.key ? 'bg-[#EEF4F5] text-[#5D8A8F]' : 'bg-gray-100 text-gray-400'}`}>
+                            {tab.count}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {tabMedia[viewTab].length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+                        <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-3">
+                          <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                          </svg>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-500">No content yet</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          You haven&apos;t uploaded any {viewTab === 'all' ? 'posts' : viewTab} yet.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-px bg-gray-100">
+                        {tabMedia[viewTab].map((item: any, i: number) => {
+                          const mediaList = buildMediaItems(tabMedia[viewTab]);
+                          return (
+                            <button key={item._id ?? i}
+                              onClick={() => openModal(mediaList, i)}
+                              className="relative aspect-square overflow-hidden bg-white group cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#5D8A8F]"
+                              aria-label={item.type === 'video' ? 'Play reel' : 'View photo'}>
+                              {item.type === 'video' ? (
+                                <>
+                                  {item.thumbnailUrl
+                                    ? <img src={item.thumbnailUrl} alt="reel thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    : (
+                                      <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                                        <svg className="w-8 h-8 text-white/30" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                      </div>
+                                    )
+                                  }
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full bg-black/50 group-hover:bg-black/70 backdrop-blur-sm flex items-center justify-center transition-all duration-200 group-hover:scale-110">
+                                      <svg className="w-4 h-4 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    </div>
+                                  </div>
+                                  <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm rounded-md px-1.5 py-0.5 flex items-center gap-1">
+                                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    <span className="text-white text-[10px] font-semibold">Reel</span>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <img src={item.cloudinaryUrl} alt={`post-${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                                      </svg>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                              {item.isPinned && (
+                                <div className="absolute top-2 left-2 bg-amber-400 rounded-md p-1">
+                                  <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17.707 10.708L16.293 9.294 13 12.587V2h-2v10.587L7.707 9.294 6.293 10.708 12 16.415z"/><path d="M18 20H6v2h12z"/>
+                                  </svg>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* CTA — edit your profile */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#2A3E42] via-[#5D8A8F] to-[#7FA8AD] sm:rounded-2xl px-6 py-6 shadow-lg">
+                  <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
+                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
+                  <div className="absolute -bottom-8 -left-6 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />
+                  <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="text-teal-100/80 text-[11px] font-semibold uppercase tracking-widest mb-1">Your public profile</p>
+                      <p className="text-white text-lg font-bold tracking-tight">This is how brands see you</p>
+                      <p className="text-teal-100/70 text-sm mt-0.5">Keep your bio, niche, and stats up to date to attract better collaborations.</p>
+                    </div>
+                    <button onClick={() => setIsEditing(true)}
+                      className="flex-shrink-0 flex items-center gap-2 bg-white hover:bg-[#EEF4F5] text-[#2A3E42] px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
+                      <PencilIcon />
+                      Edit profile
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </>
+          );
+        })()}
+
+        {/* ═══════════════════════════════════════════════════════
+            EDIT MODE — existing form-based UI
+            ═══════════════════════════════════════════════════════ */}
+        {isEditing && (<>
         {/* ── Cover photo ── */}
         {profile && (
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5 md:mb-6">
@@ -541,7 +1181,7 @@ export default function InfluencerProfile() {
               </div>
               {isEditing && (
                 <button onClick={() => coverPhotoInputRef.current?.click()} disabled={uploadingCover}
-                  className="text-xs font-semibold text-[#5D8A8F] hover:text-[#3D5087] disabled:opacity-50 cursor-pointer transition-colors flex items-center gap-1">
+                  className="text-xs font-semibold text-[#5D8A8F] hover:text-[#5D8A8F] disabled:opacity-50 cursor-pointer transition-colors flex items-center gap-1">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                   </svg>
@@ -560,10 +1200,47 @@ export default function InfluencerProfile() {
             <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
               {/* Avatar */}
               <div className="relative flex-shrink-0">
-                <div className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white text-2xl font-bold shadow-md select-none">
-                  {(profile?.userId?.name || 'I')[0].toUpperCase()}
+                <div
+                  className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] flex items-center justify-center text-white text-2xl font-bold shadow-md select-none overflow-hidden ${isEditing ? 'cursor-pointer group/avatar' : ''}`}
+                  onClick={() => { if (isEditing && !uploadingPic) profilePicInputRef.current?.click(); }}
+                  title={isEditing ? (profile?.profilePicUrl ? 'Change profile picture' : 'Upload profile picture') : undefined}
+                >
+                  {profile?.profilePicUrl ? (
+                    <img src={profile.profilePicUrl} alt={profile?.userId?.name || 'Profile'} className="w-full h-full object-cover" />
+                  ) : (
+                    (profile?.userId?.name || 'I')[0].toUpperCase()
+                  )}
+                  {isEditing && (
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                      {uploadingPic ? (
+                        <svg className="w-5 h-5 text-white animate-spin" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                        </svg>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className={`absolute -bottom-1 -right-1 rounded-full border-2 border-white shadow-sm ${(profile?.platforms?.length || 0) > 0 ? 'bg-green-500' : 'bg-gray-300'}`} style={{ width: 18, height: 18 }} />
+                {isEditing && profile?.profilePicUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveProfilePic}
+                    disabled={uploadingPic}
+                    className="absolute -top-2 -right-2 bg-white border border-gray-200 hover:border-red-300 hover:bg-red-50 text-gray-500 hover:text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                    title="Remove profile picture"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                )}
+                <input ref={profilePicInputRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleProfilePicUpload(f); e.target.value = ''; }} />
               </div>
 
               {/* Info */}
@@ -1178,6 +1855,7 @@ export default function InfluencerProfile() {
           </div>
 
         </div>
+        </>)}
       </main>
     </div>
   );
