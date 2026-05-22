@@ -151,13 +151,64 @@ exports.getMyCampaigns = async (req, res) => {
     const query = { brandId: req.userId };
     if (status) query.status = status;
 
-    const campaigns = await Campaign.find(query)
-      .sort({ createdAt: -1 });
+    const campaigns = await Campaign.find(query).sort({ createdAt: -1 });
 
-    res.json({ campaigns });
+    // Attach hasActiveDeal flag so the frontend knows if editing is locked
+    const campaignIds = campaigns.map(c => c._id);
+    const activeDeals = await Deal.find({
+      campaignId: { $in: campaignIds },
+      status: { $in: ['in-progress', 'content-submitted', 'completed'] }
+    }).select('campaignId');
+    const activeDealSet = new Set(activeDeals.map(d => d.campaignId.toString()));
+
+    const enriched = campaigns.map(c => ({
+      ...c.toObject(),
+      hasActiveDeal: activeDealSet.has(c._id.toString()),
+    }));
+
+    res.json({ campaigns: enriched });
 
   } catch (error) {
     console.error('Get my campaigns error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// UPDATE CAMPAIGN (blocked if deal in-progress)
+// ─────────────────────────────────────────
+exports.updateCampaign = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+
+    const campaign = await Campaign.findOne({ _id: campaignId, brandId: req.userId });
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found.' });
+    }
+
+    // Block edit if any deal for this campaign is active (not cancelled)
+    const activeDeal = await Deal.findOne({
+      campaignId,
+      status: { $in: ['in-progress', 'content-submitted', 'completed'] }
+    });
+
+    if (activeDeal) {
+      return res.status(403).json({
+        error: 'This campaign cannot be edited while a deal is active. Cancel the deal first.'
+      });
+    }
+
+    const { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers } = req.body;
+
+    const updated = await Campaign.findByIdAndUpdate(
+      campaignId,
+      { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers },
+      { new: true, runValidators: true }
+    );
+
+    res.json({ message: 'Campaign updated successfully.', campaign: updated });
+  } catch (error) {
+    console.error('Update campaign error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };
@@ -219,9 +270,17 @@ exports.getCampaignApplications = async (req, res) => {
         const profile = await InfluencerProfile.findOne({
           userId: app.influencerId._id
         }).select('niche city platforms profilePicUrl credibilityScore level');
+
+        let dealStatus = null;
+        if (app.status === 'accepted') {
+          const deal = await Deal.findOne({ applicationId: app._id }).select('status');
+          if (deal) dealStatus = deal.status;
+        }
+
         return {
           ...app.toObject(),
-          influencerProfile: profile
+          influencerProfile: profile,
+          dealStatus,
         };
       })
     );

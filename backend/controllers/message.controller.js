@@ -26,6 +26,12 @@ exports.getMessages = async (req, res) => {
       .sort({ createdAt: 1 })
       .lean();
 
+    // Mark received messages as read
+    await Message.updateMany(
+      { dealId, receiverId: req.userId, read: false },
+      { $set: { read: true } }
+    );
+
     // Ensure ObjectIds are plain strings so frontend === comparison works
     const normalized = messages.map(m => ({
       ...m,
@@ -39,6 +45,18 @@ exports.getMessages = async (req, res) => {
 
   } catch (error) {
     console.error('Get messages error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// UNREAD COUNT
+// ─────────────────────────────────────────
+exports.getUnreadCount = async (req, res) => {
+  try {
+    const count = await Message.countDocuments({ receiverId: req.userId, read: false });
+    res.json({ count });
+  } catch (error) {
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

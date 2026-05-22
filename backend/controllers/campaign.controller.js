@@ -245,6 +245,22 @@ exports.withdrawApplication = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// COUNT NEW CAMPAIGNS SINCE TIMESTAMP (for influencer dot)
+// ─────────────────────────────────────────
+exports.getNewSinceCount = async (req, res) => {
+  try {
+    const { since } = req.query;
+    if (!since) return res.json({ count: 0 });
+    const sinceDate = new Date(parseInt(since));
+    if (isNaN(sinceDate.getTime())) return res.json({ count: 0 });
+    const count = await Campaign.countDocuments({ status: 'active', createdAt: { $gt: sinceDate } });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // SEED SAMPLE CAMPAIGNS (for demo/testing)
 // ─────────────────────────────────────────
 exports.seedCampaigns = async (req, res) => {

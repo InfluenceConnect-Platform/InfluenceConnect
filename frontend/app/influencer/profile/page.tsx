@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import InfluencerNav from '@/components/shared/InfluencerNav';
 
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
@@ -169,14 +170,6 @@ function MediaModal({ items, startIndex, onClose }: { items: MediaItem[]; startI
   );
 }
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/influencer/dashboard' },
-  { label: 'Campaigns', href: '/influencer/campaigns' },
-  { label: 'Messages', href: '/influencer/messages' },
-  { label: 'Earnings', href: '/influencer/earnings' },
-  { label: 'Profile', href: '/influencer/profile', active: true },
-  { label: 'Billing', href: '/influencer/billing' },
-];
 
 const UploadCloudIcon = () => (
   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -569,51 +562,7 @@ export default function InfluencerProfile() {
   return (
     <div className="min-h-screen bg-[#F7F9FA]">
 
-      {/* Top nav */}
-      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[60px] sticky top-0 z-20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-        <div className="flex items-center gap-4 lg:gap-8 min-w-0">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] flex items-center justify-center text-white font-bold text-sm shadow-sm">IC</div>
-            <span className="font-bold text-gray-900 text-[15px] tracking-tight hidden sm:block">Influence Connect</span>
-          </div>
-          <div className="hidden lg:flex gap-0.5">
-            {NAV_ITEMS.map((item) => (
-              <Link key={item.href} href={item.href}
-                className={`px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer ${
-                  item.active ? 'bg-[#EEF4F5] text-[#2A3E42]' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
-                }`}>
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <span className="hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded-full bg-[#EEF4F5] text-[#2A3E42]">Freemium</span>
-          <Link href="/influencer/dashboard"
-            className="hidden sm:flex items-center text-xs text-gray-500 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-all duration-150 cursor-pointer">
-            ← Dashboard
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="text-xs text-red-500 px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all duration-150 cursor-pointer font-medium">
-            Log out
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile tab bar */}
-      <div className="lg:hidden sticky top-[60px] z-10 bg-white border-b border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden px-3 gap-0.5 py-2">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href}
-              className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer ${
-                item.active ? 'bg-[#EEF4F5] text-[#2A3E42]' : 'text-gray-500 hover:bg-gray-100'
-              }`}>
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </div>
+      <InfluencerNav user={null} profilePicUrl={profile?.profilePicUrl} />
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
 

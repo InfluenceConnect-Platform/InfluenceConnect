@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const authenticate = require('../middleware/auth.middleware');
-const { getMessages, sendMessage } = require('../controllers/message.controller');
+const { getMessages, sendMessage, getUnreadCount } = require('../controllers/message.controller');
 
+router.get('/unread-count', authenticate, getUnreadCount);
 router.get('/:dealId', authenticate, getMessages);
 router.post('/:dealId', authenticate, sendMessage);
 

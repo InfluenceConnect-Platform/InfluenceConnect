@@ -39,6 +39,8 @@ export default function BrandCampaigns() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('active');
   const [toast, setToast] = useState('');
   const [showPanel, setShowPanel] = useState(false);
@@ -140,6 +142,54 @@ export default function BrandCampaigns() {
       showToast(error.response?.data?.message || 'Failed to create campaign.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const openEdit = (campaign: any) => {
+    setEditingCampaign(campaign);
+    setForm({
+      title: campaign.title ?? '',
+      description: campaign.description ?? '',
+      niche: campaign.niche ?? [],
+      deliverables: campaign.deliverables ?? '',
+      budgetMin: campaign.budgetMin?.toString() ?? '',
+      budgetMax: campaign.budgetMax?.toString() ?? '',
+      deadline: campaign.deadline ? campaign.deadline.split('T')[0] : '',
+      targetCity: campaign.targetCity ?? ['all'],
+      targetPlatform: campaign.targetPlatform ?? 'any',
+      minFollowers: campaign.minFollowers?.toString() ?? '0',
+    });
+  };
+
+  const closeEdit = () => {
+    setEditingCampaign(null);
+    resetForm();
+  };
+
+  const handleEditCampaign = async () => {
+    if (!form.title || !form.description || !form.deliverables) {
+      showToast('Please fill in campaign title, description, and deliverables.');
+      return;
+    }
+    if (!form.deadline) { showToast('Please set a campaign deadline.'); return; }
+    const budgetMin = parseInt(form.budgetMin);
+    const budgetMax = parseInt(form.budgetMax);
+    if (!form.budgetMin || isNaN(budgetMin) || budgetMin <= 0) { showToast('Budget min must be a positive value.'); return; }
+    if (!form.budgetMax || isNaN(budgetMax) || budgetMax <= 0) { showToast('Budget max must be a positive value.'); return; }
+    if (budgetMin > budgetMax) { showToast('Budget min cannot be greater than budget max.'); return; }
+    setSaving(true);
+    try {
+      const res = await api.put(`/api/brand/campaigns/${editingCampaign._id}`, {
+        ...form, budgetMin, budgetMax, minFollowers: parseInt(form.minFollowers) || 0,
+      });
+      showToast('Campaign updated successfully!');
+      setCampaigns(prev => prev.map(c => c._id === editingCampaign._id ? res.data.campaign : c));
+      if (selectedCampaign?._id === editingCampaign._id) setSelectedCampaign(res.data.campaign);
+      closeEdit();
+    } catch (error: any) {
+      showToast(error.response?.data?.error || 'Failed to update campaign.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -350,6 +400,91 @@ export default function BrandCampaigns() {
         </div>
       )}
 
+      {/* Edit Campaign Modal */}
+      {editingCampaign && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[92vh] flex flex-col">
+            <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <div>
+                <h3 className="font-bold text-gray-900">Edit campaign</h3>
+                <p className="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{editingCampaign.title}</p>
+              </div>
+              <button onClick={closeEdit} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all cursor-pointer">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 px-5 sm:px-6 py-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>Campaign title <span className="text-red-400">*</span></label>
+                  <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Summer Skincare Launch 2025" className={fieldClass} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>Description <span className="text-red-400">*</span></label>
+                  <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className={`${fieldClass} resize-none`} />
+                </div>
+                <div>
+                  <label className={labelClass}>Deliverables <span className="text-red-400">*</span></label>
+                  <input value={form.deliverables} onChange={e => setForm(p => ({ ...p, deliverables: e.target.value }))} placeholder="e.g. 2 reels + 3 stories" className={fieldClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Deadline <span className="text-red-400">*</span></label>
+                  <input type="date" value={form.deadline} onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))} className={fieldClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Budget min (₹) <span className="text-red-400">*</span></label>
+                  <input type="number" min={1} value={form.budgetMin} onChange={e => setForm(p => ({ ...p, budgetMin: e.target.value }))} className={fieldClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Budget max (₹) <span className="text-red-400">*</span></label>
+                  <input type="number" min={1} value={form.budgetMax} onChange={e => setForm(p => ({ ...p, budgetMax: e.target.value }))} className={fieldClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Target city</label>
+                  <select value={form.targetCity[0]} onChange={e => setForm(p => ({ ...p, targetCity: [e.target.value] }))} className={fieldClass}>
+                    {CITIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All India' : c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Platform</label>
+                  <select value={form.targetPlatform} onChange={e => setForm(p => ({ ...p, targetPlatform: e.target.value }))} className={fieldClass}>
+                    {['any', 'instagram', 'youtube', 'facebook'].map(p => (
+                      <option key={p} value={p}>{p === 'any' ? 'Any platform' : p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>Niche</label>
+                  <div className="flex flex-wrap gap-2">
+                    {NICHES.map(n => (
+                      <button key={n} type="button"
+                        onClick={() => setForm(p => ({ ...p, niche: p.niche.includes(n) ? p.niche.filter(x => x !== n) : [...p.niche, n] }))}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                          form.niche.includes(n) ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                        }`}
+                      >{n}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-5 sm:px-6 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
+              <button onClick={handleEditCampaign} disabled={saving}
+                className="flex-1 sm:flex-none bg-[#3D5087] hover:bg-[#2B3B68] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2">
+                {saving ? (<><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Saving…</>) : 'Save changes'}
+              </button>
+              <button onClick={closeEdit} className="flex-1 sm:flex-none px-6 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all cursor-pointer">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile applications panel overlay */}
       {showPanel && selectedCampaign && (
         <div className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-end">
@@ -489,6 +624,24 @@ export default function BrandCampaigns() {
                       <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
                         {CAMPAIGN_STATUS_LABELS[campaign.status] ?? campaign.status}
                       </span>
+                      {/* Edit button — locked when a deal is active */}
+                      {campaign.hasActiveDeal ? (
+                        <span title="Cannot edit — a deal is in progress" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 cursor-not-allowed">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                          </svg>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={e => { e.stopPropagation(); openEdit(campaign); }}
+                          title="Edit campaign"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-[#3D5087] hover:bg-blue-50 transition-all duration-150 cursor-pointer"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                      )}
                       {(campaign.status === 'draft' || campaign.status === 'active') && (
                         <button
                           onClick={e => { e.stopPropagation(); handleDeleteCampaign(campaign._id, campaign.title); }}
@@ -682,21 +835,40 @@ function ApplicationsList({
 
           {app.status === 'accepted' && (
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                Deal active
-              </div>
-              <a
-                href={`/brand/messages${app.influencerId?._id ? `?influencerId=${app.influencerId._id}` : ''}`}
-                className="flex items-center gap-1 text-xs font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#5D8A8F] px-2.5 py-1 rounded-lg hover:shadow-md transition-all duration-150 cursor-pointer"
-              >
-                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                Chat now →
-              </a>
+              {app.dealStatus === 'cancelled' ? (
+                <>
+                  <div className="flex items-center gap-1.5 text-xs text-red-500 font-semibold">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    Deal cancelled
+                  </div>
+                  <span className="flex items-center gap-1 text-xs font-semibold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg cursor-not-allowed select-none">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Chat now →
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Deal active
+                  </div>
+                  <a
+                    href={`/brand/messages${app.influencerId?._id ? `?influencerId=${app.influencerId._id}` : ''}`}
+                    className="flex items-center gap-1 text-xs font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#5D8A8F] px-2.5 py-1 rounded-lg hover:shadow-md transition-all duration-150 cursor-pointer"
+                  >
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Chat now →
+                  </a>
+                </>
+              )}
             </div>
           )}
         </div>

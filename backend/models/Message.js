@@ -33,6 +33,11 @@ const messageSchema = new mongoose.Schema({
   blockReason: {
     type: String,
     default: ''
+  },
+
+  read: {
+    type: Boolean,
+    default: false
   }
 
 }, { timestamps: true });

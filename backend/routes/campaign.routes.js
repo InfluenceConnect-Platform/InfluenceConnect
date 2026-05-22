@@ -6,11 +6,13 @@ const {
   getCampaignById,
   applyToCampaign,
   getMyApplications,
-  seedCampaigns
+  seedCampaigns,
+  getNewSinceCount
 } = require('../controllers/campaign.controller');
 
 // Public — browse campaigns
 router.get('/', getCampaigns);
+router.get('/new-since', getNewSinceCount);
 
 // Protected — apply and view applications
 router.get('/my-applications', authenticate, getMyApplications);

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 
 const NAV_ITEMS = [
@@ -26,6 +26,8 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [fetchedLogoUrl, setFetchedLogoUrl] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Self-sufficient user state: reads localStorage directly so the nav
   // never shows '?' even when the parent page hasn't populated its own
@@ -58,6 +60,23 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
       .catch(() => {});
   }, [logoUrlProp]);
 
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await api.get('/api/messages/unread-count');
+      setUnreadCount(res.data.count ?? 0);
+    } catch {}
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    pollRef.current = setInterval(fetchUnreadCount, 30_000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
+
+  useEffect(() => {
+    if (pathname === '/brand/messages') setUnreadCount(0);
+  }, [pathname]);
+
   const logoUrl = logoUrlProp !== undefined ? logoUrlProp : fetchedLogoUrl;
 
   const handleLogout = () => {
@@ -79,19 +98,25 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           </Link>
 
           <div className="hidden lg:flex items-center gap-0.5">
-            {NAV_ITEMS.map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
-                  pathname === item.href
-                    ? 'bg-[#EAEDF6] text-[#1B2444]'
-                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {NAV_ITEMS.map(item => {
+              const isMessages = item.href === '/brand/messages';
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`relative px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                    pathname === item.href
+                      ? 'bg-[#EAEDF6] text-[#1B2444]'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
+                  }`}
+                >
+                  {item.label}
+                  {isMessages && unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#C4B5FD] shadow-[0_0_0_1.5px_white]" />
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -144,20 +169,28 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           />
           <div className="lg:hidden fixed top-[60px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-lg">
             <div className="px-4 py-3 flex flex-col gap-1">
-              {NAV_ITEMS.map(item => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    pathname === item.href
-                      ? 'bg-[#EAEDF6] text-[#1B2444]'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {NAV_ITEMS.map(item => {
+                const isMessages = item.href === '/brand/messages';
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`relative px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                      pathname === item.href
+                        ? 'bg-[#EAEDF6] text-[#1B2444]'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {item.label}
+                      {isMessages && unreadCount > 0 && (
+                        <span className="w-2 h-2 rounded-full bg-[#C4B5FD] flex-shrink-0" />
+                      )}
+                    </span>
+                  </Link>
+                );
+              })}
               <div className="my-1 h-px bg-gray-100" />
               <button
                 onClick={handleLogout}
