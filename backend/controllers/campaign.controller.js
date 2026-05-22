@@ -50,7 +50,7 @@ exports.getCampaigns = async (req, res) => {
     const brandIds = [...new Set(campaigns.map(c => c.brandId?._id?.toString()).filter(Boolean))];
     const brandProfiles = await BrandProfile.find(
       { userId: { $in: brandIds } },
-      { userId: 1, logoUrl: 1, website: 1 }
+      { userId: 1, logoUrl: 1, website: 1, companyName: 1, industry: 1, description: 1, gstinVerified: 1 }
     );
     const brandProfileMap = {};
     brandProfiles.forEach(bp => { brandProfileMap[bp.userId.toString()] = bp; });
@@ -58,7 +58,15 @@ exports.getCampaigns = async (req, res) => {
     const enriched = campaigns.map(c => {
       const obj = c.toObject();
       const bp = brandProfileMap[obj.brandId?._id?.toString()];
-      return { ...obj, brandLogoUrl: bp?.logoUrl || '', brandWebsite: bp?.website || '' };
+      return {
+        ...obj,
+        brandLogoUrl: bp?.logoUrl || '',
+        brandWebsite: bp?.website || '',
+        brandCompanyName: bp?.companyName || '',
+        brandIndustry: bp?.industry || '',
+        brandDescription: bp?.description || '',
+        brandGstinVerified: bp?.gstinVerified || false,
+      };
     });
 
     res.json({

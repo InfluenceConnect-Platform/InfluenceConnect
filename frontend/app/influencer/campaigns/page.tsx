@@ -31,6 +31,10 @@ interface Campaign {
   brandId: { name: string };
   brandLogoUrl?: string;
   brandWebsite?: string;
+  brandCompanyName?: string;
+  brandIndustry?: string;
+  brandDescription?: string;
+  brandGstinVerified?: boolean;
 }
 
 const NICHE_COLORS: Record<string, string> = {
@@ -462,7 +466,7 @@ export default function InfluencerCampaigns() {
 
                   <div className="p-4 sm:p-5 flex flex-col flex-1">
                     {/* Brand row */}
-                    <div className="flex items-center gap-3 mb-3.5">
+                    <div className="flex items-start gap-3 mb-3.5 p-3 rounded-xl bg-gray-50/70 border border-gray-100">
                       {/* Brand logo / initials */}
                       <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${!campaign.brandLogoUrl ? ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'][(campaign.brandId?.name?.charCodeAt(0) || 0) % 6] : 'bg-gray-100'}`}>
                         {campaign.brandLogoUrl ? (
@@ -473,8 +477,31 @@ export default function InfluencerCampaigns() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-gray-900 truncate">{campaign.brandId?.name || 'Brand'}</p>
-                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        {/* Name + applied badge */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-[13px] font-bold text-gray-900 truncate">
+                            {campaign.brandId?.name || 'Brand'}
+                          </p>
+                          {campaign.brandGstinVerified && (
+                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                              GST Verified
+                            </span>
+                          )}
+                          {alreadyApplied && (
+                            <span className="flex items-center gap-1 text-[11px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                              <CheckIcon /> Applied
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Industry + platform row */}
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          {campaign.brandIndustry && campaign.brandIndustry !== 'other' && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#EEF4F5] text-[#2A3E42] border border-[#7FA8AD]/30 capitalize">
+                              {campaign.brandIndustry}
+                            </span>
+                          )}
                           {campaign.brandWebsite ? (
                             <a
                               href={campaign.brandWebsite.startsWith('http') ? campaign.brandWebsite : `https://${campaign.brandWebsite}`}
@@ -488,12 +515,7 @@ export default function InfluencerCampaigns() {
                               </svg>
                               {campaign.brandWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                             </a>
-                          ) : (
-                            <>
-                              <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                              <p className="text-[11px] text-gray-400 font-medium">Verified brand</p>
-                            </>
-                          )}
+                          ) : null}
                           {campaign.targetPlatform && campaign.targetPlatform !== 'any' && (
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide text-white ${
                               campaign.targetPlatform === 'instagram' ? 'bg-gradient-to-r from-[#ee2a7b] to-[#6228d7]' :
@@ -504,12 +526,14 @@ export default function InfluencerCampaigns() {
                             </span>
                           )}
                         </div>
+
+                        {/* Brand description */}
+                        {campaign.brandDescription && (
+                          <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed line-clamp-2">
+                            {campaign.brandDescription}
+                          </p>
+                        )}
                       </div>
-                      {alreadyApplied && (
-                        <span className="flex items-center gap-1 text-[11px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-1 rounded-full flex-shrink-0">
-                          <CheckIcon /> Applied
-                        </span>
-                      )}
                     </div>
 
                     {/* Title + description */}

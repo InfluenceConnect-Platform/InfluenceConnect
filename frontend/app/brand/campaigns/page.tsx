@@ -616,9 +616,6 @@ export default function BrandCampaigns() {
                   <div className="flex items-start justify-between mb-3 gap-2">
                     <div className="min-w-0">
                       <h3 className="font-semibold text-gray-900 mb-0.5 truncate">{campaign.title}</h3>
-                      <p className="text-xs text-gray-400 capitalize truncate">
-                        {campaign.niche?.join(', ') || 'No niche'} · {campaign.deliverables}
-                      </p>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
@@ -658,6 +655,21 @@ export default function BrandCampaigns() {
                           )}
                         </button>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200">
+                      <p className="text-[11px] text-violet-500/70 mb-0.5">Niche</p>
+                      <p className="text-xs font-semibold text-violet-900 capitalize truncate">
+                        {campaign.niche?.length ? campaign.niche.join(', ') : 'No niche'}
+                      </p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-teal-50 to-cyan-100 border border-teal-200">
+                      <p className="text-[11px] text-teal-500/70 mb-0.5">Deliverables</p>
+                      <p className="text-xs font-semibold text-teal-900 truncate">
+                        {campaign.deliverables || '—'}
+                      </p>
                     </div>
                   </div>
 
