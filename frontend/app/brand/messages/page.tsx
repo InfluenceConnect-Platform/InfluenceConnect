@@ -148,6 +148,7 @@ export default function BrandMessages() {
   const isPremium = user?.plan === 'premium';
   const limitHit = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
+  const chatLocked = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -280,7 +281,7 @@ export default function BrandMessages() {
   };
 
   const handleSend = async () => {
-    if (!newMessage.trim() || !selectedDeal || limitHit || dealClosed) return;
+    if (!newMessage.trim() || !selectedDeal || limitHit || dealClosed || chatLocked) return;
     if (BLOCKED_PATTERN.test(newMessage)) {
       setBlocked(true);
       setTimeout(() => setBlocked(false), 4000);
@@ -690,7 +691,7 @@ export default function BrandMessages() {
                 </div>
               )}
 
-              {/* Compose bar / closed-deal notice */}
+              {/* Compose bar / closed-deal / chat-locked notice */}
               {dealClosed ? (
                 <div className="px-4 sm:px-5 py-4 bg-gray-50 border-t border-gray-200 flex-shrink-0">
                   <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
@@ -712,6 +713,19 @@ export default function BrandMessages() {
                         ? 'This deal is complete. Messaging is closed — the chat history is preserved above.'
                         : 'This deal was cancelled. Messaging is disabled.'}
                     </p>
+                  </div>
+                </div>
+              ) : chatLocked ? (
+                <div className="px-4 sm:px-5 py-3 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-gray-100 border border-gray-200">
+                    <LockIcon />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-500">Chat is locked</p>
+                      <p className="text-[11px] text-gray-400">Agree on a price above to unlock messaging.</p>
+                    </div>
+                    <div className="flex-1 flex items-center px-3 py-2 bg-white border border-gray-200 rounded-xl opacity-50 cursor-not-allowed min-w-0">
+                      <span className="text-xs text-gray-400 truncate">Type a message…</span>
+                    </div>
                   </div>
                 </div>
               ) : (

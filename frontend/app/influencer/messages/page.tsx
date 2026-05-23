@@ -210,7 +210,7 @@ export default function MessagesPage() {
       return;
     }
     if (!isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT) return;
-    if (dealClosed) return;
+    if (dealClosed || chatLocked) return;
 
     setSending(true);
     try {
@@ -270,6 +270,7 @@ export default function MessagesPage() {
   const isPremium = user?.plan === 'premium';
   const limitReached = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
+  const chatLocked = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
 
   return (
     <div className="h-[100dvh] bg-[#F7F9FA] flex flex-col overflow-hidden">
@@ -697,7 +698,7 @@ export default function MessagesPage() {
                 </div>
               )}
 
-              {/* Compose bar / closed-deal notice */}
+              {/* Compose bar / closed-deal / chat-locked notice */}
               {dealClosed ? (
                 <div className="px-4 sm:px-5 py-4 bg-gray-50 border-t border-gray-200 flex-shrink-0">
                   <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
@@ -719,6 +720,19 @@ export default function MessagesPage() {
                         ? 'This deal is complete. Messaging is closed — the chat history is preserved above.'
                         : 'This deal was cancelled. Messaging is disabled.'}
                     </p>
+                  </div>
+                </div>
+              ) : chatLocked ? (
+                <div className="px-4 sm:px-5 py-3 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-gray-100 border border-gray-200">
+                    <LockIcon />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-500">Chat is locked</p>
+                      <p className="text-[11px] text-gray-400">Agree on a price above to unlock messaging.</p>
+                    </div>
+                    <div className="flex-1 flex items-center px-3 py-2 bg-white border border-gray-200 rounded-xl opacity-50 cursor-not-allowed min-w-0">
+                      <span className="text-xs text-gray-400 truncate">Type a message…</span>
+                    </div>
                   </div>
                 </div>
               ) : (

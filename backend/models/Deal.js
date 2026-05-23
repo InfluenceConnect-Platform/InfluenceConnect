@@ -54,6 +54,7 @@ const dealSchema = new mongoose.Schema({
 
   offers: [{
     amount: { type: Number, required: true },
+    reason: { type: String, default: '' },
     proposedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     proposedByRole: { type: String, enum: ['brand', 'influencer'], required: true },
     status: { type: String, enum: ['pending', 'accepted', 'countered'], default: 'pending' },

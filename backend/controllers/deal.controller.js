@@ -43,7 +43,7 @@ exports.getDeal = async (req, res) => {
 exports.makeOffer = async (req, res) => {
   try {
     const { dealId } = req.params;
-    const { amount } = req.body;
+    const { amount, reason } = req.body;
 
     const parsed = Number(amount);
     if (!amount || isNaN(parsed) || parsed <= 0) {
@@ -80,6 +80,7 @@ exports.makeOffer = async (req, res) => {
 
     deal.offers.push({
       amount: parsed,
+      reason: (reason || '').trim().slice(0, 300),
       proposedBy: req.userId,
       proposedByRole: isBrand ? 'brand' : 'influencer',
       status: 'pending',
