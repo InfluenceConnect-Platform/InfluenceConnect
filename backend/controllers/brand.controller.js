@@ -379,11 +379,14 @@ exports.getMyDeals = async (req, res) => {
 
     const dealsWithPreview = await Promise.all(
       deals.map(async (deal) => {
-        const profile = await InfluencerProfile.findOne({ userId: deal.influencerId._id })
-          .select('niche city platforms profilePicUrl');
-        const lastMessage = await Message.findOne({ dealId: deal._id })
-          .sort({ createdAt: -1 })
-          .select('content senderId createdAt');
+        const [profile, lastMessage, unreadCount] = await Promise.all([
+          InfluencerProfile.findOne({ userId: deal.influencerId._id })
+            .select('niche city platforms profilePicUrl'),
+          Message.findOne({ dealId: deal._id })
+            .sort({ createdAt: -1 })
+            .select('content senderId createdAt'),
+          Message.countDocuments({ dealId: deal._id, receiverId: req.userId, read: false }),
+        ]);
         const obj = deal.toObject();
         return {
           ...obj,
@@ -395,6 +398,7 @@ exports.getMyDeals = async (req, res) => {
           })),
           influencerProfile: profile,
           lastMessage: lastMessage || null,
+          unreadCount,
         };
       })
     );

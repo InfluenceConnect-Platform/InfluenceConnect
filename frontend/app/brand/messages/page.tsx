@@ -25,6 +25,7 @@ interface Deal {
   negotiationStatus: 'open' | 'agreed';
   offers: Offer[];
   lastMessage?: { content: string; senderId: string; createdAt: string } | null;
+  unreadCount?: number;
 }
 
 const BLOCKED_PATTERN =
@@ -234,12 +235,14 @@ export default function BrandMessages() {
   }, [user?.id]);
 
   const selectDeal = (deal: Deal) => {
-    activeIdRef.current = deal._id; // update before any async fetches fire
-    setMessages([]); // clear immediately so stale messages never show
+    activeIdRef.current = deal._id;
+    setMessages([]);
     setNewMessage('');
     setBlocked(false);
     setSelectedDeal(deal);
     setShowChat(true);
+    // Clear unread count locally immediately (backend clears on getMessages fetch)
+    setDeals(prev => prev.map(d => d._id === deal._id ? { ...d, unreadCount: 0 } : d));
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
@@ -410,6 +413,11 @@ export default function BrandMessages() {
                   const isActive = selectedDeal?._id === deal._id;
                   const initials = getInitials(deal.influencerId?.name);
                   const color = getAvatarColor(deal.influencerId?.name || '');
+                  const hasUnread = (deal.unreadCount ?? 0) > 0;
+                  const pendingOffers = deal.offers?.filter(o => o.status === 'pending') ?? [];
+                  const latestPending = pendingOffers[pendingOffers.length - 1];
+                  const hasPendingOffer = !!latestPending && latestPending.proposedBy !== user?.id;
+                  const hasActivity = !isActive && (hasUnread || hasPendingOffer);
                   return (
                     <li key={deal._id}>
                       <button
@@ -417,38 +425,60 @@ export default function BrandMessages() {
                         className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-150 cursor-pointer border-b border-gray-50 ${
                           isActive
                             ? 'bg-gradient-to-r from-indigo-50 to-blue-50/50 border-l-[3px] border-l-[#3D5087]'
+                            : hasActivity
+                            ? 'bg-indigo-50/40 hover:bg-indigo-50/70 border-l-[3px] border-l-indigo-300'
                             : 'hover:bg-gray-50'
                         }`}
                       >
-                        <div className={`w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${!deal.influencerProfile?.profilePicUrl ? `bg-gradient-to-br ${color}` : 'bg-gray-100'}`}>
-                          {deal.influencerProfile?.profilePicUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={deal.influencerProfile.profilePicUrl} alt={deal.influencerId?.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-white font-bold text-sm">{initials}</span>
+                        {/* Avatar with unread dot */}
+                        <div className="relative flex-shrink-0">
+                          <div className={`w-11 h-11 rounded-2xl overflow-hidden shadow-sm flex items-center justify-center ${!deal.influencerProfile?.profilePicUrl ? `bg-gradient-to-br ${color}` : 'bg-gray-100'}`}>
+                            {deal.influencerProfile?.profilePicUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={deal.influencerProfile.profilePicUrl} alt={deal.influencerId?.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-white font-bold text-sm">{initials}</span>
+                            )}
+                          </div>
+                          {hasActivity && (
+                            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#C4B5FD] border-2 border-white shadow-sm" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between mb-0.5">
-                            <span className={`text-[13px] font-bold truncate ${isActive ? 'text-[#2B3B68]' : 'text-gray-900'}`}>
+                            <span className={`text-[13px] truncate ${
+                              isActive ? 'font-bold text-[#2B3B68]' : hasActivity ? 'font-bold text-gray-900' : 'font-semibold text-gray-700'
+                            }`}>
                               {deal.influencerId?.name}
                             </span>
                             {deal.lastMessage && (
-                              <span className="text-[10px] text-gray-400 ml-2 flex-shrink-0">
+                              <span className={`text-[10px] ml-2 flex-shrink-0 ${hasActivity ? 'text-indigo-600 font-semibold' : 'text-gray-400'}`}>
                                 {formatRelativeTime(deal.lastMessage.createdAt)}
                               </span>
                             )}
                           </div>
                           <p className="text-xs text-gray-500 truncate mb-0.5">{deal.campaignId?.title}</p>
-                          {deal.lastMessage ? (
-                            <p className="text-[11px] text-gray-400 truncate">{deal.lastMessage.content}</p>
+                          {hasPendingOffer && !isActive ? (
+                            <p className="text-[11px] text-amber-600 font-semibold truncate">💬 New offer — tap to respond</p>
+                          ) : deal.lastMessage ? (
+                            <p className={`text-[11px] truncate ${hasUnread && !isActive ? 'text-gray-700 font-semibold' : 'text-gray-400'}`}>
+                              {deal.lastMessage.content}
+                            </p>
                           ) : (
                             <p className="text-[11px] text-gray-300 italic">No messages yet — say hi!</p>
                           )}
                         </div>
-                        <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md text-white bg-gradient-to-r ${dealStatusColor(deal.status)}`}>
-                          {dealStatusLabel(deal.status)}
-                        </span>
+                        {/* Right side: unread badge + status pill */}
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          {hasUnread && !isActive && (
+                            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#C4B5FD] text-white text-[10px] font-bold flex items-center justify-center">
+                              {(deal.unreadCount ?? 0) > 9 ? '9+' : deal.unreadCount}
+                            </span>
+                          )}
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md text-white bg-gradient-to-r ${dealStatusColor(deal.status)}`}>
+                            {dealStatusLabel(deal.status)}
+                          </span>
+                        </div>
                       </button>
                     </li>
                   );

@@ -181,11 +181,12 @@ exports.getMyDeals = async (req, res) => {
 
     const dealsWithPreview = await Promise.all(
       deals.map(async (deal) => {
-        const [lastMessage, brandProfile] = await Promise.all([
+        const [lastMessage, brandProfile, unreadCount] = await Promise.all([
           Message.findOne({ dealId: deal._id })
             .sort({ createdAt: -1 })
             .select('content senderId createdAt'),
           BrandProfile.findOne({ userId: deal.brandId }).select('logoUrl'),
+          Message.countDocuments({ dealId: deal._id, receiverId: req.userId, read: false }),
         ]);
         const obj = deal.toObject();
         return {
@@ -198,6 +199,7 @@ exports.getMyDeals = async (req, res) => {
           })),
           brandLogoUrl: brandProfile?.logoUrl || '',
           lastMessage: lastMessage || null,
+          unreadCount,
         };
       })
     );
