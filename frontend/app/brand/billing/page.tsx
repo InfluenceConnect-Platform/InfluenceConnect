@@ -174,8 +174,17 @@ export default function BrandBillingPage() {
 
         {/* Already Premium */}
         {isPremium && (
-          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#2B3B68] via-[#3D5087] to-[#4a5fa0] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
-            <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#1e2f5c] via-[#3D5087] to-[#4a5fa0] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-10 -left-8 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
+            <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
+              <defs>
+                <pattern id="bb-premium-dots" width="16" height="16" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="1.2" fill="white"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#bb-premium-dots)"/>
+            </svg>
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-md flex-shrink-0 border border-white/20">
               <StarIcon />
             </div>
@@ -196,9 +205,17 @@ export default function BrandBillingPage() {
         )}
 
         {/* Hero header */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#2B3B68] via-[#3D5087] to-[#4a5fa0] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
-          <div className="absolute -top-14 -right-14 w-52 h-52 bg-white/5 rounded-full pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#1e2f5c] via-[#3D5087] to-[#4a5fa0] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
+          <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
+          <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
+            <defs>
+              <pattern id="bb-hero-dots" width="16" height="16" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1.2" fill="white"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#bb-hero-dots)"/>
+          </svg>
           <div className="relative">
             <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 mb-4">
               <SparkIcon />

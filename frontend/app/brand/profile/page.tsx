@@ -159,9 +159,13 @@ export default function BrandProfile() {
         <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm mb-5">
 
           {/* Cover banner */}
-          <div className="h-28 sm:h-36 bg-gradient-to-br from-[#1e2d56] via-[#2B3B68] to-[#4a5fa0] relative overflow-hidden">
-            <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/5 rounded-full" />
-            <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-white/5 rounded-full" />
+          <div className="h-28 sm:h-36 bg-gradient-to-br from-[#1e2f5c] via-[#3D5087] to-[#4a5fa0] relative overflow-hidden">
+            <svg className="absolute inset-0 w-full h-full" style={{opacity:0.04}} aria-hidden="true">
+              <defs><pattern id="bp-dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="white"/></pattern></defs>
+              <rect width="100%" height="100%" fill="url(#bp-dots)"/>
+            </svg>
+            <div className="absolute -top-10 -right-10 w-56 h-56 bg-white/5 rounded-full" />
+            <div className="absolute -bottom-10 -left-8 w-44 h-44 bg-white/5 rounded-full" />
             {/* Edit / Save buttons in top-right */}
             <div className="absolute top-3 right-4 flex items-center gap-2">
               {saved && (
