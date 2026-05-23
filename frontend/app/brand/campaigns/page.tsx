@@ -658,54 +658,71 @@ export default function BrandCampaigns() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200">
-                      <p className="text-[11px] text-violet-500/70 mb-0.5">Niche</p>
-                      <p className="text-xs font-semibold text-violet-900 capitalize truncate">
-                        {campaign.niche?.length ? campaign.niche.join(', ') : 'No niche'}
-                      </p>
+                  {/* Info cards row */}
+                  <div className="grid grid-cols-2 gap-2 mb-2.5">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200/80">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-violet-400 mb-1.5">Niche</p>
+                      {campaign.niche?.length ? (
+                        <div className="flex flex-wrap gap-1">
+                          {campaign.niche.map((n: string) => (
+                            <span key={n} className="px-1.5 py-0.5 rounded-md bg-violet-100 text-[10px] font-bold text-violet-700 capitalize">{n}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs font-semibold text-violet-300">No niche</p>
+                      )}
                     </div>
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-teal-50 to-cyan-100 border border-teal-200">
-                      <p className="text-[11px] text-teal-500/70 mb-0.5">Deliverables</p>
-                      <p className="text-xs font-semibold text-teal-900 truncate">
-                        {campaign.deliverables || '—'}
-                      </p>
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-200/80">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-teal-400 mb-1.5">Deliverables</p>
+                      <p className="text-xs font-bold text-teal-900 leading-snug line-clamp-2">{campaign.deliverables || '—'}</p>
                     </div>
                   </div>
 
+                  {/* Stat cards row */}
                   <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { value: campaign.applicantCount ?? 0, label: 'Applicants', cardClass: 'bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200', valueClass: 'text-blue-900', labelClass: 'text-blue-500/70' },
-                      {
-                        value: (campaign.budgetMin > 0 || campaign.budgetMax > 0)
-                          ? `₹${(campaign.budgetMin || 0).toLocaleString('en-IN')}–${(campaign.budgetMax || 0).toLocaleString('en-IN')}`
-                          : 'Open',
-                        label: 'Budget',
-                        cardClass: 'bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200',
-                        valueClass: 'text-emerald-900',
-                        labelClass: 'text-emerald-600/70',
-                      },
-                      {
-                        value: campaign.deadline
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-center">
+                      <p className="text-base font-black text-blue-900 leading-none mb-1">{campaign.applicantCount ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-blue-500">Applicants</p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200/80 text-center">
+                      <p className="text-[11px] font-black text-emerald-900 leading-none mb-1 truncate">
+                        {(campaign.budgetMin > 0 || campaign.budgetMax > 0)
+                          ? `₹${(campaign.budgetMin||0).toLocaleString('en-IN')}–${(campaign.budgetMax||0).toLocaleString('en-IN')}`
+                          : 'Open'}
+                      </p>
+                      <p className="text-[10px] font-semibold text-emerald-600">Budget</p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 text-center">
+                      <p className="text-[11px] font-black text-amber-900 leading-none mb-1">
+                        {campaign.deadline
                           ? new Date(campaign.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
-                          : '—',
-                        label: 'Deadline',
-                        cardClass: 'bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200',
-                        valueClass: 'text-amber-900',
-                        labelClass: 'text-amber-600/70',
-                      },
-                    ].map((item, i) => (
-                      <div key={i} className={`p-2.5 rounded-xl text-center ${item.cardClass}`}>
-                        <p className={`text-sm font-bold truncate ${item.valueClass}`}>{item.value}</p>
-                        <p className={`text-[11px] mt-0.5 ${item.labelClass}`}>{item.label}</p>
-                      </div>
-                    ))}
+                          : '—'}
+                      </p>
+                      <p className="text-[10px] font-semibold text-amber-600">Deadline</p>
+                    </div>
                   </div>
 
-                  {/* Mobile hint */}
-                  <p className="text-[11px] text-[#3D5087] font-medium mt-3 lg:hidden">
-                    Tap to view applications →
-                  </p>
+                  {/* Footer row — platform + city + mobile hint */}
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center gap-1.5">
+                      {campaign.targetPlatform && campaign.targetPlatform !== 'any' && (
+                        <span className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md capitalize">
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                          {campaign.targetPlatform}
+                        </span>
+                      )}
+                      {campaign.targetCity?.[0] && campaign.targetCity[0] !== 'all' && (
+                        <span className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                          {campaign.targetCity[0]}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-[#3D5087] font-semibold lg:hidden flex items-center gap-0.5">
+                      View applicants
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </p>
+                  </div>
                   </div>
                 </button>
               ))
@@ -716,9 +733,32 @@ export default function BrandCampaigns() {
           <div className="hidden lg:block bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden h-fit sticky top-[72px]">
             {selectedCampaign ? (
               <>
-                <div className="px-5 py-4 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-900 truncate">{selectedCampaign.title}</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">{applications.length} applications</p>
+                {/* Panel header */}
+                <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-[#F4F6FB] to-white">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-bold text-gray-900 truncate text-[15px]">{selectedCampaign.title}</h3>
+                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 ${CAMPAIGN_STATUS_STYLES[selectedCampaign.status] || 'bg-gray-100 text-gray-600'}`}>
+                      {CAMPAIGN_STATUS_LABELS[selectedCampaign.status] ?? selectedCampaign.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                      <strong className="text-gray-900">{applications.length}</strong> applicant{applications.length !== 1 ? 's' : ''}
+                    </span>
+                    {selectedCampaign.budgetMin > 0 && (
+                      <span className="flex items-center gap-1">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        ₹{selectedCampaign.budgetMin.toLocaleString('en-IN')}–{selectedCampaign.budgetMax.toLocaleString('en-IN')}
+                      </span>
+                    )}
+                    {selectedCampaign.deadline && (
+                      <span className="flex items-center gap-1">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        {new Date(selectedCampaign.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <ApplicationsList applications={applications} onUpdateStatus={handleUpdateStatus} />
               </>
@@ -773,15 +813,20 @@ function ApplicationsList({
     );
   }
 
+  const AVATAR_GRADS = ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'];
+
   return (
-    <div className="divide-y divide-gray-50 max-h-[60vh] lg:max-h-[520px] overflow-y-auto">
-      {applications.map((app, i) => (
-        <div key={i} className="p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${
-              !app.influencerProfile?.profilePicUrl
-                ? ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'][(app.influencerId?.name?.charCodeAt(0) || 0) % 6]
-                : ''
+    <div className="divide-y divide-gray-100 max-h-[60vh] lg:max-h-[520px] overflow-y-auto">
+      {applications.map((app, i) => {
+        const primaryPlatform = app.influencerProfile?.platforms?.[0];
+        const totalFollowers = (app.influencerProfile?.platforms || []).reduce((s: number, p: any) => s + (p.followers || 0), 0);
+        const engRate = primaryPlatform?.engagementRate;
+        return (
+        <div key={i} className="p-4 hover:bg-gray-50/60 transition-colors duration-100">
+          {/* Header row */}
+          <div className="flex items-start gap-3 mb-3">
+            <div className={`w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${
+              !app.influencerProfile?.profilePicUrl ? AVATAR_GRADS[(app.influencerId?.name?.charCodeAt(0) || 0) % 6] : ''
             }`}>
               {app.influencerProfile?.profilePicUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -791,18 +836,12 @@ function ApplicationsList({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {app.influencerId?.name}
-                </p>
+              <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                <p className="text-[13px] font-bold text-gray-900">{app.influencerId?.name}</p>
                 {app.influencerProfile?.slug && (
-                  <a
-                    href={`/brand/creator/${app.influencerProfile.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#3D5087] hover:text-[#5D8A8F] transition-colors duration-150"
-                    title="View full profile"
-                  >
+                  <a href={`/brand/creator/${app.influencerProfile.slug}`} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#3D5087] hover:text-[#5D8A8F] transition-colors"
+                    title="View full profile">
                     View profile
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -810,17 +849,57 @@ function ApplicationsList({
                   </a>
                 )}
               </div>
-              <p className="text-xs text-gray-400">
-                {app.influencerProfile?.platforms?.[0]?.followers
-                  ? `${(app.influencerProfile.platforms[0].followers / 1000).toFixed(1)}k followers`
-                  : '—'}{' '}
-                {app.influencerProfile?.city ? `· ${app.influencerProfile.city}` : ''}
-              </p>
+              <div className="flex items-center gap-2 text-[11px] text-gray-500 flex-wrap">
+                {totalFollowers > 0 && (
+                  <span className="flex items-center gap-0.5 font-semibold text-gray-700">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    {totalFollowers >= 1000 ? `${(totalFollowers/1000).toFixed(1)}k` : totalFollowers}
+                  </span>
+                )}
+                {engRate > 0 && (
+                  <span className="flex items-center gap-0.5 text-emerald-600 font-semibold">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    {engRate}% eng.
+                  </span>
+                )}
+                {app.influencerProfile?.city && <span>· {app.influencerProfile.city}</span>}
+                {app.influencerProfile?.credibilityScore > 0 && (
+                  <span className="flex items-center gap-0.5 text-amber-600 font-semibold" title="Credibility score (0–100)">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    {app.influencerProfile.credibilityScore}
+                    <span className="text-amber-400 font-normal">cred.</span>
+                  </span>
+                )}
+              </div>
             </div>
-            <span className={`text-xs px-2 py-1 rounded-full font-semibold capitalize flex-shrink-0 ${STATUS_STYLES[app.status]}`}>
-              {app.status}
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold capitalize flex-shrink-0 ${STATUS_STYLES[app.status]}`}>
+              {app.status === 'on-hold' ? 'On hold' : app.status}
             </span>
           </div>
+
+          {/* Niche tags */}
+          {app.influencerProfile?.niche?.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {app.influencerProfile.niche.map((n: string) => (
+                <span key={n} className="px-1.5 py-0.5 rounded-full bg-violet-50 border border-violet-100 text-[10px] font-semibold text-violet-600 capitalize">{n}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Application message */}
+          {app.message && (
+            <p className="text-[11px] text-gray-500 italic bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 mb-3 line-clamp-2">
+              &ldquo;{app.message}&rdquo;
+            </p>
+          )}
+
+          {/* Proposed rate */}
+          {app.proposedRate > 0 && (
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-1.5 mb-3 w-fit">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Proposed ₹{app.proposedRate.toLocaleString('en-IN')}
+            </div>
+          )}
 
           {app.status === 'applied' && (
             <div className="grid grid-cols-3 gap-2">
@@ -901,7 +980,8 @@ function ApplicationsList({
             </div>
           )}
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }
