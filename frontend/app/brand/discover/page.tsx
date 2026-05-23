@@ -725,9 +725,12 @@ export default function BrandDiscover() {
                         )}
                       </div>
 
+                      <br />
+
+
                       <div className="px-4 pb-4">
                         {/* Avatar + platforms row */}
-                        <div className="flex items-end justify-between -mt-7 mb-3">
+                        <div className="flex items-end justify-between -mt-4 mb-3">
                           <div className={`w-14 h-14 rounded-full border-[3px] border-white shadow-md overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center flex-shrink-0`}>
                             {influencer.profilePicUrl ? (
                               // eslint-disable-next-line @next/next/no-img-element
