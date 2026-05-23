@@ -5,15 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
-
-const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/influencer/dashboard' },
-  { label: 'Campaigns', href: '/influencer/campaigns' },
-  { label: 'Messages', href: '/influencer/messages', active: true },
-  { label: 'Earnings', href: '/influencer/earnings' },
-  { label: 'Profile', href: '/influencer/profile' },
-  { label: 'Billing', href: '/influencer/billing' },
-];
+import InfluencerNav from '@/components/shared/InfluencerNav';
 
 interface Message {
   _id: string;
@@ -278,55 +270,7 @@ export default function MessagesPage() {
   return (
     <div className="h-[100dvh] bg-[#F7F9FA] flex flex-col overflow-hidden">
 
-      {/* Top nav */}
-      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[60px] z-20 shadow-[0_1px_4px_rgba(0,0,0,0.06)] flex-shrink-0">
-        <div className="flex items-center gap-4 lg:gap-8 min-w-0">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] flex items-center justify-center text-white font-bold text-sm shadow-sm">IC</div>
-            <span className="font-bold text-gray-900 text-[15px] tracking-tight hidden sm:block">Influence Connect</span>
-          </div>
-          <div className="hidden lg:flex gap-0.5">
-            {NAV_ITEMS.map(item => (
-              <Link key={item.href} href={item.href}
-                className={`px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer ${
-                  item.active ? 'bg-[#EEF4F5] text-[#2A3E42]' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
-                }`}>
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <span className={`hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded-full ${
-            isPremium ? 'bg-amber-100 text-amber-700' : 'bg-[#EEF4F5] text-[#2A3E42]'
-          }`}>
-            {isPremium ? '★ Premium' : 'Freemium'}
-          </span>
-          <Link href="/influencer/profile" title="View profile"
-            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm cursor-pointer hover:ring-[#7FA8AD] transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0]">
-            {profilePicUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-[#9C4A33] font-bold text-sm">{user?.name?.charAt(0).toUpperCase()}</span>
-            )}
-          </Link>
-        </div>
-      </nav>
-
-      {/* Mobile tab bar — hidden when viewing chat on mobile */}
-      <div className={`lg:hidden bg-white border-b border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex-shrink-0 ${showChat ? 'hidden' : 'block'}`}>
-        <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden px-3 gap-0.5 py-2">
-          {NAV_ITEMS.map(item => (
-            <Link key={item.href} href={item.href}
-              className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer ${
-                item.active ? 'bg-[#EEF4F5] text-[#2A3E42]' : 'text-gray-500 hover:bg-gray-100'
-              }`}>
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </div>
+      <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
 
       {/* Main messaging layout */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
