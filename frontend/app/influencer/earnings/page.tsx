@@ -30,55 +30,24 @@ interface DealHistory {
   amount: number;
 }
 
-const RupeeIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="1" x2="12" y2="23"/>
-    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-  </svg>
-);
-const BriefcaseIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-  </svg>
-);
-const CheckCircleIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-    <polyline points="22 4 12 14.01 9 11.01"/>
-  </svg>
-);
-const TrendingUpIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="20" x2="12" y2="10"/>
-    <line x1="18" y1="20" x2="18" y2="4"/>
-    <line x1="6" y1="20" x2="6" y2="16"/>
-  </svg>
-);
-const DownloadIcon = () => (
-  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-);
-const LockIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-  </svg>
-);
-const SearchIcon = () => (
-  <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-  </svg>
-);
-const SparkIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"/>
-  </svg>
-);
+const CAT_COLORS: Record<string, string> = {
+  beauty:    'bg-pink-50 text-pink-700 border border-pink-200',
+  fashion:   'bg-rose-50 text-rose-700 border border-rose-200',
+  food:      'bg-orange-50 text-orange-700 border border-orange-200',
+  fitness:   'bg-amber-50 text-amber-700 border border-amber-200',
+  lifestyle: 'bg-purple-50 text-purple-700 border border-purple-200',
+  travel:    'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  tech:      'bg-blue-50 text-blue-700 border border-blue-200',
+  books:     'bg-violet-50 text-violet-700 border border-violet-200',
+};
+
+const BRAND_GRADS = [
+  'from-violet-500 to-purple-600',
+  'from-teal-500 to-cyan-600',
+  'from-amber-500 to-orange-500',
+  'from-indigo-500 to-blue-600',
+  'from-pink-500 to-rose-500',
+];
 
 export default function EarningsPage() {
   const router = useRouter();
@@ -128,31 +97,61 @@ export default function EarningsPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F9FA]">
-
       <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
 
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
+      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
-        {/* Hero banner */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl px-5 sm:px-7 py-5 mb-6 shadow-lg">
-          <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
-          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 relative">
+        {/* ── Hero ── */}
+        <section className="relative bg-gradient-to-br from-[#0d2d33] via-[#1C4A52] to-[#2d7a88] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
+          <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
+          <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
+            <defs>
+              <pattern id="earn-dots" width="16" height="16" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1.2" fill="white"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#earn-dots)"/>
+          </svg>
+
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div>
-              <p className="text-xs text-teal-200 font-semibold uppercase tracking-wider mb-1.5">Revenue & partnerships</p>
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Earnings</h1>
-              <p className="text-teal-200/80 text-sm mt-1">Track your revenue and brand deal history.</p>
+              <p className="text-teal-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
+                Revenue &amp; partnerships
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
+                Your Earnings
+              </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
+                  <svg className="w-3 h-3 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                  ₹{(summary?.totalEarnings || 0).toLocaleString()} total
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
+                  <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                  {summary?.dealsCompleted || 0} deals done
+                </span>
+                {isPremium && (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-amber-400/20 to-yellow-400/20 border border-amber-400/30 text-amber-300 px-3 py-1.5 rounded-full">
+                    ★ Premium
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2.5">
-              <div className="flex bg-white/10 backdrop-blur-sm rounded-xl p-1 gap-0.5 border border-white/10">
-                {(['6months', '1year'] as const).map((tab) => (
+
+            {/* Controls */}
+            <div className="flex items-center gap-2.5 flex-shrink-0 self-start sm:self-auto">
+              <div className="flex bg-white/10 backdrop-blur-sm rounded-xl p-1 gap-0.5 border border-white/15">
+                {(['6months', '1year'] as const).map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 cursor-pointer ${
-                      activeTab === tab
-                        ? 'bg-white text-[#1C4A52] shadow-sm'
-                        : 'text-white/70 hover:text-white'
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 cursor-pointer ${
+                      activeTab === tab ? 'bg-white text-[#1C4A52] shadow-sm' : 'text-white/70 hover:text-white'
                     }`}
                   >
                     {tab === '6months' ? '6 months' : '1 year'}
@@ -160,8 +159,10 @@ export default function EarningsPage() {
                 ))}
               </div>
               {isPremium && (
-                <button className="flex items-center gap-1.5 text-xs text-white/90 px-3 py-2 border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-150 cursor-pointer font-medium">
-                  <DownloadIcon />
+                <button className="flex items-center gap-1.5 text-xs text-white/90 px-3 py-2 border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all cursor-pointer font-semibold">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
                   <span className="hidden sm:inline">Export CSV</span>
                 </button>
               )}
@@ -169,79 +170,97 @@ export default function EarningsPage() {
           </div>
         </section>
 
-        {/* Stat cards — 2-col mobile, 4-col desktop */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5 md:mb-6">
+        {/* ── Stat cards ── */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
 
           {/* Total earnings — featured */}
-          <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-amber-500 via-yellow-500 to-orange-500 rounded-2xl p-4 md:p-5 shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-8 translate-x-8 pointer-events-none" />
-            <div className="w-9 h-9 rounded-xl bg-white/20 shadow-sm flex items-center justify-center mb-3 text-white">
-              <RupeeIcon />
+          <div className="col-span-2 md:col-span-1 relative overflow-hidden bg-gradient-to-br from-amber-500 via-yellow-500 to-orange-500 rounded-2xl p-4 sm:p-5 shadow-lg">
+            <div className="flex items-start justify-between mb-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-100/80 leading-tight pr-2">Total Earnings</p>
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 shadow-sm text-white">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
             </div>
-            <p className="text-[11px] text-amber-100/80 font-semibold uppercase tracking-wider mb-1">Total earnings</p>
-            <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight tabular-nums leading-none">
+            <p className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-none mb-2 tabular-nums">
               ₹{(summary?.totalEarnings || 0).toLocaleString()}
             </p>
-            <p className="text-xs text-amber-100/70 mt-1.5 font-medium">All completed deals</p>
+            <p className="text-[11px] text-amber-100/70 font-semibold">All completed deals</p>
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
           </div>
 
-          <div className="bg-gradient-to-br from-rose-50 to-red-100 border border-rose-200 rounded-2xl p-4 md:p-5 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-rose-200/30 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-sm flex items-center justify-center mb-3">
-              <BriefcaseIcon />
+          {/* Active deals */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-rose-50 to-red-100 border border-rose-200/70 rounded-2xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Active Deals</p>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+              </div>
             </div>
-            <p className="text-[11px] text-rose-600/70 font-semibold uppercase tracking-wider mb-1">Active deals</p>
-            <p className="text-2xl sm:text-3xl font-bold text-rose-900 tracking-tight tabular-nums leading-none">
+            <p className="text-3xl sm:text-4xl font-black text-rose-900 leading-none mb-2 tabular-nums">
               {summary?.activeDeals || 0}
             </p>
-            <p className="text-xs text-rose-600/60 mt-1.5 font-medium truncate">
+            <p className="text-[11px] text-rose-600/80 font-semibold truncate">
               ₹{(summary?.pendingPayout || 0).toLocaleString()} pending
             </p>
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-rose-500 to-red-600 opacity-10 pointer-events-none" />
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200 rounded-2xl p-4 md:p-5 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-200/30 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-sm flex items-center justify-center mb-3">
-              <CheckCircleIcon />
+          {/* Deals done */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200/70 rounded-2xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Deals Done</p>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
             </div>
-            <p className="text-[11px] text-emerald-600/70 font-semibold uppercase tracking-wider mb-1">Deals done</p>
-            <p className="text-2xl sm:text-3xl font-bold text-emerald-900 tracking-tight tabular-nums leading-none">
+            <p className="text-3xl sm:text-4xl font-black text-emerald-900 leading-none mb-2 tabular-nums">
               {summary?.dealsCompleted || 0}
             </p>
-            <p className="text-xs text-emerald-600/60 mt-1.5 font-medium">All time</p>
+            <p className="text-[11px] text-emerald-600/80 font-semibold">All time</p>
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 opacity-10 pointer-events-none" />
           </div>
 
-          <div className="bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200 rounded-2xl p-4 md:p-5 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-violet-200/30 rounded-full -translate-y-4 translate-x-4 pointer-events-none" />
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-sm flex items-center justify-center mb-3">
-              <TrendingUpIcon />
+          {/* Avg deal value */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200/70 rounded-2xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Avg Deal Value</p>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
+                </svg>
+              </div>
             </div>
-            <p className="text-[11px] text-violet-600/70 font-semibold uppercase tracking-wider mb-1">Avg deal value</p>
-            <p className="text-2xl sm:text-3xl font-bold text-violet-900 tracking-tight tabular-nums leading-none">
+            <p className="text-3xl sm:text-4xl font-black text-violet-900 leading-none mb-2 tabular-nums">
               ₹{(summary?.avgDealValue || 0).toLocaleString()}
             </p>
-            <p className="text-xs text-violet-600/60 mt-1.5 font-medium">Per campaign</p>
+            <p className="text-[11px] text-violet-600/80 font-semibold">Per campaign</p>
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 opacity-10 pointer-events-none" />
           </div>
 
         </section>
 
-        {/* Chart section */}
+        {/* ── Analytics (Premium) or gate ── */}
         {isPremium ? (
-          <section className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 md:gap-5 mb-5 md:mb-6">
+          <section className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 md:gap-5 mb-6">
 
             {/* Monthly earnings chart */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+            <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
                 <div>
-                  <h3 className="font-semibold text-gray-900">Earnings overview</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Monthly earnings from completed deals</p>
+                  <h3 className="font-bold text-gray-900">Earnings Overview</h3>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Monthly earnings from completed deals</p>
                 </div>
-                <span className="self-start text-xs font-semibold px-2.5 py-1 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] text-white rounded-full shadow-sm">
+                <span className="self-start text-xs font-bold px-2.5 py-1 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] text-white rounded-full shadow-sm">
                   ₹{(summary?.totalEarnings || 0).toLocaleString()} total
                 </span>
               </div>
 
-              {/* Bar chart */}
               {monthlyTrend.length > 0 ? (
                 <div className="flex items-end gap-1.5 sm:gap-2.5 h-[140px] sm:h-[160px]">
                   {monthlyTrend.map((month, index) => {
@@ -255,7 +274,7 @@ export default function EarningsPage() {
                           <div
                             className={`w-full rounded-t-lg transition-all duration-200 cursor-pointer relative ${
                               isMax
-                                ? 'bg-gradient-to-t from-[#1C4A52] to-[#5BA8B5] shadow-sm'
+                                ? 'bg-gradient-to-t from-[#0d2d33] to-[#5BA8B5] shadow-sm'
                                 : 'bg-gradient-to-t from-teal-200 to-cyan-100 group-hover:from-[#5D8A8F] group-hover:to-[#7FA8AD]'
                             }`}
                             style={{ height: `${pct}%` }}
@@ -278,20 +297,20 @@ export default function EarningsPage() {
             </div>
 
             {/* Category breakdown */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-1">Earnings by category</h3>
-              <p className="text-xs text-gray-400 mb-5">Breakdown of your deal categories</p>
+            <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
+              <h3 className="font-bold text-gray-900 mb-0.5">Earnings by Category</h3>
+              <p className="text-[11px] text-gray-400 mb-5">Breakdown of your deal categories</p>
               {dealHistory.length > 0 ? (
-                <div className="flex flex-col gap-3">
-                  {/* Populated when deals are built */}
-                </div>
+                <div className="flex flex-col gap-3" />
               ) : (
                 <div className="flex flex-col items-center justify-center h-[140px] text-center">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
-                    <TrendingUpIcon />
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
+                    </svg>
                   </div>
-                  <p className="text-sm font-semibold text-gray-700 mb-1">No data yet</p>
-                  <p className="text-xs text-gray-400 max-w-[180px]">
+                  <p className="text-sm font-bold text-gray-700 mb-1">No data yet</p>
+                  <p className="text-xs text-gray-400 max-w-[180px] leading-relaxed">
                     Category breakdown appears after your first completed deal.
                   </p>
                 </div>
@@ -300,30 +319,39 @@ export default function EarningsPage() {
 
           </section>
         ) : (
-          /* Freemium gate */
-          <section className="mb-5 md:mb-6">
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl p-5 sm:p-6 shadow-lg">
+          /* ── Freemium gate ── */
+          <section className="mb-6">
+            <div className="relative overflow-hidden bg-gradient-to-br from-[#0d2d33] via-[#1C4A52] to-[#2d7a88] rounded-2xl p-6 shadow-lg">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
-              <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+              <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
+                <defs>
+                  <pattern id="gate-dots" width="16" height="16" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="1.2" fill="white"/>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#gate-dots)"/>
+              </svg>
+              <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
                 <div className="flex items-start gap-4 flex-1 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm text-white flex items-center justify-center flex-shrink-0 border border-white/20">
-                    <LockIcon />
+                  <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 text-white flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-white text-[15px] mb-1">
-                      Unlock earnings analytics with Premium
-                    </h3>
-                    <p className="text-sm text-teal-100/80 leading-relaxed">
+                    <h3 className="font-extrabold text-white text-[15px] mb-1">Unlock earnings analytics with Premium</h3>
+                    <p className="text-sm text-teal-100/80 leading-relaxed mb-3">
                       See your full monthly trend, earnings by category, top brand insights, and export your data as CSV.
                     </p>
-                    <div className="flex flex-wrap gap-2 mt-3">
+                    <div className="flex flex-wrap gap-2">
                       {[
-                        { label: 'Monthly chart', color: 'bg-teal-400/20 border-teal-300/30 text-teal-100' },
-                        { label: 'Category breakdown', color: 'bg-violet-400/20 border-violet-300/30 text-violet-100' },
-                        { label: 'Brand insights', color: 'bg-amber-400/20 border-amber-300/30 text-amber-100' },
-                        { label: 'CSV export', color: 'bg-emerald-400/20 border-emerald-300/30 text-emerald-100' },
+                        { label: 'Monthly chart',       color: 'bg-teal-400/20 border-teal-300/30 text-teal-100' },
+                        { label: 'Category breakdown',  color: 'bg-violet-400/20 border-violet-300/30 text-violet-100' },
+                        { label: 'Brand insights',      color: 'bg-amber-400/20 border-amber-300/30 text-amber-100' },
+                        { label: 'CSV export',          color: 'bg-emerald-400/20 border-emerald-300/30 text-emerald-100' },
                       ].map(f => (
-                        <span key={f.label} className={`inline-flex items-center gap-1 text-xs border px-2.5 py-1 rounded-full font-medium ${f.color}`}>
+                        <span key={f.label} className={`inline-flex items-center gap-1 text-xs border px-2.5 py-1 rounded-full font-semibold ${f.color}`}>
                           <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
                           {f.label}
                         </span>
@@ -333,122 +361,129 @@ export default function EarningsPage() {
                 </div>
                 <Link
                   href="/influencer/billing"
-                  className="flex-shrink-0 bg-white hover:bg-gray-50 text-[#1C4A52] px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap">
-                  Upgrade · ₹299/mo
+                  className="flex-shrink-0 bg-white hover:bg-teal-50 text-[#1C4A52] px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap self-start sm:self-auto">
+                  Upgrade · ₹299/mo →
                 </Link>
               </div>
             </div>
           </section>
         )}
 
-        {/* Deal history */}
-        <section className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-teal-50/60 to-white">
+        {/* ── Deal history ── */}
+        <section className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 sm:px-6 py-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <div className="w-1 h-8 rounded-full bg-gradient-to-b from-[#7FA8AD] to-[#5D8A8F]" />
               <div>
-                <h3 className="font-semibold text-gray-900">Deal history</h3>
-                <p className="text-xs text-gray-400 mt-0.5">Completed and in-progress deals, newest first</p>
+                <h3 className="font-bold text-gray-900">Deal History</h3>
+                <p className="text-[11px] text-gray-400 mt-0.5">Completed and in-progress deals, newest first</p>
               </div>
             </div>
             <Link href="/influencer/campaigns"
-              className="self-start sm:self-auto text-xs text-white font-semibold transition-colors duration-150 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md">
+              className="self-start sm:self-auto inline-flex items-center gap-1.5 text-xs text-white font-bold bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] px-3.5 py-2 rounded-xl shadow-sm hover:shadow-md transition-all">
               Browse campaigns →
             </Link>
           </div>
 
           {dealHistory.length > 0 ? (
             <>
-              {/* Desktop table — hidden on small screens */}
+              {/* Desktop table */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gradient-to-r from-teal-50/60 to-cyan-50/30 border-b border-gray-100">
+                    <tr className="bg-gray-50/80 border-b border-gray-100">
                       {['Brand', 'Campaign', 'Category', 'Date', 'Status', 'Amount'].map(h => (
-                        <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                        <th key={h} className="px-5 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {dealHistory.map((deal, index) => (
-                      <tr key={index} className="border-b border-gray-50 hover:bg-teal-50/30 transition-colors duration-100">
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-7 h-7 rounded-lg text-[10px] font-bold text-white flex items-center justify-center flex-shrink-0 ${
-                              ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500'][(deal.brandName?.charCodeAt(0) || 0) % 5]
-                            }`}>
-                              {deal.brandName?.slice(0, 1).toUpperCase() || '?'}
+                    {dealHistory.map((deal, index) => {
+                      const grad = BRAND_GRADS[(deal.brandName?.charCodeAt(0) || 0) % BRAND_GRADS.length];
+                      return (
+                        <tr key={index} className="border-b border-gray-50 hover:bg-[#EEF4F5]/40 transition-colors">
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className={`w-8 h-8 rounded-lg text-[11px] font-bold text-white flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${grad}`}>
+                                {deal.brandName?.charAt(0).toUpperCase() || '?'}
+                              </div>
+                              <span className="text-sm font-bold text-gray-900">{deal.brandName}</span>
                             </div>
-                            <span className="text-sm font-semibold text-gray-900">{deal.brandName}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 text-sm text-gray-500 max-w-[200px] truncate">{deal.campaignTitle}</td>
-                        <td className="px-4 py-3.5">
-                          {(() => {
-                            const catColors: Record<string, string> = { beauty: 'bg-pink-100 text-pink-800', fashion: 'bg-rose-100 text-rose-800', food: 'bg-orange-100 text-orange-800', fitness: 'bg-amber-100 text-amber-800', lifestyle: 'bg-purple-100 text-purple-800', travel: 'bg-emerald-100 text-emerald-800', tech: 'bg-blue-100 text-blue-800', books: 'bg-violet-100 text-violet-800' };
-                            return (
-                              <span className={`text-xs px-2.5 py-1 rounded-full capitalize font-semibold ${catColors[deal.category] || 'bg-teal-100 text-teal-800'}`}>
-                                {deal.category}
-                              </span>
-                            );
-                          })()}
-                        </td>
-                        <td className="px-4 py-3.5 text-sm text-gray-400 whitespace-nowrap">{deal.completedAt}</td>
-                        <td className="px-4 py-3.5">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${
-                            deal.status === 'completed'
-                              ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white'
-                              : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
-                          }`}>
-                            {deal.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-sm font-bold text-emerald-700 text-right tabular-nums">
-                          ₹{deal.amount.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-5 py-4 text-sm text-gray-500 max-w-[200px] truncate font-medium">{deal.campaignTitle}</td>
+                          <td className="px-5 py-4">
+                            <span className={`text-xs px-2.5 py-1 rounded-full capitalize font-bold ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
+                              {deal.category}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-xs text-gray-400 font-medium whitespace-nowrap">{deal.completedAt}</td>
+                          <td className="px-5 py-4">
+                            <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-bold capitalize ${
+                              deal.status === 'completed'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${deal.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                              {deal.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-sm font-black text-emerald-700 text-right tabular-nums">
+                            ₹{deal.amount.toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
-              {/* Mobile cards — shown only on small screens */}
+              {/* Mobile cards */}
               <div className="md:hidden divide-y divide-gray-100">
-                {dealHistory.map((deal, index) => (
-                  <div key={index} className="px-4 py-4 hover:bg-gray-50/60 transition-colors duration-100">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">{deal.brandName}</p>
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{deal.campaignTitle}</p>
+                {dealHistory.map((deal, index) => {
+                  const grad = BRAND_GRADS[(deal.brandName?.charCodeAt(0) || 0) % BRAND_GRADS.length];
+                  return (
+                    <div key={index} className="px-4 py-4 hover:bg-gray-50/60 transition-colors">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className={`w-8 h-8 rounded-lg text-[11px] font-bold text-white flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${grad}`}>
+                            {deal.brandName?.charAt(0).toUpperCase() || '?'}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate">{deal.brandName}</p>
+                            <p className="text-xs text-gray-400 mt-0.5 truncate font-medium">{deal.campaignTitle}</p>
+                          </div>
+                        </div>
+                        <p className="text-sm font-black text-emerald-700 tabular-nums flex-shrink-0">
+                          ₹{deal.amount.toLocaleString()}
+                        </p>
                       </div>
-                      <p className="text-sm font-bold text-gray-900 tabular-nums flex-shrink-0">
-                        ₹{deal.amount.toLocaleString()}
-                      </p>
+                      <div className="flex items-center gap-2 flex-wrap mt-1.5">
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full capitalize font-bold ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
+                          {deal.category}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold capitalize ${
+                          deal.status === 'completed'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${deal.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                          {deal.status}
+                        </span>
+                        <span className="text-[11px] text-gray-400 ml-auto font-medium">{deal.completedAt}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {(() => {
-                        const catColors: Record<string, string> = { beauty: 'bg-pink-100 text-pink-800', fashion: 'bg-rose-100 text-rose-800', food: 'bg-orange-100 text-orange-800', fitness: 'bg-amber-100 text-amber-800', lifestyle: 'bg-purple-100 text-purple-800', travel: 'bg-emerald-100 text-emerald-800', tech: 'bg-blue-100 text-blue-800', books: 'bg-violet-100 text-violet-800' };
-                        return <span className={`text-[11px] px-2 py-0.5 rounded-full capitalize font-semibold ${catColors[deal.category] || 'bg-teal-100 text-teal-800'}`}>{deal.category}</span>;
-                      })()}
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${
-                        deal.status === 'completed'
-                          ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white'
-                          : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
-                      }`}>
-                        {deal.status}
-                      </span>
-                      <span className="text-[11px] text-gray-400 ml-auto">{deal.completedAt}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center py-14 sm:py-20 px-4 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
-                <SearchIcon />
+            <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
+                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
               </div>
               <h3 className="font-bold text-gray-800 text-[15px] mb-1.5">No deals yet</h3>
               <p className="text-sm text-gray-400 max-w-[280px] mb-6 leading-relaxed">
@@ -456,7 +491,7 @@ export default function EarningsPage() {
               </p>
               <Link
                 href="/influencer/campaigns"
-                className="bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shadow-sm hover:shadow-md cursor-pointer">
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md cursor-pointer">
                 Browse campaigns →
               </Link>
             </div>
@@ -464,7 +499,7 @@ export default function EarningsPage() {
         </section>
 
         <p className="text-xs text-gray-400 text-center mt-6 pb-2">
-          Audience analytics — follower demographics, engagement deep-dives, age & gender splits — coming in Phase 2.
+          Audience analytics — follower demographics, engagement deep-dives, age &amp; gender splits — coming in Phase 2.
         </p>
 
       </main>
