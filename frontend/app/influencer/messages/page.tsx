@@ -588,6 +588,25 @@ export default function MessagesPage() {
                 </div>
               </div>
 
+              {/* Campaign brief strip */}
+              <div className="flex items-center gap-3 px-4 sm:px-5 py-2 bg-teal-50/60 border-b border-teal-100/60 flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                <svg className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                <span className="text-[11px] text-teal-700 font-semibold flex-shrink-0">Deliverables:</span>
+                <span className="text-[11px] text-teal-600 flex-shrink-0">{selectedDeal.campaignId?.deliverables || '—'}</span>
+                <span className="text-teal-300 flex-shrink-0">·</span>
+                <svg className="w-3 h-3 text-teal-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 3h12M6 8h12M12 21 6 8"/><path d="M6 13h3a4 4 0 1 0 0-5H6"/>
+                </svg>
+                <span className="text-[11px] text-teal-700 font-semibold flex-shrink-0">Budget:</span>
+                <span className="text-[11px] text-teal-600 flex-shrink-0 font-medium">
+                  {selectedDeal.negotiationStatus === 'agreed'
+                    ? `₹${selectedDeal.agreedAmount?.toLocaleString('en-IN')} (agreed)`
+                    : `₹${selectedDeal.campaignId?.budgetMin?.toLocaleString('en-IN')} – ₹${selectedDeal.campaignId?.budgetMax?.toLocaleString('en-IN')}`}
+                </span>
+              </div>
+
               {/* Offer negotiation panel */}
               {!dealClosed && (
                 <OfferPanel
