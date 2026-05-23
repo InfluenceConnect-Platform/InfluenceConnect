@@ -469,7 +469,7 @@ export default function InfluencerProfile() {
         : 'photos';
       setPendingUploads(prev => [...prev, {
         cloudinaryUrl: uploadData.secure_url,
-        thumbnailUrl: isVideo ? uploadData.secure_url.replace('/upload/', '/upload/so_0/') : '',
+        thumbnailUrl: isVideo ? uploadData.secure_url.replace('/upload/', '/upload/so_0/').replace(/\.[^/.]+$/, '.jpg') : '',
         type: isVideo ? 'video' : 'image',
         section: uploadSection,
         fileSize: file.size,
@@ -1051,7 +1051,7 @@ export default function InfluencerProfile() {
                               {item.type === 'video' ? (
                                 <>
                                   {item.thumbnailUrl
-                                    ? <img src={item.thumbnailUrl} alt="reel thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    ? <img src={item.thumbnailUrl} alt="reel thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                     : (
                                       <div className="w-full h-full bg-gray-900 flex items-center justify-center">
                                         <svg className="w-8 h-8 text-white/30" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -1801,7 +1801,7 @@ export default function InfluencerProfile() {
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden">
                           {item.thumbnailUrl ? (
-                            <img src={item.thumbnailUrl} alt={`Reel ${index + 1}`} className="w-full h-full object-cover opacity-75" />
+                            <img src={item.thumbnailUrl} alt={`Reel ${index + 1}`} className="w-full h-full object-cover opacity-75" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
                           )}
