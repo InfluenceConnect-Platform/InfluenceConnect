@@ -98,6 +98,7 @@ const RefreshIcon = () => (
 export default function BillingPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; plan: string } | null>(null);
+  const [profilePicUrl, setProfilePicUrl] = useState('');
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
   const [downgrading, setDowngrading] = useState(false);
@@ -113,6 +114,7 @@ export default function BillingPage() {
     const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     setUser(JSON.parse(stored));
+    api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
   }, []);
 
   const showToast = (msg: string) => {
@@ -169,7 +171,7 @@ export default function BillingPage() {
         </div>
       )}
 
-      <InfluencerNav user={user} />
+      <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
 
       <main className="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
 
