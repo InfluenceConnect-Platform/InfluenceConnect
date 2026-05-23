@@ -389,6 +389,24 @@ export default function InfluencerProfile() {
   const removePlatform = (index: number) =>
     setPlatforms(prev => prev.filter((_, i) => i !== index));
 
+  const handleDeleteItem = async (itemId: string, isPending: boolean) => {
+    if (isPending) {
+      // Remove from local pending buffer — no network call needed
+      const pendingIdx = parseInt(itemId.replace('pending-', ''), 10);
+      setPendingUploads(prev => prev.filter((_, i) => i !== pendingIdx));
+      return;
+    }
+    try {
+      await api.delete(`/api/upload/portfolio/${itemId}`);
+      setProfile((prev: any) => prev
+        ? { ...prev, portfolioItems: prev.portfolioItems.filter((i: any) => i._id !== itemId) }
+        : prev
+      );
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to delete item.');
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError('');
@@ -529,6 +547,8 @@ export default function InfluencerProfile() {
       setError(err.message || 'Profile picture upload failed.');
     } finally { setUploadingPic(false); }
   };
+
+  const isPremiumUser = profile?.userId?.plan === 'premium';
 
   // Merge saved + pending uploads for the content grid
   const allPortfolioItems: Array<{
@@ -1767,7 +1787,7 @@ export default function InfluencerProfile() {
                       className={`relative aspect-square rounded-xl overflow-hidden group border-2 transition-all duration-150 ${
                         item.pending
                           ? 'border-amber-400'
-                          : (item.isVisible === false)
+                          : (!isPremiumUser && item.isVisible === false)
                             ? 'border-gray-200 opacity-60'
                             : 'border-transparent hover:border-[#7FA8AD]/40'
                       }`}
@@ -1811,29 +1831,51 @@ export default function InfluencerProfile() {
                             : item.section === 'stories' ? 'STORY'
                             : item.type === 'video' ? 'REEL' : 'PHOTO'}
                         </span>
-                        {item.pending ? (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400 text-white">Unsaved</span>
-                        ) : item.isVisible === false ? (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-black/50 text-white backdrop-blur-sm">Hidden</span>
-                        ) : null}
+                        <div className="flex items-center gap-1">
+                          {item.pending ? (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400 text-white">Unsaved</span>
+                          ) : (!isPremiumUser && item.isVisible === false) ? (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-black/50 text-white backdrop-blur-sm">Hidden</span>
+                          ) : null}
+                          {isEditing && (
+                            <button
+                              onClick={e => { e.stopPropagation(); handleDeleteItem(item._id, item.pending); }}
+                              className="opacity-0 group-hover:opacity-100 transition-all duration-200 w-6 h-6 rounded-md bg-red-500/90 backdrop-blur-sm flex items-center justify-center hover:bg-red-600 cursor-pointer"
+                              title="Delete"
+                            >
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                              </svg>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Freemium notice */}
-              <div className="mt-5 p-3.5 bg-[#EEF4F5] border border-[#7FA8AD]/30 rounded-xl text-xs text-[#2A3E42] leading-relaxed">
-                <div className="flex items-start gap-2">
-                  <span className="text-[#7FA8AD] mt-0.5 flex-shrink-0"><LockIcon /></span>
-                  <p>
-                    <strong>Upload freely.</strong> On freemium, brands see your 3 most recent items.{' '}
-                    <Link href="/influencer/billing" className="text-[#5D8A8F] font-semibold hover:underline cursor-pointer">
-                      Upgrade to show all →
-                    </Link>
-                  </p>
+              {/* Plan notice */}
+              {isPremiumUser ? (
+                <div className="mt-5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 leading-relaxed">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-500 flex-shrink-0">★</span>
+                    <p><strong>Premium active.</strong> All your uploaded content is visible to brands.</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mt-5 p-3.5 bg-[#EEF4F5] border border-[#7FA8AD]/30 rounded-xl text-xs text-[#2A3E42] leading-relaxed">
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#7FA8AD] mt-0.5 flex-shrink-0"><LockIcon /></span>
+                    <p>
+                      <strong>Upload freely.</strong> On freemium, brands see your 3 most recent items.{' '}
+                      <Link href="/influencer/billing" className="text-[#5D8A8F] font-semibold hover:underline cursor-pointer">
+                        Upgrade to show all →
+                      </Link>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

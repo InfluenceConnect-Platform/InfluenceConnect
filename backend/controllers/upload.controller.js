@@ -160,6 +160,30 @@ exports.removeCoverPhoto = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// DELETE PORTFOLIO ITEM
+// ─────────────────────────────────────────
+exports.deletePortfolioItem = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const profile = await InfluencerProfile.findOne({ userId: req.userId });
+    if (!profile) return res.status(404).json({ error: 'Profile not found.' });
+
+    const item = profile.portfolioItems.id(itemId);
+    if (!item) return res.status(404).json({ error: 'Item not found.' });
+
+    profile.portfolioItems.pull(itemId);
+    profile.credibilityScore = profile.calculateCredibilityScore();
+    profile.level = profile.calculateLevel();
+    await profile.save();
+
+    res.json({ message: 'Portfolio item deleted.' });
+  } catch (error) {
+    console.error('Delete portfolio item error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // SAVE PORTFOLIO ITEM
 // Called after frontend uploads to Cloudinary
 // ─────────────────────────────────────────
@@ -193,12 +217,9 @@ exports.savePortfolioItem = async (req, res) => {
       });
     }
 
-    // Check freemium limits
-    const isPremium = req.user.plan === 'premium';
     const currentCount = profile.portfolioItems.length;
 
-    // No upload limit — but track visible items
-    // Freemium: unlimited uploads, only 3 visible
+    // Freemium: unlimited uploads, only first 3 marked visible; premium: all visible
     const newItem = {
       type,
       section: resolvedSection,
@@ -206,7 +227,7 @@ exports.savePortfolioItem = async (req, res) => {
       thumbnailUrl: thumbnailUrl || '',
       fileSize: fileSize || 0,
       duration: duration || 0,
-      isVisible: currentCount < 3, // first 3 auto-visible
+      isVisible: req.user.plan === 'premium' || currentCount < 3,
       isPinned: false
     };
 

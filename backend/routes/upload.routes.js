@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const authenticate = require('../middleware/auth.middleware');
-const { getSignature, savePortfolioItem, saveProfilePicture, saveBrandLogo, removeProfilePicture, removeBrandLogo, saveCoverPhoto, removeCoverPhoto } = require('../controllers/upload.controller');
+const { getSignature, savePortfolioItem, deletePortfolioItem, saveProfilePicture, saveBrandLogo, removeProfilePicture, removeBrandLogo, saveCoverPhoto, removeCoverPhoto } = require('../controllers/upload.controller');
 
 // GET /api/upload/signature?context=portfolio|profile-pic|brand-logo
 router.get('/signature', authenticate, getSignature);
 
 // POST /api/upload/portfolio  — save uploaded portfolio item URL
 router.post('/portfolio', authenticate, savePortfolioItem);
+// DELETE /api/upload/portfolio/:itemId  — remove a portfolio item
+router.delete('/portfolio/:itemId', authenticate, deletePortfolioItem);
 
 // POST /api/upload/profile-picture  — save influencer profile picture URL
 router.post('/profile-picture', authenticate, saveProfilePicture);
