@@ -269,7 +269,7 @@ exports.getCampaignApplications = async (req, res) => {
       applications.map(async (app) => {
         const profile = await InfluencerProfile.findOne({
           userId: app.influencerId._id
-        }).select('niche city platforms profilePicUrl credibilityScore level');
+        }).select('niche city platforms profilePicUrl credibilityScore level slug');
 
         let dealStatus = null;
         if (app.status === 'accepted') {

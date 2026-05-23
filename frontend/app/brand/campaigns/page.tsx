@@ -791,9 +791,25 @@ function ApplicationsList({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {app.influencerId?.name}
-              </p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {app.influencerId?.name}
+                </p>
+                {app.influencerProfile?.slug && (
+                  <a
+                    href={`/brand/creator/${app.influencerProfile.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#3D5087] hover:text-[#5D8A8F] transition-colors duration-150"
+                    title="View full profile"
+                  >
+                    View profile
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                )}
+              </div>
               <p className="text-xs text-gray-400">
                 {app.influencerProfile?.platforms?.[0]?.followers
                   ? `${(app.influencerProfile.platforms[0].followers / 1000).toFixed(1)}k followers`
