@@ -20,6 +20,11 @@ const portfolioItemSchema = new mongoose.Schema({
     enum: ['image', 'video'],
     required: true
   },
+  section: {
+    type: String,
+    enum: ['photos', 'reels', 'products', 'stories'],
+    default: null
+  },
   cloudinaryUrl: { type: String, required: true },
   thumbnailUrl: { type: String, default: '' },
   fileSize: { type: Number, default: 0 },

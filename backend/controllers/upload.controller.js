@@ -165,19 +165,22 @@ exports.removeCoverPhoto = async (req, res) => {
 // ─────────────────────────────────────────
 exports.savePortfolioItem = async (req, res) => {
   try {
-    const { cloudinaryUrl, thumbnailUrl, type, fileSize, duration } = req.body;
+    const { cloudinaryUrl, thumbnailUrl, type, fileSize, duration, section } = req.body;
 
     if (!cloudinaryUrl || !type) {
-      return res.status(400).json({ 
-        error: 'cloudinaryUrl and type are required' 
+      return res.status(400).json({
+        error: 'cloudinaryUrl and type are required'
       });
     }
 
     if (!['image', 'video'].includes(type)) {
-      return res.status(400).json({ 
-        error: 'type must be image or video' 
+      return res.status(400).json({
+        error: 'type must be image or video'
       });
     }
+
+    const validSections = ['photos', 'reels', 'products', 'stories'];
+    const resolvedSection = validSections.includes(section) ? section : (type === 'video' ? 'reels' : 'photos');
 
     // Find influencer profile
     const profile = await InfluencerProfile.findOne({ 
@@ -198,6 +201,7 @@ exports.savePortfolioItem = async (req, res) => {
     // Freemium: unlimited uploads, only 3 visible
     const newItem = {
       type,
+      section: resolvedSection,
       cloudinaryUrl,
       thumbnailUrl: thumbnailUrl || '',
       fileSize: fileSize || 0,

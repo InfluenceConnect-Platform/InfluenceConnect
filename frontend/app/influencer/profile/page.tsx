@@ -286,10 +286,10 @@ export default function InfluencerProfile() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'reels' | 'photos' | 'products'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'reels' | 'photos' | 'products' | 'stories'>('all');
 
   // Brand-view-style portfolio tab (used in view mode)
-  const [viewTab, setViewTab] = useState<'all' | 'reels' | 'photos'>('all');
+  const [viewTab, setViewTab] = useState<'all' | 'reels' | 'photos' | 'products' | 'stories'>('all');
 
   // Media modal (view mode)
   const [modalItems,      setModalItems]      = useState<MediaItem[]>([]);
@@ -311,7 +311,7 @@ export default function InfluencerProfile() {
   const [platforms, setPlatforms] = useState<any[]>([]);
   // Uploads buffered locally — only written to DB when "Save changes" is clicked
   const [pendingUploads, setPendingUploads] = useState<{
-    cloudinaryUrl: string; thumbnailUrl: string; type: string; fileSize: number; duration: number;
+    cloudinaryUrl: string; thumbnailUrl: string; type: string; section: string; fileSize: number; duration: number;
   }[]>([]);
 
   useEffect(() => {
@@ -444,10 +444,16 @@ export default function InfluencerProfile() {
       if (uploadData.error) throw new Error(uploadData.error.message);
 
       // Buffer locally — will be written to DB only when "Save changes" is clicked
+      const uploadSection =
+        activeTab === 'products' ? 'products'
+        : activeTab === 'stories' ? 'stories'
+        : isVideo ? 'reels'
+        : 'photos';
       setPendingUploads(prev => [...prev, {
         cloudinaryUrl: uploadData.secure_url,
         thumbnailUrl: isVideo ? uploadData.secure_url.replace('/upload/', '/upload/so_0/') : '',
         type: isVideo ? 'video' : 'image',
+        section: uploadSection,
         fileSize: file.size,
         duration: uploadData.duration || 0,
       }]);
@@ -526,19 +532,22 @@ export default function InfluencerProfile() {
 
   // Merge saved + pending uploads for the content grid
   const allPortfolioItems: Array<{
-    _id: string; type: string; cloudinaryUrl: string; thumbnailUrl: string;
+    _id: string; type: string; section?: string; cloudinaryUrl: string; thumbnailUrl: string;
     isVisible?: boolean; pending: boolean; fileSize?: number; duration?: number;
   }> = [
-    ...(profile?.portfolioItems || []).map((i: { _id: string; type: string; cloudinaryUrl: string; thumbnailUrl: string; isVisible: boolean }) => ({ ...i, pending: false })),
+    ...(profile?.portfolioItems || []).map((i: { _id: string; type: string; section?: string; cloudinaryUrl: string; thumbnailUrl: string; isVisible: boolean }) => ({ ...i, pending: false })),
     ...pendingUploads.map((i, idx) => ({ ...i, _id: `pending-${idx}`, isVisible: true, pending: true })),
   ];
+  const itemMatchesTab = (i: { type: string; section?: string }, tab: string): boolean => {
+    if (i.section) return i.section === tab;
+    // backwards compat for items saved before section field existed
+    if (tab === 'reels') return i.type === 'video';
+    if (tab === 'photos') return i.type === 'image';
+    return false;
+  };
   const filteredPortfolioItems = activeTab === 'all'
     ? allPortfolioItems
-    : activeTab === 'reels'
-      ? allPortfolioItems.filter(i => i.type === 'video')
-      : activeTab === 'photos'
-        ? allPortfolioItems.filter(i => i.type === 'image')
-        : [];
+    : allPortfolioItems.filter(i => itemMatchesTab(i, activeTab));
 
   const totalFollowers = (profile?.platforms || []).reduce((acc: number, p: { followers?: number }) => acc + (p.followers || 0), 0);
   const engagingPlatforms = (profile?.platforms || []).filter((p: { followers?: number }) => (p.followers || 0) > 0);
@@ -695,23 +704,34 @@ export default function InfluencerProfile() {
             ? ((profile.platforms.reduce((s: number, p: any) => s + (p.engagementRate ?? 0), 0)) / profile.platforms.length).toFixed(1)
             : '0';
 
-          const visible = (profile.portfolioItems ?? []).filter((i: any) => i.isVisible);
-          const reels   = visible.filter((i: any) => i.type === 'video');
-          const photos  = visible.filter((i: any) => i.type === 'image');
-          const tabMedia: Record<'all' | 'reels' | 'photos', any[]> = { all: visible, reels, photos };
+          const isPremium = profile?.userId?.plan === 'premium';
+          const visible  = isPremium
+            ? (profile.portfolioItems ?? [])
+            : (profile.portfolioItems ?? []).filter((i: any) => i.isVisible);
+          const reels    = visible.filter((i: any) => i.section === 'reels'    || (!i.section && i.type === 'video'));
+          const photos   = visible.filter((i: any) => i.section === 'photos'   || (!i.section && i.type === 'image'));
+          const products = visible.filter((i: any) => i.section === 'products');
+          const stories  = visible.filter((i: any) => i.section === 'stories');
+          const tabMedia: Record<'all' | 'reels' | 'photos' | 'products' | 'stories', any[]> = { all: visible, reels, photos, products, stories };
+
+          const sectionLabel: Record<string, string> = {
+            reels: 'Reel', photos: 'Photo', products: 'Product', stories: 'Story',
+          };
 
           const buildMediaItems = (list: any[]): MediaItem[] =>
             list.map(item => ({
               type:      item.type === 'video' ? 'video' : 'image',
               src:       item.cloudinaryUrl,
               thumbnail: item.thumbnailUrl || undefined,
-              label:     item.type === 'video' ? 'Reel' : 'Photo',
+              label:     sectionLabel[item.section] ?? (item.type === 'video' ? 'Reel' : 'Photo'),
             }));
 
-          const TABS: { key: 'all' | 'reels' | 'photos'; label: string; count: number }[] = [
-            { key: 'all',    label: 'All Posts', count: visible.length },
-            { key: 'reels',  label: 'Reels',     count: reels.length   },
-            { key: 'photos', label: 'Photos',    count: photos.length  },
+          const TABS: { key: 'all' | 'reels' | 'photos' | 'products' | 'stories'; label: string; count: number }[] = [
+            { key: 'all',      label: 'All',      count: visible.length   },
+            { key: 'reels',    label: 'Reels',    count: reels.length     },
+            { key: 'photos',   label: 'Photos',   count: photos.length    },
+            { key: 'products', label: 'Products', count: products.length  },
+            { key: 'stories',  label: 'Stories',  count: stories.length   },
           ];
 
           const card = 'bg-white rounded-2xl border border-gray-200/80 shadow-sm';
@@ -1603,20 +1623,26 @@ export default function InfluencerProfile() {
                 {
                   id: 'reels' as const,
                   label: 'Reels',
-                  count: allPortfolioItems.filter(i => i.type === 'video').length,
+                  count: allPortfolioItems.filter(i => itemMatchesTab(i, 'reels')).length,
                   icon: <ReelIcon />,
                 },
                 {
                   id: 'photos' as const,
                   label: 'Photos',
-                  count: allPortfolioItems.filter(i => i.type === 'image').length,
+                  count: allPortfolioItems.filter(i => itemMatchesTab(i, 'photos')).length,
                   icon: <PhotoTabIcon />,
                 },
                 {
                   id: 'products' as const,
                   label: 'Products',
-                  count: 0,
+                  count: allPortfolioItems.filter(i => itemMatchesTab(i, 'products')).length,
                   icon: <ProductIcon />,
+                },
+                {
+                  id: 'stories' as const,
+                  label: 'Stories',
+                  count: allPortfolioItems.filter(i => itemMatchesTab(i, 'stories')).length,
+                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>,
                 },
               ] as const).map(tab => (
                 <button
@@ -1669,8 +1695,8 @@ export default function InfluencerProfile() {
                 </div>
               )}
 
-              {/* Upload drop zone (edit mode, only on relevant tabs) */}
-              {isEditing && activeTab !== 'products' && allPortfolioItems.length === 0 && !uploading && (
+              {/* Upload drop zone (edit mode) — only shown when this section has no items at all */}
+              {isEditing && allPortfolioItems.length === 0 && !uploading && (
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-gray-200 hover:border-[#7FA8AD] hover:bg-[#EEF4F5]/30 rounded-xl p-8 text-center transition-all duration-200 mb-5 cursor-pointer group"
@@ -1683,29 +1709,21 @@ export default function InfluencerProfile() {
                 </div>
               )}
 
-              {/* Products tab — coming soon */}
-              {activeTab === 'products' ? (
-                <div className="py-16 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#EEF4F5] to-teal-50 border border-[#7FA8AD]/20 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
-                    </svg>
-                  </div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Product showcase coming soon</p>
-                  <p className="text-xs text-gray-400 max-w-[220px] mx-auto leading-relaxed">
-                    Tag products from your posts so brands can see exactly what you promote.
-                  </p>
-                  <span className="mt-4 inline-block text-xs font-semibold px-3 py-1.5 bg-[#EEF4F5] text-[#5D8A8F] rounded-full border border-[#7FA8AD]/30">
-                    Launching soon
-                  </span>
-                </div>
-              ) : filteredPortfolioItems.length === 0 ? (
+              {filteredPortfolioItems.length === 0 && !uploading ? (
                 /* Empty state per tab */
                 <div className="py-16 text-center">
                   <div className="w-14 h-14 rounded-2xl bg-[#EEF4F5] flex items-center justify-center mx-auto mb-4">
                     {activeTab === 'reels' ? (
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="#7FA8AD" stroke="none"/>
+                      </svg>
+                    ) : activeTab === 'products' ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                      </svg>
+                    ) : activeTab === 'stories' ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
                       </svg>
                     ) : (
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -1714,12 +1732,22 @@ export default function InfluencerProfile() {
                     )}
                   </div>
                   <p className="text-sm font-semibold text-gray-700 mb-1.5">
-                    {activeTab === 'reels' ? 'No reels yet' : 'No photos yet'}
+                    {activeTab === 'reels' ? 'No reels yet'
+                      : activeTab === 'products' ? 'No products yet'
+                      : activeTab === 'stories' ? 'No stories yet'
+                      : activeTab === 'all' ? 'No content yet'
+                      : 'No photos yet'}
                   </p>
                   <p className="text-xs text-gray-400">
                     {isEditing
-                      ? activeTab === 'reels' ? 'Upload a video to showcase your Reels.' : 'Upload photos to build your portfolio.'
-                      : activeTab === 'reels' ? 'No video content uploaded yet.' : 'No photo content uploaded yet.'}
+                      ? activeTab === 'reels' ? 'Upload a video to showcase your Reels.'
+                        : activeTab === 'products' ? 'Upload product photos for brands to browse.'
+                        : activeTab === 'stories' ? 'Upload story screenshots or highlights.'
+                        : 'Upload photos to build your portfolio.'
+                      : activeTab === 'reels' ? 'No video content uploaded yet.'
+                        : activeTab === 'products' ? 'No product content uploaded yet.'
+                        : activeTab === 'stories' ? 'No stories uploaded yet.'
+                        : 'No photo content uploaded yet.'}
                   </p>
                   {isEditing && (
                     <button
@@ -1771,11 +1799,17 @@ export default function InfluencerProfile() {
                       {/* Hover overlay */}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all duration-200 flex items-end justify-between p-2">
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 ${
-                          item.type === 'video'
-                            ? 'bg-purple-600/90 text-white backdrop-blur-sm'
-                            : 'bg-[#5D8A8F]/90 text-white backdrop-blur-sm'
+                          item.section === 'products'
+                            ? 'bg-orange-600/90 text-white backdrop-blur-sm'
+                            : item.section === 'stories'
+                              ? 'bg-pink-600/90 text-white backdrop-blur-sm'
+                              : item.type === 'video'
+                                ? 'bg-purple-600/90 text-white backdrop-blur-sm'
+                                : 'bg-[#5D8A8F]/90 text-white backdrop-blur-sm'
                         }`}>
-                          {item.type === 'video' ? 'REEL' : 'PHOTO'}
+                          {item.section === 'products' ? 'PRODUCT'
+                            : item.section === 'stories' ? 'STORY'
+                            : item.type === 'video' ? 'REEL' : 'PHOTO'}
                         </span>
                         {item.pending ? (
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400 text-white">Unsaved</span>
