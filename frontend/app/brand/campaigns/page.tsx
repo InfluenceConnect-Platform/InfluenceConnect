@@ -755,6 +755,7 @@ function ApplicationsList({
     shortlisted: 'bg-amber-50 text-amber-700 border border-amber-100',
     accepted:    'bg-green-50 text-green-700 border border-green-100',
     rejected:    'bg-red-50 text-red-600 border border-red-100',
+    'on-hold':   'bg-gray-50 text-gray-500 border border-gray-100',
   };
 
   if (applications.length === 0) {

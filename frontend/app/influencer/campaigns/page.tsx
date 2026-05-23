@@ -704,6 +704,7 @@ function MyApplications() {
     shortlisted: { cls: 'bg-amber-50 text-amber-700 border border-amber-200', label: 'Shortlisted' },
     accepted:    { cls: 'bg-green-50 text-green-700 border border-green-200', label: 'Accepted' },
     rejected:    { cls: 'bg-red-50 text-red-600 border border-red-200',       label: 'Rejected' },
+    'on-hold':   { cls: 'bg-gray-50 text-gray-500 border border-gray-200',    label: 'Under Review' },
   };
 
   if (loading) {

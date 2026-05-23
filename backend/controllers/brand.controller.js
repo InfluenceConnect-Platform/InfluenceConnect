@@ -317,6 +317,11 @@ exports.updateApplicationStatus = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
+    // Cannot act on on-hold applications while another deal is active
+    if (application.status === 'on-hold') {
+      return res.status(400).json({ error: 'This application is on hold while another deal is active for this campaign.' });
+    }
+
     application.status = status;
     await application.save();
 
@@ -343,14 +348,14 @@ exports.updateApplicationStatus = async (req, res) => {
         status: 'in-progress'
       });
 
-      // Bulk-reject all other pending applications for this campaign
+      // Put all other pending applications on hold (not rejected — reinstated if deal is cancelled)
       await Application.updateMany(
         {
           campaignId: application.campaignId._id,
           _id: { $ne: application._id },
           status: { $in: ['applied', 'shortlisted'] }
         },
-        { $set: { status: 'rejected' } }
+        { $set: { status: 'on-hold' } }
       );
     }
 
@@ -461,6 +466,15 @@ exports.updateDealStatus = async (req, res) => {
 
       // Reopen the campaign
       await Campaign.findByIdAndUpdate(deal.campaignId, { status: 'active' });
+
+      // Restore all on-hold applications back to applied
+      await Application.updateMany(
+        { campaignId: deal.campaignId, status: 'on-hold' },
+        { $set: { status: 'applied' } }
+      );
+
+      // Reset the accepted application back to applied as well
+      await Application.findByIdAndUpdate(deal.applicationId, { status: 'applied' });
     }
 
     res.json({ message: `Deal ${status} successfully`, deal });
