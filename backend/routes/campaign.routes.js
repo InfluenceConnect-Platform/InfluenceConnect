@@ -10,8 +10,8 @@ const {
   getNewSinceCount
 } = require('../controllers/campaign.controller');
 
-// Public — browse campaigns
-router.get('/', getCampaigns);
+// Protected — campaigns are filtered by the influencer's own niches
+router.get('/', authenticate, getCampaigns);
 router.get('/new-since', getNewSinceCount);
 
 // Protected — apply and view applications

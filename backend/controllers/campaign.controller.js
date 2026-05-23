@@ -16,18 +16,45 @@ exports.getCampaigns = async (req, res) => {
       limit = 12
     } = req.query;
 
+    // Fetch this influencer's niches for automatic campaign filtering
+    const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId }).select('niche');
+    const influencerNiches = influencerProfile?.niche ?? [];
+
     // Build filter query
     const query = { status: 'active' };
 
+    // Only show campaigns whose niches overlap with the influencer's niches.
+    // Campaigns with no niches set are shown to everyone.
+    if (influencerNiches.length > 0) {
+      query.$or = [
+        { niche: { $size: 0 } },
+        { niche: { $in: influencerNiches } },
+      ];
+    }
+
+    // Manual niche filter from the UI narrows further within the influencer's niches
     if (niche) {
-      query.niche = { $in: niche.split(',') };
+      const requestedNiches = niche.split(',');
+      // Intersect with influencer's niches so they can't bypass the profile filter
+      const allowed = influencerNiches.length > 0
+        ? requestedNiches.filter(n => influencerNiches.includes(n))
+        : requestedNiches;
+      if (allowed.length > 0) {
+        // Replace the $or with a stricter niche match
+        delete query.$or;
+        query.niche = { $in: allowed };
+      }
     }
 
     if (city && city !== 'all') {
-      query.$or = [
-        { targetCity: city },
-        { targetCity: 'all' }
-      ];
+      const cityConditions = [{ targetCity: city }, { targetCity: 'all' }];
+      // Merge with existing $or if present
+      if (query.$or) {
+        query.$and = [{ $or: query.$or }, { $or: cityConditions }];
+        delete query.$or;
+      } else {
+        query.$or = cityConditions;
+      }
     }
 
     if (platform && platform !== 'any') {
