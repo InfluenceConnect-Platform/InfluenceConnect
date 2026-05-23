@@ -10,6 +10,32 @@ function normalizeOffers(offers = []) {
 }
 
 // ─────────────────────────────────────────
+// PENDING OFFER COUNT (for nav dot)
+// ─────────────────────────────────────────
+exports.getPendingOfferCount = async (req, res) => {
+  try {
+    const userId = req.userId.toString();
+    const deals = await Deal.find({
+      $or: [{ brandId: req.userId }, { influencerId: req.userId }],
+      negotiationStatus: 'open',
+      'offers.status': 'pending',
+    }).select('offers brandId influencerId');
+
+    let count = 0;
+    for (const deal of deals) {
+      const pending = deal.offers.filter(o => o.status === 'pending');
+      const latest = pending[pending.length - 1];
+      if (latest && latest.proposedBy.toString() !== userId) count++;
+    }
+
+    res.json({ count });
+  } catch (error) {
+    console.error('Get pending offer count error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET DEAL STATE (for real-time polling)
 // ─────────────────────────────────────────
 exports.getDeal = async (req, res) => {

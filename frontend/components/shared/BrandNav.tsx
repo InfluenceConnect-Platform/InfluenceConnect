@@ -27,6 +27,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   const [mobileOpen, setMobileOpen] = useState(false);
   const [fetchedLogoUrl, setFetchedLogoUrl] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingOfferCount, setPendingOfferCount] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Self-sufficient user state: reads localStorage directly so the nav
@@ -60,21 +61,28 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
       .catch(() => {});
   }, [logoUrlProp]);
 
-  const fetchUnreadCount = async () => {
+  const fetchCounts = async () => {
     try {
-      const res = await api.get('/api/messages/unread-count');
-      setUnreadCount(res.data.count ?? 0);
+      const [msgRes, offerRes] = await Promise.all([
+        api.get('/api/messages/unread-count'),
+        api.get('/api/deals/pending-offer-count'),
+      ]);
+      setUnreadCount(msgRes.data.count ?? 0);
+      setPendingOfferCount(offerRes.data.count ?? 0);
     } catch {}
   };
 
   useEffect(() => {
-    fetchUnreadCount();
-    pollRef.current = setInterval(fetchUnreadCount, 30_000);
+    fetchCounts();
+    pollRef.current = setInterval(fetchCounts, 30_000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
   useEffect(() => {
-    if (pathname === '/brand/messages') setUnreadCount(0);
+    if (pathname === '/brand/messages') {
+      setUnreadCount(0);
+      setPendingOfferCount(0);
+    }
   }, [pathname]);
 
   const logoUrl = logoUrlProp !== undefined ? logoUrlProp : fetchedLogoUrl;
@@ -111,7 +119,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
                   }`}
                 >
                   {item.label}
-                  {isMessages && unreadCount > 0 && (
+                  {isMessages && (unreadCount > 0 || pendingOfferCount > 0) && (
                     <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#C4B5FD] shadow-[0_0_0_1.5px_white]" />
                   )}
                 </Link>
@@ -184,7 +192,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
                   >
                     <span className="flex items-center gap-2">
                       {item.label}
-                      {isMessages && unreadCount > 0 && (
+                      {isMessages && (unreadCount > 0 || pendingOfferCount > 0) && (
                         <span className="w-2 h-2 rounded-full bg-[#C4B5FD] flex-shrink-0" />
                       )}
                     </span>
