@@ -58,6 +58,7 @@ export default function EarningsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'6months' | '1year'>('6months');
   const [profilePicUrl, setProfilePicUrl] = useState('');
+  const [exported, setExported] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -79,6 +80,49 @@ export default function EarningsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const exportToCSV = () => {
+    if (!dealHistory.length) return;
+
+    const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+
+    const summaryRows = [
+      ['Summary'],
+      ['Total Earnings (₹)', summary?.totalEarnings ?? 0],
+      ['Deals Completed',    summary?.dealsCompleted ?? 0],
+      ['Active Deals',       summary?.activeDeals ?? 0],
+      ['Pending Payout (₹)', summary?.pendingPayout ?? 0],
+      ['Avg Deal Value (₹)', summary?.avgDealValue ?? 0],
+      [],
+      ['Brand', 'Campaign', 'Category', 'Date', 'Status', 'Amount (₹)'],
+    ];
+
+    const dealRows = dealHistory.map(d => [
+      escape(d.brandName || ''),
+      escape(d.campaignTitle || ''),
+      escape(d.category || ''),
+      escape(d.completedAt || ''),
+      escape(d.status || ''),
+      d.amount,
+    ]);
+
+    const csv = [...summaryRows, ...dealRows]
+      .map(row => row.join(','))
+      .join('\n');
+
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `influenceconnect-earnings-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setExported(true);
+    setTimeout(() => setExported(false), 2500);
   };
 
   const maxEarnings = Math.max(...monthlyTrend.map(m => m.earnings), 1);
@@ -159,11 +203,25 @@ export default function EarningsPage() {
                 ))}
               </div>
               {isPremium && (
-                <button className="flex items-center gap-1.5 text-xs text-white/90 px-3 py-2 border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all cursor-pointer font-semibold">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                  <span className="hidden sm:inline">Export CSV</span>
+                <button
+                  onClick={exportToCSV}
+                  className="flex items-center gap-1.5 text-xs text-white/90 px-3 py-2 border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all cursor-pointer font-semibold"
+                >
+                  {exported ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span className="hidden sm:inline text-emerald-300">Exported!</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                      </svg>
+                      <span className="hidden sm:inline">Export CSV</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>
