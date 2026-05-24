@@ -7,6 +7,7 @@ import AuthLayout from '@/components/shared/AuthLayout';
 import Input from '@/components/shared/Input';
 import Button from '@/components/shared/Button';
 import api from '@/lib/api';
+import { useTheme } from '@/lib/useTheme';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -51,7 +52,7 @@ const ROLE_META: Record<Role, {
   brand: {
     label: 'Brand',
     sub: 'Businesses, companies & agencies',
-    gradient: 'from-[#3D5087] to-[#2B3B68]',
+    gradient: 'from-violet-500 to-purple-600',
     icon: (
       <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
@@ -103,13 +104,14 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { value: '2K+', label: 'Creators', color: 'bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 text-teal-900' },
-  { value: '800+', label: 'Brands', color: 'bg-gradient-to-br from-indigo-50 to-blue-100 border-indigo-200 text-indigo-900' },
-  { value: '5K+', label: 'Collabs', color: 'bg-gradient-to-br from-violet-50 to-purple-100 border-violet-200 text-violet-900' },
+  { value: '2K+', label: 'Creators', tint: 'teal' },
+  { value: '800+', label: 'Brands', tint: 'indigo' },
+  { value: '5K+', label: 'Collabs', tint: 'violet' },
 ];
 
 export default function SignupPage() {
   const router = useRouter();
+  const { isDark } = useTheme();
 
   const [role, setRole] = useState<Role>('influencer');
   const [name, setName] = useState('');
@@ -139,18 +141,28 @@ export default function SignupPage() {
     }
   };
 
+  const statValueColor = (tint: string) => {
+    if (tint === 'teal') return isDark ? 'text-teal-400' : 'text-teal-600';
+    if (tint === 'indigo') return isDark ? 'text-indigo-400' : 'text-indigo-600';
+    return isDark ? 'text-violet-400' : 'text-violet-600';
+  };
+
   return (
     <AuthLayout>
       <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
 
         {/* ── Left panel ── */}
         <div className="hidden lg:flex flex-col">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-800/80 backdrop-blur-sm border border-slate-700/60 rounded-full text-xs font-semibold text-slate-300 mb-6 shadow-sm w-fit">
+          <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 backdrop-blur-sm border rounded-full text-xs font-semibold mb-6 shadow-sm w-fit transition-colors ${
+            isDark
+              ? 'bg-slate-800/80 border-slate-700/60 text-slate-300'
+              : 'bg-white/80 border-gray-200 text-gray-600'
+          }`}>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
             Trusted by creators and brands across India
           </div>
 
-          <h1 className="text-[2.75rem] font-bold leading-[1.12] tracking-tight text-white mb-4">
+          <h1 className={`text-[2.75rem] font-bold leading-[1.12] tracking-tight mb-4 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Create your account<br />
             and{' '}
             <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#7C9ED9] bg-clip-text text-transparent">
@@ -158,17 +170,21 @@ export default function SignupPage() {
             </span>.
           </h1>
 
-          <p className="text-slate-400 text-[0.95rem] leading-relaxed mb-8 max-w-[22rem]">
+          <p className={`text-[0.95rem] leading-relaxed mb-8 max-w-[22rem] transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
             Whether you create content or run a brand, Influence Connect is where serious collaborations begin.
           </p>
 
-          <div className="flex flex-col gap-3 p-5 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-sm mb-8">
+          <div className={`flex flex-col gap-3 p-5 backdrop-blur-sm border rounded-2xl shadow-sm mb-8 transition-colors ${
+            isDark
+              ? 'bg-slate-800/60 border-slate-700/50'
+              : 'bg-white/70 border-gray-200'
+          }`}>
             {FEATURES.map((item, i) => (
               <div key={i} className="flex items-center gap-3.5">
                 <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
                   {item.icon}
                 </div>
-                <span className="text-sm text-slate-300 font-medium">{item.text}</span>
+                <span className={`text-sm font-medium transition-colors ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>{item.text}</span>
               </div>
             ))}
           </div>
@@ -176,21 +192,31 @@ export default function SignupPage() {
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
             {STATS.map((s, i) => (
-              <div key={i} className="p-4 rounded-2xl text-center bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 shadow-sm">
-                <div className={`text-xl font-bold ${s.color.includes('teal') ? 'text-teal-400' : s.color.includes('indigo') ? 'text-indigo-400' : 'text-violet-400'}`}>{s.value}</div>
-                <div className="text-xs font-semibold mt-0.5 text-slate-500">{s.label}</div>
+              <div key={i} className={`p-4 rounded-2xl text-center backdrop-blur-sm border shadow-sm transition-colors ${
+                isDark ? 'bg-slate-800/60 border-slate-700/50' : 'bg-white/70 border-gray-200'
+              }`}>
+                <div className={`text-xl font-bold ${statValueColor(s.tint)}`}>{s.value}</div>
+                <div className={`text-xs font-semibold mt-0.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* ── Right — Signup card ── */}
-        <div className="rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.4),0_8px_32px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.06)] border border-slate-700/60">
+        <div className={`rounded-2xl overflow-hidden transition-all ${
+          isDark
+            ? 'shadow-[0_2px_8px_rgba(0,0,0,0.4),0_8px_32px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.06)] border border-slate-700/60'
+            : 'shadow-[0_2px_8px_rgba(0,0,0,0.08),0_8px_32px_rgba(0,0,0,0.08)] border border-gray-200'
+        }`}>
 
-          {/* Gradient accent bar */}
-          <div className="h-[3px] bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#3D5087]" />
+          {/* Gradient accent bar — changes with role */}
+          <div className={`h-[3px] bg-gradient-to-r ${
+            role === 'influencer'
+              ? 'from-[#7FA8AD] via-[#5D8A8F] to-[#3D7082]'
+              : 'from-violet-500 via-purple-500 to-violet-600'
+          } transition-all duration-300`} />
 
-          <div className="bg-[#0E1B2E] px-8 pt-7 pb-8">
+          <div className={`px-8 pt-7 pb-8 transition-colors ${isDark ? 'bg-[#0E1B2E]' : 'bg-white'}`}>
 
             {/* IC branding inside card */}
             <div className="flex items-center gap-2.5 mb-6">
@@ -198,18 +224,18 @@ export default function SignupPage() {
                 IC
               </div>
               <div>
-                <span className="text-sm font-bold text-slate-100 tracking-tight block leading-none">Influence Connect</span>
-                <span className="text-[0.65rem] text-slate-500 font-medium tracking-wide uppercase">Creator · Brand Platform</span>
+                <span className={`text-sm font-bold tracking-tight block leading-none transition-colors ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Influence Connect</span>
+                <span className={`text-[0.65rem] font-medium tracking-wide uppercase transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Creator · Brand Platform</span>
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-white mb-1.5 tracking-tight">Create your account</h2>
-            <p className="text-sm text-slate-400 mb-6">
+            <h2 className={`text-2xl font-bold mb-1.5 tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Create your account</h2>
+            <p className={`text-sm mb-6 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
               Secure your account with email and mobile verification.
             </p>
 
             {/* Role picker */}
-            <label className="text-[0.7rem] font-bold text-slate-500 uppercase tracking-widest block mb-2.5">
+            <label className={`text-[0.7rem] font-bold uppercase tracking-widest block mb-2.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
               I am signing up as
             </label>
             <div className="grid grid-cols-2 gap-3 mb-5">
@@ -223,14 +249,22 @@ export default function SignupPage() {
                     className={`p-3.5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer active:scale-[0.98] ${
                       isActive
                         ? `bg-gradient-to-br ${ROLE_META[r].gradient} border-transparent shadow-lg`
-                        : 'border-slate-700 hover:border-slate-600 bg-slate-800/60 hover:bg-slate-800'
+                        : isDark
+                          ? 'border-slate-700 hover:border-slate-600 bg-slate-800/60 hover:bg-slate-800'
+                          : 'border-gray-200 hover:border-gray-300 bg-gray-50 hover:bg-gray-100'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-white/20' : 'bg-slate-700/80'}`}>
-                        {isActive ? ROLE_META[r].activeIcon : ROLE_META[r].icon}
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        isActive ? 'bg-white/20' : isDark ? 'bg-slate-700/80' : 'bg-gray-200'
+                      }`}>
+                        {isActive ? ROLE_META[r].activeIcon : (
+                          <span className={isDark ? '' : '[&_svg]:text-gray-500'}>
+                            {ROLE_META[r].icon}
+                          </span>
+                        )}
                       </div>
-                      <span className={`font-bold text-sm ${isActive ? 'text-white' : 'text-slate-200'}`}>
+                      <span className={`font-bold text-sm ${isActive ? 'text-white' : isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                         {ROLE_META[r].label}
                       </span>
                       {isActive && (
@@ -239,7 +273,7 @@ export default function SignupPage() {
                         </svg>
                       )}
                     </div>
-                    <div className={`text-xs ${isActive ? 'text-white/80' : 'text-slate-500'}`}>
+                    <div className={`text-xs ${isActive ? 'text-white/80' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                       {ROLE_META[r].sub}
                     </div>
                   </button>
@@ -249,14 +283,16 @@ export default function SignupPage() {
 
             {/* Form fields */}
             <div className="flex flex-col gap-3">
-              <Input dark label={ROLE_META[role].fields.name.label} placeholder={ROLE_META[role].fields.name.placeholder} helper={ROLE_META[role].fields.name.helper} value={name} onChange={setName} />
-              <Input dark label={ROLE_META[role].fields.email.label} type="email" placeholder={ROLE_META[role].fields.email.placeholder} helper={ROLE_META[role].fields.email.helper} value={email} onChange={setEmail} />
-              <Input dark label={ROLE_META[role].fields.mobile.label} type="tel" placeholder={ROLE_META[role].fields.mobile.placeholder} helper={ROLE_META[role].fields.mobile.helper} value={mobile} onChange={setMobile} prefix="+91" />
-              <Input dark label={ROLE_META[role].fields.password.label} type="password" placeholder={ROLE_META[role].fields.password.placeholder} value={password} onChange={setPassword} showPasswordToggle />
+              <Input dark={isDark} label={ROLE_META[role].fields.name.label} placeholder={ROLE_META[role].fields.name.placeholder} helper={ROLE_META[role].fields.name.helper} value={name} onChange={setName} />
+              <Input dark={isDark} label={ROLE_META[role].fields.email.label} type="email" placeholder={ROLE_META[role].fields.email.placeholder} helper={ROLE_META[role].fields.email.helper} value={email} onChange={setEmail} />
+              <Input dark={isDark} label={ROLE_META[role].fields.mobile.label} type="tel" placeholder={ROLE_META[role].fields.mobile.placeholder} helper={ROLE_META[role].fields.mobile.helper} value={mobile} onChange={setMobile} prefix="+91" />
+              <Input dark={isDark} label={ROLE_META[role].fields.password.label} type="password" placeholder={ROLE_META[role].fields.password.placeholder} value={password} onChange={setPassword} showPasswordToggle />
             </div>
 
             {error && (
-              <div className="mt-3 p-3.5 bg-red-900/30 border border-red-700/40 rounded-xl text-sm text-red-300 flex items-start gap-2.5">
+              <div className={`mt-3 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
+                isDark ? 'bg-red-900/30 border-red-700/40 text-red-300' : 'bg-red-50 border-red-200 text-red-600'
+              }`}>
                 <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
@@ -265,7 +301,11 @@ export default function SignupPage() {
             )}
 
             {/* Bot protection */}
-            <div className="mt-4 p-3 bg-slate-800/60 border border-slate-700/60 rounded-xl flex items-center gap-3 text-xs text-slate-500 font-medium">
+            <div className={`mt-4 p-3 border rounded-xl flex items-center gap-3 text-xs font-medium transition-colors ${
+              isDark
+                ? 'bg-slate-800/60 border-slate-700/60 text-slate-500'
+                : 'bg-gray-50 border-gray-200 text-gray-400'
+            }`}>
               <div className="w-5 h-5 rounded-md bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center flex-shrink-0 shadow-sm">
                 <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
@@ -275,21 +315,25 @@ export default function SignupPage() {
             </div>
 
             <div className="mt-4">
-              <Button type="button" fullWidth loading={loading} onClick={handleSignup}>
+              <Button type="button" fullWidth loading={loading} onClick={handleSignup} colorScheme={role}>
                 Continue to verification →
               </Button>
             </div>
 
             <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 h-px bg-slate-700/80" />
-              <span className="text-[0.7rem] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">or</span>
-              <div className="flex-1 h-px bg-slate-700/80" />
+              <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
+              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>or</span>
+              <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
             </div>
 
             <button
               type="button"
               onClick={() => { window.location.href = `${API_URL}/api/auth/google?role=${role}`; }}
-              className="w-full flex items-center justify-center gap-2.5 px-4 py-3 border border-slate-700 rounded-xl text-sm font-semibold text-slate-200 bg-slate-800/80 hover:bg-slate-700/80 hover:border-slate-600 hover:shadow-md active:scale-[0.985] transition-all duration-200 cursor-pointer"
+              className={`w-full flex items-center justify-center gap-2.5 px-4 py-3 border rounded-xl text-sm font-semibold active:scale-[0.985] transition-all duration-200 cursor-pointer ${
+                isDark
+                  ? 'border-slate-700 text-slate-200 bg-slate-800/80 hover:bg-slate-700/80 hover:border-slate-600 hover:shadow-md'
+                  : 'border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 hover:shadow-sm'
+              }`}
             >
               <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 48 48">
                 <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
@@ -300,9 +344,9 @@ export default function SignupPage() {
               Continue with Google
             </button>
 
-            <p className="text-[0.72rem] text-slate-600 text-center mt-5">
+            <p className={`text-[0.72rem] text-center mt-5 transition-colors ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-[#7FA8AD] font-semibold hover:text-[#9FC8CD] transition-colors">
+              <Link href="/auth/login" className="text-[#5D8A8F] font-semibold hover:text-[#4A7A7F] transition-colors">
                 Sign in →
               </Link>
             </p>

@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import AuthLayout from '@/components/shared/AuthLayout';
 import Button from '@/components/shared/Button';
 import api from '@/lib/api';
+import { useTheme } from '@/lib/useTheme';
 
 export default function VerifyOTPPage() {
   const router = useRouter();
+  const { isDark } = useTheme();
 
   const [emailOTP, setEmailOTP] = useState(['', '', '', '', '', '']);
   const [mobileOTP, setMobileOTP] = useState(['', '', '', '', '', '']);
@@ -158,38 +160,58 @@ export default function VerifyOTPPage() {
     if (!mobileVerified) await verifyOTP('mobile', mobileOTP);
   };
 
+  const otpInputClass = (digit: string, verified: boolean) => {
+    if (verified) {
+      return 'border-emerald-600/50 bg-emerald-900/20 text-emerald-400';
+    }
+    if (digit) {
+      return isDark
+        ? 'border-[#7FA8AD] bg-[#7FA8AD]/10 text-[#9FC8CD]'
+        : 'border-[#5D8A8F] bg-[#5D8A8F]/10 text-[#3D6B70]';
+    }
+    return isDark
+      ? 'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#7FA8AD] focus:bg-[#7FA8AD]/5'
+      : 'border-gray-200 bg-gray-50 text-gray-900 focus:border-[#5D8A8F] focus:bg-[#5D8A8F]/5';
+  };
+
   return (
     <AuthLayout>
       <div className="w-full max-w-2xl">
 
         {/* Progress steps */}
-        <div className="flex items-center justify-center gap-3 mb-8 text-xs text-slate-500">
+        <div className="flex items-center justify-center gap-3 mb-8 text-xs">
           <div className="flex items-center gap-1.5">
-            <span className="w-6 h-6 rounded-full bg-[#5D8A8F]/30 border border-[#5D8A8F]/50 text-[#7FA8AD] flex items-center justify-center text-xs font-bold">
+            <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold transition-colors ${
+              isDark
+                ? 'bg-[#5D8A8F]/30 border-[#5D8A8F]/50 text-[#7FA8AD]'
+                : 'bg-teal-50 border-teal-300 text-teal-600'
+            }`}>
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </span>
-            <span className="text-slate-600">Account created</span>
+            <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>Account created</span>
           </div>
-          <div className="w-8 h-px bg-slate-700"></div>
+          <div className={`w-8 h-px transition-colors ${isDark ? 'bg-slate-700' : 'bg-gray-300'}`} />
           <div className="flex items-center gap-1.5">
             <span className="w-6 h-6 rounded-full bg-[#7FA8AD] text-white flex items-center justify-center text-xs font-bold shadow-[0_0_12px_rgba(127,168,173,0.5)]">2</span>
-            <span className="text-slate-200 font-semibold">Verify identity</span>
+            <span className={`font-semibold transition-colors ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>Verify identity</span>
           </div>
-          <div className="w-8 h-px bg-slate-700"></div>
-          <div className="flex items-center gap-1.5 text-slate-600">
-            <span className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-slate-600 flex items-center justify-center text-xs font-bold">3</span>
-            Complete profile
+          <div className={`w-8 h-px transition-colors ${isDark ? 'bg-slate-700' : 'bg-gray-300'}`} />
+          <div className="flex items-center gap-1.5">
+            <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold transition-colors ${
+              isDark ? 'bg-slate-800 border-slate-700 text-slate-600' : 'bg-gray-100 border-gray-300 text-gray-400'
+            }`}>3</span>
+            <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>Complete profile</span>
           </div>
         </div>
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">
+          <h1 className={`text-2xl font-bold mb-2 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Verify your email and mobile
           </h1>
-          <p className="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+          <p className={`text-sm max-w-md mx-auto leading-relaxed transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
             We sent 6-digit codes to both. Enter them below to confirm it&apos;s really you.
           </p>
         </div>
@@ -200,25 +222,33 @@ export default function VerifyOTPPage() {
           {/* Email OTP */}
           <div className={`border-2 rounded-xl p-5 transition-all duration-300 ${
             emailVerified
-              ? 'border-emerald-600/50 bg-emerald-900/20'
-              : 'border-slate-700/60 bg-[#0E1B2E]'
+              ? isDark ? 'border-emerald-600/50 bg-emerald-900/20' : 'border-emerald-400 bg-emerald-50'
+              : isDark ? 'border-slate-700/60 bg-[#0E1B2E]' : 'border-gray-200 bg-white'
           }`}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${emailVerified ? 'bg-emerald-900/50' : 'bg-slate-800'}`}>
-                  <svg className={`w-4 h-4 ${emailVerified ? 'text-emerald-400' : 'text-[#7FA8AD]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  emailVerified
+                    ? isDark ? 'bg-emerald-900/50' : 'bg-emerald-100'
+                    : isDark ? 'bg-slate-800' : 'bg-gray-100'
+                }`}>
+                  <svg className={`w-4 h-4 ${emailVerified ? 'text-emerald-400' : isDark ? 'text-[#7FA8AD]' : 'text-[#5D8A8F]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                     <polyline points="22,6 12,13 2,6"/>
                   </svg>
                 </div>
                 <div>
-                  <div className="text-[0.65rem] text-slate-500 uppercase tracking-wider font-bold">Email code</div>
-                  <div className="text-sm font-semibold font-mono text-slate-200">
+                  <div className={`text-[0.65rem] uppercase tracking-wider font-bold transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Email code</div>
+                  <div className={`text-sm font-semibold font-mono transition-colors ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                     {localStorage.getItem('pendingEmail')?.replace(/(.{2}).*(@.*)/, '$1***$2') || 'your email'}
                   </div>
                 </div>
               </div>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${emailVerified ? 'bg-emerald-900/50 text-emerald-400' : 'bg-amber-900/30 text-amber-400'}`}>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                emailVerified
+                  ? isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-600'
+                  : isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-50 text-amber-600'
+              }`}>
                 {emailVerified ? 'Verified' : 'Pending'}
               </span>
             </div>
@@ -236,28 +266,19 @@ export default function VerifyOTPPage() {
                   onKeyDown={e => handleKeyDown(e, i, emailOTP, setEmailOTP, emailRefs)}
                   onPaste={e => handlePaste(e, emailOTP, setEmailOTP, emailRefs)}
                   disabled={emailVerified}
-                  className={`
-                    flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-xl
-                    focus:outline-none transition-all duration-150
-                    ${emailVerified
-                      ? 'border-emerald-600/50 bg-emerald-900/20 text-emerald-400'
-                      : digit
-                        ? 'border-[#7FA8AD] bg-[#7FA8AD]/10 text-[#9FC8CD]'
-                        : 'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#7FA8AD] focus:bg-[#7FA8AD]/5'
-                    }
-                  `}
+                  className={`flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-xl focus:outline-none transition-all duration-150 ${otpInputClass(digit, emailVerified)}`}
                 />
               ))}
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-600">
+              <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>
                 {emailTimer > 0 ? `Resend in 0:${String(emailTimer).padStart(2, '0')}` : 'Code expired'}
               </span>
               <button
                 disabled={emailTimer > 0 || resendingEmail || emailVerified}
                 onClick={() => handleResend('email')}
-                className="text-[#7FA8AD] font-semibold hover:text-[#9FC8CD] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                className="text-[#5D8A8F] font-semibold hover:text-[#4A7A7F] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 {resendingEmail ? 'Sending…' : 'Resend code'}
               </button>
@@ -267,25 +288,33 @@ export default function VerifyOTPPage() {
           {/* Mobile OTP */}
           <div className={`border-2 rounded-xl p-5 transition-all duration-300 ${
             mobileVerified
-              ? 'border-emerald-600/50 bg-emerald-900/20'
-              : 'border-slate-700/60 bg-[#0E1B2E]'
+              ? isDark ? 'border-emerald-600/50 bg-emerald-900/20' : 'border-emerald-400 bg-emerald-50'
+              : isDark ? 'border-slate-700/60 bg-[#0E1B2E]' : 'border-gray-200 bg-white'
           }`}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${mobileVerified ? 'bg-emerald-900/50' : 'bg-slate-800'}`}>
-                  <svg className={`w-4 h-4 ${mobileVerified ? 'text-emerald-400' : 'text-[#7FA8AD]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  mobileVerified
+                    ? isDark ? 'bg-emerald-900/50' : 'bg-emerald-100'
+                    : isDark ? 'bg-slate-800' : 'bg-gray-100'
+                }`}>
+                  <svg className={`w-4 h-4 ${mobileVerified ? 'text-emerald-400' : isDark ? 'text-[#7FA8AD]' : 'text-[#5D8A8F]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="5" y="2" width="14" height="20" rx="2"/>
                     <line x1="12" y1="18" x2="12.01" y2="18"/>
                   </svg>
                 </div>
                 <div>
-                  <div className="text-[0.65rem] text-slate-500 uppercase tracking-wider font-bold">Mobile code</div>
-                  <div className="text-sm font-semibold font-mono text-slate-200">
+                  <div className={`text-[0.65rem] uppercase tracking-wider font-bold transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Mobile code</div>
+                  <div className={`text-sm font-semibold font-mono transition-colors ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                     +91 {localStorage.getItem('pendingMobile')?.replace(/(\d{2})\d+(\d{2})/, '$1***$2') || 'your mobile'}
                   </div>
                 </div>
               </div>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${mobileVerified ? 'bg-emerald-900/50 text-emerald-400' : 'bg-amber-900/30 text-amber-400'}`}>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                mobileVerified
+                  ? isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-600'
+                  : isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-50 text-amber-600'
+              }`}>
                 {mobileVerified ? 'Verified' : 'Pending'}
               </span>
             </div>
@@ -303,28 +332,19 @@ export default function VerifyOTPPage() {
                   onKeyDown={e => handleKeyDown(e, i, mobileOTP, setMobileOTP, mobileRefs)}
                   onPaste={e => handlePaste(e, mobileOTP, setMobileOTP, mobileRefs)}
                   disabled={mobileVerified}
-                  className={`
-                    flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-xl
-                    focus:outline-none transition-all duration-150
-                    ${mobileVerified
-                      ? 'border-emerald-600/50 bg-emerald-900/20 text-emerald-400'
-                      : digit
-                        ? 'border-[#7FA8AD] bg-[#7FA8AD]/10 text-[#9FC8CD]'
-                        : 'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#7FA8AD] focus:bg-[#7FA8AD]/5'
-                    }
-                  `}
+                  className={`flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-xl focus:outline-none transition-all duration-150 ${otpInputClass(digit, mobileVerified)}`}
                 />
               ))}
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-600">
+              <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>
                 {mobileTimer > 0 ? `Resend in 0:${String(mobileTimer).padStart(2, '0')}` : 'Code expired'}
               </span>
               <button
                 disabled={mobileTimer > 0 || resendingMobile || mobileVerified}
                 onClick={() => handleResend('mobile')}
-                className="text-[#7FA8AD] font-semibold hover:text-[#9FC8CD] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                className="text-[#5D8A8F] font-semibold hover:text-[#4A7A7F] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 {resendingMobile ? 'Sending…' : 'Resend code'}
               </button>
@@ -334,8 +354,12 @@ export default function VerifyOTPPage() {
         </div>
 
         {/* Info note */}
-        <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 flex items-start gap-2.5 mb-5 text-sm text-slate-400">
-          <svg className="w-4 h-4 text-[#7FA8AD] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className={`border rounded-xl p-3.5 flex items-start gap-2.5 mb-5 text-sm transition-colors ${
+          isDark
+            ? 'bg-slate-800/60 border-slate-700/60 text-slate-400'
+            : 'bg-blue-50 border-blue-100 text-blue-600'
+        }`}>
+          <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isDark ? 'text-[#7FA8AD]' : 'text-blue-400'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="16" x2="12" y2="12"/>
             <line x1="12" y1="8" x2="12.01" y2="8"/>
@@ -345,7 +369,9 @@ export default function VerifyOTPPage() {
 
         {/* Success / Error */}
         {success && (
-          <div className="mb-4 p-3.5 bg-emerald-900/30 border border-emerald-700/40 rounded-xl text-sm text-emerald-300 flex items-center gap-2">
+          <div className={`mb-4 p-3.5 border rounded-xl text-sm flex items-center gap-2 ${
+            isDark ? 'bg-emerald-900/30 border-emerald-700/40 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+          }`}>
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
@@ -353,7 +379,9 @@ export default function VerifyOTPPage() {
           </div>
         )}
         {error && (
-          <div className="mb-4 p-3.5 bg-red-900/30 border border-red-700/40 rounded-xl text-sm text-red-300 flex items-start gap-2.5">
+          <div className={`mb-4 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
+            isDark ? 'bg-red-900/30 border-red-700/40 text-red-300' : 'bg-red-50 border-red-200 text-red-600'
+          }`}>
             <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
@@ -366,9 +394,9 @@ export default function VerifyOTPPage() {
           {emailVerified && mobileVerified ? 'Both verified — Continue →' : 'Verify codes →'}
         </Button>
 
-        <p className="text-xs text-slate-600 text-center mt-4">
+        <p className={`text-xs text-center mt-4 transition-colors ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>
           Wrong email or mobile?{' '}
-          <a href="/auth/signup" className="text-[#7FA8AD] font-semibold hover:text-[#9FC8CD] transition-colors">
+          <a href="/auth/signup" className="text-[#5D8A8F] font-semibold hover:text-[#4A7A7F] transition-colors">
             Go back and edit
           </a>
         </p>

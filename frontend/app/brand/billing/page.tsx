@@ -268,29 +268,32 @@ export default function BrandBillingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
 
           {/* Freemium */}
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col">
-            <div className="px-6 pt-6 pb-5 border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white">
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full uppercase tracking-widest mb-2">Freemium</span>
+          <div className="relative rounded-2xl overflow-hidden shadow-sm flex flex-col border border-slate-200/80 bg-gradient-to-br from-slate-50 via-[#eef1f9] to-[#e8ecf7]">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#3D5087]/6 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-8 -left-6 w-28 h-28 bg-[#3D5087]/4 rounded-full pointer-events-none" />
+
+            <div className="relative px-6 pt-6 pb-5 border-b border-slate-200/60">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#3D5087] bg-[#3D5087]/10 border border-[#3D5087]/15 px-2.5 py-0.5 rounded-full uppercase tracking-widest mb-2">Freemium</span>
               <div className="flex items-baseline gap-1.5 mb-1 mt-1">
-                <span className="text-4xl font-bold text-gray-900 tracking-tight">₹0</span>
-                <span className="text-gray-400 text-sm font-medium">/ forever</span>
+                <span className="text-4xl font-bold text-[#1B2444] tracking-tight">₹0</span>
+                <span className="text-slate-400 text-sm font-medium">/ forever</span>
               </div>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm text-slate-500 leading-relaxed">
                 Everything you need to launch your first campaigns.
               </p>
             </div>
 
-            <div className="px-6 py-5 flex-1 flex flex-col">
+            <div className="relative px-6 py-5 flex-1 flex flex-col">
               {isPremium ? (
                 <button
                   onClick={handleDowngrade}
                   disabled={downgrading}
-                  className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all mb-5 cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 border border-[#3D5087]/25 rounded-xl text-sm font-semibold text-[#3D5087] hover:bg-[#3D5087]/10 transition-all mb-5 cursor-pointer disabled:opacity-50 bg-white/60"
                 >
                   {downgrading ? 'Downgrading…' : 'Downgrade to Freemium'}
                 </button>
               ) : (
-                <div className="w-full py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-400 text-center mb-5 bg-gray-50 select-none">
+                <div className="w-full py-2.5 border border-[#3D5087]/20 rounded-xl text-sm font-semibold text-[#3D5087]/60 text-center mb-5 bg-white/50 select-none">
                   Current plan
                 </div>
               )}
@@ -301,11 +304,11 @@ export default function BrandBillingPage() {
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
                       f.included
                         ? 'bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-300'
+                        : 'bg-slate-400/40 text-slate-500'
                     }`}>
                       {f.included ? <CheckIcon /> : <XIcon />}
                     </span>
-                    <span className={`text-sm leading-snug ${f.included ? 'text-gray-700' : 'text-gray-400'}`}>
+                    <span className={`text-sm leading-snug ${f.included ? 'text-slate-700' : 'text-slate-500'}`}>
                       {f.text}
                     </span>
                   </div>
