@@ -12,6 +12,7 @@ interface InputProps {
   error?: string;
   prefix?: string;
   showPasswordToggle?: boolean;
+  dark?: boolean;
 }
 
 const EyeIcon = () => (
@@ -38,6 +39,7 @@ export default function Input({
   error,
   prefix,
   showPasswordToggle = false,
+  dark = false,
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const isPasswordField = type === 'password' && showPasswordToggle;
@@ -45,10 +47,16 @@ export default function Input({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium text-gray-700">{label}</label>
+      <label className={`text-[0.7rem] font-bold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-gray-500'}`}>
+        {label}
+      </label>
       <div className="flex relative">
         {prefix && (
-          <span className="px-3 py-2.5 bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg text-sm text-gray-600 font-medium">
+          <span className={`px-3 py-3 border border-r-0 rounded-l-xl text-sm font-semibold flex items-center ${
+            dark
+              ? 'bg-slate-800/80 border-slate-700 text-slate-400'
+              : 'bg-gray-50 border-gray-200 text-gray-500'
+          }`}>
             {prefix}
           </span>
         )}
@@ -58,12 +66,16 @@ export default function Input({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={`
-            w-full px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 border rounded-lg bg-white
-            focus:outline-none focus:ring-2 focus:ring-[#7FA8AD] focus:border-[#7FA8AD]
-            transition-all duration-150
+            w-full px-4 py-3 text-sm border rounded-xl
+            focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/25 focus:border-[#7FA8AD]
+            hover:border-opacity-80
+            transition-all duration-200
             ${prefix ? 'rounded-l-none' : ''}
             ${isPasswordField ? 'pr-10' : ''}
-            ${error ? 'border-red-400' : 'border-gray-200 hover:border-gray-300'}
+            ${dark
+              ? `bg-[#0A1628] text-slate-100 placeholder-slate-600 ${error ? 'border-red-500/60 bg-red-900/10' : 'border-slate-700 hover:border-slate-600'}`
+              : `bg-white text-gray-900 placeholder-gray-400/70 ${error ? 'border-red-400 bg-red-50/20' : 'border-gray-200 hover:border-gray-300'}`
+            }
           `}
         />
         {isPasswordField && (
@@ -72,17 +84,19 @@ export default function Input({
             onClick={() => setShowPassword(v => !v)}
             tabIndex={-1}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-150 cursor-pointer"
+            className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors duration-150 cursor-pointer ${
+              dark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'
+            }`}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         )}
       </div>
       {helper && !error && (
-        <p className="text-xs text-gray-500">{helper}</p>
+        <p className={`text-[0.7rem] leading-relaxed ${dark ? 'text-slate-600' : 'text-gray-400'}`}>{helper}</p>
       )}
       {error && (
-        <p className="text-xs text-red-500">{error}</p>
+        <p className={`text-[0.7rem] font-medium ${dark ? 'text-red-400' : 'text-red-500'}`}>{error}</p>
       )}
     </div>
   );

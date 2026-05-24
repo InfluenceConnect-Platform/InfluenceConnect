@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import { useTheme } from '@/lib/useTheme';
 
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
@@ -273,6 +274,7 @@ const SectionHeader = ({ icon, title, desc }: SectionHeaderProps) => (
 export default function InfluencerProfile() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isDark } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const profilePicInputRef = useRef<HTMLInputElement>(null);
   const coverPhotoInputRef = useRef<HTMLInputElement>(null);
@@ -579,7 +581,7 @@ export default function InfluencerProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F9FA] flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#060D1A]' : 'bg-[#F7F9FA]'}`}>
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-400">Loading profile…</p>
@@ -589,16 +591,16 @@ export default function InfluencerProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F9FA]">
+    <div className={`min-h-screen ${isDark ? 'bg-[#060D1A]' : 'bg-[#F7F9FA]'}`}>
 
       <InfluencerNav user={null} profilePicUrl={profile?.profilePicUrl} />
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
 
         {/* Page header */}
-        <div className="relative overflow-hidden mb-6 md:mb-7 rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+        <div className={`relative overflow-hidden mb-6 md:mb-7 rounded-2xl border shadow-sm ${isDark ? 'bg-[#0E1B2E] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
           {/* Decorative gradient layer */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#EEF4F5] via-white to-[#F4FBFB] pointer-events-none" />
+          <div className={`absolute inset-0 pointer-events-none bg-gradient-to-br ${isDark ? 'from-[#1a2e32] via-[#0E1B2E] to-[#0d1f2e]' : 'from-[#EEF4F5] via-white to-[#F4FBFB]'}`} />
           <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#7FA8AD]/10 blur-2xl pointer-events-none" />
           <div className="absolute -bottom-20 -left-10 w-52 h-52 rounded-full bg-[#5D8A8F]/10 blur-2xl pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -613,25 +615,25 @@ export default function InfluencerProfile() {
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-5 sm:px-7 py-5 sm:py-6">
             <div className="min-w-0">
               <div className="flex items-center gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#EEF4F5] text-[#2A3E42] border border-[#7FA8AD]/30">
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${isDark ? 'bg-slate-800/70 text-slate-300 border-slate-700/60' : 'bg-[#EEF4F5] text-[#2A3E42] border-[#7FA8AD]/30'}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? 'bg-amber-500' : 'bg-emerald-500'} animate-pulse`} />
                   {isEditing ? 'Editing' : 'Live preview'}
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                <span className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                   </svg>
                   Brand-facing
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
+              <h1 className={`text-2xl sm:text-3xl font-bold tracking-tight leading-tight ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
                 {isEditing ? (
                   <>Edit your <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] bg-clip-text text-transparent">profile</span></>
                 ) : (
                   <>Your <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] bg-clip-text text-transparent">creator</span> profile</>
                 )}
               </h1>
-              <p className="text-sm text-gray-500 mt-1.5 max-w-md leading-relaxed">
+              <p className={`text-sm mt-1.5 max-w-md leading-relaxed ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                 {isEditing
                   ? 'Polish your bio, niches, and social stats — changes go live once you save.'
                   : 'This is exactly what brands see when they discover you. Make every detail count.'}
@@ -649,7 +651,7 @@ export default function InfluencerProfile() {
                 <>
                   <button
                     onClick={handleCancelEdit}
-                    className="text-sm text-gray-600 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300 transition-all duration-150 cursor-pointer font-semibold shadow-sm">
+                    className={`text-sm px-4 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
                     Cancel
                   </button>
                   <button
@@ -678,7 +680,7 @@ export default function InfluencerProfile() {
                     href={profile?.slug ? `/brand/creator/${profile.slug}` : '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300 transition-all duration-150 cursor-pointer font-semibold shadow-sm">
+                    className={`hidden sm:flex items-center gap-1.5 text-sm px-3.5 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
                     </svg>

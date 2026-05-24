@@ -18,11 +18,11 @@ export default function Button({
   loading = false
 }: ButtonProps) {
 
-  const base = 'inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-all duration-150 cursor-pointer';
+  const base = 'inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer active:scale-[0.985]';
 
   const variants = {
-    primary: 'bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white shadow-sm hover:shadow-md',
-    secondary: 'bg-white hover:bg-gray-50 text-gray-800 border border-gray-200',
+    primary: 'bg-gradient-to-r from-[#5D8A8F] via-[#4E7A80] to-[#3D5087] hover:from-[#4A7A7F] hover:via-[#3D6B70] hover:to-[#2B3B68] text-white shadow-md hover:shadow-lg',
+    secondary: 'bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 hover:border-gray-300 hover:shadow-sm',
     ghost: 'bg-transparent hover:bg-gray-100 text-gray-600 border border-transparent'
   };
 

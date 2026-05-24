@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
+import { useTheme } from '@/lib/useTheme';
 
 interface Message {
   _id: string;
@@ -146,6 +147,7 @@ export default function BrandMessages() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeIdRef = useRef<string | null>(null);
 
+  const { isDark } = useTheme();
   const isPremium = user?.plan === 'premium';
   const limitHit = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
@@ -331,15 +333,15 @@ export default function BrandMessages() {
   };
 
   return (
-    <div className="min-h-screen bg-[#ECEEF6] flex flex-col">
+    <div className={`min-h-screen flex flex-col ${isDark ? 'bg-[#060D1A]' : 'bg-[#ECEEF6]'}`}>
       <BrandNav user={user} />
 
       <div className="flex flex-1 min-h-0 overflow-hidden" style={{ height: 'calc(100vh - 60px)' }}>
 
         {/* ── Sidebar ── */}
         <aside className={`
-          w-full lg:w-[320px] xl:w-[360px] flex-shrink-0 flex flex-col
-          bg-white border-r border-gray-200/80
+          w-full lg:w-[320px] xl:w-[360px] flex-shrink-0 flex flex-col border-r
+          ${isDark ? 'bg-[#0B1725] border-slate-700/60' : 'bg-white border-gray-200/80'}
           ${showChat ? 'hidden lg:flex' : 'flex'}
         `}>
 
@@ -382,11 +384,11 @@ export default function BrandMessages() {
               <div className="flex flex-col gap-1 p-2 pt-3">
                 {[...Array(5)].map((_, i) => (
                   <div key={i} className="flex items-center gap-3 px-3 py-3 animate-pulse">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-100 flex-shrink-0" />
+                    <div className={`w-12 h-12 rounded-2xl flex-shrink-0 ${isDark ? 'bg-slate-800' : 'bg-gray-100'}`} />
                     <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-gray-100 rounded-full w-3/4" />
-                      <div className="h-2.5 bg-gray-100 rounded-full w-1/2" />
-                      <div className="h-2 bg-gray-100 rounded-full w-2/3" />
+                      <div className={`h-3 rounded-full w-3/4 ${isDark ? 'bg-slate-800' : 'bg-gray-100'}`} />
+                      <div className={`h-2.5 rounded-full w-1/2 ${isDark ? 'bg-slate-800' : 'bg-gray-100'}`} />
+                      <div className={`h-2 rounded-full w-2/3 ${isDark ? 'bg-slate-800' : 'bg-gray-100'}`} />
                     </div>
                   </div>
                 ))}
@@ -396,8 +398,8 @@ export default function BrandMessages() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white flex items-center justify-center mb-4 shadow-lg shadow-indigo-200/50">
                   <ChatBubbleIcon size={28} />
                 </div>
-                <p className="text-[14px] font-bold text-gray-800 mb-1.5">No conversations</p>
-                <p className="text-[12px] text-gray-400 leading-relaxed max-w-[200px]">
+                <p className={`text-[14px] font-bold mb-1.5 ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>No conversations</p>
+                <p className={`text-[12px] leading-relaxed max-w-[200px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                   {search
                     ? 'No matches found.'
                     : 'Accept an influencer application to start a conversation.'}
@@ -422,15 +424,15 @@ export default function BrandMessages() {
                   const hasActivity = !isActive && (hasUnread || hasPendingOffer);
 
                   return (
-                    <li key={deal._id} className="border-b border-gray-50 last:border-0">
+                    <li key={deal._id} className={`border-b last:border-0 ${isDark ? 'border-slate-800/80' : 'border-gray-50'}`}>
                       <button
                         onClick={() => selectDeal(deal)}
                         className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 cursor-pointer relative ${
                           isActive
-                            ? 'bg-gradient-to-r from-indigo-50 to-blue-50/40'
+                            ? isDark ? 'bg-gradient-to-r from-indigo-900/30 to-blue-900/20' : 'bg-gradient-to-r from-indigo-50 to-blue-50/40'
                             : hasActivity
-                            ? 'bg-indigo-50/40 hover:bg-indigo-50/70'
-                            : 'hover:bg-gray-50/80'
+                            ? isDark ? 'bg-indigo-900/20 hover:bg-indigo-900/30' : 'bg-indigo-50/40 hover:bg-indigo-50/70'
+                            : isDark ? 'hover:bg-slate-800/40' : 'hover:bg-gray-50/80'
                         }`}
                       >
                         {/* Active left bar */}
@@ -459,30 +461,30 @@ export default function BrandMessages() {
                           <div className="flex items-center justify-between mb-0.5">
                             <span className={`text-[13.5px] truncate leading-tight ${
                               isActive
-                                ? 'font-bold text-[#2B3B68]'
+                                ? isDark ? 'font-bold text-indigo-300' : 'font-bold text-[#2B3B68]'
                                 : hasActivity
-                                ? 'font-bold text-gray-900'
-                                : 'font-semibold text-gray-700'
+                                ? isDark ? 'font-bold text-slate-200' : 'font-bold text-gray-900'
+                                : isDark ? 'font-semibold text-slate-300' : 'font-semibold text-gray-700'
                             }`}>
                               {deal.influencerId?.name}
                             </span>
                             {deal.lastMessage && (
                               <span className={`text-[10.5px] ml-2 flex-shrink-0 font-medium ${
-                                hasActivity ? 'text-indigo-600' : 'text-gray-400'
+                                hasActivity ? isDark ? 'text-indigo-400' : 'text-indigo-600' : isDark ? 'text-slate-500' : 'text-gray-400'
                               }`}>
                                 {formatRelativeTime(deal.lastMessage.createdAt)}
                               </span>
                             )}
                           </div>
-                          <p className="text-[11.5px] text-gray-400 truncate mb-0.5">{deal.campaignId?.title}</p>
+                          <p className={`text-[11.5px] truncate mb-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{deal.campaignId?.title}</p>
                           {hasPendingOffer && !isActive ? (
                             <p className="text-[11px] text-amber-600 font-semibold truncate">New offer — tap to respond</p>
                           ) : deal.lastMessage ? (
-                            <p className={`text-[11px] truncate ${hasUnread && !isActive ? 'text-gray-700 font-semibold' : 'text-gray-400'}`}>
+                            <p className={`text-[11px] truncate ${hasUnread && !isActive ? isDark ? 'text-slate-200 font-semibold' : 'text-gray-700 font-semibold' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                               {deal.lastMessage.content}
                             </p>
                           ) : (
-                            <p className="text-[11px] text-gray-300 italic">No messages yet — say hi!</p>
+                            <p className={`text-[11px] italic ${isDark ? 'text-slate-600' : 'text-gray-300'}`}>No messages yet — say hi!</p>
                           )}
                         </div>
 
@@ -506,7 +508,7 @@ export default function BrandMessages() {
 
           {/* Freemium upgrade */}
           {!isPremium && (
-            <div className="border-t border-gray-100 p-3 flex-shrink-0">
+            <div className={`border-t p-3 flex-shrink-0 ${isDark ? 'border-slate-800' : 'border-gray-100'}`}>
               <div className="relative overflow-hidden rounded-2xl p-3.5 flex items-center gap-3"
                 style={{ background: 'linear-gradient(135deg, #2B3B68 0%, #3D5087 60%, #4a5fa0 100%)' }}>
                 <div className="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
@@ -532,10 +534,10 @@ export default function BrandMessages() {
           {selectedDeal ? (
             <>
               {/* Chat header */}
-              <div className="flex items-center gap-3 px-4 sm:px-5 py-3 bg-white border-b border-gray-200/80 shadow-sm flex-shrink-0">
+              <div className={`flex items-center gap-3 px-4 sm:px-5 py-3 border-b flex-shrink-0 ${isDark ? 'bg-[#0B1725] border-slate-700/60 shadow-[0_1px_4px_rgba(0,0,0,0.3)]' : 'bg-white border-gray-200/80 shadow-sm'}`}>
                 <button
                   onClick={goBackToList}
-                  className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 active:scale-95 transition-all duration-150 cursor-pointer flex-shrink-0">
+                  className={`lg:hidden w-9 h-9 rounded-xl flex items-center justify-center active:scale-95 transition-all duration-150 cursor-pointer flex-shrink-0 ${isDark ? 'text-slate-400 hover:bg-slate-800/60' : 'text-gray-500 hover:bg-gray-100'}`}>
                   <ArrowLeftIcon />
                 </button>
 
@@ -553,9 +555,9 @@ export default function BrandMessages() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-bold text-gray-900 leading-tight">{selectedDeal.influencerId?.name}</p>
+                  <p className={`text-[14px] font-bold leading-tight ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{selectedDeal.influencerId?.name}</p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className="text-[11px] text-gray-400 truncate">{selectedDeal.campaignId?.title}</p>
+                    <p className={`text-[11px] truncate ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
                     {selectedDeal.negotiationStatus === 'agreed' ? (
                       <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200/60 flex-shrink-0">
                         ₹{selectedDeal.agreedAmount.toLocaleString()} agreed
@@ -570,7 +572,7 @@ export default function BrandMessages() {
 
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {selectedDeal.influencerProfile?.platforms?.[0] && (
-                    <span className="hidden sm:flex items-center gap-1 text-[11px] text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg font-medium">
+                    <span className={`hidden sm:flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-medium ${isDark ? 'text-slate-400 bg-slate-800/60' : 'text-gray-500 bg-gray-100'}`}>
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                       {formatFollowers(selectedDeal.influencerProfile.platforms[0].followers)}
                     </span>
@@ -605,20 +607,20 @@ export default function BrandMessages() {
                   )}
                   <div className="flex items-center gap-1.5 pl-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[11px] text-gray-400 hidden sm:block">Live</span>
+                    <span className={`text-[11px] hidden sm:block ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Live</span>
                   </div>
                 </div>
               </div>
 
               {/* Campaign brief strip */}
-              <div className="flex items-center gap-2.5 px-4 sm:px-5 py-2 bg-indigo-50/70 border-b border-indigo-100/70 flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                <span className="text-indigo-400 flex-shrink-0"><CampaignIcon /></span>
-                <span className="text-[11px] text-indigo-700 font-semibold flex-shrink-0">Deliverables:</span>
-                <span className="text-[11px] text-indigo-600 flex-shrink-0">{selectedDeal.campaignId?.deliverables || '—'}</span>
-                <span className="text-indigo-300 flex-shrink-0 mx-1">·</span>
-                <span className="text-indigo-400 flex-shrink-0"><RupeeIcon /></span>
-                <span className="text-[11px] text-indigo-700 font-semibold flex-shrink-0">Price:</span>
-                <span className="text-[11px] text-indigo-600 flex-shrink-0 font-medium">
+              <div className={`flex items-center gap-2.5 px-4 sm:px-5 py-2 border-b flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDark ? 'bg-indigo-900/20 border-indigo-800/30' : 'bg-indigo-50/70 border-indigo-100/70'}`}>
+                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-400'}`}><CampaignIcon /></span>
+                <span className={`text-[11px] font-semibold flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>Deliverables:</span>
+                <span className={`text-[11px] flex-shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
+                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-indigo-700' : 'text-indigo-300'}`}>·</span>
+                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-400'}`}><RupeeIcon /></span>
+                <span className={`text-[11px] font-semibold flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>Price:</span>
+                <span className={`text-[11px] flex-shrink-0 font-medium ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
                   {selectedDeal.negotiationStatus === 'agreed'
                     ? `₹${selectedDeal.agreedAmount?.toLocaleString()} (agreed)`
                     : 'Negotiating…'}
@@ -644,9 +646,9 @@ export default function BrandMessages() {
               )}
 
               {/* Moderation notice */}
-              <div className="flex items-center gap-2 px-4 sm:px-5 py-1.5 bg-indigo-50/50 border-b border-indigo-100/40 flex-shrink-0">
-                <span className="text-indigo-400 flex-shrink-0"><ShieldIcon /></span>
-                <p className="text-[10.5px] text-indigo-600/80 font-medium">
+              <div className={`flex items-center gap-2 px-4 sm:px-5 py-1.5 border-b flex-shrink-0 ${isDark ? 'bg-indigo-900/15 border-indigo-800/20' : 'bg-indigo-50/50 border-indigo-100/40'}`}>
+                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-400'}`}><ShieldIcon /></span>
+                <p className={`text-[10.5px] font-medium ${isDark ? 'text-indigo-400/70' : 'text-indigo-600/80'}`}>
                   Contact info, social handles & external links are automatically blocked to protect both parties.
                 </p>
               </div>
@@ -655,7 +657,11 @@ export default function BrandMessages() {
               <div
                 ref={threadRef}
                 className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 flex flex-col"
-                style={{
+                style={isDark ? {
+                  backgroundColor: '#060D1A',
+                  backgroundImage: 'radial-gradient(circle, #1a2040 1px, transparent 1px)',
+                  backgroundSize: '22px 22px',
+                } : {
                   backgroundColor: '#ECEEF6',
                   backgroundImage: 'radial-gradient(circle, #B4BBDA 1px, transparent 1px)',
                   backgroundSize: '22px 22px',
@@ -667,10 +673,10 @@ export default function BrandMessages() {
                       <ChatBubbleIcon size={30} />
                     </div>
                     <div>
-                      <p className="text-[15px] font-bold text-gray-700 mb-1.5">Start the conversation</p>
-                      <p className="text-[12px] text-gray-400/90 max-w-[220px] leading-relaxed">
+                      <p className={`text-[15px] font-bold mb-1.5 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Start the conversation</p>
+                      <p className={`text-[12px] max-w-[220px] leading-relaxed ${isDark ? 'text-slate-500' : 'text-gray-400/90'}`}>
                         Kick things off by sharing campaign details or a welcome message with{' '}
-                        <span className="font-semibold text-gray-500">{selectedDeal.influencerId?.name}</span>.
+                        <span className={`font-semibold ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{selectedDeal.influencerId?.name}</span>.
                       </p>
                     </div>
                   </div>
@@ -678,11 +684,11 @@ export default function BrandMessages() {
                   <>
                     {/* Date divider */}
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-1 h-px bg-gray-300/40" />
-                      <span className="text-[10px] text-gray-400/80 font-semibold uppercase tracking-wider px-3 py-1 bg-white/70 rounded-full shadow-sm">
+                      <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
+                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm ${isDark ? 'text-slate-500 bg-slate-800/70' : 'text-gray-400/80 bg-white/70'}`}>
                         Today
                       </span>
-                      <div className="flex-1 h-px bg-gray-300/40" />
+                      <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
                     </div>
 
                     {messages.map((msg, idx) => {
@@ -725,13 +731,15 @@ export default function BrandMessages() {
                             <div className={`px-4 py-2.5 text-[13.5px] leading-relaxed select-text ${bubbleShape} ${
                               isMine
                                 ? 'bg-[#3D5087] text-white shadow-md shadow-indigo-900/10'
+                                : isDark
+                                ? 'bg-[#1a2a45] text-slate-200 border border-slate-700/50 shadow-sm'
                                 : 'bg-white text-gray-800 border border-gray-200/50 shadow-sm'
                             }`}>
                               {msg.content}
                             </div>
                             {isLast && (
                               <div className={`flex items-center gap-1 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
-                                <span className="text-[10px] text-gray-400/70">{formatTime(msg.createdAt)}</span>
+                                <span className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-gray-400/70'}`}>{formatTime(msg.createdAt)}</span>
                                 {isMine && <span className="text-[#6B7FC4]"><CheckDoubleIcon /></span>}
                               </div>
                             )}
@@ -784,7 +792,7 @@ export default function BrandMessages() {
 
               {/* Compose / closed / locked */}
               {dealClosed ? (
-                <div className="px-4 sm:px-5 py-4 bg-white border-t border-gray-200/80 flex-shrink-0">
+                <div className={`px-4 sm:px-5 py-4 border-t flex-shrink-0 ${isDark ? 'bg-[#0B1725] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
                   <div className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl ${
                     selectedDeal.status === 'completed'
                       ? 'bg-emerald-50 border border-emerald-200/60'
@@ -807,25 +815,27 @@ export default function BrandMessages() {
                   </div>
                 </div>
               ) : chatLocked ? (
-                <div className="px-4 sm:px-5 py-4 bg-white border-t border-gray-200/80 flex-shrink-0">
-                  <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200/60">
-                    <div className="w-9 h-9 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center flex-shrink-0">
+                <div className={`px-4 sm:px-5 py-4 border-t flex-shrink-0 ${isDark ? 'bg-[#0B1725] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
+                  <div className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl border ${isDark ? 'bg-slate-800/40 border-slate-700/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-slate-700/50 text-slate-500' : 'bg-gray-100 text-gray-400'}`}>
                       <LockIcon />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[12.5px] font-semibold text-gray-600">Chat locked</p>
-                      <p className="text-[11px] text-gray-400">Agree on a price above to unlock messaging.</p>
+                      <p className={`text-[12.5px] font-semibold ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Chat locked</p>
+                      <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Agree on a price above to unlock messaging.</p>
                     </div>
-                    <div className="px-3 py-2 bg-white border border-gray-200 rounded-xl opacity-40 cursor-not-allowed w-[140px]">
-                      <span className="text-[12px] text-gray-400 truncate block">Type a message…</span>
+                    <div className={`px-3 py-2 border rounded-xl opacity-40 cursor-not-allowed w-[140px] ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+                      <span className={`text-[12px] truncate block ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Type a message…</span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="px-4 sm:px-5 py-3.5 bg-white border-t border-gray-200/80 flex-shrink-0">
+                <div className={`px-4 sm:px-5 py-3.5 border-t flex-shrink-0 ${isDark ? 'bg-[#0B1725] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
                   <div className={`flex items-center gap-2.5 px-2 py-2 rounded-2xl border shadow-sm transition-all duration-200 ${
                     limitHit
-                      ? 'bg-gray-50 border-gray-200'
+                      ? isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-gray-50 border-gray-200'
+                      : isDark
+                      ? 'bg-slate-800/40 border-slate-700 focus-within:border-[#3D5087] focus-within:shadow-lg focus-within:shadow-indigo-900/30 focus-within:ring-2 focus-within:ring-[#3D5087]/20'
                       : 'bg-white border-gray-200 focus-within:border-[#3D5087] focus-within:shadow-lg focus-within:shadow-indigo-100/40 focus-within:ring-2 focus-within:ring-[#3D5087]/10'
                   }`}>
                     <input
@@ -836,7 +846,7 @@ export default function BrandMessages() {
                       onKeyDown={handleKeyDown}
                       disabled={limitHit}
                       placeholder={limitHit ? 'Upgrade to keep messaging…' : `Message ${selectedDeal.influencerId?.name}…`}
-                      className="flex-1 px-2 py-1.5 text-[13.5px] text-gray-900 placeholder:text-gray-400 bg-transparent outline-none disabled:text-gray-400"
+                      className={`flex-1 px-2 py-1.5 text-[13.5px] bg-transparent outline-none ${isDark ? 'text-slate-200 placeholder:text-slate-600 disabled:text-slate-600' : 'text-gray-900 placeholder:text-gray-400 disabled:text-gray-400'}`}
                     />
                     {newMessage.length > 200 && (
                       <span className={`text-[11px] font-semibold self-center flex-shrink-0 ${newMessage.length > 450 ? 'text-red-500' : 'text-gray-400'}`}>
@@ -864,21 +874,25 @@ export default function BrandMessages() {
             /* No deal selected */
             <div
               className="flex-1 flex flex-col items-center justify-center text-center px-6"
-              style={{
+              style={isDark ? {
+                backgroundColor: '#060D1A',
+                backgroundImage: 'radial-gradient(circle, #1a2040 1px, transparent 1px)',
+                backgroundSize: '22px 22px',
+              } : {
                 backgroundColor: '#ECEEF6',
                 backgroundImage: 'radial-gradient(circle, #B4BBDA 1px, transparent 1px)',
                 backgroundSize: '22px 22px',
               }}
             >
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-10 flex flex-col items-center shadow-xl shadow-indigo-100/30 border border-white/70">
+              <div className={`backdrop-blur-sm rounded-3xl p-10 flex flex-col items-center shadow-xl border ${isDark ? 'bg-[#0E1B2E]/90 border-slate-700/50 shadow-slate-900/50' : 'bg-white/80 border-white/70 shadow-indigo-100/30'}`}>
                 <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#161F3F] via-[#2B3B68] to-[#4a5fa0] text-white flex items-center justify-center mb-5 shadow-xl shadow-indigo-400/20">
                   <ChatBubbleIcon size={38} />
                 </div>
-                <h3 className="text-[17px] font-bold text-gray-800 mb-2">Deal conversations</h3>
-                <p className="text-[13px] text-gray-400 max-w-[250px] leading-relaxed mb-6">
+                <h3 className={`text-[17px] font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>Deal conversations</h3>
+                <p className={`text-[13px] max-w-[250px] leading-relaxed mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                   Select a creator from the sidebar to view and continue your conversation.
                 </p>
-                <div className="flex items-center gap-2 text-[11.5px] text-indigo-700 bg-indigo-50 px-4 py-2.5 rounded-xl border border-indigo-200/50">
+                <div className={`flex items-center gap-2 text-[11.5px] px-4 py-2.5 rounded-xl border ${isDark ? 'text-indigo-300 bg-indigo-900/20 border-indigo-800/30' : 'text-indigo-700 bg-indigo-50 border-indigo-200/50'}`}>
                   <ShieldIcon />
                   <span className="font-semibold">All messages are moderated for platform safety</span>
                 </div>

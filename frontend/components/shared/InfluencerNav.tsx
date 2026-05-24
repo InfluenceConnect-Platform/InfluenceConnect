@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '@/lib/useTheme';
 
 const NAV_ITEMS = [
   {
@@ -70,6 +72,7 @@ interface InfluencerNavProps {
 export default function InfluencerNav({ user: userProp, profilePicUrl }: InfluencerNavProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { isDark } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
@@ -139,9 +142,26 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
     router.push('/auth/login');
   };
 
+  // Reusable dark/light class sets
+  const dotShadow = isDark ? 'shadow-[0_0_0_1.5px_#0B1725]' : 'shadow-[0_0_0_1.5px_white]';
+
+  const activeItemCls = isDark
+    ? 'bg-[#1a2e32] text-slate-200'
+    : 'bg-[#EEF4F5] text-[#2A3E42]';
+
+  const inactiveItemCls = isDark
+    ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'
+    : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50';
+
+  const activeIconCls = isDark ? 'text-[#7FA8AD]' : 'text-[#5D8A8F]';
+
   return (
     <>
-      <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[64px] sticky top-0 z-30 shadow-[0_1px_8px_rgba(0,0,0,0.06)]">
+      <nav className={`backdrop-blur-md border-b px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[64px] sticky top-0 z-30 transition-colors duration-200
+        ${isDark
+          ? 'bg-[#0B1725]/95 border-slate-700/60 shadow-[0_1px_8px_rgba(0,0,0,0.4)]'
+          : 'bg-white/95 border-gray-200/80 shadow-[0_1px_8px_rgba(0,0,0,0.06)]'
+        }`}>
 
         {/* Left — logo + nav links */}
         <div className="flex items-center gap-6 lg:gap-8 min-w-0">
@@ -149,7 +169,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3d7178] flex items-center justify-center text-white font-black text-[13px] shadow-md group-hover:shadow-[#7FA8AD]/40 transition-shadow duration-200">
               IC
             </div>
-            <span className="font-extrabold text-gray-900 text-[15px] tracking-tight hidden sm:block">
+            <span className={`font-extrabold text-[15px] tracking-tight hidden sm:block ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
               Influence<span className="text-[#5D8A8F]">Connect</span>
             </span>
           </Link>
@@ -166,12 +186,10 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                   key={item.href}
                   href={item.href}
                   className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${
-                    isActive
-                      ? 'bg-[#EEF4F5] text-[#2A3E42]'
-                      : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'
+                    isActive ? activeItemCls : inactiveItemCls
                   }`}
                 >
-                  <span className={`transition-colors duration-150 ${isActive ? 'text-[#5D8A8F]' : ''}`}>
+                  <span className={`transition-colors duration-150 ${isActive ? activeIconCls : ''}`}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -179,7 +197,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-[#5D8A8F]" />
                   )}
                   {hasDot && (
-                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_1.5px_white]" />
+                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ${dotShadow}`} />
                   )}
                 </Link>
               );
@@ -187,21 +205,28 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
           </div>
         </div>
 
-        {/* Right — plan badge, logout, avatar */}
+        {/* Right — theme toggle, plan badge, logout, avatar */}
         <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
+          <ThemeToggle />
+
           {isPremium ? (
             <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-white shadow-sm shadow-amber-200">
               ★ Premium
             </span>
           ) : (
-            <span className="hidden sm:inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+            <span className={`hidden sm:inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full border
+              ${isDark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
               Freemium
             </span>
           )}
 
           <button
             onClick={handleLogout}
-            className="hidden sm:flex items-center gap-1 text-[12px] text-gray-500 px-3 py-1.5 rounded-xl border border-gray-200 hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-all duration-150 cursor-pointer font-semibold"
+            className={`hidden sm:flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-xl border transition-all duration-150 cursor-pointer font-semibold
+              ${isDark
+                ? 'border-slate-700 text-slate-400 hover:border-red-900/60 hover:text-red-400 hover:bg-red-900/20'
+                : 'border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-500 hover:bg-red-50'
+              }`}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
@@ -212,7 +237,8 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
           <Link
             href="/influencer/profile"
             title={user?.name ?? 'Profile'}
-            className="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-gray-200 hover:ring-[#7FA8AD] shadow-sm transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] cursor-pointer"
+            className={`relative w-9 h-9 rounded-full overflow-hidden ring-2 shadow-sm transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] cursor-pointer
+              ${isDark ? 'ring-slate-700 hover:ring-[#7FA8AD]' : 'ring-gray-200 hover:ring-[#7FA8AD]'}`}
           >
             {profilePicUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -225,7 +251,8 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
           <button
             onClick={() => setMobileOpen(v => !v)}
             aria-label="Toggle navigation"
-            className="lg:hidden p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-all cursor-pointer"
+            className={`lg:hidden p-2 rounded-xl transition-all cursor-pointer
+              ${isDark ? 'hover:bg-slate-800/60 text-slate-400' : 'hover:bg-gray-100 text-gray-500'}`}
           >
             {mobileOpen ? (
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -244,7 +271,8 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
       {mobileOpen && (
         <>
           <div className="lg:hidden fixed inset-0 top-[64px] bg-black/20 z-20" onClick={() => setMobileOpen(false)} />
-          <div className="lg:hidden fixed top-[64px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-xl">
+          <div className={`lg:hidden fixed top-[64px] left-0 right-0 z-20 border-b shadow-xl
+            ${isDark ? 'bg-[#0B1725] border-slate-700' : 'bg-white border-gray-200'}`}>
             <div className="px-4 py-3 flex flex-col gap-1">
               {NAV_ITEMS.map(item => {
                 const isMessages  = item.href === '/influencer/messages';
@@ -257,18 +285,20 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                      isActive ? 'bg-[#EEF4F5] text-[#2A3E42]' : 'text-gray-600 hover:bg-gray-50'
+                      isActive
+                        ? activeItemCls
+                        : isDark ? 'text-slate-400 hover:bg-slate-800/50' : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
                     <span className="flex items-center gap-3">
-                      <span className={isActive ? 'text-[#5D8A8F]' : 'text-gray-400'}>{item.icon}</span>
+                      <span className={isActive ? activeIconCls : isDark ? 'text-slate-600' : 'text-gray-400'}>{item.icon}</span>
                       {item.label}
                     </span>
                     {hasDot && <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />}
                   </Link>
                 );
               })}
-              <div className="my-1 h-px bg-gray-100" />
+              <div className={`my-1 h-px ${isDark ? 'bg-slate-800' : 'bg-gray-100'}`} />
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 text-left cursor-pointer transition-all"
@@ -284,7 +314,11 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
       )}
 
       {/* Mobile tab bar */}
-      <div className="lg:hidden sticky top-[64px] z-10 bg-white border-b border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+      <div className={`lg:hidden sticky top-[64px] z-10 border-b
+        ${isDark
+          ? 'bg-[#0B1725] border-slate-700/50 shadow-[0_1px_3px_rgba(0,0,0,0.3)]'
+          : 'bg-white border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+        }`}>
         <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden px-3 gap-0.5 py-2">
           {NAV_ITEMS.map(item => {
             const isMessages  = item.href === '/influencer/messages';
@@ -296,13 +330,13 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                 key={item.href}
                 href={item.href}
                 className={`relative flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[12px] font-semibold transition-all duration-150 cursor-pointer ${
-                  isActive ? 'bg-[#EEF4F5] text-[#2A3E42]' : 'text-gray-400 hover:bg-gray-100'
+                  isActive ? activeItemCls : isDark ? 'text-slate-500 hover:bg-slate-800/40' : 'text-gray-400 hover:bg-gray-100'
                 }`}
               >
-                <span className={isActive ? 'text-[#5D8A8F]' : ''}>{item.icon}</span>
+                <span className={isActive ? activeIconCls : ''}>{item.icon}</span>
                 {item.label}
                 {hasDot && (
-                  <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_1.5px_white]" />
+                  <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ${dotShadow}`} />
                 )}
               </Link>
             );

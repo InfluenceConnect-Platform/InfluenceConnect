@@ -116,35 +116,35 @@ export default function LoginPage() {
 
         {/* ── Left panel ── */}
         <div className="hidden lg:flex flex-col">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full text-xs font-medium text-gray-600 mb-6 shadow-sm w-fit">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.7)]" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-800/80 backdrop-blur-sm border border-slate-700/60 rounded-full text-xs font-semibold text-slate-300 mb-6 shadow-sm w-fit">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
             Trusted by creators and brands across India
           </div>
 
-          <h1 className="text-[2.6rem] font-bold leading-[1.15] tracking-tight text-gray-900 mb-4">
+          <h1 className="text-[2.75rem] font-bold leading-[1.12] tracking-tight text-white mb-4">
             Welcome back to<br />
-            <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#3D5087] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#7C9ED9] bg-clip-text text-transparent">
               Influence Connect
             </span>.
           </h1>
 
-          <p className="text-gray-500 text-base leading-relaxed mb-8 max-w-sm">
+          <p className="text-slate-400 text-[0.95rem] leading-relaxed mb-8 max-w-[22rem]">
             Pick up where you left off — manage campaigns, close deals, and grow your presence.
           </p>
 
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-3 p-5 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-sm mb-8">
             {FEATURES.map((item, i) => (
               <div key={i} className="flex items-center gap-3.5">
                 <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
                   {item.icon}
                 </div>
-                <span className="text-sm text-gray-600">{item.text}</span>
+                <span className="text-sm text-slate-300 font-medium">{item.text}</span>
               </div>
             ))}
           </div>
 
           {/* Testimonial card */}
-          <div className="mt-10 p-5 bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-200/60 rounded-2xl shadow-sm">
+          <div className="p-5 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
             <div className="flex gap-1 mb-3">
               {[...Array(5)].map((_, i) => (
                 <svg key={i} className="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
@@ -152,42 +152,45 @@ export default function LoginPage() {
                 </svg>
               ))}
             </div>
-            <p className="text-sm text-gray-700 italic mb-4 leading-relaxed">
+            <p className="text-sm text-slate-300 italic mb-4 leading-relaxed">
               &ldquo;Influence Connect helped us close 3 brand deals in our first week. The platform just works.&rdquo;
             </p>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-md">
                 A
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-900">Aarav Mehta</p>
-                <p className="text-xs text-gray-500">Travel Creator · 180K followers</p>
+                <p className="text-xs font-bold text-white">Aarav Mehta</p>
+                <p className="text-[0.7rem] text-slate-500 font-medium">Travel Creator · 180K followers</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* ── Right — Login card ── */}
-        <div className="rounded-2xl overflow-hidden shadow-[0_4px_6px_rgba(0,0,0,0.04),0_12px_32px_rgba(0,0,0,0.08),0_32px_64px_rgba(127,168,173,0.12)] border border-gray-200/80">
+        <div className="rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.4),0_8px_32px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.06)] border border-slate-700/60">
 
-          {/* Thicker gradient accent bar */}
-          <div className="h-1.5 bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#3D5087]" />
+          {/* Gradient accent bar */}
+          <div className="h-[3px] bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#3D5087]" />
 
-          <div className="bg-white px-8 pt-7 pb-8">
+          <div className="bg-[#0E1B2E] px-8 pt-7 pb-8">
 
             {/* IC branding inside card */}
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+            <div className="flex items-center gap-2.5 mb-6">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white font-bold text-sm shadow-md">
                 IC
               </div>
-              <span className="text-sm font-semibold text-gray-700 tracking-tight">Influence Connect</span>
+              <div>
+                <span className="text-sm font-bold text-slate-100 tracking-tight block leading-none">Influence Connect</span>
+                <span className="text-[0.65rem] text-slate-500 font-medium tracking-wide uppercase">Creator · Brand Platform</span>
+              </div>
             </div>
 
             <div className="mb-6">
-              <h2 className="text-[1.65rem] font-bold text-gray-900 mb-1 tracking-tight">Welcome back</h2>
-              <p className="text-sm text-gray-500">
+              <h2 className="text-2xl font-bold text-white mb-1.5 tracking-tight">Welcome back</h2>
+              <p className="text-sm text-slate-400">
                 Don&apos;t have an account?{' '}
-                <Link href="/auth/signup" className="text-[#5D8A8F] font-semibold hover:underline">
+                <Link href="/auth/signup" className="text-[#7FA8AD] font-semibold hover:text-[#9FC8CD] transition-colors">
                   Sign up free →
                 </Link>
               </p>
@@ -197,7 +200,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-2.5 px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all duration-150 cursor-pointer mb-5"
+              className="w-full flex items-center justify-center gap-2.5 px-4 py-3 border border-slate-700 rounded-xl text-sm font-semibold text-slate-200 bg-slate-800/80 hover:bg-slate-700/80 hover:border-slate-600 hover:shadow-md active:scale-[0.985] transition-all duration-200 cursor-pointer mb-5"
             >
               <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 48 48">
                 <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
@@ -209,54 +212,41 @@ export default function LoginPage() {
             </button>
 
             <div className="flex items-center gap-3 mb-5">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-              <span className="text-xs text-gray-400 font-medium whitespace-nowrap">or continue with email</span>
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+              <div className="flex-1 h-px bg-slate-700/80" />
+              <span className="text-[0.7rem] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">or</span>
+              <div className="flex-1 h-px bg-slate-700/80" />
             </div>
 
             <div className="flex flex-col gap-4" onKeyDown={handleKeyDown}>
-              <Input
-                label="Email address"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={setEmail}
-              />
-              <Input
-                label="Password"
-                type="password"
-                placeholder="Your password"
-                value={password}
-                onChange={setPassword}
-                showPasswordToggle
-              />
+              <Input dark label="Email address" type="email" placeholder="you@example.com" value={email} onChange={setEmail} />
+              <Input dark label="Password" type="password" placeholder="Min. 8 characters" value={password} onChange={setPassword} showPasswordToggle />
             </div>
 
-            <div className="flex justify-end mt-2 mb-5">
+            <div className="flex justify-end mt-2.5 mb-5">
               <button
                 type="button"
                 onClick={() => setShowForgotPw(true)}
-                className="text-xs text-[#5D8A8F] hover:underline font-semibold cursor-pointer"
+                className="text-xs text-[#7FA8AD] hover:text-[#9FC8CD] font-semibold cursor-pointer transition-colors"
               >
                 Forgot password?
               </button>
             </div>
 
             {authConflict === 'use_google' && (
-              <div className="mb-4 p-4 bg-teal-50 border border-teal-200 rounded-xl flex flex-col gap-3">
+              <div className="mb-4 p-4 bg-teal-900/40 border border-teal-700/50 rounded-xl flex flex-col gap-3">
                 <div className="flex items-start gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-white border border-teal-200 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-slate-800 border border-teal-700/50 flex items-center justify-center flex-shrink-0">
                     <GoogleIcon />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">This account uses Google Sign-In.</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Please continue with Google to log in.</p>
+                    <p className="text-sm font-semibold text-slate-100">This account uses Google Sign-In.</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Please continue with Google to log in.</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-teal-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 border border-teal-700/50 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-700 hover:shadow-sm active:scale-[0.985] transition-all cursor-pointer"
                 >
                   Continue with Google →
                 </button>
@@ -264,19 +254,19 @@ export default function LoginPage() {
             )}
 
             {authConflict === 'use_password' && (
-              <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5">
-                <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="mb-4 p-4 bg-amber-900/30 border border-amber-700/40 rounded-xl flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
                 <div>
-                  <p className="text-sm font-semibold text-amber-900">An account with this email already exists.</p>
-                  <p className="text-xs text-amber-700 mt-0.5">Please log in with your password instead.</p>
+                  <p className="text-sm font-semibold text-amber-200">An account with this email already exists.</p>
+                  <p className="text-xs text-amber-400/80 mt-0.5">Please log in with your password instead.</p>
                 </div>
               </div>
             )}
 
             {error && !authConflict && (
-              <div className="mb-4 p-3.5 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600 flex items-start gap-2.5">
+              <div className="mb-4 p-3.5 bg-red-900/30 border border-red-700/40 rounded-xl text-sm text-red-300 flex items-start gap-2.5">
                 <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
@@ -285,14 +275,14 @@ export default function LoginPage() {
             )}
 
             <Button fullWidth loading={loading} onClick={handleLogin}>
-              Log in →
+              Sign in →
             </Button>
 
-            <p className="text-xs text-gray-400 text-center mt-5">
+            <p className="text-[0.72rem] text-slate-600 text-center mt-5 leading-relaxed">
               By continuing you agree to our{' '}
-              <span className="text-[#5D8A8F] cursor-pointer hover:underline font-medium">Terms</span>{' '}
+              <span className="text-[#7FA8AD] cursor-pointer hover:text-[#9FC8CD] font-semibold transition-colors">Terms</span>{' '}
               and{' '}
-              <span className="text-[#5D8A8F] cursor-pointer hover:underline font-medium">Privacy Policy</span>.
+              <span className="text-[#7FA8AD] cursor-pointer hover:text-[#9FC8CD] font-semibold transition-colors">Privacy Policy</span>.
             </p>
           </div>
         </div>

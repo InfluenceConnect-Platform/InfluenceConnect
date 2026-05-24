@@ -725,7 +725,7 @@ export default function BrandDiscover() {
                         )}
                       </div>
 
-                      <br /> hi
+                      <br /> 
 
 
                       <div className="px-4 pb-4">

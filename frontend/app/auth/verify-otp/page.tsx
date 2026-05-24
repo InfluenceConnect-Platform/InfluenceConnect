@@ -28,7 +28,6 @@ export default function VerifyOTPPage() {
     ? localStorage.getItem('pendingUserId')
     : null;
 
-  // Separate countdown timers
   useEffect(() => {
     if (emailTimer <= 0) return;
     const interval = setInterval(() => setEmailTimer(t => t - 1), 1000);
@@ -41,7 +40,6 @@ export default function VerifyOTPPage() {
     return () => clearInterval(interval);
   }, [mobileTimer]);
 
-  // Handle digit input with auto advance
   const handleInput = (
     index: number,
     value: string,
@@ -53,12 +51,9 @@ export default function VerifyOTPPage() {
     const newOTP = [...otpArray];
     newOTP[index] = digit;
     setOTP(newOTP);
-    if (digit && index < 5) {
-      refs.current[index + 1]?.focus();
-    }
+    if (digit && index < 5) refs.current[index + 1]?.focus();
   };
 
-  // Handle paste — distribute all digits across boxes
   const handlePaste = (
     e: React.ClipboardEvent,
     otpArray: string[],
@@ -75,7 +70,6 @@ export default function VerifyOTPPage() {
     refs.current[lastFilled]?.focus();
   };
 
-  // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent,
     index: number,
@@ -94,7 +88,6 @@ export default function VerifyOTPPage() {
     }
   };
 
-  // Resend OTP for email or mobile
   const handleResend = async (type: 'email' | 'mobile') => {
     setError('');
     setSuccess('');
@@ -122,7 +115,6 @@ export default function VerifyOTPPage() {
     }
   };
 
-  // Verify a single OTP (email or mobile)
   const verifyOTP = async (type: 'email' | 'mobile', otpArray: string[]) => {
     const otp = otpArray.join('');
     if (otp.length < 6) {
@@ -134,22 +126,16 @@ export default function VerifyOTPPage() {
     setError('');
 
     try {
-      const response = await api.post('/api/auth/verify-otp', {
-        userId,
-        type,
-        otp
-      });
+      const response = await api.post('/api/auth/verify-otp', { userId, type, otp });
 
       if (type === 'email') setEmailVerified(true);
       if (type === 'mobile') setMobileVerified(true);
 
-      // Both verified — save token and redirect
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         localStorage.removeItem('pendingUserId');
 
-        // Redirect based on role
         const user = response.data.user;
         if (user.role === 'influencer') router.push('/influencer/dashboard');
         else if (user.role === 'brand') router.push('/brand/dashboard');
@@ -163,8 +149,8 @@ export default function VerifyOTPPage() {
     }
   };
 
-  const bothFilled = 
-    emailOTP.every(d => d !== '') && 
+  const bothFilled =
+    emailOTP.every(d => d !== '') &&
     mobileOTP.every(d => d !== '');
 
   const handleVerifyBoth = async () => {
@@ -177,30 +163,34 @@ export default function VerifyOTPPage() {
       <div className="w-full max-w-2xl">
 
         {/* Progress steps */}
-        <div className="flex items-center justify-center gap-3 mb-8 text-xs text-gray-500">
+        <div className="flex items-center justify-center gap-3 mb-8 text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-[#7FA8AD] text-white flex items-center justify-center text-xs font-bold">✓</span>
-            Account created
+            <span className="w-6 h-6 rounded-full bg-[#5D8A8F]/30 border border-[#5D8A8F]/50 text-[#7FA8AD] flex items-center justify-center text-xs font-bold">
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            <span className="text-slate-600">Account created</span>
           </div>
-          <div className="w-8 h-px bg-gray-300"></div>
+          <div className="w-8 h-px bg-slate-700"></div>
           <div className="flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-full bg-[#7FA8AD] text-white flex items-center justify-center text-xs font-bold ring-4 ring-[#EEF4F5]">2</span>
-            <span className="text-gray-800 font-medium">Verify identity</span>
+            <span className="w-6 h-6 rounded-full bg-[#7FA8AD] text-white flex items-center justify-center text-xs font-bold shadow-[0_0_12px_rgba(127,168,173,0.5)]">2</span>
+            <span className="text-slate-200 font-semibold">Verify identity</span>
           </div>
-          <div className="w-8 h-px bg-gray-300"></div>
-          <div className="flex items-center gap-1.5 text-gray-400">
-            <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold">3</span>
+          <div className="w-8 h-px bg-slate-700"></div>
+          <div className="flex items-center gap-1.5 text-slate-600">
+            <span className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-slate-600 flex items-center justify-center text-xs font-bold">3</span>
             Complete profile
           </div>
         </div>
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-white mb-2">
             Verify your email and mobile
           </h1>
-          <p className="text-sm text-gray-500 max-w-md mx-auto">
-            We have sent 6-digit codes to both. Enter them below to confirm it is really you.
+          <p className="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+            We sent 6-digit codes to both. Enter them below to confirm it&apos;s really you.
           </p>
         </div>
 
@@ -208,23 +198,27 @@ export default function VerifyOTPPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
 
           {/* Email OTP */}
-          <div className={`bg-white border-2 rounded-xl p-5 transition-all ${emailVerified ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
+          <div className={`border-2 rounded-xl p-5 transition-all duration-300 ${
+            emailVerified
+              ? 'border-emerald-600/50 bg-emerald-900/20'
+              : 'border-slate-700/60 bg-[#0E1B2E]'
+          }`}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${emailVerified ? 'bg-green-100' : 'bg-[#EEF4F5]'}`}>
-                  <svg className={`w-4 h-4 ${emailVerified ? 'text-green-600' : 'text-[#5D8A8F]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${emailVerified ? 'bg-emerald-900/50' : 'bg-slate-800'}`}>
+                  <svg className={`w-4 h-4 ${emailVerified ? 'text-emerald-400' : 'text-[#7FA8AD]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                     <polyline points="22,6 12,13 2,6"/>
                   </svg>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Email code</div>
-                  <div className="text-sm font-semibold font-mono text-gray-900">
+                  <div className="text-[0.65rem] text-slate-500 uppercase tracking-wider font-bold">Email code</div>
+                  <div className="text-sm font-semibold font-mono text-slate-200">
                     {localStorage.getItem('pendingEmail')?.replace(/(.{2}).*(@.*)/, '$1***$2') || 'your email'}
                   </div>
                 </div>
               </div>
-              <span className={`text-xs font-semibold px-2 py-1 rounded-full ${emailVerified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${emailVerified ? 'bg-emerald-900/50 text-emerald-400' : 'bg-amber-900/30 text-amber-400'}`}>
                 {emailVerified ? 'Verified' : 'Pending'}
               </span>
             </div>
@@ -243,22 +237,27 @@ export default function VerifyOTPPage() {
                   onPaste={e => handlePaste(e, emailOTP, setEmailOTP, emailRefs)}
                   disabled={emailVerified}
                   className={`
-                    flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-lg
-                    focus:outline-none focus:border-[#7FA8AD] transition-all
-                    ${emailVerified ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-200 text-gray-900'}
+                    flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-xl
+                    focus:outline-none transition-all duration-150
+                    ${emailVerified
+                      ? 'border-emerald-600/50 bg-emerald-900/20 text-emerald-400'
+                      : digit
+                        ? 'border-[#7FA8AD] bg-[#7FA8AD]/10 text-[#9FC8CD]'
+                        : 'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#7FA8AD] focus:bg-[#7FA8AD]/5'
+                    }
                   `}
                 />
               ))}
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">
+              <span className="text-slate-600">
                 {emailTimer > 0 ? `Resend in 0:${String(emailTimer).padStart(2, '0')}` : 'Code expired'}
               </span>
               <button
                 disabled={emailTimer > 0 || resendingEmail || emailVerified}
                 onClick={() => handleResend('email')}
-                className="text-[#5D8A8F] font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
+                className="text-[#7FA8AD] font-semibold hover:text-[#9FC8CD] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 {resendingEmail ? 'Sending…' : 'Resend code'}
               </button>
@@ -266,23 +265,27 @@ export default function VerifyOTPPage() {
           </div>
 
           {/* Mobile OTP */}
-          <div className={`bg-white border-2 rounded-xl p-5 transition-all ${mobileVerified ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
+          <div className={`border-2 rounded-xl p-5 transition-all duration-300 ${
+            mobileVerified
+              ? 'border-emerald-600/50 bg-emerald-900/20'
+              : 'border-slate-700/60 bg-[#0E1B2E]'
+          }`}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${mobileVerified ? 'bg-green-100' : 'bg-[#EEF4F5]'}`}>
-                  <svg className={`w-4 h-4 ${mobileVerified ? 'text-green-600' : 'text-[#5D8A8F]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${mobileVerified ? 'bg-emerald-900/50' : 'bg-slate-800'}`}>
+                  <svg className={`w-4 h-4 ${mobileVerified ? 'text-emerald-400' : 'text-[#7FA8AD]'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="5" y="2" width="14" height="20" rx="2"/>
                     <line x1="12" y1="18" x2="12.01" y2="18"/>
                   </svg>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Mobile code</div>
-                  <div className="text-sm font-semibold font-mono text-gray-900">
+                  <div className="text-[0.65rem] text-slate-500 uppercase tracking-wider font-bold">Mobile code</div>
+                  <div className="text-sm font-semibold font-mono text-slate-200">
                     +91 {localStorage.getItem('pendingMobile')?.replace(/(\d{2})\d+(\d{2})/, '$1***$2') || 'your mobile'}
                   </div>
                 </div>
               </div>
-              <span className={`text-xs font-semibold px-2 py-1 rounded-full ${mobileVerified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${mobileVerified ? 'bg-emerald-900/50 text-emerald-400' : 'bg-amber-900/30 text-amber-400'}`}>
                 {mobileVerified ? 'Verified' : 'Pending'}
               </span>
             </div>
@@ -301,22 +304,27 @@ export default function VerifyOTPPage() {
                   onPaste={e => handlePaste(e, mobileOTP, setMobileOTP, mobileRefs)}
                   disabled={mobileVerified}
                   className={`
-                    flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-lg
-                    focus:outline-none focus:border-[#7FA8AD] transition-all
-                    ${mobileVerified ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-200 text-gray-900'}
+                    flex-1 aspect-square max-w-[42px] text-center text-lg font-bold border-2 rounded-xl
+                    focus:outline-none transition-all duration-150
+                    ${mobileVerified
+                      ? 'border-emerald-600/50 bg-emerald-900/20 text-emerald-400'
+                      : digit
+                        ? 'border-[#7FA8AD] bg-[#7FA8AD]/10 text-[#9FC8CD]'
+                        : 'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#7FA8AD] focus:bg-[#7FA8AD]/5'
+                    }
                   `}
                 />
               ))}
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">
+              <span className="text-slate-600">
                 {mobileTimer > 0 ? `Resend in 0:${String(mobileTimer).padStart(2, '0')}` : 'Code expired'}
               </span>
               <button
                 disabled={mobileTimer > 0 || resendingMobile || mobileVerified}
                 onClick={() => handleResend('mobile')}
-                className="text-[#5D8A8F] font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline"
+                className="text-[#7FA8AD] font-semibold hover:text-[#9FC8CD] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 {resendingMobile ? 'Sending…' : 'Resend code'}
               </button>
@@ -326,8 +334,8 @@ export default function VerifyOTPPage() {
         </div>
 
         {/* Info note */}
-        <div className="bg-white border border-gray-200 rounded-lg p-3.5 flex items-start gap-2.5 mb-5 text-sm text-gray-600">
-          <svg className="w-4 h-4 text-[#5D8A8F] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 flex items-start gap-2.5 mb-5 text-sm text-slate-400">
+          <svg className="w-4 h-4 text-[#7FA8AD] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="16" x2="12" y2="12"/>
             <line x1="12" y1="8" x2="12.01" y2="8"/>
@@ -337,32 +345,30 @@ export default function VerifyOTPPage() {
 
         {/* Success / Error */}
         {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+          <div className="mb-4 p-3.5 bg-emerald-900/30 border border-emerald-700/40 rounded-xl text-sm text-emerald-300 flex items-center gap-2">
+            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
             {success}
           </div>
         )}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+          <div className="mb-4 p-3.5 bg-red-900/30 border border-red-700/40 rounded-xl text-sm text-red-300 flex items-start gap-2.5">
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
             {error}
           </div>
         )}
 
         {/* CTA */}
-        <Button
-          fullWidth
-          loading={loading}
-          onClick={handleVerifyBoth}
-          disabled={!bothFilled}
-        >
-          {emailVerified && mobileVerified
-            ? 'Both verified — Continue →'
-            : 'Verify codes →'
-          }
+        <Button fullWidth loading={loading} onClick={handleVerifyBoth} disabled={!bothFilled}>
+          {emailVerified && mobileVerified ? 'Both verified — Continue →' : 'Verify codes →'}
         </Button>
 
-        <p className="text-xs text-gray-500 text-center mt-4">
+        <p className="text-xs text-slate-600 text-center mt-4">
           Wrong email or mobile?{' '}
-          <a href="/auth/signup" className="text-[#5D8A8F] font-medium hover:underline">
+          <a href="/auth/signup" className="text-[#7FA8AD] font-semibold hover:text-[#9FC8CD] transition-colors">
             Go back and edit
           </a>
         </p>
