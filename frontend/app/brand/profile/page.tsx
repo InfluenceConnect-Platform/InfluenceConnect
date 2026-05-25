@@ -181,7 +181,7 @@ export default function BrandProfile() {
                     Cancel
                   </button>
                   <button onClick={handleSave} disabled={saving}
-                    className="text-xs font-semibold text-[#1e2d56] bg-white hover:bg-blue-50 px-4 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer disabled:opacity-60 flex items-center gap-1.5">
+                    className="text-xs font-semibold text-[#1e2d56] dark:text-white bg-white dark:bg-white/20 hover:bg-blue-50 dark:hover:bg-white/30 px-4 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer disabled:opacity-60 flex items-center gap-1.5">
                     {saving ? (
                       <><svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Saving…</>
                     ) : 'Save changes'}
