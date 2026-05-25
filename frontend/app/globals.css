@@ -66,3 +66,17 @@ body {
 .dark [class~="text-gray-600"] { color: #94a3b8; }
 .dark [class~="text-gray-500"] { color: #64748b; }
 .dark [class~="text-gray-400"] { color: #475569; }
+
+/* Amber/green tinted backgrounds (GST icon, status boxes) */
+.dark [class~="bg-amber-100"] { background-color: rgba(120, 80, 10, 0.35); }
+.dark [class~="bg-amber-50"]  { background-color: rgba(120, 80, 10, 0.20); }
+.dark [class~="bg-emerald-50"] { background-color: rgba(6, 78, 59, 0.25); }
+.dark [class~="bg-emerald-100"] { background-color: rgba(6, 78, 59, 0.40); }
+
+/* Status box borders */
+.dark [class~="border-amber-200"]   { border-color: rgba(180, 130, 30, 0.40); }
+.dark [class~="border-emerald-200"] { border-color: rgba(16, 185, 129, 0.30); }
+
+/* Status box text */
+.dark [class~="text-amber-800"]   { color: #fcd34d; }
+.dark [class~="text-emerald-800"] { color: #6ee7b7; }

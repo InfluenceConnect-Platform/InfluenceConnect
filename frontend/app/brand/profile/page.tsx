@@ -312,8 +312,8 @@ export default function BrandProfile() {
             BRAND INFO CARD
             ═══════════════════════════════ */}
         <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm mb-5 overflow-hidden">
-          <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#F8F9FD] to-white">
-            <div className="w-7 h-7 rounded-lg bg-[#EAEDF6] flex items-center justify-center flex-shrink-0">
+          <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
               <svg className="w-3.5 h-3.5 text-[#3D5087]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
               </svg>
@@ -414,8 +414,8 @@ export default function BrandProfile() {
             GST VERIFICATION CARD
             ═══════════════════════════════ */}
         <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#F8F9FD] to-white">
-            <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+          <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
               <svg className="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
