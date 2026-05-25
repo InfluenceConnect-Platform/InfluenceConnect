@@ -170,7 +170,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
               IC
             </div>
             <span className={`font-extrabold text-[15px] tracking-tight hidden sm:block ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
-              Influence<span className="text-[#5D8A8F]">Connect</span>
+              Influence<span className={isDark ? 'text-[#9DC4C9]' : 'text-[#5D8A8F]'}>Connect</span>
             </span>
           </Link>
 

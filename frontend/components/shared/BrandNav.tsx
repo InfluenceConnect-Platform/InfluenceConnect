@@ -163,7 +163,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
               IC
             </div>
             <span className={`font-extrabold text-[15px] tracking-tight hidden sm:block ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
-              Influence<span className="text-[#3D5087]">Connect</span>
+              Influence<span className={isDark ? 'text-[#7B9DD4]' : 'text-[#3D5087]'}>Connect</span>
             </span>
           </Link>
 
