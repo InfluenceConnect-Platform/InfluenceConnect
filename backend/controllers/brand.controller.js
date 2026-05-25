@@ -93,46 +93,59 @@ exports.updateProfile = async (req, res) => {
 // ─────────────────────────────────────────
 exports.createCampaign = async (req, res) => {
   try {
-    const isPremium = req.user.plan === 'premium';
-
-    // Freemium limit — 2 active campaigns
-    if (!isPremium) {
-      const activeCampaigns = await Campaign.countDocuments({
-        brandId: req.userId,
-        status: 'active'
-      });
-
-      if (activeCampaigns >= 2) {
-        return res.status(403).json({
-          error: 'freemium_limit',
-          message: 'Upgrade to Premium to create unlimited campaigns.'
-        });
-      }
-    }
-
     const {
       title, description, niche, deliverables,
       budgetMin, budgetMax, deadline,
-      targetCity, targetPlatform, minFollowers
+      targetCity, targetPlatform, minFollowers,
+      status: requestedStatus
     } = req.body;
+
+    const isDraft = requestedStatus === 'draft';
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ error: 'Campaign title is required.' });
+    }
+
+    // Full validation only required when publishing as active
+    if (!isDraft) {
+      if (!description || !description.trim()) return res.status(400).json({ error: 'Description is required.' });
+      if (!deliverables || !deliverables.trim()) return res.status(400).json({ error: 'Deliverables are required.' });
+      if (!deadline) return res.status(400).json({ error: 'Deadline is required.' });
+      if (!budgetMin || isNaN(budgetMin) || Number(budgetMin) <= 0) return res.status(400).json({ error: 'Budget min must be a positive number.' });
+      if (!budgetMax || isNaN(budgetMax) || Number(budgetMax) <= 0) return res.status(400).json({ error: 'Budget max must be a positive number.' });
+    }
+
+    // Freemium limit only applies to active campaigns
+    if (!isDraft) {
+      const isPremium = req.user.plan === 'premium';
+      if (!isPremium) {
+        const activeCampaigns = await Campaign.countDocuments({ brandId: req.userId, status: 'active' });
+        if (activeCampaigns >= 2) {
+          return res.status(403).json({
+            error: 'freemium_limit',
+            message: 'Upgrade to Premium to create unlimited campaigns.'
+          });
+        }
+      }
+    }
 
     const campaign = await Campaign.create({
       brandId: req.userId,
-      title,
-      description,
-      niche,
-      deliverables,
-      budgetMin,
-      budgetMax,
-      deadline,
+      title: title.trim(),
+      description: description?.trim() || '',
+      niche: niche || [],
+      deliverables: deliverables?.trim() || '',
+      budgetMin: budgetMin || 0,
+      budgetMax: budgetMax || 0,
+      deadline: deadline || null,
       targetCity: targetCity || ['all'],
       targetPlatform: targetPlatform || 'any',
       minFollowers: minFollowers || 0,
-      status: 'active'
+      status: isDraft ? 'draft' : 'active'
     });
 
     res.status(201).json({
-      message: 'Campaign created successfully',
+      message: isDraft ? 'Campaign saved as draft.' : 'Campaign created successfully',
       campaign
     });
 
@@ -198,12 +211,36 @@ exports.updateCampaign = async (req, res) => {
       });
     }
 
-    const { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers } = req.body;
+    const { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers, status } = req.body;
+
+    // Publishing a draft → active requires full validation + freemium check
+    if (status === 'active' && campaign.status === 'draft') {
+      if (!title || !title.trim()) return res.status(400).json({ error: 'Campaign title is required.' });
+      if (!description || !description.trim()) return res.status(400).json({ error: 'Description is required.' });
+      if (!deliverables || !deliverables.trim()) return res.status(400).json({ error: 'Deliverables are required.' });
+      if (!deadline) return res.status(400).json({ error: 'Deadline is required.' });
+      if (!budgetMin || isNaN(budgetMin) || Number(budgetMin) <= 0) return res.status(400).json({ error: 'Budget min must be a positive number.' });
+      if (!budgetMax || isNaN(budgetMax) || Number(budgetMax) <= 0) return res.status(400).json({ error: 'Budget max must be a positive number.' });
+
+      const isPremium = req.user.plan === 'premium';
+      if (!isPremium) {
+        const activeCampaigns = await Campaign.countDocuments({ brandId: req.userId, status: 'active' });
+        if (activeCampaigns >= 2) {
+          return res.status(403).json({
+            error: 'freemium_limit',
+            message: 'Upgrade to Premium to create unlimited campaigns.'
+          });
+        }
+      }
+    }
+
+    const updateFields = { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers };
+    if (status === 'active' || status === 'draft') updateFields.status = status;
 
     const updated = await Campaign.findByIdAndUpdate(
       campaignId,
-      { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers },
-      { new: true, runValidators: true }
+      updateFields,
+      { new: true }
     );
 
     res.json({ message: 'Campaign updated successfully.', campaign: updated });

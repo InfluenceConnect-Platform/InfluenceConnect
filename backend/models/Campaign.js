@@ -16,7 +16,7 @@ const campaignSchema = new mongoose.Schema({
 
   description: {
     type: String,
-    required: [true, 'Description is required'],
+    default: '',
     maxlength: [1000, 'Description cannot exceed 1000 characters']
   },
 
@@ -27,25 +27,24 @@ const campaignSchema = new mongoose.Schema({
 
   deliverables: {
     type: String,
-    required: [true, 'Deliverables are required'],
-    // e.g. "2 reels + 3 stories"
+    default: '',
   },
 
   budgetMin: {
     type: Number,
-    required: [true, 'Minimum budget is required'],
+    default: 0,
     min: 0
   },
 
   budgetMax: {
     type: Number,
-    required: [true, 'Maximum budget is required'],
+    default: 0,
     min: 0
   },
 
   deadline: {
     type: Date,
-    required: [true, 'Deadline is required']
+    default: null
   },
 
   targetCity: [{

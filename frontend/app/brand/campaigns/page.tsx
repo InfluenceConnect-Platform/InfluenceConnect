@@ -39,8 +39,10 @@ export default function BrandCampaigns() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('active');
   const [toast, setToast] = useState('');
   const [showPanel, setShowPanel] = useState(false);
@@ -142,6 +144,56 @@ export default function BrandCampaigns() {
       showToast(error.response?.data?.message || 'Failed to create campaign.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!form.title.trim()) { showToast('A title is required to save a draft.'); return; }
+    setSavingDraft(true);
+    try {
+      await api.post('/api/brand/campaigns', {
+        ...form,
+        budgetMin: parseInt(form.budgetMin) || 0,
+        budgetMax: parseInt(form.budgetMax) || 0,
+        minFollowers: parseInt(form.minFollowers) || 0,
+        status: 'draft',
+      });
+      showToast('Draft saved successfully!');
+      setShowForm(false);
+      resetForm();
+      fetchCampaigns();
+    } catch (error: any) {
+      showToast(error.response?.data?.message || error.response?.data?.error || 'Failed to save draft.');
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const handlePublishDraft = async (campaign: any) => {
+    setPublishingId(campaign._id);
+    try {
+      const res = await api.put(`/api/brand/campaigns/${campaign._id}`, {
+        title: campaign.title,
+        description: campaign.description,
+        niche: campaign.niche,
+        deliverables: campaign.deliverables,
+        budgetMin: campaign.budgetMin,
+        budgetMax: campaign.budgetMax,
+        deadline: campaign.deadline,
+        targetCity: campaign.targetCity,
+        targetPlatform: campaign.targetPlatform,
+        minFollowers: campaign.minFollowers,
+        status: 'active',
+      });
+      setCampaigns(prev => prev.map(c => c._id === campaign._id ? res.data.campaign : c));
+      if (selectedCampaign?._id === campaign._id) setSelectedCampaign(res.data.campaign);
+      showToast('Campaign published successfully!');
+    } catch (error: any) {
+      const msg = error.response?.data?.message || error.response?.data?.error || '';
+      if (msg) showToast(msg);
+      else showToast('Failed to publish. Make sure all required fields are filled in.');
+    } finally {
+      setPublishingId(null);
     }
   };
 
@@ -376,10 +428,10 @@ export default function BrandCampaigns() {
               </div>
             </div>
 
-            <div className="px-5 sm:px-6 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
+            <div className="px-5 sm:px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3 flex-shrink-0">
               <button
                 onClick={handleCreateCampaign}
-                disabled={creating}
+                disabled={creating || savingDraft}
                 className="flex-1 sm:flex-none bg-[#3D5087] hover:bg-[#2B3B68] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
               >
                 {creating ? (
@@ -387,11 +439,31 @@ export default function BrandCampaigns() {
                     <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                     Creating…
                   </>
-                ) : 'Create campaign'}
+                ) : 'Publish campaign'}
+              </button>
+              <button
+                onClick={handleSaveDraft}
+                disabled={creating || savingDraft}
+                className="flex-1 sm:flex-none px-6 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+              >
+                {savingDraft ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-gray-400/40 border-t-gray-500 rounded-full animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save as Draft
+                  </>
+                )}
               </button>
               <button
                 onClick={() => { setShowForm(false); resetForm(); }}
-                className="flex-1 sm:flex-none px-6 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all cursor-pointer"
+                disabled={creating || savingDraft}
+                className="sm:ml-auto px-5 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -726,11 +798,32 @@ export default function BrandCampaigns() {
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-[#3D5087] font-semibold lg:hidden flex items-center gap-0.5">
-                      View applicants
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                    </p>
+                    {campaign.status !== 'draft' && (
+                      <p className="text-[10px] text-[#3D5087] font-semibold lg:hidden flex items-center gap-0.5">
+                        View applicants
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                      </p>
+                    )}
                   </div>
+
+                  {/* Publish strip — drafts only */}
+                  {campaign.status === 'draft' && (
+                    <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex items-center justify-between gap-2">
+                      <p className="text-[10px] text-gray-400 font-medium">Not visible to creators yet</p>
+                      <button
+                        onClick={e => { e.stopPropagation(); handlePublishDraft(campaign); }}
+                        disabled={publishingId === campaign._id}
+                        className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 px-3 py-1.5 rounded-lg transition-all cursor-pointer disabled:opacity-60 shadow-sm"
+                      >
+                        {publishingId === campaign._id ? (
+                          <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        )}
+                        {publishingId === campaign._id ? 'Publishing…' : 'Publish'}
+                      </button>
+                    </div>
+                  )}
                   </div>
                 </button>
               ))
