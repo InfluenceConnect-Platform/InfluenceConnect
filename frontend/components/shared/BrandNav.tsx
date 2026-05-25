@@ -197,9 +197,23 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           </div>
         </div>
 
-        {/* Right — theme toggle, plan badge, logout, avatar */}
+        {/* Right — theme toggle, settings, plan badge, logout, avatar */}
         <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
           <ThemeToggle />
+
+          <Link
+            href="/brand/settings"
+            title="Account Settings"
+            className={`hidden sm:flex items-center justify-center w-8 h-8 rounded-xl transition-all cursor-pointer ${
+              pathname === '/brand/settings'
+                ? isDark ? 'bg-[#3D5087]/25 text-[#7B9DD4]' : 'bg-[#3D5087]/10 text-[#3D5087]'
+                : isDark ? 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
+            }`}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </Link>
 
           {isPremium ? (
             <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-white shadow-sm shadow-amber-200">

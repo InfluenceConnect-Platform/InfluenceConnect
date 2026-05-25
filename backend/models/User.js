@@ -76,6 +76,12 @@ const userSchema = new mongoose.Schema({
   premiumUntil: {
     type: Date,
     default: null
+  },
+
+  // Soft-delete: set when user requests deletion; actual purge after 30 days
+  deleteScheduledAt: {
+    type: Date,
+    default: null
   }
 
 }, {

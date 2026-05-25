@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const authenticate = require('../middleware/auth.middleware');
-const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan } = require('../controllers/auth.controller');
+const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
 router.post('/register', register);
@@ -31,6 +31,21 @@ router.post('/upgrade', authenticate, upgradePlan);
 
 // POST /api/auth/downgrade  — revert to freemium
 router.post('/downgrade', authenticate, downgradePlan);
+
+// GET  /api/auth/account  — get current user account info
+router.get('/account', authenticate, getAccountInfo);
+
+// PUT  /api/auth/account  — update name / email / mobile
+router.put('/account', authenticate, updateAccountInfo);
+
+// PUT  /api/auth/account/password  — change password
+router.put('/account/password', authenticate, changePassword);
+
+// POST /api/auth/account/delete  — schedule deletion (30-day grace)
+router.post('/account/delete', authenticate, scheduleAccountDeletion);
+
+// DELETE /api/auth/account/delete  — cancel scheduled deletion
+router.delete('/account/delete', authenticate, cancelAccountDeletion);
 
 // Derive the backend/frontend origin from the incoming request so that OAuth
 // works correctly whether the request comes from localhost or a phone on the

@@ -632,3 +632,143 @@ exports.downgradePlan = async (req, res) => {
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };
+
+// ─────────────────────────────────────────
+// GET ACCOUNT INFO
+// ─────────────────────────────────────────
+exports.getAccountInfo = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      mobile: user.mobile,
+      role: user.role,
+      plan: user.plan,
+      signupMethod: user.signupMethod,
+      createdAt: user.createdAt,
+      deleteScheduledAt: user.deleteScheduledAt,
+    });
+  } catch (error) {
+    console.error('Get account info error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// UPDATE ACCOUNT INFO (name, email, mobile)
+// ─────────────────────────────────────────
+exports.updateAccountInfo = async (req, res) => {
+  try {
+    const { name, email, mobile } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (email && email !== user.email) {
+      const exists = await User.findOne({ email: email.toLowerCase().trim(), _id: { $ne: user._id } });
+      if (exists) return res.status(409).json({ error: 'This email is already in use by another account.' });
+      user.email = email.toLowerCase().trim();
+      user.emailVerified = false;
+    }
+
+    if (mobile && mobile !== user.mobile) {
+      const exists = await User.findOne({ mobile: mobile.trim(), _id: { $ne: user._id } });
+      if (exists) return res.status(409).json({ error: 'This phone number is already in use by another account.' });
+      user.mobile = mobile.trim();
+      user.mobileVerified = false;
+    }
+
+    if (name && name.trim()) user.name = name.trim();
+
+    await user.save();
+
+    res.json({
+      message: 'Account updated successfully.',
+      user: { id: user._id, name: user.name, email: user.email, mobile: user.mobile },
+    });
+  } catch (error) {
+    console.error('Update account info error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// CHANGE PASSWORD
+// ─────────────────────────────────────────
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current and new password are required.' });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (user.signupMethod === 'google' && !user.password) {
+      return res.status(400).json({ error: 'Google accounts do not have a password to change.' });
+    }
+
+    const match = await user.comparePassword(currentPassword);
+    if (!match) return res.status(401).json({ error: 'Current password is incorrect.' });
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully.' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// SCHEDULE ACCOUNT DELETION (30-day grace)
+// ─────────────────────────────────────────
+exports.scheduleAccountDeletion = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    const deleteAt = new Date();
+    deleteAt.setDate(deleteAt.getDate() + 30);
+    user.deleteScheduledAt = deleteAt;
+    await user.save();
+
+    res.json({
+      message: 'Account deletion scheduled. Your account will be permanently deleted in 30 days.',
+      deleteScheduledAt: user.deleteScheduledAt,
+    });
+  } catch (error) {
+    console.error('Schedule deletion error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// CANCEL ACCOUNT DELETION
+// ─────────────────────────────────────────
+exports.cancelAccountDeletion = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (!user.deleteScheduledAt) {
+      return res.status(400).json({ error: 'No deletion scheduled for this account.' });
+    }
+
+    user.deleteScheduledAt = null;
+    await user.save();
+
+    res.json({ message: 'Account deletion cancelled. Your account is safe.' });
+  } catch (error) {
+    console.error('Cancel deletion error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
