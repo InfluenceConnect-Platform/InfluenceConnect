@@ -170,7 +170,7 @@ export default function SignupPage() {
             </span>.
           </h1>
 
-          <p className={`text-[0.95rem] leading-relaxed mb-8 max-w-[22rem] transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+          <p className={`text-[0.95rem] leading-relaxed mb-8 max-w-[22rem] transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
             Whether you create content or run a brand, Influence Connect is where serious collaborations begin.
           </p>
 
@@ -196,7 +196,7 @@ export default function SignupPage() {
                 isDark ? 'bg-slate-800/60 border-slate-700/50' : 'bg-white/70 border-gray-200'
               }`}>
                 <div className={`text-xl font-bold ${statValueColor(s.tint)}`}>{s.value}</div>
-                <div className={`text-xs font-semibold mt-0.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{s.label}</div>
+                <div className={`text-xs font-semibold mt-0.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -225,17 +225,17 @@ export default function SignupPage() {
               </div>
               <div>
                 <span className={`text-sm font-bold tracking-tight block leading-none transition-colors ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Influence Connect</span>
-                <span className={`text-[0.65rem] font-medium tracking-wide uppercase transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Creator · Brand Platform</span>
+                <span className={`text-[0.65rem] font-medium tracking-wide uppercase transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Creator · Brand Platform</span>
               </div>
             </div>
 
             <h2 className={`text-2xl font-bold mb-1.5 tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Create your account</h2>
-            <p className={`text-sm mb-6 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+            <p className={`text-sm mb-6 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
               Secure your account with email and mobile verification.
             </p>
 
             {/* Role picker */}
-            <label className={`text-[0.7rem] font-bold uppercase tracking-widest block mb-2.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+            <label className={`text-[0.7rem] font-bold uppercase tracking-widest block mb-2.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>
               I am signing up as
             </label>
             <div className="grid grid-cols-2 gap-3 mb-5">
@@ -273,7 +273,7 @@ export default function SignupPage() {
                         </svg>
                       )}
                     </div>
-                    <div className={`text-xs ${isActive ? 'text-white/80' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                    <div className={`text-xs ${isActive ? 'text-white/80' : isDark ? 'text-slate-500' : 'text-gray-500'}`}>
                       {ROLE_META[r].sub}
                     </div>
                   </button>
@@ -322,7 +322,7 @@ export default function SignupPage() {
 
             <div className="flex items-center gap-3 my-4">
               <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
-              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>or</span>
+              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>or</span>
               <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
             </div>
 
@@ -344,7 +344,7 @@ export default function SignupPage() {
               Continue with Google
             </button>
 
-            <p className={`text-[0.72rem] text-center mt-5 transition-colors ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>
+            <p className={`text-[0.72rem] text-center mt-5 transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
               Already have an account?{' '}
               <Link href="/auth/login" className="text-[#5D8A8F] font-semibold hover:text-[#4A7A7F] transition-colors">
                 Sign in →

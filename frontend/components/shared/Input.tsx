@@ -47,7 +47,7 @@ export default function Input({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className={`text-[0.7rem] font-bold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-gray-500'}`}>
+      <label className={`text-[0.7rem] font-bold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-gray-600'}`}>
         {label}
       </label>
       <div className="flex relative">
@@ -93,7 +93,7 @@ export default function Input({
         )}
       </div>
       {helper && !error && (
-        <p className={`text-[0.7rem] leading-relaxed ${dark ? 'text-slate-600' : 'text-gray-400'}`}>{helper}</p>
+        <p className={`text-[0.7rem] leading-relaxed ${dark ? 'text-slate-600' : 'text-gray-500'}`}>{helper}</p>
       )}
       {error && (
         <p className={`text-[0.7rem] font-medium ${dark ? 'text-red-400' : 'text-red-500'}`}>{error}</p>

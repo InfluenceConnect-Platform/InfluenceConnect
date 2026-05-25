@@ -134,7 +134,7 @@ export default function LoginPage() {
             </span>.
           </h1>
 
-          <p className={`text-[0.95rem] leading-relaxed mb-8 max-w-[22rem] transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+          <p className={`text-[0.95rem] leading-relaxed mb-8 max-w-[22rem] transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
             Pick up where you left off — manage campaigns, close deals, and grow your presence.
           </p>
 
@@ -175,7 +175,7 @@ export default function LoginPage() {
               </div>
               <div>
                 <p className={`text-xs font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Aarav Mehta</p>
-                <p className={`text-[0.7rem] font-medium transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Travel Creator · 180K followers</p>
+                <p className={`text-[0.7rem] font-medium transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Travel Creator · 180K followers</p>
               </div>
             </div>
           </div>
@@ -200,13 +200,13 @@ export default function LoginPage() {
               </div>
               <div>
                 <span className={`text-sm font-bold tracking-tight block leading-none transition-colors ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Influence Connect</span>
-                <span className={`text-[0.65rem] font-medium tracking-wide uppercase transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Creator · Brand Platform</span>
+                <span className={`text-[0.65rem] font-medium tracking-wide uppercase transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Creator · Brand Platform</span>
               </div>
             </div>
 
             <div className="mb-6">
               <h2 className={`text-2xl font-bold mb-1.5 tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome back</h2>
-              <p className={`text-sm transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+              <p className={`text-sm transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                 Don&apos;t have an account?{' '}
                 <Link href="/auth/signup" className="text-[#5D8A8F] font-semibold hover:text-[#4A7A7F] transition-colors">
                   Sign up free →
@@ -235,7 +235,7 @@ export default function LoginPage() {
 
             <div className="flex items-center gap-3 mb-5">
               <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
-              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>or</span>
+              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>or</span>
               <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
             </div>
 
@@ -312,7 +312,7 @@ export default function LoginPage() {
               Sign in →
             </Button>
 
-            <p className={`text-[0.72rem] text-center mt-5 leading-relaxed transition-colors ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>
+            <p className={`text-[0.72rem] text-center mt-5 leading-relaxed transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
               By continuing you agree to our{' '}
               <span className="text-[#5D8A8F] cursor-pointer hover:text-[#4A7A7F] font-semibold transition-colors">Terms</span>{' '}
               and{' '}
