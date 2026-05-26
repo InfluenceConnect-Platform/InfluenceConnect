@@ -228,7 +228,7 @@ function MediaModal({
 }
 
 /* ─── tab type ─────────────────────────────────────── */
-type Tab = 'all' | 'reels' | 'photos';
+type Tab = 'all' | 'reels' | 'photos' | 'products' | 'stories';
 
 /* ─── page ─────────────────────────────────────────── */
 
@@ -311,10 +311,18 @@ export default function CreatorProfilePage() {
     ? ((profile.platforms.reduce((s: number, p: any) => s + (p.engagementRate ?? 0), 0)) / profile.platforms.length).toFixed(1)
     : '0';
 
-  const visible = (profile.portfolioItems ?? []).filter((i: any) => i.isVisible);
-  const reels   = visible.filter((i: any) => i.type === 'video');
-  const photos  = visible.filter((i: any) => i.type === 'image');
-  const tabMedia: Record<Tab, any[]> = { all: visible, reels, photos };
+  // Backend already returns the correct visible set (full portfolio for premium,
+  // capped for freemium), so render exactly what it sends.
+  const visible  = profile.portfolioItems ?? [];
+  const reels    = visible.filter((i: any) => i.section === 'reels'  || (!i.section && i.type === 'video'));
+  const photos   = visible.filter((i: any) => i.section === 'photos' || (!i.section && i.type === 'image'));
+  const products = visible.filter((i: any) => i.section === 'products');
+  const stories  = visible.filter((i: any) => i.section === 'stories');
+  const tabMedia: Record<Tab, any[]> = { all: visible, reels, photos, products, stories };
+
+  const sectionLabel: Record<string, string> = {
+    reels: 'Reel', photos: 'Photo', products: 'Product', stories: 'Story',
+  };
 
   // Build flat media list for modal navigation
   const buildMediaItems = (list: any[]): MediaItem[] =>
@@ -322,13 +330,15 @@ export default function CreatorProfilePage() {
       type:      item.type === 'video' ? 'video' : 'image',
       src:       item.cloudinaryUrl,
       thumbnail: item.thumbnailUrl || undefined,
-      label:     item.type === 'video' ? 'Reel' : 'Photo',
+      label:     sectionLabel[item.section] ?? (item.type === 'video' ? 'Reel' : 'Photo'),
     }));
 
   const TABS: { key: Tab; label: string; count: number }[] = [
-    { key: 'all',    label: 'All Posts', count: visible.length },
-    { key: 'reels',  label: 'Reels',     count: reels.length   },
-    { key: 'photos', label: 'Photos',    count: photos.length  },
+    { key: 'all',      label: 'All Posts', count: visible.length  },
+    { key: 'reels',    label: 'Reels',     count: reels.length    },
+    { key: 'photos',   label: 'Photos',    count: photos.length   },
+    { key: 'products', label: 'Products',  count: products.length },
+    { key: 'stories',  label: 'Stories',   count: stories.length  },
   ];
 
   const card = 'bg-white rounded-2xl border border-gray-200/80 shadow-sm';
@@ -672,21 +682,6 @@ export default function CreatorProfilePage() {
                       : 'text-gray-400 hover:text-gray-600 hover:bg-white/60'
                   }`}
                 >
-                  {tab.key === 'all' && (
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                    </svg>
-                  )}
-                  {tab.key === 'reels' && (
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
-                    </svg>
-                  )}
-                  {tab.key === 'photos' && (
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                  )}
                   {tab.label}
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${activeTab === tab.key ? 'bg-[#EEF1F8] text-[#3D5087]' : 'bg-gray-100 text-gray-400'}`}>
                     {tab.count}

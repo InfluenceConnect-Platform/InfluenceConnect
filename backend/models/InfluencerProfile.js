@@ -186,10 +186,12 @@ influencerProfileSchema.methods.calculateLevel = function() {
 // Get visible portfolio items
 // ─────────────────────────────────────────
 influencerProfileSchema.methods.getVisiblePortfolio = function(isPremium) {
+  // Premium unlocks the full portfolio. isVisible is set false on upload only
+  // to enforce the freemium 3-item cap, so it must be ignored for premium.
+  if (isPremium) return this.portfolioItems;
   const pinned = this.portfolioItems.filter(item => item.isPinned);
   const rest   = this.portfolioItems.filter(item => item.isVisible && !item.isPinned);
-  const all    = [...pinned, ...rest];
-  return isPremium ? all : all.slice(0, 3);
+  return [...pinned, ...rest].slice(0, 3);
 };
 
 module.exports = mongoose.model('InfluencerProfile', influencerProfileSchema);

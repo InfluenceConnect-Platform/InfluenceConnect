@@ -598,13 +598,20 @@ exports.getInfluencerBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
     const profile = await InfluencerProfile.findOne({ slug })
-      .populate('userId', 'name email');
+      .populate('userId', 'name email plan');
 
     if (!profile) {
       return res.status(404).json({ error: 'Influencer not found.' });
     }
 
-    res.json({ profile });
+    const visiblePortfolio = profile.getVisiblePortfolio(profile.userId?.plan === 'premium');
+
+    res.json({
+      profile: {
+        ...profile.toObject(),
+        portfolioItems: visiblePortfolio
+      }
+    });
   } catch (error) {
     console.error('Get influencer by slug error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
