@@ -300,7 +300,7 @@ export default function BrandDashboard() {
                   const grad = AVATAR_GRADS[(app.influencerId?.name?.charCodeAt(0) || 0) % AVATAR_GRADS.length];
                   const cfg  = STATUS_CONFIG[app.status];
                   return (
-                    <div key={i} className="flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-gray-50/60 transition-colors group">
+                    <Link key={i} href={`/brand/campaigns?campaign=${app.campaignId?._id}`} className="flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-gray-50/60 transition-colors group cursor-pointer">
                       <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>
                         {app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'}
                       </div>
@@ -318,7 +318,7 @@ export default function BrandDashboard() {
                       <svg className="w-4 h-4 text-gray-200 group-hover:text-[#3D5087] transition-colors flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="9 18 15 12 9 6"/>
                       </svg>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>

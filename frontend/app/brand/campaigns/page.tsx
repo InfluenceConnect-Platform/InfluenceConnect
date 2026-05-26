@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 
@@ -29,6 +29,7 @@ const TABS = ['active', 'draft', 'in-progress', 'completed', 'all'] as const;
 
 export default function BrandCampaigns() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -66,6 +67,14 @@ export default function BrandCampaigns() {
     if (!token || !localStorage.getItem('user')) { router.push('/auth/login'); return; }
     fetchCampaigns();
   }, []);
+
+  useEffect(() => {
+    const campaignParam = searchParams.get('campaign');
+    if (!campaignParam || campaigns.length === 0 || selectedCampaign) return;
+    const match = campaigns.find((c) => c._id === campaignParam);
+    if (match) handleSelectCampaign(match);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaigns, searchParams]);
 
   const fetchCampaigns = async () => {
     try {
