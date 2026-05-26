@@ -142,14 +142,13 @@ exports.getPublicProfile = async (req, res) => {
 
     const profile = await InfluencerProfile
       .findOne({ slug })
-      .populate('userId', 'name');
+      .populate('userId', 'name plan');
 
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
     }
 
-    // Public profile only shows 3 portfolio items
-    const visiblePortfolio = profile.getVisiblePortfolio(false);
+    const visiblePortfolio = profile.getVisiblePortfolio(profile.userId?.plan === 'premium');
     const primary = profile.getPrimaryPlatform();
 
     res.json({
