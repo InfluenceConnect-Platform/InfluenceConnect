@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import AccountInfoSection from '@/components/shared/AccountInfoSection';
+import LegalSection from '@/components/shared/LegalSection';
 import { useTheme } from '@/lib/useTheme';
 import api from '@/lib/api';
 
@@ -294,27 +295,7 @@ export default function InfluencerSettings() {
                   <div className={cardCls}>
                     <h2 className={`text-base font-bold mb-1 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Legal</h2>
                     <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Review our policies and agreements.</p>
-
-                    <div className="space-y-3">
-                      {[
-                        { title: 'Terms & Conditions', desc: 'The rules governing your use of InfluenceConnect.', href: '/legal/terms' },
-                        { title: 'Privacy Policy', desc: 'How we collect, use, and protect your data.', href: '/legal/privacy' },
-                        { title: 'Cookie Policy', desc: 'How we use cookies and similar technologies.', href: '/legal/cookies' },
-                        { title: 'Refund Policy', desc: 'Our policy on subscription refunds and cancellations.', href: '/legal/refund' },
-                      ].map(item => (
-                        <a
-                          key={item.title}
-                          href={item.href}
-                          className={`flex items-center justify-between p-4 rounded-xl border transition-all group ${isDark ? 'border-slate-700/60 hover:border-slate-600 hover:bg-slate-800/40' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
-                        >
-                          <div>
-                            <p className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>{item.title}</p>
-                            <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{item.desc}</p>
-                          </div>
-                          <svg className={`w-4 h-4 flex-shrink-0 ml-3 transition-transform group-hover:translate-x-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                        </a>
-                      ))}
-                    </div>
+                    <LegalSection />
                   </div>
                 )}
 
