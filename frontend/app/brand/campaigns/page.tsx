@@ -831,21 +831,21 @@ export default function BrandCampaigns() {
           </div>
 
           {/* Applications panel — desktop only */}
-          <div className="hidden lg:block bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden h-fit sticky top-[72px]">
+          <div className="hidden lg:block bg-white dark:bg-[#0f1e31] border border-gray-200/80 dark:border-slate-700/60 rounded-2xl shadow-sm overflow-hidden h-fit sticky top-[72px]">
             {selectedCampaign ? (
               <>
                 {/* Panel header */}
-                <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-[#F4F6FB] to-white">
+                <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/60 bg-gradient-to-r from-[#F4F6FB] to-white dark:from-slate-800/60 dark:to-[#0f1e31]">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-bold text-gray-900 truncate text-[15px]">{selectedCampaign.title}</h3>
+                    <h3 className="font-bold text-gray-900 dark:text-slate-100 truncate text-[15px]">{selectedCampaign.title}</h3>
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 ${CAMPAIGN_STATUS_STYLES[selectedCampaign.status] || 'bg-gray-100 text-gray-600'}`}>
                       {CAMPAIGN_STATUS_LABELS[selectedCampaign.status] ?? selectedCampaign.status}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                  <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-slate-400">
                     <span className="flex items-center gap-1">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                      <strong className="text-gray-900">{applications.length}</strong> applicant{applications.length !== 1 ? 's' : ''}
+                      <strong className="text-gray-900 dark:text-slate-200">{applications.length}</strong> applicant{applications.length !== 1 ? 's' : ''}
                     </span>
                     {selectedCampaign.budgetMin > 0 && (
                       <span className="flex items-center gap-1">
@@ -865,16 +865,16 @@ export default function BrandCampaigns() {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#F4F6FB] border border-gray-100 flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="w-14 h-14 rounded-2xl bg-[#F4F6FB] dark:bg-slate-800/60 border border-gray-100 dark:border-slate-700 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-gray-300 dark:text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                   </svg>
                 </div>
-                <p className="text-sm font-semibold text-gray-600 mb-1">Select a campaign</p>
-                <p className="text-xs text-gray-400">Click any campaign to see its applications here</p>
+                <p className="text-sm font-semibold text-gray-600 dark:text-slate-400 mb-1">Select a campaign</p>
+                <p className="text-xs text-gray-400 dark:text-slate-600">Click any campaign to see its applications here</p>
               </div>
             )}
           </div>
