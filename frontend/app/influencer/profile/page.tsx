@@ -328,12 +328,6 @@ export default function InfluencerProfile() {
     }
   }, [searchParams]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/auth/login');
-  };
-
   const fetchProfile = async (portfolioOnlyUpdate = false) => {
     try {
       const response = await api.get('/api/influencer/profile/me');

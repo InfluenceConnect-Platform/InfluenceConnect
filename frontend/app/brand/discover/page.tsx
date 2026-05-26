@@ -291,7 +291,7 @@ function FilterPanel({
 
 export default function BrandDiscover() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(() => {
+  const [user] = useState<any>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
   });

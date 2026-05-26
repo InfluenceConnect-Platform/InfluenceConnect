@@ -178,30 +178,43 @@ exports.getMyDeals = async (req, res) => {
 
     const BrandProfile = require('../models/BrandProfile');
 
-    const dealsWithPreview = await Promise.all(
-      deals.map(async (deal) => {
-        const [lastMessage, brandProfile, unreadCount] = await Promise.all([
-          Message.findOne({ dealId: deal._id })
-            .sort({ createdAt: -1 })
-            .select('content senderId createdAt'),
-          BrandProfile.findOne({ userId: deal.brandId }).select('logoUrl'),
-          Message.countDocuments({ dealId: deal._id, receiverId: req.userId, read: false }),
-        ]);
-        const obj = deal.toObject();
-        return {
-          ...obj,
-          _id: obj._id.toString(),
-          offers: (obj.offers || []).map(o => ({
-            ...o,
-            _id: o._id.toString(),
-            proposedBy: o.proposedBy.toString(),
-          })),
-          brandLogoUrl: brandProfile?.logoUrl || '',
-          lastMessage: lastMessage || null,
-          unreadCount,
-        };
-      })
-    );
+    // Batch the per-deal lookups (brand logo, last message, unread count) so the
+    // inbox costs a fixed number of queries instead of three per deal.
+    const dealIds = deals.map(d => d._id);
+    const brandIds = deals.map(d => d.brandId);
+
+    const [brandProfiles, lastMessages, unreadCounts] = await Promise.all([
+      BrandProfile.find({ userId: { $in: brandIds } }).select('logoUrl userId'),
+      Message.aggregate([
+        { $match: { dealId: { $in: dealIds } } },
+        { $sort: { createdAt: -1 } },
+        { $group: { _id: '$dealId', content: { $first: '$content' }, senderId: { $first: '$senderId' }, createdAt: { $first: '$createdAt' } } },
+      ]),
+      Message.aggregate([
+        { $match: { dealId: { $in: dealIds }, receiverId: req.userId, read: false } },
+        { $group: { _id: '$dealId', count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const logoByBrand = new Map(brandProfiles.map(b => [b.userId.toString(), b.logoUrl || '']));
+    const lastMsgByDeal = new Map(lastMessages.map(m => [m._id.toString(), { content: m.content, senderId: m.senderId, createdAt: m.createdAt }]));
+    const unreadByDeal = new Map(unreadCounts.map(u => [u._id.toString(), u.count]));
+
+    const dealsWithPreview = deals.map(deal => {
+      const obj = deal.toObject();
+      return {
+        ...obj,
+        _id: obj._id.toString(),
+        offers: (obj.offers || []).map(o => ({
+          ...o,
+          _id: o._id.toString(),
+          proposedBy: o.proposedBy.toString(),
+        })),
+        brandLogoUrl: logoByBrand.get(deal.brandId.toString()) || '',
+        lastMessage: lastMsgByDeal.get(deal._id.toString()) || null,
+        unreadCount: unreadByDeal.get(deal._id.toString()) || 0,
+      };
+    });
 
     res.json({ deals: dealsWithPreview });
   } catch (error) {

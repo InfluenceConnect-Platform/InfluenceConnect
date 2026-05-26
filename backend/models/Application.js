@@ -44,4 +44,7 @@ applicationSchema.index(
   { unique: true }
 );
 
+// Brand-wide application lists, newest first (dashboard + counts).
+applicationSchema.index({ brandId: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Application', applicationSchema);

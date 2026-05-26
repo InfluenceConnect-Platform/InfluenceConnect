@@ -35,15 +35,6 @@ interface Profile {
   profilePicUrl?: string;
 }
 
-const AVATAR_GRADS = [
-  'from-teal-500 to-cyan-600',
-  'from-violet-500 to-purple-600',
-  'from-amber-500 to-orange-500',
-  'from-indigo-500 to-blue-600',
-  'from-pink-500 to-rose-500',
-  'from-emerald-500 to-green-600',
-];
-
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';

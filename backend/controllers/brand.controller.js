@@ -301,26 +301,28 @@ exports.getCampaignApplications = async (req, res) => {
       .populate('influencerId', 'name')
       .sort({ createdAt: -1 });
 
-    // Get influencer profiles for each application
-    const enriched = await Promise.all(
-      applications.map(async (app) => {
-        const profile = await InfluencerProfile.findOne({
-          userId: app.influencerId._id
-        }).select('niche city platforms profilePicUrl credibilityScore level slug');
+    // Batch-load profiles + deal statuses to avoid a query per application.
+    const userIds = applications.map(app => app.influencerId._id);
+    const acceptedAppIds = applications
+      .filter(app => app.status === 'accepted')
+      .map(app => app._id);
 
-        let dealStatus = null;
-        if (app.status === 'accepted') {
-          const deal = await Deal.findOne({ applicationId: app._id }).select('status');
-          if (deal) dealStatus = deal.status;
-        }
+    const [profiles, deals] = await Promise.all([
+      InfluencerProfile.find({ userId: { $in: userIds } })
+        .select('niche city platforms profilePicUrl credibilityScore level slug'),
+      Deal.find({ applicationId: { $in: acceptedAppIds } }).select('status applicationId'),
+    ]);
 
-        return {
-          ...app.toObject(),
-          influencerProfile: profile,
-          dealStatus,
-        };
-      })
-    );
+    const profileByUser = new Map(profiles.map(p => [p.userId.toString(), p]));
+    const dealByApp = new Map(deals.map(d => [d.applicationId.toString(), d]));
+
+    const enriched = applications.map(app => ({
+      ...app.toObject(),
+      influencerProfile: profileByUser.get(app.influencerId._id.toString()) || null,
+      dealStatus: app.status === 'accepted'
+        ? (dealByApp.get(app._id.toString())?.status ?? null)
+        : null,
+    }));
 
     res.json({ applications: enriched, campaign });
 
@@ -419,31 +421,44 @@ exports.getMyDeals = async (req, res) => {
       .populate('influencerId', 'name')
       .sort({ updatedAt: -1 });
 
-    const dealsWithPreview = await Promise.all(
-      deals.map(async (deal) => {
-        const [profile, lastMessage, unreadCount] = await Promise.all([
-          InfluencerProfile.findOne({ userId: deal.influencerId._id })
-            .select('niche city platforms profilePicUrl'),
-          Message.findOne({ dealId: deal._id })
-            .sort({ createdAt: -1 })
-            .select('content senderId createdAt'),
-          Message.countDocuments({ dealId: deal._id, receiverId: req.userId, read: false }),
-        ]);
-        const obj = deal.toObject();
-        return {
-          ...obj,
-          _id: obj._id.toString(),
-          offers: (obj.offers || []).map(o => ({
-            ...o,
-            _id: o._id.toString(),
-            proposedBy: o.proposedBy.toString(),
-          })),
-          influencerProfile: profile,
-          lastMessage: lastMessage || null,
-          unreadCount,
-        };
-      })
-    );
+    // Batch the per-deal lookups (profile, last message, unread count) so the
+    // inbox costs a fixed number of queries instead of three per deal.
+    const dealIds = deals.map(d => d._id);
+    const influencerIds = deals.map(d => d.influencerId._id);
+
+    const [profiles, lastMessages, unreadCounts] = await Promise.all([
+      InfluencerProfile.find({ userId: { $in: influencerIds } })
+        .select('niche city platforms profilePicUrl'),
+      Message.aggregate([
+        { $match: { dealId: { $in: dealIds } } },
+        { $sort: { createdAt: -1 } },
+        { $group: { _id: '$dealId', content: { $first: '$content' }, senderId: { $first: '$senderId' }, createdAt: { $first: '$createdAt' } } },
+      ]),
+      Message.aggregate([
+        { $match: { dealId: { $in: dealIds }, receiverId: req.userId, read: false } },
+        { $group: { _id: '$dealId', count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const profileByUser = new Map(profiles.map(p => [p.userId.toString(), p]));
+    const lastMsgByDeal = new Map(lastMessages.map(m => [m._id.toString(), { content: m.content, senderId: m.senderId, createdAt: m.createdAt }]));
+    const unreadByDeal = new Map(unreadCounts.map(u => [u._id.toString(), u.count]));
+
+    const dealsWithPreview = deals.map(deal => {
+      const obj = deal.toObject();
+      return {
+        ...obj,
+        _id: obj._id.toString(),
+        offers: (obj.offers || []).map(o => ({
+          ...o,
+          _id: o._id.toString(),
+          proposedBy: o.proposedBy.toString(),
+        })),
+        influencerProfile: profileByUser.get(deal.influencerId._id.toString()) || null,
+        lastMessage: lastMsgByDeal.get(deal._id.toString()) || null,
+        unreadCount: unreadByDeal.get(deal._id.toString()) || 0,
+      };
+    });
 
     res.json({ deals: dealsWithPreview });
   } catch (error) {
@@ -642,15 +657,16 @@ exports.getDashboardStats = async (req, res) => {
       .populate('influencerId', 'name')
       .populate('campaignId', 'title');
 
-    // Enrich with influencer profiles
-    const enrichedApplications = await Promise.all(
-      recentApplications.map(async (app) => {
-        const profile = await InfluencerProfile.findOne({
-          userId: app.influencerId._id
-        }).select('niche city platforms profilePicUrl credibilityScore level');
-        return { ...app.toObject(), influencerProfile: profile };
-      })
-    );
+    // Enrich with influencer profiles (single batched query).
+    const recentUserIds = recentApplications.map(app => app.influencerId._id);
+    const recentProfiles = await InfluencerProfile.find({ userId: { $in: recentUserIds } })
+      .select('niche city platforms profilePicUrl credibilityScore level');
+    const recentProfileByUser = new Map(recentProfiles.map(p => [p.userId.toString(), p]));
+
+    const enrichedApplications = recentApplications.map(app => ({
+      ...app.toObject(),
+      influencerProfile: recentProfileByUser.get(app.influencerId._id.toString()) || null,
+    }));
 
     res.json({
       stats: {

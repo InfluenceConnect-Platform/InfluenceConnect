@@ -63,4 +63,10 @@ const dealSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+// Inbox lists filter by brand/influencer and sort by most recent activity.
+dealSchema.index({ brandId: 1, updatedAt: -1 });
+dealSchema.index({ influencerId: 1, updatedAt: -1 });
+// Deal lookups by the originating application.
+dealSchema.index({ applicationId: 1 });
+
 module.exports = mongoose.model('Deal', dealSchema);

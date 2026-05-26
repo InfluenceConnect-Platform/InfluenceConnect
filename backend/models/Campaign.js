@@ -76,4 +76,7 @@ const campaignSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+// Brand campaign lists, often filtered by status.
+campaignSchema.index({ brandId: 1, status: 1 });
+
 module.exports = mongoose.model('Campaign', campaignSchema);

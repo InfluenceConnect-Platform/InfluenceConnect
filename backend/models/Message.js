@@ -42,4 +42,9 @@ const messageSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+// Conversation history + latest-message preview, newest first.
+messageSchema.index({ dealId: 1, createdAt: -1 });
+// Unread-count lookups per deal for a given recipient.
+messageSchema.index({ dealId: 1, receiverId: 1, read: 1 });
+
 module.exports = mongoose.model('Message', messageSchema);
