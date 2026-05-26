@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const authenticate = require('../middleware/auth.middleware');
-const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion } = require('../controllers/auth.controller');
+const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion, requestEmailChange, verifyEmailChange, requestMobileChange, verifyMobileChange } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
 router.post('/register', register);
@@ -46,6 +46,18 @@ router.post('/account/delete', authenticate, scheduleAccountDeletion);
 
 // DELETE /api/auth/account/delete  — cancel scheduled deletion
 router.delete('/account/delete', authenticate, cancelAccountDeletion);
+
+// POST /api/auth/account/email/request  — send OTP to new email
+router.post('/account/email/request', authenticate, requestEmailChange);
+
+// POST /api/auth/account/email/verify  — verify OTP and apply new email
+router.post('/account/email/verify', authenticate, verifyEmailChange);
+
+// POST /api/auth/account/mobile/request  — send OTP to new mobile
+router.post('/account/mobile/request', authenticate, requestMobileChange);
+
+// POST /api/auth/account/mobile/verify  — verify OTP and apply new mobile
+router.post('/account/mobile/verify', authenticate, verifyMobileChange);
 
 // Derive the backend/frontend origin from the incoming request so that OAuth
 // works correctly whether the request comes from localhost or a phone on the

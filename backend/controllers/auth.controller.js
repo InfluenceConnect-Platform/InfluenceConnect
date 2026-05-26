@@ -659,38 +659,177 @@ exports.getAccountInfo = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
-// UPDATE ACCOUNT INFO (name, email, mobile)
+// UPDATE NAME (direct, no OTP needed)
 // ─────────────────────────────────────────
 exports.updateAccountInfo = async (req, res) => {
   try {
-    const { name, email, mobile } = req.body;
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required.' });
+
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
-    if (email && email !== user.email) {
-      const exists = await User.findOne({ email: email.toLowerCase().trim(), _id: { $ne: user._id } });
-      if (exists) return res.status(409).json({ error: 'This email is already in use by another account.' });
-      user.email = email.toLowerCase().trim();
-      user.emailVerified = false;
-    }
-
-    if (mobile && mobile !== user.mobile) {
-      const exists = await User.findOne({ mobile: mobile.trim(), _id: { $ne: user._id } });
-      if (exists) return res.status(409).json({ error: 'This phone number is already in use by another account.' });
-      user.mobile = mobile.trim();
-      user.mobileVerified = false;
-    }
-
-    if (name && name.trim()) user.name = name.trim();
-
+    user.name = name.trim();
     await user.save();
 
     res.json({
-      message: 'Account updated successfully.',
+      message: 'Name updated successfully.',
       user: { id: user._id, name: user.name, email: user.email, mobile: user.mobile },
     });
   } catch (error) {
-    console.error('Update account info error:', error);
+    console.error('Update name error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// REQUEST EMAIL CHANGE — sends OTP to new email
+// ─────────────────────────────────────────
+exports.requestEmailChange = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'New email is required.' });
+
+    const newEmail = email.toLowerCase().trim();
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (newEmail === user.email) return res.status(400).json({ error: 'This is already your current email address.' });
+
+    const exists = await User.findOne({ email: newEmail, _id: { $ne: user._id } });
+    if (exists) return res.status(409).json({ error: 'This email is already in use by another account.' });
+
+    // Invalidate any previous pending email-change OTPs
+    await OTP.updateMany({ userId: user._id, type: 'email_change', used: false }, { used: true });
+
+    const code = generateOTP();
+    await OTP.create({ userId: user._id, type: 'email_change', otp: code, pendingValue: newEmail });
+
+    const devBypass = process.env.DEV_OTP_EMAIL;
+    await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: devBypass || newEmail,
+      subject: devBypass ? `[DEV] Email change OTP for ${newEmail} — Influence Connect` : 'Confirm your new email — Influence Connect',
+      html: buildOtpEmail({
+        heading: 'Confirm your new email address',
+        body: `You requested to change your Influence Connect email to <strong>${newEmail}</strong>. Use the code below to confirm.`,
+        otp: code,
+        codeLabel: 'Email confirmation code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: ${newEmail}` : null,
+      }),
+    });
+
+    res.json({ message: `A verification code has been sent to ${newEmail}.` });
+  } catch (error) {
+    console.error('Request email change error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// VERIFY EMAIL CHANGE — applies the new email
+// ─────────────────────────────────────────
+exports.verifyEmailChange = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    if (!otp) return res.status(400).json({ error: 'OTP is required.' });
+
+    const otpRecord = await OTP.findOne({ userId: req.userId, type: 'email_change', used: false });
+    if (!otpRecord) return res.status(400).json({ error: 'No pending email change found. Please request a new code.' });
+    if (otpRecord.expiresAt < new Date()) return res.status(400).json({ error: 'Code has expired. Please request a new one.' });
+    if (otpRecord.otp !== otp) return res.status(400).json({ error: 'Incorrect code. Please try again.' });
+
+    const newEmail = otpRecord.pendingValue;
+    const exists = await User.findOne({ email: newEmail, _id: { $ne: req.userId } });
+    if (exists) return res.status(409).json({ error: 'This email was taken by another account. Please try a different one.' });
+
+    await OTP.findByIdAndUpdate(otpRecord._id, { used: true });
+
+    const user = await User.findById(req.userId);
+    user.email = newEmail;
+    user.emailVerified = true;
+    await user.save();
+
+    res.json({ message: 'Email updated successfully.', email: user.email });
+  } catch (error) {
+    console.error('Verify email change error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// REQUEST MOBILE CHANGE — sends OTP to new number
+// ─────────────────────────────────────────
+exports.requestMobileChange = async (req, res) => {
+  try {
+    const { mobile } = req.body;
+    if (!mobile) return res.status(400).json({ error: 'New phone number is required.' });
+
+    const newMobile = mobile.trim();
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (newMobile === user.mobile) return res.status(400).json({ error: 'This is already your current phone number.' });
+
+    const exists = await User.findOne({ mobile: newMobile, _id: { $ne: user._id } });
+    if (exists) return res.status(409).json({ error: 'This phone number is already in use by another account.' });
+
+    await OTP.updateMany({ userId: user._id, type: 'mobile_change', used: false }, { used: true });
+
+    const code = generateOTP();
+    await OTP.create({ userId: user._id, type: 'mobile_change', otp: code, pendingValue: newMobile });
+
+    const devBypass = process.env.DEV_OTP_EMAIL;
+    if (devBypass) {
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: devBypass,
+        subject: `[DEV] Mobile change OTP for ${newMobile} — Influence Connect`,
+        html: buildOtpEmail({
+          heading: 'Confirm your new phone number',
+          body: `You requested to change your phone number to <strong>${newMobile}</strong>. Use the code below to confirm.`,
+          otp: code,
+          codeLabel: 'Mobile confirmation code',
+          devNote: `DEV BYPASS — original recipient: ${newMobile}`,
+        }),
+      });
+    }
+    console.log(`[OTP] Mobile change OTP for ${newMobile}: ${code}`);
+
+    res.json({ message: `A verification code has been sent to ${newMobile}.` });
+  } catch (error) {
+    console.error('Request mobile change error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// VERIFY MOBILE CHANGE — applies the new number
+// ─────────────────────────────────────────
+exports.verifyMobileChange = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    if (!otp) return res.status(400).json({ error: 'OTP is required.' });
+
+    const otpRecord = await OTP.findOne({ userId: req.userId, type: 'mobile_change', used: false });
+    if (!otpRecord) return res.status(400).json({ error: 'No pending phone change found. Please request a new code.' });
+    if (otpRecord.expiresAt < new Date()) return res.status(400).json({ error: 'Code has expired. Please request a new one.' });
+    if (otpRecord.otp !== otp) return res.status(400).json({ error: 'Incorrect code. Please try again.' });
+
+    const newMobile = otpRecord.pendingValue;
+    const exists = await User.findOne({ mobile: newMobile, _id: { $ne: req.userId } });
+    if (exists) return res.status(409).json({ error: 'This number was taken by another account. Please try a different one.' });
+
+    await OTP.findByIdAndUpdate(otpRecord._id, { used: true });
+
+    const user = await User.findById(req.userId);
+    user.mobile = newMobile;
+    user.mobileVerified = true;
+    await user.save();
+
+    res.json({ message: 'Phone number updated successfully.', mobile: user.mobile });
+  } catch (error) {
+    console.error('Verify mobile change error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

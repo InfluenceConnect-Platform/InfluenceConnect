@@ -9,13 +9,19 @@ const otpSchema = new mongoose.Schema({
 
   type: {
     type: String,
-    enum: ['email', 'mobile', 'password_reset'],
+    enum: ['email', 'mobile', 'password_reset', 'email_change', 'mobile_change'],
     required: true
   },
 
   otp: {
     type: String,
     required: true
+  },
+
+  // Stores the new email/mobile being verified during account updates
+  pendingValue: {
+    type: String,
+    default: null
   },
 
   expiresAt: {
