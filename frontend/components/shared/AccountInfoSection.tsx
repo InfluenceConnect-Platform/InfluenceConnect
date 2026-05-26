@@ -188,7 +188,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate }: P
                 ? 'text-white'
                 : isDark
                   ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed'
-                  : 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+                  : 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
             }`}
           >
             {nameState === 'saving' ? <Spinner /> : null}
@@ -223,7 +223,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate }: P
                 className={`${updateBtnCls} px-4 ${
                   emailOtp.length === 6
                     ? 'text-white'
-                    : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+                    : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
                 }`}
               >
                 {emailState === 'verifying' ? <Spinner /> : null}
@@ -253,7 +253,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate }: P
               className={`${updateBtnCls} ${
                 isDirtyEmail && emailState === 'idle'
                   ? 'text-white'
-                  : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+                  : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
               }`}
             >
               {emailState === 'sending' ? <Spinner /> : null}
@@ -289,7 +289,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate }: P
                 className={`${updateBtnCls} px-4 ${
                   mobileOtp.length === 6
                     ? 'text-white'
-                    : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+                    : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
                 }`}
               >
                 {mobileState === 'verifying' ? <Spinner /> : null}
@@ -318,7 +318,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate }: P
               className={`${updateBtnCls} ${
                 isDirtyMobile && mobileState === 'idle'
                   ? 'text-white'
-                  : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+                  : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
               }`}
             >
               {mobileState === 'sending' ? <Spinner /> : null}
