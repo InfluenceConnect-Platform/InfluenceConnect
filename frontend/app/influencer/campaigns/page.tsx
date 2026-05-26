@@ -449,9 +449,9 @@ export default function InfluencerCampaigns() {
                 <div
                   key={campaign._id}
                   className={`rounded-2xl border shadow-sm flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
-                    alreadyApplied ? 'bg-gradient-to-br from-white to-green-50/40 border-green-200' :
-                    urgency        ? 'bg-gradient-to-br from-white to-red-50/40 border-red-200' :
-                    'bg-white border-gray-200 hover:border-[#7FA8AD]/50'
+                    alreadyApplied ? 'bg-gradient-to-br from-white to-green-50/40 dark:from-[#0f1e31] dark:to-emerald-900/10 border-green-200 dark:border-emerald-800/40' :
+                    urgency        ? 'bg-gradient-to-br from-white to-red-50/40 dark:from-[#0f1e31] dark:to-red-900/10 border-red-200 dark:border-red-800/40' :
+                    'bg-white dark:bg-[#0f1e31] border-gray-200 dark:border-slate-700/60 hover:border-[#7FA8AD]/50 dark:hover:border-[#7FA8AD]/40'
                   }`}
                 >
                   {/* Accent strip */}
@@ -464,8 +464,8 @@ export default function InfluencerCampaigns() {
 
                   <div className="p-4 sm:p-5 flex flex-col flex-1">
                     {/* Brand row */}
-                    <div className="flex items-start gap-3 mb-3.5 p-3 rounded-xl bg-gray-50/70 border border-gray-100">
-                      <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${!campaign.brandLogoUrl ? `bg-gradient-to-br ${brandGrad}` : 'bg-gray-100'}`}>
+                    <div className="flex items-start gap-3 mb-3.5 p-3 rounded-xl bg-gray-50/70 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50">
+                      <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${!campaign.brandLogoUrl ? `bg-gradient-to-br ${brandGrad}` : 'bg-gray-100 dark:bg-slate-700'}`}>
                         {campaign.brandLogoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={campaign.brandLogoUrl} alt={campaign.brandId?.name} className="w-full h-full object-cover" />
@@ -475,7 +475,7 @@ export default function InfluencerCampaigns() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-[13px] font-bold text-gray-900 truncate">{campaign.brandId?.name || 'Brand'}</p>
+                          <p className="text-[13px] font-bold text-gray-900 dark:text-slate-100 truncate">{campaign.brandId?.name || 'Brand'}</p>
                           {campaign.brandGstinVerified && (
                             <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
                               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -520,7 +520,7 @@ export default function InfluencerCampaigns() {
                           )}
                         </div>
                         {campaign.brandDescription && (
-                          <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed line-clamp-2">
+                          <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1.5 leading-relaxed line-clamp-2">
                             {campaign.brandDescription}
                           </p>
                         )}
@@ -528,27 +528,27 @@ export default function InfluencerCampaigns() {
                     </div>
 
                     {/* Title + description */}
-                    <h3 className="text-[15px] font-bold text-gray-900 mb-1.5 leading-snug">
+                    <h3 className="text-[15px] font-bold text-gray-900 dark:text-slate-100 mb-1.5 leading-snug">
                       {campaign.title}
                     </h3>
-                    <p className="text-sm text-gray-500 leading-relaxed mb-4 flex-1 line-clamp-2">
+                    <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed mb-4 flex-1 line-clamp-2">
                       {campaign.description}
                     </p>
 
                     {/* Stats row */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
-                      <div className="bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200 rounded-xl p-3">
-                        <p className="text-[10px] text-emerald-600/80 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
-                        <p className="text-[13px] font-bold text-emerald-900 leading-tight">
+                      <div className="bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/10 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3">
+                        <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
+                        <p className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 leading-tight">
                           ₹{campaign.budgetMin.toLocaleString()}
                         </p>
-                        <p className="text-[10px] text-emerald-600/60">– ₹{campaign.budgetMax.toLocaleString()}</p>
+                        <p className="text-[10px] text-emerald-600/60 dark:text-emerald-400/50">– ₹{campaign.budgetMax.toLocaleString()}</p>
                       </div>
                       <div className={`rounded-xl p-3 border ${
-                        deadlinePassed ? 'bg-gray-50 border-gray-100' :
-                        urgency        ? 'bg-red-50 border-red-100' :
-                        soonish        ? 'bg-amber-50 border-amber-100' :
-                        'bg-[#EEF4F5] border-[#7FA8AD]/20'
+                        deadlinePassed ? 'bg-gray-50 dark:bg-slate-800/40 border-gray-100 dark:border-slate-700/40' :
+                        urgency        ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/40' :
+                        soonish        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40' :
+                        'bg-[#EEF4F5] dark:bg-[#0d2d33]/60 border-[#7FA8AD]/20 dark:border-[#7FA8AD]/20'
                       }`}>
                         <div className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider mb-0.5 ${
                           deadlinePassed ? 'text-gray-400' : urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#5D8A8F]'
@@ -563,36 +563,36 @@ export default function InfluencerCampaigns() {
                         }`}>
                           {deadlinePassed ? 'Closed' : days === 0 ? 'Today!' : `${days}d left`}
                         </p>
-                        <p className="text-[10px] text-gray-400">{formatDate(campaign.deadline)}</p>
+                        <p className="text-[10px] text-gray-400 dark:text-slate-500">{formatDate(campaign.deadline)}</p>
                       </div>
                     </div>
 
                     {/* Deliverables + min followers */}
                     <div className="flex flex-col gap-1.5 mb-4">
-                      <div className="flex items-start gap-2 text-xs text-gray-500">
-                        <span className="text-gray-300 mt-0.5 flex-shrink-0">▸</span>
-                        <span className="leading-relaxed"><strong className="text-gray-600">Deliverables:</strong> {campaign.deliverables}</span>
+                      <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-slate-400">
+                        <span className="text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0">▸</span>
+                        <span className="leading-relaxed"><strong className="text-gray-600 dark:text-slate-300">Deliverables:</strong> {campaign.deliverables}</span>
                       </div>
                       {campaign.minFollowers > 0 && (
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <svg className="text-gray-300 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
+                          <svg className="text-gray-300 dark:text-slate-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                           </svg>
-                          <span>Min. <strong className="text-gray-600">{formatFollowers(campaign.minFollowers)}</strong> followers required</span>
+                          <span>Min. <strong className="text-gray-600 dark:text-slate-300">{formatFollowers(campaign.minFollowers)}</strong> followers required</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <svg className="text-gray-300 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
+                        <svg className="text-gray-300 dark:text-slate-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                           <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
-                        <span><strong className="text-gray-600">{campaign.applicantCount}</strong> {campaign.applicantCount === 1 ? 'applicant' : 'applicants'} so far</span>
+                        <span><strong className="text-gray-600 dark:text-slate-300">{campaign.applicantCount}</strong> {campaign.applicantCount === 1 ? 'applicant' : 'applicants'} so far</span>
                       </div>
                     </div>
 
                     {/* Niche tags + CTA */}
-                    <div className="flex items-end justify-between gap-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-end justify-between gap-3 pt-3 border-t border-gray-100 dark:border-slate-700/50">
                       <div className="flex gap-1 flex-wrap">
                         {campaign.niche.slice(0, 2).map(n => (
                           <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize border ${NICHE_COLORS[n] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
@@ -600,23 +600,23 @@ export default function InfluencerCampaigns() {
                           </span>
                         ))}
                         {campaign.niche.length > 2 && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                          <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">
                             +{campaign.niche.length - 2}
                           </span>
                         )}
                         {campaign.targetCity.length > 0 && campaign.targetCity[0] !== 'all' && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">
                             {campaign.targetCity[0]}{campaign.targetCity.length > 1 ? ` +${campaign.targetCity.length - 1}` : ''}
                           </span>
                         )}
                       </div>
 
                       {alreadyApplied ? (
-                        <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-green-50 text-green-600 border border-green-200 rounded-xl cursor-not-allowed font-semibold">
+                        <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-green-50 dark:bg-emerald-900/30 text-green-600 dark:text-emerald-400 border border-green-200 dark:border-emerald-800/50 rounded-xl cursor-not-allowed font-semibold">
                           Applied ✓
                         </button>
                       ) : deadlinePassed ? (
-                        <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-gray-100 text-gray-400 rounded-xl cursor-not-allowed font-semibold">
+                        <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-gray-100 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 rounded-xl cursor-not-allowed font-semibold">
                           Closed
                         </button>
                       ) : !isPremium && applicationsUsed >= FREEMIUM_LIMIT ? (
