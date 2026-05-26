@@ -585,6 +585,7 @@ exports.upgradePlan = async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
     user.plan = 'premium';
+    if (!user.premiumStartedAt) user.premiumStartedAt = new Date();
     user.premiumUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year
     await user.save();
 
@@ -596,6 +597,7 @@ exports.upgradePlan = async (req, res) => {
         email: user.email,
         role: user.role,
         plan: user.plan,
+        premiumStartedAt: user.premiumStartedAt,
         premiumUntil: user.premiumUntil,
       },
     });
@@ -614,6 +616,7 @@ exports.downgradePlan = async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
     user.plan = 'freemium';
+    user.premiumStartedAt = null;
     user.premiumUntil = null;
     await user.save();
 
@@ -648,6 +651,8 @@ exports.getAccountInfo = async (req, res) => {
       mobile: user.mobile,
       role: user.role,
       plan: user.plan,
+      premiumStartedAt: user.premiumStartedAt,
+      premiumUntil: user.premiumUntil,
       signupMethod: user.signupMethod,
       createdAt: user.createdAt,
       deleteScheduledAt: user.deleteScheduledAt,

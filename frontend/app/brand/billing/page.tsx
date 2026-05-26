@@ -95,6 +95,8 @@ export default function BrandBillingPage() {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
+  const [premiumStartedAt, setPremiumStartedAt] = useState<string | null>(null);
+  const [premiumUntil, setPremiumUntil] = useState<string | null>(null);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
   const [downgrading, setDowngrading] = useState(false);
@@ -113,6 +115,10 @@ export default function BrandBillingPage() {
     const parsed = JSON.parse(stored);
     if (parsed.role !== 'brand') { router.push('/auth/login'); return; }
     setUser(parsed);
+    api.get('/api/auth/account').then(res => {
+      setPremiumStartedAt(res.data.premiumStartedAt ?? null);
+      setPremiumUntil(res.data.premiumUntil ?? null);
+    }).catch(() => {});
   }, [router]);
 
   const showToast = (msg: string) => {
@@ -135,6 +141,8 @@ export default function BrandBillingPage() {
     try {
       const res = await api.post('/api/auth/upgrade');
       syncUserToStorage(res.data.user);
+      setPremiumStartedAt(res.data.user.premiumStartedAt ?? null);
+      setPremiumUntil(res.data.user.premiumUntil ?? null);
       showToast('🎉 Welcome to Premium! All features are now unlocked.');
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Upgrade failed. Please try again.');
@@ -149,6 +157,8 @@ export default function BrandBillingPage() {
     try {
       const res = await api.post('/api/auth/downgrade');
       syncUserToStorage(res.data.user);
+      setPremiumStartedAt(null);
+      setPremiumUntil(null);
       showToast('Plan downgraded to Freemium.');
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Downgrade failed. Please try again.');
@@ -191,7 +201,20 @@ export default function BrandBillingPage() {
             <div className="flex-1 min-w-0 relative">
               <p className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">Active plan</p>
               <h2 className="text-lg font-bold text-white">You&apos;re on Premium — enjoy every feature</h2>
-              <p className="text-sm text-blue-100/80 mt-1">Your subscription renews automatically. You can cancel anytime.</p>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
+                {premiumStartedAt && (
+                  <span className="flex items-center gap-1.5 text-xs text-blue-100/80">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Started {new Date(premiumStartedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
+                {premiumUntil && (
+                  <span className="flex items-center gap-1.5 text-xs text-blue-100/80">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Renews {new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
+              </div>
             </div>
             <button
               onClick={handleDowngrade}

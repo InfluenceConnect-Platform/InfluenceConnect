@@ -73,6 +73,11 @@ const userSchema = new mongoose.Schema({
     default: 'freemium'
   },
 
+  premiumStartedAt: {
+    type: Date,
+    default: null
+  },
+
   premiumUntil: {
     type: Date,
     default: null
