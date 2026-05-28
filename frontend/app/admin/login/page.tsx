@@ -53,38 +53,39 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8] flex">
+    <div className="min-h-screen flex">
 
-      {/* ── Left panel — brand / features ── */}
-      <div className="hidden lg:flex flex-col justify-between w-[44%] xl:w-[42%] bg-[#3E4751] px-10 xl:px-14 py-12 relative overflow-hidden flex-shrink-0">
+      {/* ── Left panel ── */}
+      <div className="hidden lg:flex flex-col justify-between w-[44%] xl:w-[42%] bg-gradient-to-b from-[#2C2007] via-[#231A06] to-[#181304] px-10 xl:px-14 py-12 relative overflow-hidden flex-shrink-0">
 
-        {/* Decorative circles */}
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/[0.04] pointer-events-none" />
-        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-white/[0.03] pointer-events-none" />
-        <div className="absolute top-1/2 -right-10 w-40 h-40 rounded-full bg-white/[0.03] pointer-events-none" />
+        {/* Decorative glow circles */}
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-12 w-80 h-80 rounded-full bg-yellow-500/8 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 right-0 w-40 h-40 rounded-full bg-amber-300/6 blur-2xl pointer-events-none" />
 
         {/* Top: logo */}
         <div>
           <div className="flex items-center gap-3 mb-14">
-            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+            <div className="w-10 h-10 rounded-xl bg-amber-400/15 border border-amber-400/25 flex items-center justify-center font-bold text-sm shadow-inner text-amber-300">
               IC
             </div>
             <div>
               <p className="text-white font-bold text-[15px] tracking-tight leading-none">Influence Connect</p>
-              <p className="text-white/40 text-[11px] font-medium tracking-widest uppercase mt-0.5">Admin Console</p>
+              <p className="text-amber-400/50 text-[11px] font-medium tracking-widest uppercase mt-0.5">Admin Console</p>
             </div>
           </div>
 
           <h1 className="text-3xl xl:text-[2.2rem] font-bold text-white leading-tight tracking-tight mb-4">
-            Platform control<br />at your fingertips.
+            Platform control<br />
+            <span className="text-amber-400">at your fingertips.</span>
           </h1>
-          <p className="text-white/55 text-[0.95rem] leading-relaxed max-w-[300px]">
+          <p className="text-white/50 text-[0.95rem] leading-relaxed max-w-[300px]">
             Manage users, campaigns, subscriptions, and compliance from a single secure dashboard.
           </p>
         </div>
 
         {/* Middle: feature list */}
-        <div className="flex flex-col gap-4 py-10">
+        <div className="flex flex-col gap-5 py-10">
           {[
             {
               icon: (
@@ -116,148 +117,160 @@ export default function AdminLoginPage() {
             },
           ].map((item, i) => (
             <div key={i} className="flex items-start gap-4">
-              <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/[0.12] flex items-center justify-center text-white/70 flex-shrink-0 mt-0.5">
+              <div className="w-9 h-9 rounded-lg bg-amber-400/12 border border-amber-400/20 flex items-center justify-center text-amber-400/70 flex-shrink-0 mt-0.5">
                 {item.icon}
               </div>
               <div>
                 <p className="text-white text-sm font-semibold leading-tight mb-0.5">{item.title}</p>
-                <p className="text-white/45 text-xs leading-relaxed">{item.desc}</p>
+                <p className="text-white/40 text-xs leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Bottom: security badge */}
-        <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3">
-          <svg className="w-4 h-4 text-white/50 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex items-center gap-2.5 bg-amber-400/8 border border-amber-400/15 rounded-xl px-4 py-3">
+          <svg className="w-4 h-4 text-amber-400/50 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
-          <p className="text-white/45 text-xs leading-relaxed">
+          <p className="text-white/40 text-xs leading-relaxed">
             Secured via JWT · Sessions expire in 7 days · Admin-only access
           </p>
         </div>
       </div>
 
-      {/* ── Right panel — login form ── */}
-      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-[400px]">
+      {/* ── Right panel ── */}
+      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12 bg-gradient-to-br from-[#FFFBEB] via-[#FFF8E1] to-[#FEF3C7] relative overflow-hidden">
+
+        {/* Warm glow blobs */}
+        <div className="absolute -top-16 -right-16 w-80 h-80 rounded-full bg-amber-300/25 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-16 w-72 h-72 rounded-full bg-yellow-300/20 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 right-1/4 w-40 h-40 rounded-full bg-amber-200/20 blur-2xl pointer-events-none" />
+
+        <div className="w-full max-w-[420px] relative">
 
           {/* Mobile logo */}
-          <div className="flex items-center gap-3 mb-8 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-[#3E4751] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+          <div className="flex items-center gap-3 mb-6 lg:hidden">
+            <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
               IC
             </div>
             <div>
               <p className="text-gray-900 font-bold text-[14px] tracking-tight leading-none">Influence Connect</p>
-              <p className="text-gray-400 text-[10px] font-medium tracking-widest uppercase mt-0.5">Admin Console</p>
+              <p className="text-amber-600/70 text-[10px] font-semibold tracking-widest uppercase mt-0.5">Admin Console</p>
             </div>
           </div>
 
-          {/* Heading */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight mb-1.5">Sign in to your account</h2>
-            <p className="text-sm text-gray-500">Enter your admin credentials to continue.</p>
-          </div>
+          {/* Floating card */}
+          <div className="bg-white rounded-2xl shadow-[0_8px_40px_rgba(180,130,0,0.15),0_2px_10px_rgba(180,130,0,0.08)] border border-amber-100/80 px-8 py-8">
 
-          {/* Form */}
-          <div className="flex flex-col gap-5" onKeyDown={handleKeyDown}>
-
-            {/* Email */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[0.72rem] font-semibold uppercase tracking-widest text-gray-500">
-                Email address
-              </label>
-              <input
-                type="email"
-                autoComplete="username"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={e => { setEmail(e.target.value); setError(''); }}
-                className="w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 focus:border-[#3E4751] hover:border-gray-300 transition-all duration-200 shadow-sm"
-              />
+            {/* Card heading */}
+            <div className="mb-7">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 hidden lg:flex items-center justify-center text-white font-bold text-xs shadow-md flex-shrink-0">
+                  IC
+                </div>
+                <div className="hidden lg:block">
+                  <p className="text-[11px] font-bold text-amber-600/70 uppercase tracking-widest">Admin Console</p>
+                </div>
+              </div>
+              <h2 className="text-[1.45rem] font-bold text-gray-900 tracking-tight mb-1">Welcome back</h2>
+              <p className="text-sm text-gray-500">Enter your admin credentials to continue.</p>
             </div>
 
-            {/* Password */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[0.72rem] font-semibold uppercase tracking-widest text-gray-500">
-                  Password
+            {/* Form */}
+            <div className="flex flex-col gap-4" onKeyDown={handleKeyDown}>
+
+              {/* Email */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.7rem] font-bold uppercase tracking-widest text-amber-700/60">
+                  Email address
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setShowForgotPw(true)}
-                  className="text-xs text-[#3E4751] hover:text-[#5A6472] font-semibold cursor-pointer transition-colors"
-                >
-                  Forgot password?
-                </button>
-              </div>
-              <div className="relative">
                 <input
-                  type={showPw ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="Min. 8 characters"
-                  value={password}
-                  onChange={e => { setPassword(e.target.value); setError(''); }}
-                  className="w-full px-4 py-3 pr-11 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 focus:border-[#3E4751] hover:border-gray-300 transition-all duration-200 shadow-sm"
+                  type="email"
+                  autoComplete="username"
+                  placeholder="admin@example.com"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setError(''); }}
+                  className="w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-400 bg-amber-50/60 border border-amber-200/70 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 hover:border-amber-300 hover:bg-amber-50 transition-all duration-200"
                 />
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  onClick={() => setShowPw(v => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                  aria-label={showPw ? 'Hide password' : 'Show password'}
-                >
-                  {showPw ? <EyeOff /> : <Eye />}
-                </button>
+              </div>
+
+              {/* Password */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[0.7rem] font-bold uppercase tracking-widest text-amber-700/60">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPw(true)}
+                    className="text-xs text-amber-600 hover:text-amber-700 font-semibold cursor-pointer transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="Min. 8 characters"
+                    value={password}
+                    onChange={e => { setPassword(e.target.value); setError(''); }}
+                    className="w-full px-4 py-3 pr-11 text-sm text-gray-900 placeholder-gray-400 bg-amber-50/60 border border-amber-200/70 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 hover:border-amber-300 hover:bg-amber-50 transition-all duration-200"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPw(v => !v)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-amber-600 transition-colors cursor-pointer"
+                    aria-label={showPw ? 'Hide password' : 'Show password'}
+                  >
+                    {showPw ? <EyeOff /> : <Eye />}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Error */}
-          {error && (
-            <div className="mt-4 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5">
-              <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          )}
-
-          {/* Submit */}
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm text-white bg-[#3E4751] hover:bg-[#4A5562] active:scale-[0.985] shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin w-4 h-4 text-white/70" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+            {/* Error */}
+            {error && (
+              <div className="mt-4 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
-                Signing in…
-              </>
-            ) : (
-              <>
-                Sign in to Admin Panel
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                </svg>
-              </>
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
             )}
-          </button>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-[0.68rem] font-semibold uppercase tracking-widest text-gray-400">or</span>
-            <div className="flex-1 h-px bg-gray-200" />
+            {/* Submit */}
+            <button
+              onClick={handleLogin}
+              disabled={loading}
+              className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-[0.985] shadow-[0_4px_18px_rgba(245,158,11,0.45)] hover:shadow-[0_6px_24px_rgba(245,158,11,0.55)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin w-4 h-4 text-white/80" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                  </svg>
+                  Signing in…
+                </>
+              ) : (
+                <>
+                  Sign in to Admin Panel
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </>
+              )}
+            </button>
+
           </div>
 
           {/* Footer link */}
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-amber-900/50 mt-5">
             Not an admin?{' '}
-            <a href="/auth/login" className="text-[#3E4751] hover:text-[#5A6472] font-semibold transition-colors">
+            <a href="/auth/login" className="text-amber-700 hover:text-amber-800 font-semibold transition-colors">
               Go to user login →
             </a>
           </p>
