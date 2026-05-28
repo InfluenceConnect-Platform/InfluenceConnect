@@ -17,7 +17,8 @@ export default function AdminSubscriptions() {
     const parsed = JSON.parse(stored);
     if (parsed.role !== 'admin') { router.push('/admin/login'); return; }
     fetchOverview();
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchOverview = async () => {
     try {
@@ -33,71 +34,115 @@ export default function AdminSubscriptions() {
   const fmt = (n: number) => n.toLocaleString('en-IN');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F7F8FA]">
       <AdminNav />
 
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-9">
 
-        <div className="mb-5">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Revenue &amp; subscriptions</p>
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">Subscriptions overview</h1>
+        <div className="mb-7">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Revenue &amp; subscriptions</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Subscriptions</h1>
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center gap-2 py-20">
+          <div className="flex flex-col items-center gap-3 py-24">
             <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-400">Loading…</p>
+            <p className="text-sm text-gray-400 font-medium">Loading…</p>
           </div>
         ) : (
           <div className="flex flex-col gap-5">
 
-            {/* MRR highlight */}
-            <div className="bg-[#3E4751] rounded-2xl px-5 sm:px-7 py-5 sm:py-6 text-white overflow-hidden relative">
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
-              <p className="text-sm text-white/60 font-medium mb-1">Monthly Recurring Revenue</p>
-              <p className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums">₹{fmt(overview?.mrr ?? 0)}</p>
-              <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-3">
-                <span className="text-xs text-white/60">
-                  Creator: <span className="text-white font-semibold">₹{fmt(overview?.influencerMRR ?? 0)}</span>
-                </span>
-                <span className="text-xs text-white/60">
-                  Brand: <span className="text-white font-semibold">₹{fmt(overview?.brandMRR ?? 0)}</span>
-                </span>
+            {/* MRR Hero */}
+            <div className="bg-[#3E4751] rounded-2xl px-6 sm:px-8 py-6 sm:py-7 text-white overflow-hidden relative">
+              <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/[0.04] rounded-full pointer-events-none" />
+              <div className="absolute -bottom-20 -left-10 w-56 h-56 bg-white/[0.03] rounded-full pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-1.5">Monthly Recurring Revenue</p>
+                    <p className="text-4xl sm:text-5xl font-bold tracking-tight tabular-nums">₹{fmt(overview?.mrr ?? 0)}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-teal-400 flex-shrink-0" />
+                    <span className="text-xs text-white/50">Creator: <span className="text-white font-semibold">₹{fmt(overview?.influencerMRR ?? 0)}</span></span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                    <span className="text-xs text-white/50">Brand: <span className="text-white font-semibold">₹{fmt(overview?.brandMRR ?? 0)}</span></span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-white/40 flex-shrink-0" />
+                    <span className="text-xs text-white/50">Total premium: <span className="text-white font-semibold">{overview?.totalPremium ?? 0} users</span></span>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* Quick stats row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: 'Total Users',         value: overview?.totalUsers ?? 0,        icon: 'users',    color: 'text-blue-600',    bg: 'bg-blue-50' },
+                { label: 'Premium Users',        value: overview?.totalPremium ?? 0,      icon: 'star',     color: 'text-amber-600',   bg: 'bg-amber-50' },
+                { label: 'Freemium Users',       value: overview?.freemiumUsers ?? 0,     icon: 'free',     color: 'text-gray-500',    bg: 'bg-gray-100' },
+                { label: 'Conversion Rate',
+                  value: overview?.totalUsers
+                    ? `${Math.round(((overview.totalPremium ?? 0) / overview.totalUsers) * 100)}%`
+                    : '0%',                                                                icon: 'chart',    color: 'text-emerald-600', bg: 'bg-emerald-50' },
+              ].map((s, i) => (
+                <div key={i} className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">{s.label}</p>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{s.value}</p>
+                </div>
+              ))}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
               {/* Revenue breakdown */}
-              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                <h3 className="font-semibold text-gray-900 mb-4">Revenue breakdown</h3>
-                <div className="flex flex-col gap-3">
+              <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-5">Revenue breakdown</h3>
+                <div className="flex flex-col gap-5">
                   {[
                     {
                       label: 'Creator Premium',
                       value: `₹${fmt(overview?.influencerMRR ?? 0)}`,
-                      sub:   `${overview?.premiumInfluencers ?? 0} × ₹299/mo`,
+                      sub:   `${overview?.premiumInfluencers ?? 0} subscribers × ₹299/mo`,
                       bar:   overview?.mrr ? Math.round(((overview.influencerMRR ?? 0) / overview.mrr) * 100) : 0,
-                      color: 'bg-[#7FA8AD]',
+                      color: 'bg-teal-400',
+                      dotColor: 'bg-teal-400',
                     },
                     {
                       label: 'Brand Premium',
                       value: `₹${fmt(overview?.brandMRR ?? 0)}`,
-                      sub:   `${overview?.premiumBrands ?? 0} × ₹1,499/mo`,
+                      sub:   `${overview?.premiumBrands ?? 0} subscribers × ₹1,499/mo`,
                       bar:   overview?.mrr ? Math.round(((overview.brandMRR ?? 0) / overview.mrr) * 100) : 0,
-                      color: 'bg-[#E8B958]',
+                      color: 'bg-amber-400',
+                      dotColor: 'bg-amber-400',
                     },
                   ].map((item, i) => (
-                    <div key={i} className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">{item.label}</p>
-                          <p className="text-xs text-gray-400">{item.sub}</p>
+                    <div key={i}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2.5 h-2.5 rounded-full ${item.dotColor} flex-shrink-0`} />
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">{item.label}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{item.sub}</p>
+                          </div>
                         </div>
-                        <p className="text-sm font-bold text-gray-900 tabular-nums">{item.value}</p>
+                        <p className="text-base font-bold text-gray-900 tabular-nums">{item.value}</p>
                       </div>
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${item.color} rounded-full transition-all`} style={{ width: `${item.bar}%` }} />
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden ml-4">
+                        <div
+                          className={`h-full ${item.color} rounded-full transition-all duration-700`}
+                          style={{ width: `${item.bar}%` }}
+                        />
                       </div>
                     </div>
                   ))}
@@ -105,53 +150,47 @@ export default function AdminSubscriptions() {
               </div>
 
               {/* User breakdown */}
-              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                <h3 className="font-semibold text-gray-900 mb-4">User breakdown</h3>
-                <div className="flex flex-col divide-y divide-gray-50">
+              <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-5">User breakdown</h3>
+                <div className="flex flex-col gap-1">
                   {[
-                    { label: 'Total users',         value: overview?.totalUsers ?? 0 },
-                    { label: 'Premium users',        value: overview?.totalPremium ?? 0 },
-                    { label: 'Freemium users',       value: overview?.freemiumUsers ?? 0 },
-                    { label: 'Premium influencers',  value: overview?.premiumInfluencers ?? 0 },
-                    { label: 'Premium brands',       value: overview?.premiumBrands ?? 0 },
+                    { label: 'Total users',        value: overview?.totalUsers ?? 0,        bold: true },
+                    { label: 'Premium users',       value: overview?.totalPremium ?? 0,       bold: false },
+                    { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false },
+                    { label: 'Premium creators',    value: overview?.premiumInfluencers ?? 0, bold: false },
+                    { label: 'Premium brands',      value: overview?.premiumBrands ?? 0,      bold: false },
                   ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-2.5">
-                      <p className="text-sm text-gray-600">{item.label}</p>
-                      <p className="text-sm font-bold text-gray-900 tabular-nums">{item.value}</p>
+                    <div key={i} className={`flex items-center justify-between py-3 ${i < 4 ? 'border-b border-gray-50' : ''}`}>
+                      <p className={`text-sm ${item.bold ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>{item.label}</p>
+                      <p className={`text-sm tabular-nums ${item.bold ? 'font-bold text-gray-900' : 'font-semibold text-gray-700'}`}>{item.value}</p>
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
 
-            {/* Conversion rate */}
-            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">Plan distribution</h3>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                    <span>Freemium vs Premium</span>
+                <div className="mt-5 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-2.5">
+                    <span>Plan distribution</span>
                     <span>{overview?.totalUsers ?? 0} total</span>
                   </div>
-                  <div className="flex h-3 rounded-full overflow-hidden bg-gray-100">
+                  <div className="flex h-2.5 rounded-full overflow-hidden bg-gray-100">
                     <div
-                      className="bg-[#3E4751] transition-all"
+                      className="bg-[#3E4751] transition-all duration-700"
                       style={{ width: `${overview?.totalUsers ? (((overview.freemiumUsers ?? 0) / overview.totalUsers) * 100) : 0}%` }}
                     />
                     <div
-                      className="bg-[#E8B958] transition-all"
+                      className="bg-amber-400 transition-all duration-700"
                       style={{ width: `${overview?.totalUsers ? (((overview.totalPremium ?? 0) / overview.totalUsers) * 100) : 0}%` }}
                     />
                   </div>
-                </div>
-                <div className="flex sm:flex-col gap-3 sm:gap-2">
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="w-3 h-3 rounded-sm bg-[#3E4751] flex-shrink-0" />
-                    <span className="text-gray-600">Freemium · {overview?.freemiumUsers ?? 0}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="w-3 h-3 rounded-sm bg-[#E8B958] flex-shrink-0" />
-                    <span className="text-gray-600">Premium · {overview?.totalPremium ?? 0}</span>
+                  <div className="flex items-center gap-4 mt-2.5">
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <span className="w-2.5 h-2.5 rounded-sm bg-[#3E4751]" />
+                      <span className="text-gray-500">Freemium · {overview?.freemiumUsers ?? 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <span className="w-2.5 h-2.5 rounded-sm bg-amber-400" />
+                      <span className="text-gray-500">Premium · {overview?.totalPremium ?? 0}</span>
+                    </div>
                   </div>
                 </div>
               </div>
