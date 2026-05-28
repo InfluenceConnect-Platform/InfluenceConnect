@@ -13,9 +13,9 @@ export default function AdminSubscriptions() {
   useEffect(() => {
     const token  = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/admin/login'); return; }
     const parsed = JSON.parse(stored);
-    if (parsed.role !== 'admin') { router.push('/auth/login'); return; }
+    if (parsed.role !== 'admin') { router.push('/admin/login'); return; }
     fetchOverview();
   }, [router]);
 

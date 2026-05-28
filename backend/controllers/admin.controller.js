@@ -43,7 +43,9 @@ exports.getOverviewStats = async (req, res) => {
       role: 'brand', plan: 'premium'
     });
 
-    const mrr = (influencerPremium * 299) + (brandPremium * 1499);
+    const influencerMRR = influencerPremium * 299;
+    const brandMRR = brandPremium * 1499;
+    const mrr = influencerMRR + brandMRR;
 
     res.json({
       stats: {
@@ -55,6 +57,8 @@ exports.getOverviewStats = async (req, res) => {
         completedDeals,
         premiumUsers,
         mrr,
+        influencerMRR,
+        brandMRR,
         freemiumUsers: totalUsers - premiumUsers
       },
       recentSignups

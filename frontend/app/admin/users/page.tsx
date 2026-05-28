@@ -19,30 +19,48 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState('');
   const [toast, setToast]           = useState('');
   const [total, setTotal]           = useState(0);
+  const [page, setPage]             = useState(1);
+  const [pages, setPages]           = useState(1);
 
   useEffect(() => {
     const token  = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/admin/login'); return; }
     const parsed = JSON.parse(stored);
-    if (parsed.role !== 'admin') { router.push('/auth/login'); return; }
+    if (parsed.role !== 'admin') { router.push('/admin/login'); return; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     fetchUsers();
-  }, [roleFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleFilter, page]);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const params: Record<string, string | number> = { limit: 20 };
+      const params: Record<string, string | number> = { limit: 20, page };
       if (roleFilter) params.role = roleFilter;
       if (search)     params.search = search;
       const response = await api.get('/api/admin/users', { params });
       setUsers(response.data.users);
       setTotal(response.data.pagination.total);
+      setPages(response.data.pagination.pages);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = () => {
+    setPage(1);
+    fetchUsers();
+  };
+
+  const handleRoleFilter = (role: string) => {
+    setRoleFilter(role);
+    setPage(1);
   };
 
   const showToast = (msg: string) => {
@@ -91,7 +109,7 @@ export default function AdminUsers() {
               placeholder="Search by name or email…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && fetchUsers()}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
               className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3E4751]/30 focus:border-[#3E4751] hover:border-gray-300 transition-all placeholder:text-gray-400 bg-white"
             />
           </div>
@@ -99,7 +117,7 @@ export default function AdminUsers() {
             {['', 'influencer', 'brand', 'admin'].map(role => (
               <button
                 key={role}
-                onClick={() => setRoleFilter(role)}
+                onClick={() => handleRoleFilter(role)}
                 className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all cursor-pointer ${
                   roleFilter === role
                     ? 'bg-[#EEF0F3] text-[#1A2028] shadow-sm'
@@ -274,6 +292,58 @@ export default function AdminUsers() {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {pages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3.5 border-t border-gray-100 bg-gray-50/50">
+              <p className="text-xs text-gray-500">
+                Page <span className="font-semibold text-gray-700">{page}</span> of <span className="font-semibold text-gray-700">{pages}</span>
+                <span className="ml-2 text-gray-400">· {total} users total</span>
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1 || loading}
+                  className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600"
+                >
+                  ← Prev
+                </button>
+                {Array.from({ length: Math.min(pages, 5) }, (_, i) => {
+                  let pageNum: number;
+                  if (pages <= 5) {
+                    pageNum = i + 1;
+                  } else if (page <= 3) {
+                    pageNum = i + 1;
+                  } else if (page >= pages - 2) {
+                    pageNum = pages - 4 + i;
+                  } else {
+                    pageNum = page - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPage(pageNum)}
+                      disabled={loading}
+                      className={`w-8 h-8 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                        pageNum === page
+                          ? 'bg-[#3E4751] text-white shadow-sm'
+                          : 'border border-gray-200 bg-white hover:bg-gray-50 text-gray-600'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setPage(p => Math.min(pages, p + 1))}
+                  disabled={page === pages || loading}
+                  className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

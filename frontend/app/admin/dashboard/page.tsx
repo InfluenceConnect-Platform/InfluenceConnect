@@ -30,9 +30,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     const token  = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/admin/login'); return; }
     const parsed = JSON.parse(stored);
-    if (parsed.role !== 'admin') { router.push('/auth/login'); return; }
+    if (parsed.role !== 'admin') { router.push('/admin/login'); return; }
     setUser(parsed);
     fetchData();
   }, []);
@@ -256,8 +256,16 @@ export default function AdminDashboard() {
             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">MRR breakdown</h4>
             <div className="flex flex-col gap-3">
               {[
-                { label: 'Creator Premium', color: 'bg-[#7FA8AD]', width: 40 },
-                { label: 'Brand Premium',   color: 'bg-[#E8B958]', width: 60 },
+                {
+                  label: 'Creator Premium',
+                  color: 'bg-[#7FA8AD]',
+                  width: stats?.mrr ? Math.round(((stats.influencerMRR ?? 0) / stats.mrr) * 100) : 0,
+                },
+                {
+                  label: 'Brand Premium',
+                  color: 'bg-[#E8B958]',
+                  width: stats?.mrr ? Math.round(((stats.brandMRR ?? 0) / stats.mrr) * 100) : 0,
+                },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5 text-xs">
                   <span className="w-[90px] text-gray-600 flex-shrink-0 truncate">{item.label}</span>

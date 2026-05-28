@@ -23,7 +23,7 @@ export default function AdminNav({ user }: AdminNavProps) {
 
   const handleLogout = () => {
     localStorage.clear();
-    router.push('/auth/login');
+    router.push('/admin/login');
   };
 
   return (

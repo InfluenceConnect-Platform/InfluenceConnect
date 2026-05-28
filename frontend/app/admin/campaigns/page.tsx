@@ -21,25 +21,44 @@ const STATUS_LABELS: Record<string, string> = {
   closed:        'Closed',
 };
 
+const STATUS_FILTERS = [
+  { value: '',          label: 'All' },
+  { value: 'active',    label: 'Active' },
+  { value: 'draft',     label: 'Draft' },
+  { value: 'closed',    label: 'Closed' },
+  { value: 'completed', label: 'Completed' },
+];
+
 export default function AdminCampaigns() {
   const router = useRouter();
-  const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [toast, setToast]         = useState('');
+  const [campaigns, setCampaigns]     = useState<any[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [toast, setToast]             = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [total, setTotal]             = useState(0);
 
   useEffect(() => {
     const token  = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/admin/login'); return; }
     const parsed = JSON.parse(stored);
-    if (parsed.role !== 'admin') { router.push('/auth/login'); return; }
-    fetchCampaigns();
+    if (parsed.role !== 'admin') { router.push('/admin/login'); return; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    fetchCampaigns();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter]);
+
   const fetchCampaigns = async () => {
+    setLoading(true);
     try {
-      const response = await api.get('/api/admin/campaigns');
+      const params: Record<string, string> = {};
+      if (statusFilter) params.status = statusFilter;
+      const response = await api.get('/api/admin/campaigns', { params });
       setCampaigns(response.data.campaigns);
+      setTotal(response.data.pagination.total);
     } catch (err) {
       console.error(err);
     } finally {
@@ -78,8 +97,25 @@ export default function AdminCampaigns() {
         <div className="mb-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">All platform campaigns</p>
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
-            Campaigns{campaigns.length > 0 && <span className="text-gray-400 font-normal"> · {campaigns.length}</span>}
+            Campaigns{total > 0 && <span className="text-gray-400 font-normal"> · {total}</span>}
           </h1>
+        </div>
+
+        {/* Status filter */}
+        <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-1 overflow-x-auto w-fit mb-5">
+          {STATUS_FILTERS.map(f => (
+            <button
+              key={f.value}
+              onClick={() => setStatusFilter(f.value)}
+              className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                statusFilter === f.value
+                  ? 'bg-[#EEF0F3] text-[#1A2028] shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
@@ -136,7 +172,7 @@ export default function AdminCampaigns() {
                         </span>
                       </td>
                       <td className="px-4 py-3.5">
-                        {c.status === 'active' && (
+                        {c.status !== 'closed' && c.status !== 'completed' && (
                           <button
                             onClick={() => handleRemove(c._id)}
                             className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all cursor-pointer font-semibold"
@@ -188,7 +224,7 @@ export default function AdminCampaigns() {
                       </span>
                       <span>Applicants: <span className="font-medium text-gray-700">{c.applicantCount ?? 0}</span></span>
                     </div>
-                    {c.status === 'active' && (
+                    {c.status !== 'closed' && c.status !== 'completed' && (
                       <button
                         onClick={() => handleRemove(c._id)}
                         className="text-xs px-3.5 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all cursor-pointer font-semibold"
