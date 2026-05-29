@@ -181,7 +181,8 @@ exports.getMyDeals = async (req, res) => {
     // Batch the per-deal lookups (brand logo, last message, unread count) so the
     // inbox costs a fixed number of queries instead of three per deal.
     const dealIds = deals.map(d => d._id);
-    const brandIds = deals.map(d => d.brandId);
+    // brandId is populated, so reach for ._id to get the raw ObjectId for lookups.
+    const brandIds = deals.map(d => d.brandId?._id || d.brandId);
 
     const [brandProfiles, lastMessages, unreadCounts] = await Promise.all([
       BrandProfile.find({ userId: { $in: brandIds } }).select('logoUrl userId'),
@@ -210,7 +211,7 @@ exports.getMyDeals = async (req, res) => {
           _id: o._id.toString(),
           proposedBy: o.proposedBy.toString(),
         })),
-        brandLogoUrl: logoByBrand.get(deal.brandId.toString()) || '',
+        brandLogoUrl: logoByBrand.get((deal.brandId?._id || deal.brandId).toString()) || '',
         lastMessage: lastMsgByDeal.get(deal._id.toString()) || null,
         unreadCount: unreadByDeal.get(deal._id.toString()) || 0,
       };
