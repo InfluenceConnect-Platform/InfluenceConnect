@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
@@ -387,6 +387,7 @@ function FilterPanel({
 
 export default function BrandDiscover() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user] = useState<any>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -394,6 +395,55 @@ export default function BrandDiscover() {
   const [influencers, setInfluencers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+
+  // ── Invite mode (entered from a campaign's "Invite Influencers" button) ──
+  const inviteCampaignId = searchParams.get('inviteCampaign') || '';
+  const inviteCampaignTitle = searchParams.get('campaignTitle') || '';
+  const inviteMode = !!inviteCampaignId;
+  const isPremium = user?.plan === 'premium';
+  // userId -> 'pending' | 'accepted' | 'rejected' for influencers already invited to this campaign.
+  const [invitedStatus, setInvitedStatus] = useState<Record<string, string>>({});
+  const [invitingId, setInvitingId] = useState<string>('');
+  const [toast, setToast] = useState('');
+
+  useEffect(() => {
+    if (!inviteMode) return;
+    // Load who's already been invited to this campaign so we don't double-invite.
+    api.get('/api/invitations/brand', { params: { campaignId: inviteCampaignId } })
+      .then(res => {
+        const map: Record<string, string> = {};
+        (res.data.invitations || []).forEach((inv: any) => {
+          const id = inv.influencerId?._id || inv.influencerId;
+          if (id) map[id.toString()] = inv.status;
+        });
+        setInvitedStatus(map);
+      })
+      .catch(() => {});
+  }, [inviteMode, inviteCampaignId]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(''), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const handleInvite = async (influencer: any) => {
+    const influencerUserId = influencer.userId?._id;
+    if (!influencerUserId) return;
+    setInvitingId(influencerUserId);
+    try {
+      await api.post('/api/invitations', {
+        campaignId: inviteCampaignId,
+        influencerIds: [influencerUserId],
+      });
+      setInvitedStatus(prev => ({ ...prev, [influencerUserId]: 'pending' }));
+      setToast(`Invitation sent to ${influencer.userId?.name || 'creator'}.`);
+    } catch (err: any) {
+      setToast(err.response?.data?.message || err.response?.data?.error || 'Failed to send invitation.');
+    } finally {
+      setInvitingId('');
+    }
+  };
 
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState('');
@@ -656,6 +706,46 @@ export default function BrandDiscover() {
   return (
     <div className="min-h-screen bg-[#F4F6FB]">
       <BrandNav user={user} />
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-lg max-w-[90vw] text-center">
+          {toast}
+        </div>
+      )}
+
+      {/* Invite-mode bar */}
+      {inviteMode && (
+        <div className="sticky top-[64px] z-20 bg-gradient-to-r from-[#2B3B68] to-[#3D5087] text-white shadow-md">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                </svg>
+              </span>
+              <div className="min-w-0">
+                <p className="text-[11px] text-blue-200/80 font-semibold uppercase tracking-wider leading-none">Inviting creators to</p>
+                <p className="text-sm font-bold truncate">{inviteCampaignTitle || 'your campaign'}</p>
+              </div>
+              {!isPremium && (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-400/90 text-gray-900">
+                  ★ Premium required
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => router.push('/brand/campaigns')}
+              className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Exit invite mode
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Mobile filter drawer */}
       {showFilters && (
@@ -933,14 +1023,56 @@ export default function BrandDiscover() {
                               }
                             </p>
                           </div>
-                          <Link
-                            href={`/brand/creator/${influencer.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-shrink-0 text-xs px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md"
-                          >
-                            View profile →
-                          </Link>
+                          {inviteMode ? (
+                            (() => {
+                              const uid = influencer.userId?._id?.toString();
+                              const status = uid ? invitedStatus[uid] : undefined;
+                              const isInviting = invitingId === uid;
+                              return (
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <Link
+                                    href={`/brand/creator/${influencer.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all"
+                                  >
+                                    View profile
+                                  </Link>
+                                  {status === 'accepted' ? (
+                                    <span className="text-xs px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl font-bold border border-emerald-200">✓ Accepted</span>
+                                  ) : status === 'rejected' ? (
+                                    <span className="text-xs px-3 py-2 bg-gray-100 text-gray-500 rounded-xl font-bold">Declined</span>
+                                  ) : status === 'pending' ? (
+                                    <span className="text-xs px-3 py-2 bg-amber-50 text-amber-700 rounded-xl font-bold border border-amber-200">Invited</span>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleInvite(influencer)}
+                                      disabled={isInviting}
+                                      className="flex items-center gap-1.5 text-xs px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-60 cursor-pointer"
+                                    >
+                                      {isInviting ? (
+                                        <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                      ) : (
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                                        </svg>
+                                      )}
+                                      {isInviting ? 'Inviting…' : 'Invite'}
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            <Link
+                              href={`/brand/creator/${influencer.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-shrink-0 text-xs px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md"
+                            >
+                              View profile →
+                            </Link>
+                          )}
                         </div>
                       </div>
                     </div>
