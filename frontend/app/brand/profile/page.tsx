@@ -8,15 +8,15 @@ import BrandNav from '@/components/shared/BrandNav';
 const INDUSTRIES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books', 'other'];
 
 const INDUSTRY_COLORS: Record<string, string> = {
-  beauty: 'bg-pink-50 text-pink-700 border-pink-200',
-  fashion: 'bg-purple-50 text-purple-700 border-purple-200',
-  food: 'bg-orange-50 text-orange-700 border-orange-200',
-  fitness: 'bg-amber-50 text-amber-700 border-amber-200',
-  lifestyle: 'bg-violet-50 text-violet-700 border-violet-200',
-  travel: 'bg-teal-50 text-teal-700 border-teal-200',
-  tech: 'bg-blue-50 text-blue-700 border-blue-200',
-  books: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  other: 'bg-gray-100 text-gray-600 border-gray-200',
+  beauty:    'bg-pink-50   dark:bg-pink-900/30   text-pink-700   dark:text-pink-300   border-pink-200   dark:border-pink-800/40',
+  fashion:   'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/40',
+  food:      'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800/40',
+  fitness:   'bg-amber-50  dark:bg-amber-900/30  text-amber-700  dark:text-amber-300  border-amber-200  dark:border-amber-800/40',
+  lifestyle: 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800/40',
+  travel:    'bg-teal-50   dark:bg-teal-900/30   text-teal-700   dark:text-teal-300   border-teal-200   dark:border-teal-800/40',
+  tech:      'bg-blue-50   dark:bg-blue-900/30   text-blue-700   dark:text-blue-300   border-blue-200   dark:border-blue-800/40',
+  books:     'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40',
+  other:     'bg-gray-100  dark:bg-gray-700/40   text-gray-600   dark:text-gray-300   border-gray-200   dark:border-gray-600/40',
 };
 
 export default function BrandProfile() {
@@ -127,7 +127,7 @@ export default function BrandProfile() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#F4F6FB] flex items-center justify-center">
+    <div className="min-h-screen bg-[#F4F6FB] dark:bg-[#060D1A] flex items-center justify-center">
       <div className="w-7 h-7 border-2 border-[#3D5087] border-t-transparent rounded-full animate-spin" />
     </div>
   );
@@ -204,7 +204,7 @@ export default function BrandProfile() {
             <div className="flex items-end gap-4 -mt-10 mb-4">
               {/* Logo */}
               <div
-                className={`relative z-10 w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl border-4 border-white shadow-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#EAEDF6] to-[#c8ceea] flex items-center justify-center ${isEditing ? 'cursor-pointer group' : ''}`}
+                className={`relative z-10 w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl border-4 border-white dark:border-[#0E1B2E] shadow-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#EAEDF6] to-[#c8ceea] dark:from-[#1e2a4a] dark:to-[#2d3d6a] flex items-center justify-center ${isEditing ? 'cursor-pointer group' : ''}`}
                 onClick={() => isEditing && logoInputRef.current?.click()}
               >
                 {profile?.logoUrl ? (
@@ -237,7 +237,7 @@ export default function BrandProfile() {
               {/* Plan badge — push to right */}
               <div className="flex-1" />
               <span className={`self-start mt-11 text-xs font-bold px-2.5 py-1 rounded-full border ${
-                isPremium ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-[#EAEDF6] text-[#3D5087] border-[#3D5087]/20'
+                isPremium ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-[#EAEDF6] dark:bg-[#1e2a4a] text-[#3D5087] dark:text-blue-300 border-[#3D5087]/20 dark:border-blue-800/40'
               }`}>
                 {isPremium ? '★ Premium' : 'Freemium'}
               </span>
@@ -259,7 +259,7 @@ export default function BrandProfile() {
               )}
               {profile?.website && (
                 <a href={/^https?:\/\//i.test(profile.website) ? profile.website : `https://${profile.website}`} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs font-medium text-[#3D5087] hover:underline">
+                  className="flex items-center gap-1 text-xs font-medium text-[#3D5087] dark:text-blue-400 hover:underline">
                   <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                   </svg>
@@ -314,7 +314,7 @@ export default function BrandProfile() {
         <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm mb-5 overflow-hidden">
           <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
             <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <svg className="w-3.5 h-3.5 text-[#3D5087]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-3.5 h-3.5 text-[#3D5087] dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
               </svg>
             </div>
@@ -396,7 +396,7 @@ export default function BrandProfile() {
                     <div className="col-span-2">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Website</p>
                       <a href={/^https?:\/\//i.test(profile.website) ? profile.website : `https://${profile.website}`} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm font-medium text-[#3D5087] hover:underline w-fit">
+                        className="flex items-center gap-1.5 text-sm font-medium text-[#3D5087] dark:text-blue-400 hover:underline w-fit">
                         <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
                         </svg>

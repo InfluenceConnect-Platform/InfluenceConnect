@@ -65,7 +65,7 @@ body {
 .dark [class~="text-gray-700"] { color: #cbd5e1; }
 .dark [class~="text-gray-600"] { color: #94a3b8; }
 .dark [class~="text-gray-500"] { color: #64748b; }
-.dark [class~="text-gray-400"] { color: #475569; }
+.dark [class~="text-gray-400"] { color: #94a3b8; }
 
 /* Amber/green tinted backgrounds (GST icon, status boxes) */
 .dark [class~="bg-amber-100"] { background-color: rgba(120, 80, 10, 0.35); }
