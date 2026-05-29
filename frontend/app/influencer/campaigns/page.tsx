@@ -91,6 +91,17 @@ export default function InfluencerCampaigns() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [applicationsUsed, setApplicationsUsed] = useState(0);
+  const [expandedNiches, setExpandedNiches] = useState<Set<string>>(new Set());
+  const [expandedDesc, setExpandedDesc] = useState<Set<string>>(new Set());
+
+  const toggleNicheExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedNiches(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  };
+  const toggleDescExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedDesc(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  };
   const FREEMIUM_LIMIT = 5;
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -520,9 +531,19 @@ export default function InfluencerCampaigns() {
                           )}
                         </div>
                         {campaign.brandDescription && (
-                          <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1.5 leading-relaxed line-clamp-2">
-                            {campaign.brandDescription}
-                          </p>
+                          <div className="mt-1.5">
+                            <p className={`text-[11px] text-gray-400 dark:text-slate-500 leading-relaxed ${expandedDesc.has(campaign._id) ? '' : 'line-clamp-2'}`}>
+                              {campaign.brandDescription}
+                            </p>
+                            {campaign.brandDescription.length > 100 && (
+                              <button
+                                onClick={e => toggleDescExpand(campaign._id, e)}
+                                className="text-[10px] font-semibold text-[#5D8A8F] dark:text-teal-400 hover:underline mt-0.5 cursor-pointer"
+                              >
+                                {expandedDesc.has(campaign._id) ? 'View less ↑' : 'View more ↓'}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -594,15 +615,18 @@ export default function InfluencerCampaigns() {
                     {/* Niche tags + CTA */}
                     <div className="flex items-end justify-between gap-3 pt-3 border-t border-gray-100 dark:border-slate-700/50">
                       <div className="flex gap-1 flex-wrap">
-                        {campaign.niche.slice(0, 2).map(n => (
+                        {(expandedNiches.has(campaign._id) ? campaign.niche : campaign.niche.slice(0, 2)).map((n: string) => (
                           <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize border ${NICHE_COLORS[n] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                             {n}
                           </span>
                         ))}
                         {campaign.niche.length > 2 && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">
-                            +{campaign.niche.length - 2}
-                          </span>
+                          <button
+                            onClick={e => toggleNicheExpand(campaign._id, e)}
+                            className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600 hover:bg-[#EEF4F5] dark:hover:bg-slate-600/60 hover:text-[#2A3E42] dark:hover:text-slate-200 transition-colors cursor-pointer"
+                          >
+                            {expandedNiches.has(campaign._id) ? '↑ less' : `+${campaign.niche.length - 2}`}
+                          </button>
                         )}
                         {campaign.targetCity.length > 0 && campaign.targetCity[0] !== 'all' && (
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">
