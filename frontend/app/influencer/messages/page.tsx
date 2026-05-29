@@ -461,7 +461,7 @@ export default function MessagesPage() {
                   <p className="text-[11px] text-teal-200/80">Upgrade to Premium</p>
                 </div>
                 <Link href="/influencer/billing"
-                  className="text-[11px] font-bold text-[#1C4A52] bg-white/95 hover:bg-white px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
+                  className="text-[11px] font-bold text-[#1C4A52] bg-white hover:bg-teal-50 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
                   Upgrade
                 </Link>
               </div>

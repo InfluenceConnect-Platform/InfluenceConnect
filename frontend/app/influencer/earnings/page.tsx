@@ -419,7 +419,7 @@ export default function EarningsPage() {
                 </div>
                 <Link
                   href="/influencer/billing"
-                  className="flex-shrink-0 bg-white/95 hover:bg-white text-[#1C4A52] px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap self-start sm:self-auto">
+                  className="flex-shrink-0 bg-white hover:bg-teal-50 text-[#1C4A52] px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap self-start sm:self-auto">
                   Upgrade · ₹299/mo →
                 </Link>
               </div>

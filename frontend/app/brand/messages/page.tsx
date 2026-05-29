@@ -521,7 +521,7 @@ export default function BrandMessages() {
                   <p className="text-[11px] text-indigo-200/80">Upgrade to Premium</p>
                 </div>
                 <Link href="/brand/billing"
-                  className="text-[11px] font-bold text-[#2B3B68] bg-white/95 hover:bg-white px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
+                  className="text-[11px] font-bold text-[#2B3B68] bg-white hover:bg-indigo-50 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
                   Upgrade
                 </Link>
               </div>
