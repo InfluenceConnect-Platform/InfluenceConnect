@@ -239,28 +239,28 @@ export default function InfluencerInvitations() {
               return (
                 <div
                   key={inv._id}
-                  className=”bg-white dark:bg-[#0f1e31] border border-gray-200/80 dark:border-slate-700/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow”
+                  className="bg-white dark:bg-[#0f1e31] border border-gray-200/80 dark:border-slate-700/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                 >
                   {/* Accent strip */}
                   <div className={`h-1 w-full ${inv.status === 'accepted' ? 'bg-gradient-to-r from-emerald-400 to-green-500' : inv.status === 'rejected' ? 'bg-gradient-to-r from-gray-300 to-gray-400' : urgency ? 'bg-gradient-to-r from-red-400 to-rose-500' : soonish ? 'bg-gradient-to-r from-amber-400 to-orange-400' : 'bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD]'}`} />
 
-                  <div className=”p-4 sm:p-5”>
+                  <div className="p-4 sm:p-5">
 
                     {/* ── Brand row ── */}
-                    <div className=”flex items-start gap-3 mb-3.5 p-3 rounded-xl bg-gray-50/70 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50”>
+                    <div className="flex items-start gap-3 mb-3.5 p-3 rounded-xl bg-gray-50/70 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50">
                       <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${grad} shadow-sm`}>
                         {inv.brandLogoUrl
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={inv.brandLogoUrl} alt={brandName} className=”w-full h-full object-cover” />
-                          : <span className=”text-white font-bold text-sm”>{brandName.charAt(0).toUpperCase()}</span>
+                          ? <img src={inv.brandLogoUrl} alt={brandName} className="w-full h-full object-cover" />
+                          : <span className="text-white font-bold text-sm">{brandName.charAt(0).toUpperCase()}</span>
                         }
                       </div>
-                      <div className=”flex-1 min-w-0”>
-                        <div className=”flex items-center gap-2 flex-wrap”>
-                          <p className=”text-[13px] font-bold text-gray-900 dark:text-slate-100 truncate”>{brandName}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-[13px] font-bold text-gray-900 dark:text-slate-100 truncate">{brandName}</p>
                           {inv.brandGstinVerified && (
-                            <span className=”flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full flex-shrink-0”>
-                              <svg width=”9” height=”9” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” strokeWidth=”3” strokeLinecap=”round” strokeLinejoin=”round”><polyline points=”20 6 9 17 4 12”/></svg>
+                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                               GST
                             </span>
                           )}
@@ -269,7 +269,7 @@ export default function InfluencerInvitations() {
                             {status.label}
                           </span>
                         </div>
-                        <div className=”flex items-center gap-2 flex-wrap mt-1”>
+                        <div className="flex items-center gap-2 flex-wrap mt-1">
                           {inv.brandIndustry && (
                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize border ${INDUSTRY_COLORS[inv.brandIndustry] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
                               {inv.brandIndustry}
@@ -284,70 +284,70 @@ export default function InfluencerInvitations() {
                             </span>
                           )}
                           {inv.brandWebsite && (
-                            <a href={inv.brandWebsite.startsWith('http') ? inv.brandWebsite : `https://${inv.brandWebsite}`} target=”_blank” rel=”noopener noreferrer” onClick={e => e.stopPropagation()}
-                              className=”flex items-center gap-1 text-[11px] text-[#3D5087] dark:text-[#7FA8AD] hover:underline font-medium”>
-                              <svg width=”10” height=”10” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” strokeWidth=”2.5” strokeLinecap=”round” strokeLinejoin=”round”>
-                                <path d=”M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6”/><polyline points=”15 3 21 3 21 9”/><line x1=”10” y1=”14” x2=”21” y2=”3”/>
+                            <a href={inv.brandWebsite.startsWith('http') ? inv.brandWebsite : `https://${inv.brandWebsite}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                              className="flex items-center gap-1 text-[11px] text-[#3D5087] dark:text-[#7FA8AD] hover:underline font-medium">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
                               </svg>
                               {inv.brandWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                             </a>
                           )}
                         </div>
                         {inv.brandDescription && (
-                          <p className=”text-[11px] text-gray-400 dark:text-slate-500 mt-1.5 leading-relaxed line-clamp-2”>{inv.brandDescription}</p>
+                          <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1.5 leading-relaxed line-clamp-2">{inv.brandDescription}</p>
                         )}
                       </div>
                     </div>
 
                     {/* ── Campaign title + description ── */}
-                    <h3 className=”text-[15px] font-bold text-gray-900 dark:text-slate-100 mb-1.5 leading-snug”>{campaign?.title || 'Campaign Invitation'}</h3>
+                    <h3 className="text-[15px] font-bold text-gray-900 dark:text-slate-100 mb-1.5 leading-snug">{campaign?.title || 'Campaign Invitation'}</h3>
                     {campaign?.description && (
-                      <p className=”text-sm text-gray-500 dark:text-slate-400 leading-relaxed mb-4 line-clamp-2”>{campaign.description}</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed mb-4 line-clamp-2">{campaign.description}</p>
                     )}
 
                     {/* ── Budget + Deadline ── */}
-                    <div className=”grid grid-cols-2 gap-2 mb-4”>
-                      <div className=”bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/10 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3”>
-                        <p className=”text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-semibold uppercase tracking-wider mb-0.5”>Budget</p>
-                        <p className=”text-[13px] font-bold text-emerald-900 dark:text-emerald-300 leading-tight”>
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <div className="bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/10 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3">
+                        <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
+                        <p className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 leading-tight">
                           {hasBudget ? `₹${(campaign?.budgetMin || 0).toLocaleString('en-IN')}` : 'Open'}
                         </p>
-                        {hasBudget && <p className=”text-[10px] text-emerald-600/60 dark:text-emerald-400/50”>– ₹{(campaign?.budgetMax || 0).toLocaleString('en-IN')}</p>}
+                        {hasBudget && <p className="text-[10px] text-emerald-600/60 dark:text-emerald-400/50">– ₹{(campaign?.budgetMax || 0).toLocaleString('en-IN')}</p>}
                       </div>
                       <div className={`rounded-xl p-3 border ${urgency ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/40' : soonish ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40' : 'bg-[#EEF4F5] dark:bg-[#0d2d33]/60 border-[#7FA8AD]/20'}`}>
                         <div className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider mb-0.5 ${urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#5D8A8F]'}`}>
-                          <svg width=”11” height=”11” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” strokeWidth=”2” strokeLinecap=”round” strokeLinejoin=”round”>
-                            <rect x=”3” y=”4” width=”18” height=”18” rx=”2”/><line x1=”16” y1=”2” x2=”16” y2=”6”/><line x1=”8” y1=”2” x2=”8” y2=”6”/><line x1=”3” y1=”10” x2=”21” y2=”10”/>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                           </svg>
                           Deadline
                         </div>
                         <p className={`text-[13px] font-bold leading-tight ${urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#2A3E42]'}`}>
                           {days === null ? '—' : days < 0 ? 'Closed' : days === 0 ? 'Today!' : `${days}d left`}
                         </p>
-                        {deadline && <p className=”text-[10px] text-gray-400 dark:text-slate-500”>{formatDate(campaign!.deadline!)}</p>}
+                        {deadline && <p className="text-[10px] text-gray-400 dark:text-slate-500">{formatDate(campaign!.deadline!)}</p>}
                       </div>
                     </div>
 
                     {/* ── Deliverables + min followers + location ── */}
-                    <div className=”flex flex-col gap-1.5 mb-4”>
+                    <div className="flex flex-col gap-1.5 mb-4">
                       {campaign?.deliverables && (
-                        <div className=”flex items-start gap-2 text-xs text-gray-500 dark:text-slate-400”>
-                          <span className=”text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0”>▸</span>
-                          <span><strong className=”text-gray-600 dark:text-slate-300”>Deliverables:</strong> {campaign.deliverables}</span>
+                        <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-slate-400">
+                          <span className="text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0">▸</span>
+                          <span><strong className="text-gray-600 dark:text-slate-300">Deliverables:</strong> {campaign.deliverables}</span>
                         </div>
                       )}
                       {(campaign?.minFollowers ?? 0) > 0 && (
-                        <div className=”flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400”>
-                          <svg className=”text-gray-300 dark:text-slate-600 flex-shrink-0” width=”12” height=”12” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” strokeWidth=”2” strokeLinecap=”round” strokeLinejoin=”round”>
-                            <path d=”M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2”/><circle cx=”9” cy=”7” r=”4”/><path d=”M23 21v-2a4 4 0 0 0-3-3.87”/><path d=”M16 3.13a4 4 0 0 1 0 7.75”/>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
+                          <svg className="text-gray-300 dark:text-slate-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                           </svg>
-                          <span>Min. <strong className=”text-gray-600 dark:text-slate-300”>{formatFollowers(campaign!.minFollowers!)}</strong> followers required</span>
+                          <span>Min. <strong className="text-gray-600 dark:text-slate-300">{formatFollowers(campaign!.minFollowers!)}</strong> followers required</span>
                         </div>
                       )}
                       {cities.length > 0 && (
-                        <div className=”flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400”>
-                          <svg className=”text-gray-300 dark:text-slate-600 flex-shrink-0” width=”12” height=”12” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” strokeWidth=”2” strokeLinecap=”round” strokeLinejoin=”round”>
-                            <path d=”M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z”/><circle cx=”12” cy=”10” r=”3”/>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
+                          <svg className="text-gray-300 dark:text-slate-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                           </svg>
                           <span>{cities.join(', ')}</span>
                         </div>
@@ -355,60 +355,60 @@ export default function InfluencerInvitations() {
                     </div>
 
                     {/* ── Niche pills + received date ── */}
-                    <div className=”flex items-center justify-between gap-2 mb-4”>
-                      <div className=”flex flex-wrap gap-1.5”>
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <div className="flex flex-wrap gap-1.5">
                         {campaign?.niche?.map((n: string) => (
                           <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full capitalize font-semibold border ${NICHE_COLORS[n] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{n}</span>
                         ))}
                       </div>
-                      <span className=”flex-shrink-0 text-[10px] text-gray-400 dark:text-slate-500”>Received {formatDate(inv.createdAt)}</span>
+                      <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-slate-500">Received {formatDate(inv.createdAt)}</span>
                     </div>
 
                     {/* ── Brand note ── */}
                     {inv.message && (
-                      <div className=”mb-4 px-3.5 py-2.5 bg-blue-50/60 dark:bg-slate-800/50 border border-blue-100 dark:border-slate-700 rounded-xl”>
-                        <p className=”text-[11px] font-bold text-blue-500 dark:text-slate-400 uppercase tracking-wide mb-0.5”>Note from brand</p>
-                        <p className=”text-sm text-gray-700 dark:text-slate-300 italic”>”{inv.message}”</p>
+                      <div className="mb-4 px-3.5 py-2.5 bg-blue-50/60 dark:bg-slate-800/50 border border-blue-100 dark:border-slate-700 rounded-xl">
+                        <p className="text-[11px] font-bold text-blue-500 dark:text-slate-400 uppercase tracking-wide mb-0.5">Note from brand</p>
+                        <p className="text-sm text-gray-700 dark:text-slate-300 italic">"{inv.message}"</p>
                       </div>
                     )}
 
                     {/* ── Actions ── */}
                     {inv.status === 'pending' ? (
-                      <div className=”flex items-center gap-2.5 pt-4 border-t border-gray-100 dark:border-slate-700/60”>
+                      <div className="flex items-center gap-2.5 pt-4 border-t border-gray-100 dark:border-slate-700/60">
                         <button
                           onClick={() => respond(inv, 'accept')}
                           disabled={acting === inv._id}
-                          className=”flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all shadow-sm disabled:opacity-60 cursor-pointer”
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all shadow-sm disabled:opacity-60 cursor-pointer"
                         >
                           {acting === inv._id
-                            ? <span className=”w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin” />
-                            : <svg width=”15” height=”15” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” strokeWidth=”2.5” strokeLinecap=”round” strokeLinejoin=”round”><polyline points=”20 6 9 17 4 12”/></svg>
+                            ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                            : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                           }
                           Accept &amp; start deal
                         </button>
                         <button
                           onClick={() => respond(inv, 'reject')}
                           disabled={acting === inv._id}
-                          className=”flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-all disabled:opacity-60 cursor-pointer”
+                          className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-all disabled:opacity-60 cursor-pointer"
                         >
                           Decline
                         </button>
                       </div>
                     ) : inv.status === 'accepted' ? (
-                      <div className=”pt-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between gap-2”>
-                        <p className=”text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5”>
-                          <svg width=”13” height=”13” className=”text-emerald-500” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” strokeWidth=”2.5” strokeLinecap=”round” strokeLinejoin=”round”><polyline points=”20 6 9 17 4 12”/></svg>
+                      <div className="pt-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between gap-2">
+                        <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
+                          <svg width="13" height="13" className="text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                           Deal created — collaborate in Messages.
                         </p>
                         <button onClick={() => router.push('/influencer/messages')}
-                          className=”flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#3d7178] to-[#5D8A8F] hover:from-[#2f6168] hover:to-[#4d767b] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer”>
-                          <svg width=”12” height=”12” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” strokeWidth=”2” strokeLinecap=”round” strokeLinejoin=”round”><path d=”M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z”/></svg>
+                          className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#3d7178] to-[#5D8A8F] hover:from-[#2f6168] hover:to-[#4d767b] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                           Go to Messages
                         </button>
                       </div>
                     ) : (
-                      <div className=”pt-4 border-t border-gray-100 dark:border-slate-700/60”>
-                        <p className=”text-xs text-gray-400 dark:text-slate-500”>You declined this invitation.</p>
+                      <div className="pt-4 border-t border-gray-100 dark:border-slate-700/60">
+                        <p className="text-xs text-gray-400 dark:text-slate-500">You declined this invitation.</p>
                       </div>
                     )}
                   </div>
