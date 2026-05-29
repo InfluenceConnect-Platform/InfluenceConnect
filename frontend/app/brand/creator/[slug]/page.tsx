@@ -841,7 +841,7 @@ export default function CreatorProfilePage() {
               <p className="text-blue-200/60 text-sm mt-0.5">Send a message and start your campaign together.</p>
             </div>
             <a href={`/brand/messages${profile.userId?._id ? `?influencerId=${profile.userId._id}` : ''}`}
-              className="flex-shrink-0 flex items-center gap-2 bg-white hover:bg-blue-50 text-[#3D5087] px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
+              className="flex-shrink-0 flex items-center gap-2 bg-white/95 hover:bg-white text-[#3D5087] px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
