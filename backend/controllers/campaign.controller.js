@@ -20,8 +20,15 @@ exports.getCampaigns = async (req, res) => {
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId }).select('niche');
     const influencerNiches = influencerProfile?.niche ?? [];
 
+    // Exclude campaigns where this influencer was explicitly rejected
+    const rejectedApplications = await Application.find({
+      influencerId: req.userId,
+      status: 'rejected'
+    }).select('campaignId');
+    const rejectedCampaignIds = rejectedApplications.map(a => a.campaignId);
+
     // Build filter query
-    const query = { status: 'active' };
+    const query = { status: 'active', _id: { $nin: rejectedCampaignIds } };
 
     // Only show campaigns whose niches overlap with the influencer's niches.
     // Campaigns with no niches set are shown to everyone.
@@ -123,13 +130,16 @@ exports.getCampaignById = async (req, res) => {
       return res.status(404).json({ error: 'Campaign not found' });
     }
 
-    // Check if influencer already applied
+    // Check if influencer already applied or was rejected
     let hasApplied = false;
     if (req.userId) {
       const existing = await Application.findOne({
         campaignId: campaign._id,
         influencerId: req.userId
       });
+      if (existing?.status === 'rejected') {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
       hasApplied = !!existing;
     }
 
@@ -288,7 +298,17 @@ exports.getNewSinceCount = async (req, res) => {
     if (!since) return res.json({ count: 0 });
     const sinceDate = new Date(parseInt(since));
     if (isNaN(sinceDate.getTime())) return res.json({ count: 0 });
-    const count = await Campaign.countDocuments({ status: 'active', createdAt: { $gt: sinceDate } });
+    const rejectedApps = await Application.find({
+      influencerId: req.userId,
+      status: 'rejected'
+    }).select('campaignId');
+    const rejectedIds = rejectedApps.map(a => a.campaignId);
+
+    const count = await Campaign.countDocuments({
+      status: 'active',
+      createdAt: { $gt: sinceDate },
+      _id: { $nin: rejectedIds }
+    });
     res.json({ count });
   } catch (error) {
     res.status(500).json({ error: 'Something went wrong.' });
