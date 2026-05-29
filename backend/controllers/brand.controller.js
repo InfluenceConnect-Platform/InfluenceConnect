@@ -309,7 +309,7 @@ exports.getCampaignApplications = async (req, res) => {
 
     const [profiles, deals] = await Promise.all([
       InfluencerProfile.find({ userId: { $in: userIds } })
-        .select('niche city platforms profilePicUrl credibilityScore level slug'),
+        .select('userId niche city platforms profilePicUrl credibilityScore level slug'),
       Deal.find({ applicationId: { $in: acceptedAppIds } }).select('status applicationId'),
     ]);
 
@@ -428,7 +428,7 @@ exports.getMyDeals = async (req, res) => {
 
     const [profiles, lastMessages, unreadCounts] = await Promise.all([
       InfluencerProfile.find({ userId: { $in: influencerIds } })
-        .select('niche city platforms profilePicUrl'),
+        .select('userId niche city platforms profilePicUrl'),
       Message.aggregate([
         { $match: { dealId: { $in: dealIds } } },
         { $sort: { createdAt: -1 } },
@@ -660,7 +660,7 @@ exports.getDashboardStats = async (req, res) => {
     // Enrich with influencer profiles (single batched query).
     const recentUserIds = recentApplications.map(app => app.influencerId._id);
     const recentProfiles = await InfluencerProfile.find({ userId: { $in: recentUserIds } })
-      .select('niche city platforms profilePicUrl credibilityScore level');
+      .select('userId niche city platforms profilePicUrl credibilityScore level');
     const recentProfileByUser = new Map(recentProfiles.map(p => [p.userId.toString(), p]));
 
     const enrichedApplications = recentApplications.map(app => ({

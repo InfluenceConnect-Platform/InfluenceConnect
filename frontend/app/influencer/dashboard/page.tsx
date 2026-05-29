@@ -333,28 +333,28 @@ export default function InfluencerDashboard() {
 
         {/* ── Profile completion prompt ── */}
         {completionPct < 100 && (
-          <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-br from-teal-50 via-cyan-50 to-white border border-teal-200/80 rounded-2xl px-5 py-4 mb-6 shadow-sm">
+          <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-br from-teal-50 via-cyan-50 to-white dark:from-[#0d2d33] dark:via-[#0a2428] dark:to-[#0f1e31] border border-teal-200/80 dark:border-[#7FA8AD]/30 rounded-2xl px-5 py-4 mb-6 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#EEF4F5] dark:bg-[#7FA8AD]/20 text-[#7FA8AD] dark:text-[#9DC4C9] flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"/>
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-gray-900 text-sm mb-0.5">
+                <h3 className="font-bold text-gray-900 dark:text-slate-100 text-sm mb-0.5">
                   {completionPct < 40 ? 'Build your profile to get discovered' : completionPct < 80 ? 'Almost there — finish your profile' : 'One last step to complete your profile'}
                 </h3>
                 <div className="flex items-center gap-2.5 max-w-[240px]">
-                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] rounded-full transition-all duration-500" style={{ width: `${completionPct}%` }} />
                   </div>
-                  <span className="text-xs font-bold text-[#5D8A8F] flex-shrink-0">{completionPct}%</span>
+                  <span className="text-xs font-bold text-[#5D8A8F] dark:text-[#9DC4C9] flex-shrink-0">{completionPct}%</span>
                 </div>
               </div>
             </div>
             <Link
               href="/influencer/profile?edit=true"
-              className="flex-shrink-0 inline-flex items-center gap-1.5 bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm self-start sm:self-auto"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 bg-[#7FA8AD] hover:bg-[#5D8A8F] dark:bg-[#5D8A8F] dark:hover:bg-[#7FA8AD] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm self-start sm:self-auto"
             >
               Complete profile →
             </Link>
@@ -530,7 +530,7 @@ export default function InfluencerDashboard() {
                   </ul>
                   <Link
                     href="/influencer/billing"
-                    className="block text-center bg-white hover:bg-teal-50 text-[#1C4A52] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
+                    className="block text-center bg-white dark:!bg-teal-200 hover:bg-teal-50 dark:hover:!bg-teal-100 text-[#1C4A52] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
                   >
                     ₹299 / month — Upgrade now →
                   </Link>

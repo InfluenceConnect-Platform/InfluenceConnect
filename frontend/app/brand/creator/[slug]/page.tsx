@@ -311,14 +311,14 @@ export default function CreatorProfilePage() {
     ? ((profile.platforms.reduce((s: number, p: any) => s + (p.engagementRate ?? 0), 0)) / profile.platforms.length).toFixed(1)
     : '0';
 
-  // Backend already returns the correct visible set (full portfolio for premium,
-  // capped for freemium), so render exactly what it sends.
-  const visible  = profile.portfolioItems ?? [];
-  const reels    = visible.filter((i: any) => i.section === 'reels'  || (!i.section && i.type === 'video'));
-  const photos   = visible.filter((i: any) => i.section === 'photos' || (!i.section && i.type === 'image'));
-  const products = visible.filter((i: any) => i.section === 'products');
-  const stories  = visible.filter((i: any) => i.section === 'stories');
-  const tabMedia: Record<Tab, any[]> = { all: visible, reels, photos, products, stories };
+  const allItems = profile.portfolioItems ?? [];
+  const reels    = allItems.filter((i: any) => i.section === 'reels'  || (!i.section && i.type === 'video'));
+  const photos   = allItems.filter((i: any) => i.section === 'photos' || (!i.section && i.type === 'image'));
+  const products = allItems.filter((i: any) => i.section === 'products');
+  const stories  = allItems.filter((i: any) => i.section === 'stories');
+  const tabMedia: Record<Tab, any[]> = { all: allItems, reels, photos, products, stories };
+  // Unlocked items are the first 3 (or all items for premium influencers).
+  const visible  = allItems.filter((i: any) => !i.locked);
 
   const sectionLabel: Record<string, string> = {
     reels: 'Reel', photos: 'Photo', products: 'Product', stories: 'Story',
@@ -334,11 +334,11 @@ export default function CreatorProfilePage() {
     }));
 
   const TABS: { key: Tab; label: string; count: number }[] = [
-    { key: 'all',      label: 'All Posts', count: visible.length  },
-    { key: 'reels',    label: 'Reels',     count: reels.length    },
-    { key: 'photos',   label: 'Photos',    count: photos.length   },
-    { key: 'products', label: 'Products',  count: products.length },
-    { key: 'stories',  label: 'Stories',   count: stories.length  },
+    { key: 'all',      label: 'All Posts', count: allItems.length  },
+    { key: 'reels',    label: 'Reels',     count: reels.length     },
+    { key: 'photos',   label: 'Photos',    count: photos.length    },
+    { key: 'products', label: 'Products',  count: products.length  },
+    { key: 'stories',  label: 'Stories',   count: stories.length   },
   ];
 
   const card = 'bg-white rounded-2xl border border-gray-200/80 shadow-sm';
@@ -463,7 +463,7 @@ export default function CreatorProfilePage() {
             <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
               {[
                 {
-                  value: String(visible.length), label: 'Posts',
+                  value: String(allItems.length), label: 'Posts',
                   bg: 'bg-[#EEF1F8]', text: 'text-[#3D5087]',
                   icon: (
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -690,6 +690,25 @@ export default function CreatorProfilePage() {
               ))}
             </div>
 
+            {/* Freemium blurred-content banner */}
+            {tabMedia[activeTab].some((i: any) => i.locked) && (
+              <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border-b border-amber-100">
+                <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-amber-800">
+                    {tabMedia[activeTab].filter((i: any) => i.locked).length} posts blurred
+                  </p>
+                  <p className="text-[11px] text-amber-600/80 mt-0.5">
+                    This creator is on the free plan. Only the first 3 posts are fully visible — the rest are blurred.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Grid */}
             {tabMedia[activeTab].length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-6">
@@ -706,11 +725,38 @@ export default function CreatorProfilePage() {
             ) : (
               <div className="grid grid-cols-3 gap-px bg-gray-100">
                 {tabMedia[activeTab].map((item: any, i: number) => {
-                  const mediaList = buildMediaItems(tabMedia[activeTab]);
+                  const mediaList = buildMediaItems(tabMedia[activeTab].filter((x: any) => !x.locked));
+
+                  /* ── Locked (freemium blur) cell ── */
+                  if (item.locked) {
+                    const blurSrc = item.thumbnailUrl || item.cloudinaryUrl;
+                    return (
+                      <div
+                        key={item._id ?? i}
+                        className="relative aspect-square overflow-hidden bg-gray-200 select-none"
+                        aria-label="Blurred post"
+                      >
+                        {blurSrc && (
+                          <img
+                            src={blurSrc}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            style={{ filter: 'blur(12px)', transform: 'scale(1.1)' }}
+                          />
+                        )}
+                        {!blurSrc && (
+                          <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300" />
+                        )}
+                      </div>
+                    );
+                  }
+
+                  /* ── Unlocked cell ── */
+                  const unlockedIndex = tabMedia[activeTab].slice(0, i + 1).filter((x: any) => !x.locked).length - 1;
                   return (
                     <button
                       key={item._id ?? i}
-                      onClick={() => openModal(mediaList, i)}
+                      onClick={() => openModal(mediaList, unlockedIndex)}
                       className="relative aspect-square overflow-hidden bg-white group cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#3D5087]"
                       aria-label={item.type === 'video' ? 'Play reel' : 'View photo'}
                     >
@@ -727,7 +773,6 @@ export default function CreatorProfilePage() {
                               </div>
                             )
                           }
-                          {/* Play button overlay — always visible on video cells */}
                           <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-10 h-10 rounded-full bg-black/50 group-hover:bg-black/70 backdrop-blur-sm flex items-center justify-center transition-all duration-200 group-hover:scale-110">
                               <svg className="w-4 h-4 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor">
@@ -746,7 +791,6 @@ export default function CreatorProfilePage() {
                         <>
                           <img src={item.cloudinaryUrl} alt={`post-${i}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                          {/* Zoom hint on hover */}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
                               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -243,7 +243,7 @@ export default function BillingPage() {
                   onClick={() => setBilling('monthly')}
                   className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                     billing === 'monthly'
-                      ? 'bg-white text-[#1C4A52] shadow-sm'
+                      ? 'bg-white dark:!bg-teal-100 text-[#1C4A52] shadow-sm'
                       : 'text-white/70 hover:text-white'
                   }`}
                 >
@@ -253,12 +253,12 @@ export default function BillingPage() {
                   onClick={() => setBilling('yearly')}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                     billing === 'yearly'
-                      ? 'bg-white text-[#1C4A52] shadow-sm'
+                      ? 'bg-white dark:!bg-teal-100 text-[#1C4A52] shadow-sm'
                       : 'text-white/70 hover:text-white'
                   }`}
                 >
                   Yearly
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full">
+                  <span className="text-[11px] font-bold text-emerald-700 dark:!text-white bg-emerald-100 dark:!bg-emerald-500 px-1.5 py-0.5 rounded-full">
                     −20%
                   </span>
                 </button>

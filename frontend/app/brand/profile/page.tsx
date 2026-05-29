@@ -258,7 +258,7 @@ export default function BrandProfile() {
                 </span>
               )}
               {profile?.website && (
-                <a href={profile.website} target="_blank" rel="noopener noreferrer"
+                <a href={/^https?:\/\//i.test(profile.website) ? profile.website : `https://${profile.website}`} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1 text-xs font-medium text-[#3D5087] hover:underline">
                   <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
@@ -395,7 +395,7 @@ export default function BrandProfile() {
                   {profile?.website && (
                     <div className="col-span-2">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Website</p>
-                      <a href={profile.website} target="_blank" rel="noopener noreferrer"
+                      <a href={/^https?:\/\//i.test(profile.website) ? profile.website : `https://${profile.website}`} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-sm font-medium text-[#3D5087] hover:underline w-fit">
                         <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
