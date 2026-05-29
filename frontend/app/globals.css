@@ -77,6 +77,12 @@ body {
 .dark [class~="border-amber-200"]   { border-color: rgba(180, 130, 30, 0.40); }
 .dark [class~="border-emerald-200"] { border-color: rgba(16, 185, 129, 0.30); }
 
+/* Native date-picker calendar icon — dark by default, invisible on dark backgrounds */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.6);
+  cursor: pointer;
+}
+
 /* Status box text */
 .dark [class~="text-amber-800"]   { color: #fcd34d; }
 .dark [class~="text-emerald-800"] { color: #6ee7b7; }
