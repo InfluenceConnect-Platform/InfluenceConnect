@@ -63,6 +63,7 @@ export default function InfluencerSettings() {
 
   const [account, setAccount] = useState<AccountInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profilePicUrl, setProfilePicUrl] = useState('');
 
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
@@ -80,6 +81,7 @@ export default function InfluencerSettings() {
 
   useEffect(() => {
     api.get('/api/auth/account').then(r => setAccount(r.data)).catch(() => {}).finally(() => setLoading(false));
+    api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data.profile?.profilePicUrl || '')).catch(() => {});
   }, []);
 
   async function handleChangePassword(e: React.FormEvent) {
@@ -147,7 +149,7 @@ export default function InfluencerSettings() {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#080f1a]' : 'bg-gray-50'}`}>
-      <InfluencerNav />
+      <InfluencerNav profilePicUrl={profilePicUrl} />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
