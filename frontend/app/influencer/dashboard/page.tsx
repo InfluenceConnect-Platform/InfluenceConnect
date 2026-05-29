@@ -530,7 +530,7 @@ export default function InfluencerDashboard() {
                   </ul>
                   <Link
                     href="/influencer/billing"
-                    className="block text-center bg-white dark:!bg-teal-200 hover:bg-teal-50 dark:hover:!bg-teal-100 text-[#1C4A52] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
+                    className="block text-center bg-white/95 hover:bg-white text-[#1C4A52] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
                   >
                     ₹299 / month — Upgrade now →
                   </Link>
