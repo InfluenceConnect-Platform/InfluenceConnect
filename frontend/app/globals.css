@@ -80,3 +80,31 @@ body {
 /* Status box text */
 .dark [class~="text-amber-800"]   { color: #fcd34d; }
 .dark [class~="text-emerald-800"] { color: #6ee7b7; }
+
+/* ── Custom hex backgrounds (light tints used as accent cells/badges) ── */
+/* [class*="..."] catches bg-[#X], hover:bg-[#X], dark:bg-[#X] etc.    */
+.dark [class*="bg-[#EEF4F5]"] { background-color: rgba(13, 45, 51, 0.70); }
+.dark [class*="bg-[#EEF1F8]"] { background-color: rgba(15, 26, 46, 0.70); }
+.dark [class*="bg-[#EAEDF6]"] { background-color: rgba(26, 31, 58, 0.70); }
+
+/* ── Custom hex text (dark navy/teal used as brand accent) ── */
+.dark [class*="text-[#3D5087]"] { color: #93c5fd; }
+.dark [class*="text-[#2A3E42]"] { color: #5eead4; }
+.dark [class*="text-[#5D8A8F]"] { color: #5eead4; }
+.dark [class*="text-[#1C4A52]"] { color: #5eead4; }
+.dark [class*="text-[#7FA8AD]"] { color: #7dd3d0; }
+
+/* ── Light tinted bg colours lacking dark variants ── */
+.dark [class~="bg-blue-50"]   { background-color: rgba(30, 58, 138, 0.25); }
+.dark [class~="bg-violet-50"] { background-color: rgba(76, 29, 149, 0.25); }
+.dark [class~="bg-rose-50"]   { background-color: rgba(136, 19, 55, 0.25); }
+.dark [class~="bg-pink-50"]   { background-color: rgba(131, 24, 67, 0.25); }
+.dark [class~="bg-orange-50"] { background-color: rgba(124, 45, 18, 0.25); }
+.dark [class~="bg-purple-50"] { background-color: rgba(88, 28, 135, 0.25); }
+.dark [class~="bg-teal-50"]   { background-color: rgba(19, 78, 74, 0.25); }
+.dark [class~="bg-indigo-50"] { background-color: rgba(49, 46, 129, 0.25); }
+
+/* ── Semi-transparent white overlays rendering as grey on dark bgs ── */
+.dark [class~="bg-white\/50"]  { background-color: rgba(255, 255, 255, 0.04); }
+.dark [class~="bg-white\/60"]  { background-color: rgba(255, 255, 255, 0.05); }
+.dark [class~="bg-gray-50\/60"]{ background-color: rgba(255, 255, 255, 0.03); }
