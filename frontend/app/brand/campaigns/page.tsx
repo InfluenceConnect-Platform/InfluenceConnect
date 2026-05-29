@@ -10,11 +10,40 @@ const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Che
 
 const CAMPAIGN_STATUS_STYLES: Record<string, string> = {
   active:        'bg-gradient-to-r from-emerald-500 to-green-600 text-white',
-  draft:         'bg-gray-200 text-gray-700',
+  draft:         'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-slate-200',
   'in-progress': 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
   completed:     'bg-gradient-to-r from-blue-500 to-indigo-600 text-white',
   closed:        'bg-gradient-to-r from-red-500 to-rose-600 text-white',
 };
+
+const InstagramLogo = ({ size = 12 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <defs>
+      <radialGradient id="ig-camp" cx="30%" cy="110%" r="130%">
+        <stop offset="0%" stopColor="#ffd676"/><stop offset="25%" stopColor="#f46f30"/>
+        <stop offset="50%" stopColor="#e1306c"/><stop offset="75%" stopColor="#833ab4"/>
+        <stop offset="100%" stopColor="#4a23a8"/>
+      </radialGradient>
+    </defs>
+    <rect width="24" height="24" rx="6" fill="url(#ig-camp)"/>
+    <rect x="6.5" y="6.5" width="11" height="11" rx="3.5" fill="none" stroke="white" strokeWidth="1.6"/>
+    <circle cx="12" cy="12" r="3" fill="none" stroke="white" strokeWidth="1.6"/>
+    <circle cx="17.2" cy="6.8" r="1.1" fill="white"/>
+  </svg>
+);
+const YouTubeLogo = ({ size = 12 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <rect width="24" height="24" rx="5" fill="#FF0000"/>
+    <path d="M17.8 8.6c-.2-.7-.8-1.3-1.5-1.5C15 6.8 12 6.8 12 6.8s-3 0-4.3.3c-.7.2-1.3.8-1.5 1.5C6 9.9 6 12 6 12s0 2.1.2 3.4c.2.7.8 1.3 1.5 1.5C9 17.2 12 17.2 12 17.2s3 0 4.3-.3c.7-.2 1.3-.8 1.5-1.5.2-1.3.2-3.4.2-3.4s0-2.1-.2-3.4z" fill="white"/>
+    <polygon points="10.5,9.5 10.5,14.5 14.5,12" fill="#FF0000"/>
+  </svg>
+);
+const FacebookLogo = ({ size = 12 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <rect width="24" height="24" rx="5" fill="#1877F2"/>
+    <path d="M16 4h-2.5C11.6 4 10 5.6 10 7.7V10H7.5v3H10v7h3v-7h2.5l.5-3H13V7.7c0-.4.3-.7.7-.7H16V4z" fill="white"/>
+  </svg>
+);
 
 const CAMPAIGN_STATUS_LABELS: Record<string, string> = {
   active:        'Active',
@@ -796,7 +825,9 @@ export default function BrandCampaigns() {
                     <div className="flex items-center gap-1.5">
                       {campaign.targetPlatform && campaign.targetPlatform !== 'any' && (
                         <span className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md capitalize">
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                          {campaign.targetPlatform === 'instagram' && <InstagramLogo size={11} />}
+                          {campaign.targetPlatform === 'youtube'   && <YouTubeLogo size={11} />}
+                          {campaign.targetPlatform === 'facebook'  && <FacebookLogo size={11} />}
                           {campaign.targetPlatform}
                         </span>
                       )}
