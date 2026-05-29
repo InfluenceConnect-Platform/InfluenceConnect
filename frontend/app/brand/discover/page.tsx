@@ -138,7 +138,7 @@ function FilterPanel({
   const hasPriceApplied = !!(minPrice || maxPrice);
   return (
     <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm">
-      <div className="px-5 py-3.5 bg-gradient-to-r from-blue-50/70 to-white border-b border-gray-100 flex items-center justify-between">
+      <div className="px-5 py-3.5 bg-gradient-to-r from-blue-50/70 to-white dark:from-[#0f1e31] dark:to-[#0E1B2E] border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-1 h-5 rounded-full bg-gradient-to-b from-[#3D5087] to-[#2B3B68]" />
           <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Filters</h4>
@@ -904,21 +904,21 @@ export default function BrandDiscover() {
 
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-1.5 mb-4">
-                          <div className="bg-teal-50 border border-teal-100 rounded-xl p-2 text-center">
-                            <p className="text-sm font-black text-teal-900">
+                          <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800/40 rounded-xl p-2 text-center">
+                            <p className="text-sm font-black text-teal-900 dark:text-teal-300">
                               {primary ? `${(primary.followers / 1000).toFixed(1)}k` : '—'}
                             </p>
-                            <p className="text-[9px] font-bold uppercase tracking-wide text-teal-600/80 mt-0.5">Followers</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wide text-teal-600/80 dark:text-teal-400/80 mt-0.5">Followers</p>
                           </div>
-                          <div className="bg-violet-50 border border-violet-100 rounded-xl p-2 text-center">
-                            <p className="text-sm font-black text-violet-900">
+                          <div className="bg-violet-50 dark:bg-violet-900/30 border border-violet-100 dark:border-violet-800/40 rounded-xl p-2 text-center">
+                            <p className="text-sm font-black text-violet-900 dark:text-violet-300">
                               {primary ? `${primary.engagementRate}%` : '—'}
                             </p>
-                            <p className="text-[9px] font-bold uppercase tracking-wide text-violet-600/80 mt-0.5">Engage</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wide text-violet-600/80 dark:text-violet-400/80 mt-0.5">Engage</p>
                           </div>
-                          <div className="bg-amber-50 border border-amber-100 rounded-xl p-2 text-center">
-                            <p className="text-sm font-black text-amber-900">{influencer.credibilityScore ?? '—'}</p>
-                            <p className="text-[9px] font-bold uppercase tracking-wide text-amber-600/80 mt-0.5">Score</p>
+                          <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/40 rounded-xl p-2 text-center">
+                            <p className="text-sm font-black text-amber-900 dark:text-amber-300">{influencer.credibilityScore ?? '—'}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wide text-amber-600/80 dark:text-amber-400/80 mt-0.5">Score</p>
                           </div>
                         </div>
 
