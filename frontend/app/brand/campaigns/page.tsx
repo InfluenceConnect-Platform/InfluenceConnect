@@ -665,9 +665,9 @@ export default function BrandCampaigns() {
                 ))}
               </div>
             ) : filteredCampaigns.length === 0 ? (
-              <div className="border-2 border-dashed border-gray-200 rounded-2xl p-12 sm:p-16 text-center bg-white/50">
-                <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="border-2 border-dashed border-gray-200 dark:border-gray-700/60 rounded-2xl p-12 sm:p-16 text-center bg-white/50 dark:bg-white/[0.03]">
+                <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-[#0f1e31] border border-gray-100 dark:border-gray-700/50 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-gray-300 dark:text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                   </svg>
                 </div>
@@ -677,7 +677,7 @@ export default function BrandCampaigns() {
                 </p>
                 <button
                   onClick={() => setShowForm(true)}
-                  className="text-sm text-[#3D5087] font-semibold hover:underline cursor-pointer"
+                  className="text-sm text-[#3D5087] dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                 >
                   Create first campaign →
                 </button>

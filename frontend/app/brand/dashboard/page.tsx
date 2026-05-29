@@ -277,8 +277,8 @@ export default function BrandDashboard() {
 
             {recentApplications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-[#0f1e31] border border-gray-100 dark:border-gray-700/50 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-gray-300 dark:text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                     <polyline points="22,6 12,13 2,6"/>
                   </svg>
