@@ -398,7 +398,7 @@ export default function BrandDashboard() {
                   </ul>
                   <Link
                     href="/brand/billing"
-                    className="block text-center bg-white hover:bg-blue-50 text-[#3D5087] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
+                    className="block text-center bg-white/95 hover:bg-white text-[#3D5087] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
                   >
                     ₹1,499 / month — Upgrade now →
                   </Link>
