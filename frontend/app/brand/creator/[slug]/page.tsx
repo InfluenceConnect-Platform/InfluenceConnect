@@ -464,7 +464,7 @@ export default function CreatorProfilePage() {
               {[
                 {
                   value: String(allItems.length), label: 'Posts',
-                  bg: 'bg-[#EEF1F8]', text: 'text-[#3D5087]',
+                  bg: 'bg-[#EEF1F8]', darkBg: 'dark:bg-[#0d2d33]', text: 'text-[#3D5087]', darkText: 'dark:text-[#7EC8D3]',
                   icon: (
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -473,7 +473,7 @@ export default function CreatorProfilePage() {
                 },
                 {
                   value: formatNum(totalFollowers), label: 'Followers',
-                  bg: 'bg-violet-50', text: 'text-violet-600',
+                  bg: 'bg-violet-50', darkBg: 'dark:bg-violet-900/40', text: 'text-violet-600', darkText: 'dark:text-violet-400',
                   icon: (
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
@@ -482,7 +482,7 @@ export default function CreatorProfilePage() {
                 },
                 {
                   value: primary ? formatNum(primary.avgLikes ?? 0) : '—', label: 'Avg Likes',
-                  bg: 'bg-rose-50', text: 'text-rose-500',
+                  bg: 'bg-rose-50', darkBg: 'dark:bg-rose-900/30', text: 'text-rose-500', darkText: 'dark:text-rose-400',
                   icon: (
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -491,7 +491,7 @@ export default function CreatorProfilePage() {
                 },
                 {
                   value: `${avgEng}%`, label: 'Engagement',
-                  bg: 'bg-emerald-50', text: 'text-emerald-600',
+                  bg: 'bg-emerald-50', darkBg: 'dark:bg-emerald-900/30', text: 'text-emerald-600', darkText: 'dark:text-emerald-400',
                   icon: (
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
@@ -499,12 +499,12 @@ export default function CreatorProfilePage() {
                   ),
                 },
               ].map((s, i) => (
-                <div key={i} className={`relative ${s.bg} rounded-xl px-2 py-3 flex flex-col items-center gap-1 overflow-hidden`}>
+                <div key={i} className={`relative ${s.bg} ${s.darkBg} rounded-xl px-2 py-3 flex flex-col items-center gap-1 overflow-hidden`}>
                   {/* Corner circle accent */}
                   <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-black/[0.04] pointer-events-none" />
-                  <span className={`relative ${s.text}`}>{s.icon}</span>
-                  <p className="relative text-sm font-bold text-gray-900 tabular-nums leading-none">{s.value}</p>
-                  <p className="relative text-[10px] text-gray-400 font-medium">{s.label}</p>
+                  <span className={`relative ${s.text} ${s.darkText}`}>{s.icon}</span>
+                  <p className="relative text-sm font-bold text-gray-900 dark:text-slate-100 tabular-nums leading-none">{s.value}</p>
+                  <p className="relative text-[10px] text-gray-400 dark:text-slate-400 font-medium">{s.label}</p>
                 </div>
               ))}
             </div>
