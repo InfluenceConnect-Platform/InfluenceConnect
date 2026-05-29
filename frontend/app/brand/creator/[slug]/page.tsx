@@ -552,18 +552,16 @@ export default function CreatorProfilePage() {
                       )}
                     </div>
                     {/* Stat values */}
-                    <div className="relative px-4 py-4 grid grid-cols-2 gap-x-4 gap-y-3.5">
-                      {/* Faint circle decoration bottom-right */}
-                      <div className="absolute -bottom-6 -right-6 w-20 h-20 rounded-full bg-gray-100/60 pointer-events-none" />
+                    <div className="px-4 py-4 grid grid-cols-2 gap-x-4 gap-y-3.5">
                       {[
                         { v: formatNum(p.followers ?? 0),   l: 'Followers'    },
                         { v: `${p.engagementRate ?? 0}%`,   l: 'Engagement'   },
                         { v: formatNum(p.avgLikes ?? 0),    l: 'Avg Likes'    },
                         { v: formatNum(p.avgComments ?? 0), l: 'Avg Comments' },
                       ].map((st, i) => (
-                        <div key={i} className="relative">
+                        <div key={i}>
                           <p className="text-base font-bold text-gray-900 tabular-nums leading-tight">{st.v}</p>
-                          <p className="text-[11px] text-gray-400 font-medium mt-0.5">{st.l}</p>
+                          <p className="text-[11px] text-gray-500 font-medium mt-0.5">{st.l}</p>
                         </div>
                       ))}
                     </div>
