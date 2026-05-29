@@ -557,6 +557,7 @@ exports.discoverInfluencers = async (req, res) => {
     const {
       niche, platform, city,
       minFollowers, maxFollowers,
+      minPrice, maxPrice,
       page = 1, limit = 12
     } = req.query;
 
@@ -578,6 +579,16 @@ exports.discoverInfluencers = async (req, res) => {
       query['platforms.followers'] = {};
       if (minFollowers) query['platforms.followers'].$gte = parseInt(minFollowers);
       if (maxFollowers) query['platforms.followers'].$lte = parseInt(maxFollowers);
+    }
+
+    if (minPrice || maxPrice) {
+      // Only match influencers who have set a price (priceRangeMin > 0)
+      // and whose range overlaps with the brand's budget:
+      //   influencer.priceRangeMin <= brand.maxPrice  (not too expensive)
+      //   influencer.priceRangeMax >= brand.minPrice  (not too cheap)
+      query.priceRangeMin = { $gt: 0 };
+      if (maxPrice) query.priceRangeMin.$lte = parseInt(maxPrice);
+      if (minPrice) query.priceRangeMax = { $gte: parseInt(minPrice) };
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);

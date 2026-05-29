@@ -88,6 +88,14 @@ interface FilterPanelProps {
   maxFollowers: string;
   applyFollowerRange: () => void;
   clearFollowerRange: () => void;
+  minPriceInput: string;
+  setMinPriceInput: (v: string) => void;
+  maxPriceInput: string;
+  setMaxPriceInput: (v: string) => void;
+  minPrice: string;
+  maxPrice: string;
+  applyPriceRange: () => void;
+  clearPriceRange: () => void;
   activeFilterCount: number;
   clearFilters: () => void;
 }
@@ -101,6 +109,11 @@ function FilterPanel({
   minFollowers, maxFollowers,
   applyFollowerRange,
   clearFollowerRange,
+  minPriceInput, setMinPriceInput,
+  maxPriceInput, setMaxPriceInput,
+  minPrice, maxPrice,
+  applyPriceRange,
+  clearPriceRange,
   activeFilterCount,
   clearFilters,
 }: FilterPanelProps) {
@@ -114,6 +127,15 @@ function FilterPanel({
       : null;
   const canApply = minInput.trim() !== '' && maxInput.trim() !== '' && !rangeError;
   const hasApplied = !!(minFollowers || maxFollowers);
+
+  const minPriceVal = minPriceInput.trim() !== '' ? Number(minPriceInput) : null;
+  const maxPriceVal = maxPriceInput.trim() !== '' ? Number(maxPriceInput) : null;
+  const priceError =
+    minPriceVal !== null && maxPriceVal !== null && minPriceVal > maxPriceVal
+      ? 'Min cannot be greater than max'
+      : null;
+  const canApplyPrice = (minPriceInput.trim() !== '' || maxPriceInput.trim() !== '') && !priceError;
+  const hasPriceApplied = !!(minPrice || maxPrice);
   return (
     <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm">
       <div className="px-5 py-3.5 bg-gradient-to-r from-blue-50/70 to-white border-b border-gray-100 flex items-center justify-between">
@@ -284,6 +306,80 @@ function FilterPanel({
             </div>
           )}
         </div>
+
+        <div className="h-px bg-gray-100 my-5" />
+
+        {/* Price range */}
+        <div>
+          <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0" />
+            Price range (₹)
+          </p>
+
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Min e.g. 5000"
+              value={minPriceInput}
+              onChange={e => setMinPriceInput(e.target.value.replace(/[^\d]/g, ''))}
+              className={`${FIELD_CLASS} flex-1 ${priceError && minPriceVal !== null ? 'border-red-300 focus:border-red-400 focus:ring-red-200' : ''}`}
+            />
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Max e.g. 50000"
+              value={maxPriceInput}
+              onChange={e => setMaxPriceInput(e.target.value.replace(/[^\d]/g, ''))}
+              className={`${FIELD_CLASS} flex-1 ${priceError && maxPriceVal !== null ? 'border-red-300 focus:border-red-400 focus:ring-red-200' : ''}`}
+            />
+          </div>
+
+          {priceError && (
+            <p className="flex items-center gap-1 text-[11px] text-red-500 font-semibold mb-2">
+              <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              {priceError}
+            </p>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={applyPriceRange}
+              disabled={!canApplyPrice}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-150 ${
+                canApplyPrice
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white cursor-pointer hover:from-emerald-600 hover:to-teal-700 shadow-sm hover:shadow-md'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Apply
+            </button>
+            {(hasPriceApplied || minPriceInput || maxPriceInput) && (
+              <button
+                onClick={clearPriceRange}
+                className="px-3 py-2 rounded-xl text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition-all cursor-pointer"
+                title="Clear price range"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {hasPriceApplied && (
+            <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <svg className="w-3 h-3 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 3h12M6 8h12M12 21 6 8"/><path d="M6 13h3a4 4 0 1 0 0-5H6"/>
+              </svg>
+              <p className="text-[11px] text-emerald-700 font-semibold">
+                ₹{minPrice ? Number(minPrice).toLocaleString('en-IN') : '0'}
+                {' – '}
+                {maxPrice ? `₹${Number(maxPrice).toLocaleString('en-IN')}` : '∞'}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -304,9 +400,12 @@ export default function BrandDiscover() {
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [minFollowers, setMinFollowers] = useState('');
   const [maxFollowers, setMaxFollowers] = useState('');
-  // Draft state — updated on every keystroke, applied to API on blur / Enter
   const [minInput, setMinInput] = useState('');
   const [maxInput, setMaxInput] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [minPriceInput, setMinPriceInput] = useState('');
+  const [maxPriceInput, setMaxPriceInput] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -316,7 +415,7 @@ export default function BrandDiscover() {
 
   useEffect(() => {
     fetchInfluencers();
-  }, [selectedNiches, selectedCity, selectedPlatform, minFollowers, maxFollowers]);
+  }, [selectedNiches, selectedCity, selectedPlatform, minFollowers, maxFollowers, minPrice, maxPrice]);
 
   const fetchInfluencers = async () => {
     setLoading(true);
@@ -327,6 +426,8 @@ export default function BrandDiscover() {
       if (selectedPlatform) params.platform = selectedPlatform;
       if (minFollowers) params.minFollowers = minFollowers;
       if (maxFollowers) params.maxFollowers = maxFollowers;
+      if (minPrice) params.minPrice = minPrice;
+      if (maxPrice) params.maxPrice = maxPrice;
 
       const response = await api.get('/api/brand/discover', { params });
       setInfluencers(response.data.influencers);
@@ -355,6 +456,18 @@ export default function BrandDiscover() {
     setMaxInput('');
   };
 
+  const applyPriceRange = () => {
+    setMinPrice(minPriceInput);
+    setMaxPrice(maxPriceInput);
+  };
+
+  const clearPriceRange = () => {
+    setMinPrice('');
+    setMaxPrice('');
+    setMinPriceInput('');
+    setMaxPriceInput('');
+  };
+
   const clearFilters = () => {
     setSelectedNiches([]);
     setSelectedCity('');
@@ -363,10 +476,15 @@ export default function BrandDiscover() {
     setMaxFollowers('');
     setMinInput('');
     setMaxInput('');
+    setMinPrice('');
+    setMaxPrice('');
+    setMinPriceInput('');
+    setMaxPriceInput('');
   };
 
   const activeFilterCount =
-    selectedNiches.length + (selectedCity ? 1 : 0) + (selectedPlatform ? 1 : 0) + (minFollowers ? 1 : 0) + (maxFollowers ? 1 : 0);
+    selectedNiches.length + (selectedCity ? 1 : 0) + (selectedPlatform ? 1 : 0) +
+    (minFollowers ? 1 : 0) + (maxFollowers ? 1 : 0) + (minPrice || maxPrice ? 1 : 0);
 
   const getPrimaryPlatform = (influencer: any) => {
     if (!influencer.platforms || influencer.platforms.length === 0) return null;
@@ -384,6 +502,11 @@ export default function BrandDiscover() {
     minFollowers, maxFollowers,
     applyFollowerRange,
     clearFollowerRange,
+    minPriceInput, setMinPriceInput,
+    maxPriceInput, setMaxPriceInput,
+    minPrice, maxPrice,
+    applyPriceRange,
+    clearPriceRange,
     activeFilterCount,
     clearFilters,
   };
