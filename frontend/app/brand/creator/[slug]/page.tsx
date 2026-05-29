@@ -815,15 +815,14 @@ export default function CreatorProfilePage() {
         </div>
 
         {/* ═══════════════════════════════
-            CTA BANNER
+            HOW TO COLLABORATE
             ═══════════════════════════════ */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#2B3B68] via-[#3D5087] to-[#4a5fa0] sm:rounded-2xl px-6 py-6 shadow-lg">
-          {/* Layered circle accents */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#2B3B68] via-[#3D5087] to-[#4a5fa0] sm:rounded-2xl px-6 py-7 shadow-lg">
+          {/* decorative orbs */}
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-8 -left-6 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />
-          <div className="absolute bottom-2 left-1/2 w-16 h-16 bg-white/[0.03] rounded-full pointer-events-none" />
-          {/* Diagonal stripe */}
+
           <svg className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none" preserveAspectRatio="none">
             <defs>
               <pattern id="ctadiag" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -832,18 +831,38 @@ export default function CreatorProfilePage() {
             </defs>
             <rect width="100%" height="100%" fill="url(#ctadiag)"/>
           </svg>
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-blue-200/80 text-[11px] font-semibold uppercase tracking-widest mb-1">Ready to collaborate?</p>
-              <p className="text-white text-lg font-bold tracking-tight">Work with {name.split(' ')[0]}</p>
-              <p className="text-blue-200/60 text-sm mt-0.5">Send a message and start your campaign together.</p>
+
+          <div className="relative">
+            <p className="text-blue-200/80 text-[11px] font-semibold uppercase tracking-widest mb-1">Want to work with {name.split(' ')[0]}?</p>
+            <p className="text-white text-lg font-bold tracking-tight">Collaborations start with a campaign</p>
+            <p className="text-blue-200/70 text-sm mt-1 max-w-xl leading-relaxed">
+              Post a campaign that fits {name.split(' ')[0]}&apos;s niche. Once they apply and you accept,
+              a deal opens up and you can chat and collaborate directly.
+            </p>
+
+            {/* 3-step flow */}
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { n: 1, t: 'Post a campaign', d: 'Share your brief, budget & deliverables.' },
+                { n: 2, t: 'Review applicants', d: 'Creators apply — pick the right fit.' },
+                { n: 3, t: 'Accept & chat', d: 'A deal opens and messaging unlocks.' },
+              ].map(step => (
+                <div key={step.n} className="rounded-xl bg-white/10 border border-white/10 px-3.5 py-3 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white text-[#3D5087] text-[11px] font-bold flex items-center justify-center">{step.n}</span>
+                    <span className="text-white text-[13px] font-bold">{step.t}</span>
+                  </div>
+                  <p className="text-blue-200/60 text-[11px] leading-snug">{step.d}</p>
+                </div>
+              ))}
             </div>
-            <a href={`/brand/messages${profile.userId?._id ? `?influencerId=${profile.userId._id}` : ''}`}
-              className="flex-shrink-0 flex items-center gap-2 bg-white hover:bg-blue-50 text-[#3D5087] px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
+
+            <a href="/brand/campaigns"
+              className="mt-5 inline-flex items-center gap-2 bg-white hover:bg-blue-50 text-[#3D5087] px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
-              Message Now
+              Post a Campaign
             </a>
           </div>
         </div>
