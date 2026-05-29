@@ -328,7 +328,7 @@ export default function BrandProfile() {
             {isEditing ? (
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company name</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company name (if any)</label>
                   <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
                     placeholder="Your company or brand name" className={fieldClass} />
                 </div>

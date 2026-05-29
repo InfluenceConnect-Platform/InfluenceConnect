@@ -36,6 +36,15 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: 'Invitations',
+    href: '/brand/invitations',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+      </svg>
+    ),
+  },
+  {
     label: 'Messages',
     href: '/brand/messages',
     icon: (
@@ -77,6 +86,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   const [fetchedLogoUrl, setFetchedLogoUrl] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
+  const [inviteResponseCount, setInviteResponseCount] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [localUser, setLocalUser] = useState<any>(() => {
@@ -106,12 +116,14 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
 
   const fetchCounts = async () => {
     try {
-      const [msgRes, offerRes] = await Promise.all([
+      const [msgRes, offerRes, inviteRes] = await Promise.all([
         api.get('/api/messages/unread-count'),
         api.get('/api/deals/pending-offer-count'),
+        api.get('/api/invitations/brand/response-count'),
       ]);
       setUnreadCount(msgRes.data.count ?? 0);
       setPendingOfferCount(offerRes.data.count ?? 0);
+      setInviteResponseCount(inviteRes.data.count ?? 0);
     } catch {}
   };
 
@@ -125,6 +137,9 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
     if (pathname === '/brand/messages') {
       setUnreadCount(0);
       setPendingOfferCount(0);
+    }
+    if (pathname === '/brand/invitations') {
+      setInviteResponseCount(0);
     }
   }, [pathname]);
 
@@ -171,8 +186,9 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           <div className="hidden lg:flex items-center gap-0.5">
             {NAV_ITEMS.map(item => {
               const isMessages = item.href === '/brand/messages';
+              const isInvites  = item.href === '/brand/invitations';
               const isActive   = pathname === item.href;
-              const hasDot     = isMessages && (unreadCount > 0 || pendingOfferCount > 0);
+              const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0);
               return (
                 <Link
                   key={item.href}
@@ -282,8 +298,9 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
             <div className="px-4 py-3 flex flex-col gap-1">
               {NAV_ITEMS.map(item => {
                 const isMessages = item.href === '/brand/messages';
+                const isInvites  = item.href === '/brand/invitations';
                 const isActive   = pathname === item.href;
-                const hasDot     = isMessages && (unreadCount > 0 || pendingOfferCount > 0);
+                const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0);
                 return (
                   <Link
                     key={item.href}
@@ -343,8 +360,9 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
         <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden px-3 gap-0.5 py-2">
           {NAV_ITEMS.map(item => {
             const isMessages = item.href === '/brand/messages';
+            const isInvites  = item.href === '/brand/invitations';
             const isActive   = pathname === item.href;
-            const hasDot     = isMessages && (unreadCount > 0 || pendingOfferCount > 0);
+            const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0);
             return (
               <Link
                 key={item.href}

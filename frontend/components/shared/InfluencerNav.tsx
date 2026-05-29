@@ -27,6 +27,15 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: 'Invitations',
+    href: '/influencer/invitations',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+      </svg>
+    ),
+  },
+  {
     label: 'Messages',
     href: '/influencer/messages',
     icon: (
@@ -77,6 +86,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
   const [newCampaignCount, setNewCampaignCount] = useState(0);
+  const [pendingInviteCount, setPendingInviteCount] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [localUser, setLocalUser] = useState<any>(() => {
@@ -99,12 +109,14 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
 
   const fetchCounts = async () => {
     try {
-      const [msgRes, offerRes] = await Promise.all([
+      const [msgRes, offerRes, inviteRes] = await Promise.all([
         api.get('/api/messages/unread-count'),
         api.get('/api/deals/pending-offer-count'),
+        api.get('/api/invitations/influencer/pending-count'),
       ]);
       setUnreadCount(msgRes.data.count ?? 0);
       setPendingOfferCount(offerRes.data.count ?? 0);
+      setPendingInviteCount(inviteRes.data.count ?? 0);
     } catch {}
   };
 
@@ -134,6 +146,9 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
     if (pathname === '/influencer/campaigns') {
       localStorage.setItem('lastSeenCampaignsAt', Date.now().toString());
       setNewCampaignCount(0);
+    }
+    if (pathname === '/influencer/invitations') {
+      setPendingInviteCount(0);
     }
   }, [pathname]);
 
@@ -179,8 +194,9 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
             {NAV_ITEMS.map(item => {
               const isMessages  = item.href === '/influencer/messages';
               const isCampaigns = item.href === '/influencer/campaigns';
+              const isInvites   = item.href === '/influencer/invitations';
               const isActive    = pathname === item.href;
-              const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && newCampaignCount > 0);
+              const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && newCampaignCount > 0) || (isInvites && pendingInviteCount > 0);
               return (
                 <Link
                   key={item.href}
@@ -291,8 +307,9 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
               {NAV_ITEMS.map(item => {
                 const isMessages  = item.href === '/influencer/messages';
                 const isCampaigns = item.href === '/influencer/campaigns';
+              const isInvites   = item.href === '/influencer/invitations';
                 const isActive    = pathname === item.href;
-                const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && newCampaignCount > 0);
+                const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && newCampaignCount > 0) || (isInvites && pendingInviteCount > 0);
                 return (
                   <Link
                     key={item.href}
