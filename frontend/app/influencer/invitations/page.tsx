@@ -108,6 +108,13 @@ export default function InfluencerInvitations() {
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string>('');
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [expandedDesc, setExpandedDesc] = useState<Set<string>>(new Set());
+
+  const toggleDesc = (id: string) => setExpandedDesc(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) { next.delete(id); } else { next.add(id); }
+    return next;
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -293,17 +300,44 @@ export default function InfluencerInvitations() {
                             </a>
                           )}
                         </div>
-                        {inv.brandDescription && (
-                          <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1.5 leading-relaxed line-clamp-2">{inv.brandDescription}</p>
-                        )}
+                        {inv.brandDescription && (() => {
+                          const expanded = expandedDesc.has(inv._id);
+                          return (
+                            <div className="mt-1.5">
+                              <p className={`text-[11px] text-gray-400 dark:text-slate-500 leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
+                                {inv.brandDescription}
+                              </p>
+                              <button
+                                onClick={e => { e.stopPropagation(); toggleDesc(inv._id); }}
+                                className="text-[10px] font-semibold text-[#3D5087] dark:text-blue-400 hover:underline mt-0.5 cursor-pointer"
+                              >
+                                {expanded ? 'View less' : 'View more'}
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
 
                     {/* ── Campaign title + description ── */}
                     <h3 className="text-[15px] font-bold text-gray-900 dark:text-slate-100 mb-1.5 leading-snug">{campaign?.title || 'Campaign Invitation'}</h3>
-                    {campaign?.description && (
-                      <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed mb-4 line-clamp-2">{campaign.description}</p>
-                    )}
+                    {campaign?.description && (() => {
+                      const key = `campaign-${inv._id}`;
+                      const expanded = expandedDesc.has(key);
+                      return (
+                        <div className="mb-4">
+                          <p className={`text-sm text-gray-500 dark:text-slate-400 leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
+                            {campaign.description}
+                          </p>
+                          <button
+                            onClick={e => { e.stopPropagation(); toggleDesc(key); }}
+                            className="text-[11px] font-semibold text-[#3D5087] dark:text-blue-400 hover:underline mt-0.5 cursor-pointer"
+                          >
+                            {expanded ? 'View less' : 'View more'}
+                          </button>
+                        </div>
+                      );
+                    })()}
 
                     {/* ── Budget + Deadline ── */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
