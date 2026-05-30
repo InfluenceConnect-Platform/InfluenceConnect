@@ -50,6 +50,10 @@ exports.getCampaigns = async (req, res) => {
         // Replace the $or with a stricter niche match
         delete query.$or;
         query.niche = { $in: allowed };
+      } else if (influencerNiches.length > 0) {
+        // Requested niches have no overlap with the influencer's profile niches — no results
+        query._id = { $in: [] };
+        delete query.$or;
       }
     }
 
