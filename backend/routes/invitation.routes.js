@@ -6,6 +6,7 @@ const {
   getBrandInvitations,
   getBrandResponseCount,
   markBrandResponsesSeen,
+  cancelInvitation,
   getInfluencerInvitations,
   getInfluencerPendingCount,
   respondToInvitation,
@@ -16,6 +17,7 @@ router.post('/', authenticate, sendInvitations);
 router.get('/brand', authenticate, getBrandInvitations);
 router.get('/brand/response-count', authenticate, getBrandResponseCount);
 router.put('/brand/seen', authenticate, markBrandResponsesSeen);
+router.delete('/:invitationId', authenticate, cancelInvitation);
 
 // ── Influencer ──
 router.get('/influencer', authenticate, getInfluencerInvitations);

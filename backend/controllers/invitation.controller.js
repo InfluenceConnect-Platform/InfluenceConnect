@@ -74,6 +74,10 @@ exports.sendInvitations = async (req, res) => {
         : 'No new invitations sent.',
       invited: created.length,
       skipped: validIds.length - created.length,
+      invitations: created.map(inv => ({
+        _id: inv._id.toString(),
+        influencerId: inv.influencerId.toString(),
+      })),
     });
   } catch (error) {
     console.error('Send invitations error:', error);
@@ -204,6 +208,28 @@ exports.getInfluencerPendingCount = async (req, res) => {
     res.json({ count });
   } catch (error) {
     console.error('Get influencer pending count error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// BRAND → CANCEL A PENDING INVITATION
+// ─────────────────────────────────────────
+exports.cancelInvitation = async (req, res) => {
+  try {
+    const { invitationId } = req.params;
+    const invitation = await Invitation.findById(invitationId);
+    if (!invitation) return res.status(404).json({ error: 'Invitation not found.' });
+    if (invitation.brandId.toString() !== req.userId.toString()) {
+      return res.status(403).json({ error: 'Access denied.' });
+    }
+    if (invitation.status !== 'pending') {
+      return res.status(400).json({ error: 'Only pending invitations can be cancelled.' });
+    }
+    await invitation.deleteOne();
+    res.json({ message: 'Invitation cancelled.' });
+  } catch (error) {
+    console.error('Cancel invitation error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

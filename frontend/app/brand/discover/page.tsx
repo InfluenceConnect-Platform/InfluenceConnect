@@ -403,7 +403,10 @@ export default function BrandDiscover() {
   const isPremium = user?.plan === 'premium';
   // userId -> 'pending' | 'accepted' | 'rejected' for influencers already invited to this campaign.
   const [invitedStatus, setInvitedStatus] = useState<Record<string, string>>({});
+  // userId -> invitationId (_id) — needed to cancel pending invites
+  const [invitationIdMap, setInvitationIdMap] = useState<Record<string, string>>({});
   const [invitingId, setInvitingId] = useState<string>('');
+  const [cancellingId, setCancellingId] = useState<string>('');
   const [toast, setToast] = useState('');
 
   useEffect(() => {
@@ -411,12 +414,17 @@ export default function BrandDiscover() {
     // Load who's already been invited to this campaign so we don't double-invite.
     api.get('/api/invitations/brand', { params: { campaignId: inviteCampaignId } })
       .then(res => {
-        const map: Record<string, string> = {};
+        const statusMap: Record<string, string> = {};
+        const idMap: Record<string, string> = {};
         (res.data.invitations || []).forEach((inv: any) => {
-          const id = inv.influencerId?._id || inv.influencerId;
-          if (id) map[id.toString()] = inv.status;
+          const uid = (inv.influencerId?._id || inv.influencerId)?.toString();
+          if (uid) {
+            statusMap[uid] = inv.status;
+            idMap[uid] = inv._id?.toString();
+          }
         });
-        setInvitedStatus(map);
+        setInvitedStatus(statusMap);
+        setInvitationIdMap(idMap);
       })
       .catch(() => {});
   }, [inviteMode, inviteCampaignId]);
@@ -432,16 +440,44 @@ export default function BrandDiscover() {
     if (!influencerUserId) return;
     setInvitingId(influencerUserId);
     try {
-      await api.post('/api/invitations', {
+      const res = await api.post('/api/invitations', {
         campaignId: inviteCampaignId,
         influencerIds: [influencerUserId],
       });
+      const createdInv = res.data.invitations?.[0];
       setInvitedStatus(prev => ({ ...prev, [influencerUserId]: 'pending' }));
+      if (createdInv?._id) {
+        setInvitationIdMap(prev => ({ ...prev, [influencerUserId]: createdInv._id }));
+      }
       setToast(`Invitation sent to ${influencer.userId?.name || 'creator'}.`);
     } catch (err: any) {
       setToast(err.response?.data?.message || err.response?.data?.error || 'Failed to send invitation.');
     } finally {
       setInvitingId('');
+    }
+  };
+
+  const handleCancelInvite = async (influencerUserId: string, influencerName: string) => {
+    const invitationId = invitationIdMap[influencerUserId];
+    if (!invitationId) return;
+    setCancellingId(influencerUserId);
+    try {
+      await api.delete(`/api/invitations/${invitationId}`);
+      setInvitedStatus(prev => {
+        const next = { ...prev };
+        delete next[influencerUserId];
+        return next;
+      });
+      setInvitationIdMap(prev => {
+        const next = { ...prev };
+        delete next[influencerUserId];
+        return next;
+      });
+      setToast(`Invitation to ${influencerName} cancelled.`);
+    } catch (err: any) {
+      setToast(err.response?.data?.error || 'Failed to cancel invitation.');
+    } finally {
+      setCancellingId('');
     }
   };
 
@@ -1028,6 +1064,7 @@ export default function BrandDiscover() {
                               const uid = influencer.userId?._id?.toString();
                               const status = uid ? invitedStatus[uid] : undefined;
                               const isInviting = invitingId === uid;
+                              const isCancelling = cancellingId === uid;
                               return (
                                 <div className="flex items-center gap-2">
                                   <Link
@@ -1043,7 +1080,16 @@ export default function BrandDiscover() {
                                   ) : status === 'rejected' ? (
                                     <span className="flex-1 text-center text-xs px-3 py-2 bg-gray-100 text-gray-500 rounded-xl font-bold">Declined</span>
                                   ) : status === 'pending' ? (
-                                    <span className="flex-1 text-center text-xs px-3 py-2 bg-amber-50 text-amber-700 rounded-xl font-bold border border-amber-200">Invited</span>
+                                    <button
+                                      onClick={() => uid && handleCancelInvite(uid, influencer.userId?.name || 'creator')}
+                                      disabled={isCancelling}
+                                      className="flex-1 flex items-center justify-center gap-1 text-xs px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl font-bold transition-all disabled:opacity-60 cursor-pointer"
+                                    >
+                                      {isCancelling ? (
+                                        <span className="w-3 h-3 border-2 border-amber-400/40 border-t-amber-600 rounded-full animate-spin" />
+                                      ) : null}
+                                      {isCancelling ? 'Cancelling…' : 'Invited · Cancel'}
+                                    </button>
                                   ) : (
                                     <button
                                       onClick={() => handleInvite(influencer)}
