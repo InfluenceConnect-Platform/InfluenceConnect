@@ -1013,7 +1013,7 @@ export default function BrandDiscover() {
                         </div>
 
                         {/* Rate + CTA */}
-                        <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                        <div className={`pt-3 border-t border-gray-100 ${inviteMode ? 'flex flex-col gap-2' : 'flex items-center justify-between gap-3'}`}>
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-0.5">Rate</p>
                             <p className={`text-sm font-bold truncate ${influencer.priceRangeMin > 0 ? 'text-emerald-700' : 'text-gray-400 italic text-xs font-normal'}`}>
@@ -1029,26 +1029,26 @@ export default function BrandDiscover() {
                               const status = uid ? invitedStatus[uid] : undefined;
                               const isInviting = invitingId === uid;
                               return (
-                                <div className="flex items-center gap-2 flex-shrink-0">
+                                <div className="flex items-center gap-2">
                                   <Link
                                     href={`/brand/creator/${influencer.slug}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all"
+                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all"
                                   >
                                     View profile
                                   </Link>
                                   {status === 'accepted' ? (
-                                    <span className="text-xs px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl font-bold border border-emerald-200">✓ Accepted</span>
+                                    <span className="flex-1 text-center text-xs px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl font-bold border border-emerald-200">✓ Accepted</span>
                                   ) : status === 'rejected' ? (
-                                    <span className="text-xs px-3 py-2 bg-gray-100 text-gray-500 rounded-xl font-bold">Declined</span>
+                                    <span className="flex-1 text-center text-xs px-3 py-2 bg-gray-100 text-gray-500 rounded-xl font-bold">Declined</span>
                                   ) : status === 'pending' ? (
-                                    <span className="text-xs px-3 py-2 bg-amber-50 text-amber-700 rounded-xl font-bold border border-amber-200">Invited</span>
+                                    <span className="flex-1 text-center text-xs px-3 py-2 bg-amber-50 text-amber-700 rounded-xl font-bold border border-amber-200">Invited</span>
                                   ) : (
                                     <button
                                       onClick={() => handleInvite(influencer)}
                                       disabled={isInviting}
-                                      className="flex items-center gap-1.5 text-xs px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-60 cursor-pointer"
+                                      className="flex-1 flex items-center justify-center gap-1.5 text-xs px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-60 cursor-pointer"
                                     >
                                       {isInviting ? (
                                         <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
