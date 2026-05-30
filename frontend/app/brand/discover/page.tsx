@@ -1231,10 +1231,10 @@ export default function BrandDiscover() {
                         </div>
 
                         {/* Rate + CTA */}
-                        <div className={`pt-3 border-t border-gray-100 ${inviteMode ? 'flex flex-col gap-2' : 'flex items-center justify-between gap-3'}`}>
+                        <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-0.5">Rate</p>
-                            <p className={`text-sm font-bold truncate ${influencer.priceRangeMin > 0 ? 'text-emerald-700' : 'text-gray-400 italic text-xs font-normal'}`}>
+                            <p className={`text-sm font-bold ${influencer.priceRangeMin > 0 ? 'text-emerald-700' : 'text-gray-400 italic text-xs font-normal'}`}>
                               {influencer.priceRangeMin > 0
                                 ? `₹${influencer.priceRangeMin.toLocaleString('en-IN')} – ₹${influencer.priceRangeMax.toLocaleString('en-IN')}`
                                 : 'Not specified'
@@ -1248,12 +1248,12 @@ export default function BrandDiscover() {
                               const isInviting = invitingId === uid;
                               const isCancelling = cancellingId === uid;
                               return (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 w-full">
                                   <Link
                                     href={`/brand/creator/${influencer.slug}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all"
+                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all whitespace-nowrap"
                                   >
                                     View profile
                                   </Link>
@@ -1296,12 +1296,12 @@ export default function BrandDiscover() {
                               const uid = influencer.userId?._id?.toString();
                               const invitedCount = uid ? (directInvitedMap[uid]?.size || 0) : 0;
                               return (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 w-full">
                                   <Link
                                     href={`/brand/creator/${influencer.slug}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all"
+                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all whitespace-nowrap"
                                   >
                                     View profile
                                   </Link>
