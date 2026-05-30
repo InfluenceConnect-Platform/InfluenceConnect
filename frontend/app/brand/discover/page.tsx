@@ -407,6 +407,57 @@ export default function BrandDiscover() {
   const [invitationIdMap, setInvitationIdMap] = useState<Record<string, string>>({});
   const [invitingId, setInvitingId] = useState<string>('');
   const [cancellingId, setCancellingId] = useState<string>('');
+
+  // ── Direct invite modal (from Discover cards, outside invite mode) ──
+  type Campaign = { _id: string; title: string; status: string; niche: string[]; budgetMin: number; budgetMax: number };
+  const [directInviteInfluencer, setDirectInviteInfluencer] = useState<any>(null);
+  const [directCampaigns, setDirectCampaigns] = useState<Campaign[]>([]);
+  const [directCampaignsLoading, setDirectCampaignsLoading] = useState(false);
+  const [selectedCampaignIds, setSelectedCampaignIds] = useState<Set<string>>(new Set());
+  const [directSending, setDirectSending] = useState(false);
+  // influencerUserId -> Set of campaignIds they've been invited to this session
+  const [directInvitedMap, setDirectInvitedMap] = useState<Record<string, Set<string>>>({});
+
+  const openDirectInvite = async (influencer: any) => {
+    setDirectInviteInfluencer(influencer);
+    setSelectedCampaignIds(new Set());
+    setDirectCampaignsLoading(true);
+    try {
+      const res = await api.get('/api/brand/campaigns');
+      const all: Campaign[] = res.data.campaigns || [];
+      setDirectCampaigns(all.filter((c) => c.status === 'active' || c.status === 'in-progress'));
+    } catch {
+      setDirectCampaigns([]);
+    } finally {
+      setDirectCampaignsLoading(false);
+    }
+  };
+
+  const handleDirectSend = async () => {
+    if (!directInviteInfluencer || selectedCampaignIds.size === 0) return;
+    const uid = directInviteInfluencer.userId?._id;
+    if (!uid) return;
+    setDirectSending(true);
+    const results: string[] = [];
+    for (const campaignId of selectedCampaignIds) {
+      try {
+        await api.post('/api/invitations', { campaignId, influencerIds: [uid] });
+        results.push(campaignId);
+      } catch {
+        // skip already-invited or errors silently
+      }
+    }
+    if (results.length > 0) {
+      setDirectInvitedMap(prev => {
+        const existing = new Set(prev[uid] || []);
+        results.forEach(id => existing.add(id));
+        return { ...prev, [uid]: existing };
+      });
+      setToast(`Invitation${results.length > 1 ? 's' : ''} sent to ${directInviteInfluencer.userId?.name || 'creator'}.`);
+    }
+    setDirectSending(false);
+    setDirectInviteInfluencer(null);
+  };
   const [toast, setToast] = useState('');
 
   useEffect(() => {
@@ -747,6 +798,137 @@ export default function BrandDiscover() {
       {toast && (
         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-lg max-w-[90vw] text-center">
           {toast}
+        </div>
+      )}
+
+      {/* Direct-invite modal */}
+      {directInviteInfluencer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700 flex-shrink-0">
+              <div>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">Invite to a campaign</h2>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                  {directInviteInfluencer.userId?.name || 'Creator'} · select one or more
+                </p>
+              </div>
+              <button
+                onClick={() => setDirectInviteInfluencer(null)}
+                className="w-8 h-8 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center text-gray-400 cursor-pointer"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Campaign list */}
+            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
+              {directCampaignsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <span className="w-6 h-6 border-2 border-[#3D5087]/30 border-t-[#3D5087] rounded-full animate-spin" />
+                </div>
+              ) : directCampaigns.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">No active campaigns yet.</p>
+                  <Link
+                    href="/brand/campaigns"
+                    onClick={() => setDirectInviteInfluencer(null)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white rounded-xl hover:from-[#1e2f5c] hover:to-[#3D5087] transition-all"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Create a campaign
+                  </Link>
+                </div>
+              ) : (
+                directCampaigns.map(campaign => {
+                  const checked = selectedCampaignIds.has(campaign._id);
+                  const uid = directInviteInfluencer.userId?._id?.toString();
+                  const alreadyInvited = uid ? directInvitedMap[uid]?.has(campaign._id) : false;
+                  return (
+                    <button
+                      key={campaign._id}
+                      onClick={() => {
+                        if (alreadyInvited) return;
+                        setSelectedCampaignIds(prev => {
+                          const next = new Set(prev);
+                          if (next.has(campaign._id)) { next.delete(campaign._id); } else { next.add(campaign._id); }
+                          return next;
+                        });
+                      }}
+                      disabled={alreadyInvited}
+                      className={`w-full text-left flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                        alreadyInvited
+                          ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 opacity-70 cursor-default'
+                          : checked
+                          ? 'border-[#3D5087] bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-slate-600 hover:border-[#3D5087]/40 hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                      }`}
+                    >
+                      <div className={`mt-0.5 w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all ${
+                        alreadyInvited ? 'border-emerald-500 bg-emerald-500' : checked ? 'border-[#3D5087] bg-[#3D5087]' : 'border-gray-300 dark:border-slate-500'
+                      }`}>
+                        {(checked || alreadyInvited) && (
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{campaign.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${campaign.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                            {campaign.status}
+                          </span>
+                          {campaign.budgetMin > 0 && (
+                            <span className="text-[11px] text-gray-500 dark:text-slate-400">
+                              ₹{campaign.budgetMin.toLocaleString('en-IN')} – ₹{campaign.budgetMax.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {alreadyInvited && (
+                        <span className="flex-shrink-0 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">Sent</span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 dark:border-slate-700 flex-shrink-0 flex items-center justify-between gap-3">
+              <Link
+                href="/brand/campaigns"
+                onClick={() => setDirectInviteInfluencer(null)}
+                className="text-xs font-semibold text-[#3D5087] dark:text-blue-400 hover:underline flex items-center gap-1"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New campaign
+              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setDirectInviteInfluencer(null)}
+                  className="text-xs font-semibold px-4 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDirectSend}
+                  disabled={directSending || selectedCampaignIds.size === 0}
+                  className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl transition-all shadow-sm disabled:opacity-50 cursor-pointer disabled:cursor-default"
+                >
+                  {directSending ? (
+                    <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                    </svg>
+                  )}
+                  {directSending ? 'Sending…' : `Send${selectedCampaignIds.size > 1 ? ` (${selectedCampaignIds.size})` : ''}`}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1110,14 +1292,49 @@ export default function BrandDiscover() {
                               );
                             })()
                           ) : (
-                            <Link
-                              href={`/brand/creator/${influencer.slug}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex-shrink-0 text-xs px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md"
-                            >
-                              View profile →
-                            </Link>
+                            (() => {
+                              const uid = influencer.userId?._id?.toString();
+                              const invitedCount = uid ? (directInvitedMap[uid]?.size || 0) : 0;
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <Link
+                                    href={`/brand/creator/${influencer.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all"
+                                  >
+                                    View profile
+                                  </Link>
+                                  {isPremium ? (
+                                    <button
+                                      onClick={() => openDirectInvite(influencer)}
+                                      className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md cursor-pointer"
+                                    >
+                                      {invitedCount > 0 ? (
+                                        <>
+                                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                          Invited ({invitedCount})
+                                        </>
+                                      ) : (
+                                        <>
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+                                          </svg>
+                                          Invite
+                                        </>
+                                      )}
+                                    </button>
+                                  ) : (
+                                    <Link
+                                      href="/brand/billing"
+                                      className="flex-1 text-center text-xs px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 rounded-xl font-bold transition-all"
+                                    >
+                                      ★ Invite
+                                    </Link>
+                                  )}
+                                </div>
+                              );
+                            })()
                           )}
                         </div>
                       </div>
