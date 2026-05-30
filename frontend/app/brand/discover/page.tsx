@@ -417,19 +417,63 @@ export default function BrandDiscover() {
   const [directSending, setDirectSending] = useState(false);
   // influencerUserId -> Set of campaignIds they've been invited to this session
   const [directInvitedMap, setDirectInvitedMap] = useState<Record<string, Set<string>>>({});
+  // campaignId -> invitationId for pending invitations to this influencer (loaded when modal opens)
+  const [pendingByCampaign, setPendingByCampaign] = useState<Record<string, string>>({});
+  const [modalCancellingId, setModalCancellingId] = useState<string>('');
 
   const openDirectInvite = async (influencer: any) => {
     setDirectInviteInfluencer(influencer);
     setSelectedCampaignIds(new Set());
     setDirectCampaignsLoading(true);
+    const uid = influencer.userId?._id?.toString();
     try {
-      const res = await api.get('/api/brand/campaigns');
-      const all: Campaign[] = res.data.campaigns || [];
+      const [campaignsRes, invitationsRes] = await Promise.all([
+        api.get('/api/brand/campaigns'),
+        api.get('/api/invitations/brand'),
+      ]);
+      const all: Campaign[] = campaignsRes.data.campaigns || [];
       setDirectCampaigns(all.filter((c) => c.status === 'active' || c.status === 'in-progress'));
+      // Build campaignId -> invitationId map for pending invites to this influencer
+      const pending: Record<string, string> = {};
+      (invitationsRes.data.invitations || []).forEach((inv: any) => {
+        const invUid = (inv.influencerId?._id || inv.influencerId)?.toString();
+        const campaignId = (inv.campaignId?._id || inv.campaignId)?.toString();
+        if (invUid === uid && inv.status === 'pending' && campaignId) {
+          pending[campaignId] = inv._id?.toString();
+        }
+      });
+      setPendingByCampaign(pending);
     } catch {
       setDirectCampaigns([]);
+      setPendingByCampaign({});
     } finally {
       setDirectCampaignsLoading(false);
+    }
+  };
+
+  const handleModalCancelInvite = async (campaignId: string) => {
+    const invitationId = pendingByCampaign[campaignId];
+    if (!invitationId) return;
+    setModalCancellingId(campaignId);
+    try {
+      await api.delete(`/api/invitations/${invitationId}`);
+      setPendingByCampaign(prev => {
+        const next = { ...prev };
+        delete next[campaignId];
+        return next;
+      });
+      const uid = directInviteInfluencer?.userId?._id?.toString();
+      if (uid) {
+        setDirectInvitedMap(prev => {
+          const next = new Set(prev[uid] || []);
+          next.delete(campaignId);
+          return { ...prev, [uid]: next };
+        });
+      }
+    } catch {
+      setToast('Failed to cancel invitation.');
+    } finally {
+      setModalCancellingId('');
     }
   };
 
@@ -441,8 +485,13 @@ export default function BrandDiscover() {
     const results: string[] = [];
     for (const campaignId of selectedCampaignIds) {
       try {
-        await api.post('/api/invitations', { campaignId, influencerIds: [uid] });
+        const res = await api.post('/api/invitations', { campaignId, influencerIds: [uid] });
         results.push(campaignId);
+        // Track the new invitation ID so it shows as cancellable immediately
+        const newInv = res.data.invitations?.[0];
+        if (newInv?._id) {
+          setPendingByCampaign(prev => ({ ...prev, [campaignId]: newInv._id }));
+        }
       } catch {
         // skip already-invited or errors silently
       }
@@ -456,7 +505,7 @@ export default function BrandDiscover() {
       setToast(`Invitation${results.length > 1 ? 's' : ''} sent to ${directInviteInfluencer.userId?.name || 'creator'}.`);
     }
     setDirectSending(false);
-    setDirectInviteInfluencer(null);
+    setSelectedCampaignIds(new Set());
   };
   const [toast, setToast] = useState('');
 
@@ -844,40 +893,46 @@ export default function BrandDiscover() {
               ) : (
                 directCampaigns.map(campaign => {
                   const checked = selectedCampaignIds.has(campaign._id);
-                  const uid = directInviteInfluencer.userId?._id?.toString();
-                  const alreadyInvited = uid ? directInvitedMap[uid]?.has(campaign._id) : false;
+                  const isInProgress = campaign.status === 'in-progress';
+                  const isPending = !!pendingByCampaign[campaign._id];
+                  const isCancellingThis = modalCancellingId === campaign._id;
+                  const canSelect = !isInProgress && !isPending;
                   return (
-                    <button
+                    <div
                       key={campaign._id}
+                      className={`w-full flex items-start gap-3 p-3 rounded-xl border transition-all ${
+                        isInProgress
+                          ? 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 opacity-60 cursor-not-allowed'
+                          : isPending
+                          ? 'border-amber-200 dark:border-amber-800/50 bg-amber-50/60 dark:bg-amber-900/10'
+                          : checked
+                          ? 'border-[#3D5087] bg-blue-50 dark:bg-blue-900/20 cursor-pointer'
+                          : 'border-gray-200 dark:border-slate-600 hover:border-[#3D5087]/40 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer'
+                      }`}
                       onClick={() => {
-                        if (alreadyInvited) return;
+                        if (!canSelect) return;
                         setSelectedCampaignIds(prev => {
                           const next = new Set(prev);
                           if (next.has(campaign._id)) { next.delete(campaign._id); } else { next.add(campaign._id); }
                           return next;
                         });
                       }}
-                      disabled={alreadyInvited}
-                      className={`w-full text-left flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                        alreadyInvited
-                          ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 opacity-70 cursor-default'
-                          : checked
-                          ? 'border-[#3D5087] bg-blue-50 dark:bg-blue-900/20'
-                          : 'border-gray-200 dark:border-slate-600 hover:border-[#3D5087]/40 hover:bg-gray-50 dark:hover:bg-slate-700/50'
-                      }`}
                     >
-                      <div className={`mt-0.5 w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all ${
-                        alreadyInvited ? 'border-emerald-500 bg-emerald-500' : checked ? 'border-[#3D5087] bg-[#3D5087]' : 'border-gray-300 dark:border-slate-500'
-                      }`}>
-                        {(checked || alreadyInvited) && (
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        )}
-                      </div>
+                      {/* Checkbox — only shown when selectable */}
+                      {!isPending && (
+                        <div className={`mt-0.5 w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all ${
+                          isInProgress ? 'border-gray-300 dark:border-slate-600' : checked ? 'border-[#3D5087] bg-[#3D5087]' : 'border-gray-300 dark:border-slate-500'
+                        }`}>
+                          {checked && (
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          )}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{campaign.title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${campaign.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                            {campaign.status}
+                            {campaign.status === 'in-progress' ? 'in progress' : campaign.status}
                           </span>
                           {campaign.budgetMin > 0 && (
                             <span className="text-[11px] text-gray-500 dark:text-slate-400">
@@ -885,11 +940,23 @@ export default function BrandDiscover() {
                             </span>
                           )}
                         </div>
+                        {isInProgress && (
+                          <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">Deal active — cancel the deal to invite</p>
+                        )}
                       </div>
-                      {alreadyInvited && (
-                        <span className="flex-shrink-0 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">Sent</span>
+                      {isPending && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleModalCancelInvite(campaign._id); }}
+                          disabled={isCancellingThis}
+                          className="flex-shrink-0 flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-lg transition-all disabled:opacity-60 cursor-pointer"
+                        >
+                          {isCancellingThis
+                            ? <span className="w-3 h-3 border-2 border-amber-400/40 border-t-amber-600 rounded-full animate-spin" />
+                            : null}
+                          {isCancellingThis ? 'Cancelling…' : 'Invited · Cancel'}
+                        </button>
                       )}
-                    </button>
+                    </div>
                   );
                 })
               )}
