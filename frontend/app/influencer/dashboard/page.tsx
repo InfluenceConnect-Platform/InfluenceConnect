@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import EngagementTrendChart from '@/components/charts/EngagementTrendChart';
+import MonthlyReachChart from '@/components/charts/MonthlyReachChart';
 
 interface User {
   id: string;
@@ -329,6 +331,20 @@ export default function InfluencerDashboard() {
               <div className={`absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br ${stat.from} ${stat.to} opacity-10 pointer-events-none`} />
             </div>
           ))}
+        </section>
+
+        {/* ── Analytics charts ── */}
+        <section className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-4 sm:gap-5 mb-6">
+          <EngagementTrendChart
+            platforms={(profile?.platforms ?? []) as any}
+            totalFollowers={totalFollowers}
+            dealsCompleted={profile?.dealsCompleted ?? 0}
+          />
+          <MonthlyReachChart
+            platforms={(profile?.platforms ?? []) as any}
+            dealsCompleted={profile?.dealsCompleted ?? 0}
+            credibilityScore={profile?.credibilityScore ?? 0}
+          />
         </section>
 
         {/* ── Profile completion prompt ── */}
