@@ -1135,6 +1135,21 @@ function ApplicationsList({
                     Chat now →
                   </span>
                 </>
+              ) : app.dealStatus === 'completed' ? (
+                <>
+                  <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Deal completed
+                  </div>
+                  <span className="flex items-center gap-1 text-xs font-semibold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg cursor-not-allowed select-none">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Chat closed
+                  </span>
+                </>
               ) : (
                 <>
                   <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold">
