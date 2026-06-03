@@ -7,6 +7,8 @@ import api from '@/lib/api';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useTheme } from '@/lib/useTheme';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 interface Message {
   _id: string;
@@ -107,6 +109,8 @@ const getAvatarColor = (name: string) =>
 export default function MessagesPage() {
   const router = useRouter();
   const { isDark } = useTheme();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(null);
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -240,15 +244,21 @@ export default function MessagesPage() {
 
   const handleSubmitContent = async () => {
     if (!selectedDeal) return;
-    if (!window.confirm('Mark your content as submitted? The brand will be notified to review.')) return;
+    if (!(await confirm({
+      title: 'Mark content as submitted?',
+      description: 'The brand will be notified to review your content.',
+      confirmLabel: 'Mark submitted',
+      variant: 'info',
+    }))) return;
     setActionLoading(true);
     try {
       await api.put(`/api/influencer/deals/${selectedDeal._id}/status`, { status: 'content-submitted' });
       setSelectedDeal(prev => prev ? { ...prev, status: 'content-submitted' } : prev);
       setDeals(prev => prev.map(d => d._id === selectedDeal._id ? { ...d, status: 'content-submitted' } : d));
+      toast.success('Content marked as submitted.');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      alert(e.response?.data?.error || 'Failed to update status.');
+      toast.error(e.response?.data?.error || 'Failed to update status.');
     } finally {
       setActionLoading(false);
     }

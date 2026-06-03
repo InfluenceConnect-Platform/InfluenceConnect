@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const PLATFORMS = ['any', 'instagram', 'youtube', 'facebook'];
@@ -76,13 +78,14 @@ const formatDate = (d: string) => new Date(d).toLocaleDateString('en-IN', { day:
 
 export default function InfluencerCampaigns() {
   const router = useRouter();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [user, setUser] = useState<any>(null);
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState<string | null>(null);
   const [appliedIds, setAppliedIds] = useState<string[]>([]);
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState('any');
@@ -146,8 +149,7 @@ export default function InfluencerCampaigns() {
   };
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
+    toast.show(msg, type);
   };
 
   const handleApply = async (campaignId: string) => {
@@ -201,23 +203,6 @@ export default function InfluencerCampaigns() {
   return (
     <div className="min-h-screen bg-[#F7F9FA]">
 
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed bottom-5 left-1/2 -translate-x-1/2 sm:left-auto sm:right-5 sm:translate-x-0 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl text-sm font-semibold max-w-[90vw] sm:max-w-sm ${
-          toast.type === 'error' ? 'bg-red-900 text-white' : 'bg-gray-900 text-white'
-        }`}>
-          {toast.type === 'success' ? (
-            <span className="w-5 h-5 rounded-full bg-emerald-400/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </span>
-          ) : (
-            <span className="w-5 h-5 rounded-full bg-red-400/20 text-red-300 flex items-center justify-center flex-shrink-0">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </span>
-          )}
-          {toast.msg}
-        </div>
-      )}
 
       <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
 
@@ -689,6 +674,8 @@ export default function InfluencerCampaigns() {
 }
 
 function MyApplications() {
+  const toast = useToast();
+  const confirm = useConfirm();
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
@@ -701,14 +688,20 @@ function MyApplications() {
   }, []);
 
   const handleWithdraw = async (applicationId: string) => {
-    if (!window.confirm('Withdraw this application?')) return;
+    if (!(await confirm({
+      title: 'Withdraw this application?',
+      description: 'Your application will be removed from this campaign.',
+      confirmLabel: 'Withdraw',
+      variant: 'danger',
+    }))) return;
     setWithdrawingId(applicationId);
     try {
       await api.delete(`/api/influencer/applications/${applicationId}`);
       setApplications(prev => prev.filter(a => a._id !== applicationId));
+      toast.success('Application withdrawn.');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      alert(e.response?.data?.error || 'Failed to withdraw.');
+      toast.error(e.response?.data?.error || 'Failed to withdraw.');
     } finally {
       setWithdrawingId(null);
     }

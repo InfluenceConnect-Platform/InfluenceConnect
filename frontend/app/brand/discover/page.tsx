@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
+import { useToast } from '@/components/shared/Toast';
 
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
@@ -387,6 +388,7 @@ function FilterPanel({
 
 export default function BrandDiscover() {
   const router = useRouter();
+  const toast = useToast();
   const searchParams = useSearchParams();
   const [user] = useState<any>(() => {
     if (typeof window === 'undefined') return null;
@@ -507,7 +509,11 @@ export default function BrandDiscover() {
     setDirectSending(false);
     setSelectedCampaignIds(new Set());
   };
-  const [toast, setToast] = useState('');
+  // Shim that keeps the existing setToast('…') call-sites working but routes
+  // them to the global toast, inferring success/error from the message.
+  const setToast = (msg: string) => {
+    toast.show(msg, /fail|error|cannot|unable|wrong|invalid/.test(msg.toLowerCase()) ? 'error' : 'success');
+  };
 
   useEffect(() => {
     if (!inviteMode) return;
@@ -529,11 +535,6 @@ export default function BrandDiscover() {
       .catch(() => {});
   }, [inviteMode, inviteCampaignId]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(''), 3000);
-    return () => clearTimeout(t);
-  }, [toast]);
 
   const handleInvite = async (influencer: any) => {
     const influencerUserId = influencer.userId?._id;
@@ -843,12 +844,6 @@ export default function BrandDiscover() {
     <div className="min-h-screen bg-[#F4F6FB]">
       <BrandNav user={user} />
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-lg max-w-[90vw] text-center">
-          {toast}
-        </div>
-      )}
 
       {/* Direct-invite modal */}
       {directInviteInfluencer && (

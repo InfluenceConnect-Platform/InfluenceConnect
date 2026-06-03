@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
@@ -59,6 +61,8 @@ const TABS = ['active', 'draft', 'in-progress', 'completed', 'all'] as const;
 export default function BrandCampaigns() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [user] = useState<any>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -74,7 +78,6 @@ export default function BrandCampaigns() {
   const [saving, setSaving] = useState(false);
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('active');
-  const [toast, setToast] = useState('');
   const [showPanel, setShowPanel] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -131,9 +134,16 @@ export default function BrandCampaigns() {
     setShowPanel(true);
   };
 
+  // Routes legacy showToast(msg) calls to the global toast, inferring the
+  // variant from the message so success/error/info are coloured appropriately.
   const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 3500);
+    const m = msg.toLowerCase();
+    const type = /fail|error|cannot|must|please|invalid|unable|required|denied|wrong/.test(m)
+      ? 'error'
+      : /success|created|saved|published|updated|deleted|sent|accepted|welcome|🎉/.test(m)
+        ? 'success'
+        : 'info';
+    toast.show(msg, type);
   };
 
   const resetForm = () => setForm({
@@ -284,7 +294,12 @@ export default function BrandCampaigns() {
   };
 
   const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
-    if (!window.confirm(`Delete "${campaignTitle}"? This will also remove all applications. This cannot be undone.`)) return;
+    if (!(await confirm({
+      title: `Delete "${campaignTitle}"?`,
+      description: 'This will also remove all applications. This cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    }))) return;
     setDeletingId(campaignId);
     try {
       await api.delete(`/api/brand/campaigns/${campaignId}`);
@@ -330,12 +345,6 @@ export default function BrandCampaigns() {
   return (
     <div className="min-h-screen bg-[#F4F6FB]">
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-5 right-4 sm:right-6 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl z-50 max-w-[calc(100vw-32px)] sm:max-w-sm animate-in fade-in slide-in-from-bottom-2">
-          {toast}
-        </div>
-      )}
 
       <BrandNav user={user} />
 

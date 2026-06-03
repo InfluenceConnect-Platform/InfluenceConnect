@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/useTheme";
+import { ToastProvider } from "@/components/shared/Toast";
+import { ConfirmProvider } from "@/components/shared/ConfirmModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +35,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('ic-theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}` }} />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <ConfirmProvider>{children}</ConfirmProvider>
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

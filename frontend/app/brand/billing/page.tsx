@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import BrandNav from '@/components/shared/BrandNav';
 import api from '@/lib/api';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 const FREEMIUM_FEATURES = [
   { text: 'Up to 2 active campaigns',           included: true  },
@@ -91,6 +93,8 @@ const SparkIcon = () => (
 
 export default function BrandBillingPage() {
   const router = useRouter();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [user, setUser] = useState<{ name: string; plan?: string } | null>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -101,7 +105,6 @@ export default function BrandBillingPage() {
   const [loading, setLoading] = useState(false);
   const [downgrading, setDowngrading] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [toast, setToast] = useState('');
 
   const MONTHLY_PRICE = 1499;
   const YEARLY_PRICE = Math.round(MONTHLY_PRICE * 12 * 0.8);
@@ -121,9 +124,16 @@ export default function BrandBillingPage() {
     }).catch(() => {});
   }, [router]);
 
+  // Routes legacy showToast(msg) calls to the global toast, inferring the
+  // variant from the message so success/error/info are coloured appropriately.
   const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 4000);
+    const m = msg.toLowerCase();
+    const type = /fail|error|cannot|must|please|invalid|unable|required|denied|wrong/.test(m)
+      ? 'error'
+      : /success|created|saved|published|updated|deleted|sent|accepted|welcome|🎉|unlocked/.test(m)
+        ? 'success'
+        : 'info';
+    toast.show(msg, type);
   };
 
   const syncUserToStorage = (updatedUser: any) => {
@@ -152,7 +162,13 @@ export default function BrandBillingPage() {
   };
 
   const handleDowngrade = async () => {
-    if (!confirm('Downgrade to Freemium? You will lose Premium features.')) return;
+    if (!(await confirm({
+      title: 'Downgrade to Freemium?',
+      description: 'You will lose Premium features.',
+      confirmLabel: 'Downgrade',
+      cancelLabel: 'Keep Premium',
+      variant: 'warning',
+    }))) return;
     setDowngrading(true);
     try {
       const res = await api.post('/api/auth/downgrade');
@@ -171,12 +187,7 @@ export default function BrandBillingPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F6FB]">
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-5 right-4 sm:right-6 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl max-w-sm animate-in fade-in slide-in-from-bottom-2">
-          {toast}
-        </div>
-      )}
+
 
       <BrandNav user={user} />
 

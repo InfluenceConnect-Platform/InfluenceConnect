@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import AdminNav from '@/components/shared/AdminNav';
+import { useToast } from '@/components/shared/Toast';
 
 const ROLE_STYLES: Record<string, string> = {
   influencer: 'bg-teal-50 text-teal-700 border border-teal-100',
@@ -13,11 +14,11 @@ const ROLE_STYLES: Record<string, string> = {
 
 export default function AdminUsers() {
   const router = useRouter();
+  const toast = useToast();
   const [users, setUsers]           = useState<any[]>([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  const [toast, setToast]           = useState('');
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
   const [pages, setPages]           = useState(1);
@@ -57,8 +58,7 @@ export default function AdminUsers() {
   const handleRoleFilter = (role: string) => { setRoleFilter(role); setPage(1); };
 
   const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 3000);
+    toast.show(msg, /fail|error|cannot|unable|wrong/.test(msg.toLowerCase()) ? 'error' : 'success');
   };
 
   const handleStatusUpdate = async (userId: string, status: string) => {
@@ -73,15 +73,6 @@ export default function AdminUsers() {
 
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
-
-      {toast && (
-        <div className="fixed bottom-5 right-4 sm:right-6 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg z-50 max-w-[calc(100vw-32px)] sm:max-w-sm flex items-center gap-2.5">
-          <svg className="w-4 h-4 text-green-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          {toast}
-        </div>
-      )}
 
       <AdminNav />
 

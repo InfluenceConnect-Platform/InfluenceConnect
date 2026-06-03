@@ -7,6 +7,8 @@ import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
 import { useTheme } from '@/lib/useTheme';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 interface Message {
   _id: string;
@@ -148,6 +150,8 @@ export default function BrandMessages() {
   const activeIdRef = useRef<string | null>(null);
 
   const { isDark } = useTheme();
+  const toast = useToast();
+  const confirm = useConfirm();
   const isPremium = user?.plan === 'premium';
   const limitHit = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
@@ -248,15 +252,21 @@ export default function BrandMessages() {
 
   const handleMarkComplete = async () => {
     if (!selectedDeal) return;
-    if (!window.confirm('Mark this deal as complete? This cannot be undone.')) return;
+    if (!(await confirm({
+      title: 'Mark deal as complete?',
+      description: 'This marks the collaboration as finished and cannot be undone.',
+      confirmLabel: 'Mark complete',
+      variant: 'info',
+    }))) return;
     setActionLoading(true);
     try {
       await api.put(`/api/brand/deals/${selectedDeal._id}/status`, { status: 'completed' });
       setSelectedDeal(prev => prev ? { ...prev, status: 'completed' } : prev);
       setDeals(prev => prev.map(d => d._id === selectedDeal._id ? { ...d, status: 'completed' } : d));
+      toast.success('Deal marked as complete.');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      alert(e.response?.data?.error || 'Failed to update.');
+      toast.error(e.response?.data?.error || 'Failed to update.');
     } finally {
       setActionLoading(false);
     }
@@ -264,15 +274,22 @@ export default function BrandMessages() {
 
   const handleCancelDeal = async () => {
     if (!selectedDeal) return;
-    if (!window.confirm('Cancel this deal? The campaign will be reopened for new applications.')) return;
+    if (!(await confirm({
+      title: 'Cancel this deal?',
+      description: 'The campaign will be reopened for new applications.',
+      confirmLabel: 'Cancel deal',
+      cancelLabel: 'Keep deal',
+      variant: 'danger',
+    }))) return;
     setActionLoading(true);
     try {
       await api.put(`/api/brand/deals/${selectedDeal._id}/status`, { status: 'cancelled' });
       setSelectedDeal(prev => prev ? { ...prev, status: 'cancelled' } : prev);
       setDeals(prev => prev.map(d => d._id === selectedDeal._id ? { ...d, status: 'cancelled' } : d));
+      toast.success('Deal cancelled.');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
-      alert(e.response?.data?.error || 'Failed to cancel.');
+      toast.error(e.response?.data?.error || 'Failed to cancel.');
     } finally {
       setActionLoading(false);
     }

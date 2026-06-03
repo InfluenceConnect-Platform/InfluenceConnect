@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 const FREEMIUM_FEATURES = [
   { text: 'Public profile with custom URL', included: true },
@@ -96,6 +98,8 @@ const RefreshIcon = () => (
 
 export default function BillingPage() {
   const router = useRouter();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [user, setUser] = useState<{ name: string; plan: string } | null>(null);
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [premiumStartedAt, setPremiumStartedAt] = useState<string | null>(null);
@@ -103,7 +107,6 @@ export default function BillingPage() {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
   const [downgrading, setDowngrading] = useState(false);
-  const [toast, setToast] = useState('');
 
   const MONTHLY_PRICE = 299;
   const YEARLY_PRICE = Math.round(MONTHLY_PRICE * 12 * 0.8);
@@ -122,9 +125,16 @@ export default function BillingPage() {
     }).catch(() => {});
   }, []);
 
+  // Routes legacy showToast(msg) calls to the global toast, inferring the
+  // variant from the message so success/error/info are coloured appropriately.
   const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 4000);
+    const m = msg.toLowerCase();
+    const type = /fail|error|cannot|must|please|invalid|unable|required|denied|wrong/.test(m)
+      ? 'error'
+      : /success|created|saved|published|updated|deleted|sent|accepted|welcome|🎉|unlocked|premium/.test(m)
+        ? 'success'
+        : 'info';
+    toast.show(msg, type);
   };
 
   const syncUserToStorage = (updatedUser: any) => {
@@ -153,7 +163,13 @@ export default function BillingPage() {
   };
 
   const handleDowngrade = async () => {
-    if (!confirm('Downgrade to Freemium? You will lose Premium features at the end of your billing period.')) return;
+    if (!(await confirm({
+      title: 'Downgrade to Freemium?',
+      description: 'You will lose Premium features at the end of your billing period.',
+      confirmLabel: 'Downgrade',
+      cancelLabel: 'Keep Premium',
+      variant: 'warning',
+    }))) return;
     setDowngrading(true);
     try {
       const res = await api.post('/api/auth/downgrade');
@@ -172,13 +188,6 @@ export default function BillingPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F9FA]">
-
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-5 right-4 sm:right-6 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl max-w-sm animate-in fade-in slide-in-from-bottom-2">
-          {toast}
-        </div>
-      )}
 
       <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
 

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 const NICHE_COLORS: Record<string, string> = {
   beauty:    'bg-pink-50 text-pink-700 border-pink-200',
@@ -102,12 +104,13 @@ interface Invitation {
 
 export default function InfluencerInvitations() {
   const router = useRouter();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [user, setUser] = useState<any>(null);
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string>('');
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [expandedDesc, setExpandedDesc] = useState<Set<string>>(new Set());
 
   const toggleDesc = (id: string) => setExpandedDesc(prev => {
@@ -125,11 +128,6 @@ export default function InfluencerInvitations() {
     fetchInvitations();
   }, []);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(t);
-  }, [toast]);
 
   const fetchInvitations = async () => {
     try {
@@ -143,7 +141,12 @@ export default function InfluencerInvitations() {
   };
 
   const respond = async (inv: Invitation, action: 'accept' | 'reject') => {
-    if (action === 'reject' && !window.confirm('Decline this invitation? This cannot be undone.')) return;
+    if (action === 'reject' && !(await confirm({
+      title: 'Decline this invitation?',
+      description: 'This cannot be undone.',
+      confirmLabel: 'Decline',
+      variant: 'danger',
+    }))) return;
     setActing(inv._id);
     try {
       const res = await api.put(`/api/invitations/${inv._id}/respond`, { action });
@@ -151,13 +154,13 @@ export default function InfluencerInvitations() {
         i._id === inv._id ? { ...i, status: res.data.status, dealId: res.data.dealId ?? i.dealId } : i
       ));
       if (action === 'accept') {
-        setToast({ msg: 'Invitation accepted! Opening your messages…', type: 'success' });
+        toast.success('Invitation accepted! Opening your messages…');
         setTimeout(() => router.push('/influencer/messages'), 1200);
       } else {
-        setToast({ msg: 'Invitation declined.', type: 'success' });
+        toast.success('Invitation declined.');
       }
     } catch (err: any) {
-      setToast({ msg: err.response?.data?.error || 'Something went wrong.', type: 'error' });
+      toast.error(err.response?.data?.error || 'Something went wrong.');
     } finally {
       setActing('');
     }
@@ -169,14 +172,6 @@ export default function InfluencerInvitations() {
     <div className="min-h-screen bg-[#F7F9FA] dark:bg-[#0B1725]">
       <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
 
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed bottom-5 left-1/2 -translate-x-1/2 z-50 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-lg max-w-[90vw] text-center ${
-          toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-500'
-        }`}>
-          {toast.msg}
-        </div>
-      )}
 
       <main className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
