@@ -74,7 +74,9 @@ const NAV_ITEMS = [
 ];
 
 interface InfluencerNavProps {
-  user: { name: string; plan?: string } | null;
+  // Optional: pages like settings don't pass it; the nav then reads the user
+  // from localStorage itself via the localUser effect.
+  user?: { name: string; plan?: string } | null;
   profilePicUrl?: string;
 }
 
@@ -89,13 +91,11 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   const [pendingInviteCount, setPendingInviteCount] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [localUser, setLocalUser] = useState<any>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const s = localStorage.getItem('user');
-      return s ? JSON.parse(s) : null;
-    } catch { return null; }
-  });
+  // Start null so the first client render matches the SSR HTML (the server has
+  // no localStorage). The effect below reads localStorage after mount. Reading
+  // it in the initializer is what makes the avatar initial / plan badge / title
+  // differ between SSR and hydration → the hydration mismatch.
+  const [localUser, setLocalUser] = useState<any>(null);
 
   useEffect(() => {
     try {
@@ -239,7 +239,9 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
             </svg>
           </Link>
 
-          {isPremium ? (
+          {/* Gated on `user` so the badge only renders once the plan is known —
+              avoids both a hydration mismatch and a Freemium→Premium flash. */}
+          {user && (isPremium ? (
             <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-white shadow-sm shadow-amber-200">
               ★ Premium
             </span>
@@ -248,7 +250,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
               ${isDark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
               Freemium
             </span>
-          )}
+          ))}
 
           <button
             onClick={handleLogout}
