@@ -30,15 +30,6 @@ const AVATAR_GRADIENTS = [
   'from-emerald-500 to-green-600',
 ];
 
-const BANNER_GRADIENTS = [
-  'from-violet-600 via-purple-600 to-indigo-700',
-  'from-teal-600 via-cyan-600 to-cyan-700',
-  'from-amber-500 via-orange-500 to-orange-600',
-  'from-indigo-600 via-blue-600 to-blue-700',
-  'from-pink-500 via-rose-500 to-rose-600',
-  'from-emerald-500 via-green-600 to-green-700',
-];
-
 const InstagramLogo = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24">
     <defs>
@@ -1199,7 +1190,8 @@ export default function BrandDiscover() {
                   const primary = getPrimaryPlatform(influencer);
                   const charCode = influencer.userId?.name?.charCodeAt(0) || 0;
                   const avatarGrad = AVATAR_GRADIENTS[charCode % 6];
-                  const bannerGrad = BANNER_GRADIENTS[charCode % 6];
+                  // Use the brand's signature lavender/indigo banner for every card.
+                  const bannerGrad = 'from-[#1e2f5c] via-[#3D5087] to-[#4a5fa0]';
                   return (
                     <div
                       key={i}
