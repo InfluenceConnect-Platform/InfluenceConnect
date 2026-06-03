@@ -7,6 +7,12 @@ import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
 
+// Cached across client-side navigations so the profile picture shows instantly
+// on re-mount instead of flashing the letter avatar while it re-fetches. It's
+// null on the server and the first client render (so it stays hydration-safe); a
+// hard reload resets it and the effect below re-seeds it from localStorage.
+let cachedInfluencerPicUrl: string | null = null;
+
 const NAV_ITEMS = [
   {
     label: 'Dashboard',
@@ -89,6 +95,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
   const [newCampaignCount, setNewCampaignCount] = useState(0);
   const [pendingInviteCount, setPendingInviteCount] = useState(0);
+  const [fetchedPic, setFetchedPic] = useState(cachedInfluencerPicUrl ?? '');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Start null so the first client render matches the SSR HTML (the server has
@@ -104,8 +111,29 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
     } catch {}
   }, []);
 
+  // Persist the profile picture across navigations so it doesn't flash the
+  // letter avatar. Every influencer page already fetches and passes it as a
+  // prop, so rather than re-fetch we just cache whatever prop we receive
+  // (module-level for instant re-mounts + localStorage to survive hard reloads).
+  useEffect(() => {
+    if (profilePicUrl) {
+      cachedInfluencerPicUrl = profilePicUrl;
+      setFetchedPic(profilePicUrl);
+      try { localStorage.setItem('influencerPicUrl', profilePicUrl); } catch {}
+    } else if (!cachedInfluencerPicUrl) {
+      // No prop yet (page still fetching) — seed once from the last known value.
+      try {
+        const ls = localStorage.getItem('influencerPicUrl');
+        if (ls) { cachedInfluencerPicUrl = ls; setFetchedPic(ls); }
+      } catch {}
+    }
+  }, [profilePicUrl]);
+
   const user = userProp ?? localUser;
   const isPremium = user?.plan === 'premium';
+  // Prefer the freshly-passed prop (e.g. just uploaded on the profile page),
+  // otherwise fall back to the cached value from a previous page.
+  const avatarUrl = profilePicUrl || fetchedPic;
 
   const fetchCounts = async () => {
     try {
@@ -272,9 +300,9 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
             className={`relative w-9 h-9 rounded-full overflow-hidden ring-2 shadow-sm transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] cursor-pointer
               ${isDark ? 'ring-slate-700 hover:ring-[#7FA8AD]' : 'ring-gray-200 hover:ring-[#7FA8AD]'}`}
           >
-            {profilePicUrl ? (
+            {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
+              <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <span className="text-[#9C4A33] font-bold text-sm">{user?.name?.charAt(0).toUpperCase() ?? '?'}</span>
             )}

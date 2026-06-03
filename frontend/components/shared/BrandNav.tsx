@@ -7,6 +7,12 @@ import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
 
+// Cached across client-side navigations so the brand logo shows instantly on
+// re-mount instead of flashing the letter avatar while it re-fetches. It's null
+// on the server and the first client render (so it stays hydration-safe); a hard
+// reload resets it and the effect below re-seeds it from localStorage.
+let cachedBrandLogoUrl: string | null = null;
+
 const NAV_ITEMS = [
   {
     label: 'Dashboard',
@@ -85,7 +91,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   const router = useRouter();
   const { isDark } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [fetchedLogoUrl, setFetchedLogoUrl] = useState('');
+  const [fetchedLogoUrl, setFetchedLogoUrl] = useState(cachedBrandLogoUrl ?? '');
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
   const [inviteResponseCount, setInviteResponseCount] = useState(0);
@@ -109,8 +115,19 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
 
   useEffect(() => {
     if (logoUrlProp !== undefined) return;
+    // Seed instantly from the last known value (survives hard reloads)…
+    try {
+      const ls = localStorage.getItem('brandLogoUrl');
+      if (ls) { cachedBrandLogoUrl = ls; setFetchedLogoUrl(ls); }
+    } catch {}
+    // …then refresh from the API and update both caches.
     api.get('/api/brand/profile/me')
-      .then(res => setFetchedLogoUrl(res.data?.profile?.logoUrl || ''))
+      .then(res => {
+        const url = res.data?.profile?.logoUrl || '';
+        cachedBrandLogoUrl = url;
+        setFetchedLogoUrl(url);
+        try { localStorage.setItem('brandLogoUrl', url); } catch {}
+      })
       .catch(() => {});
   }, [logoUrlProp]);
 
