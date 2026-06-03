@@ -278,8 +278,8 @@ export default function InfluencerCampaigns() {
         {!isPremium && (
           <div className={`flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl px-5 py-4 mb-6 border shadow-sm ${
             applicationsUsed >= FREEMIUM_LIMIT
-              ? 'bg-red-50 border-red-200'
-              : 'bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200'
+              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/40'
+              : 'bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 border-teal-200 dark:border-teal-800/40'
           }`}>
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm text-white ${
@@ -292,21 +292,21 @@ export default function InfluencerCampaigns() {
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-bold mb-1 ${applicationsUsed >= FREEMIUM_LIMIT ? 'text-red-800' : 'text-[#2A3E42]'}`}>
+                <p className={`text-sm font-bold mb-1 ${applicationsUsed >= FREEMIUM_LIMIT ? 'text-red-800 dark:text-red-300' : 'text-[#2A3E42] dark:text-slate-100'}`}>
                   {applicationsUsed >= FREEMIUM_LIMIT
                     ? 'Monthly limit reached — upgrade to keep applying'
                     : `${applicationsUsed} of ${FREEMIUM_LIMIT} free applications used this month`}
                 </p>
                 <div className="flex items-center gap-2.5 max-w-[200px]">
-                  <div className="flex-1 h-1.5 bg-white/60 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-black/10 dark:bg-white/15 rounded-full overflow-hidden ring-1 ring-inset ring-black/5 dark:ring-white/10">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
-                        applicationsUsed >= FREEMIUM_LIMIT ? 'bg-red-500' : 'bg-[#7FA8AD]'
+                        applicationsUsed >= FREEMIUM_LIMIT ? 'bg-red-500' : 'bg-[#5D8A8F] dark:bg-[#7FA8AD]'
                       }`}
                       style={{ width: `${Math.min((applicationsUsed / FREEMIUM_LIMIT) * 100, 100)}%` }}
                     />
                   </div>
-                  <span className="text-xs text-gray-500 font-medium flex-shrink-0">{Math.max(0, FREEMIUM_LIMIT - applicationsUsed)} left</span>
+                  <span className="text-xs text-gray-500 dark:text-slate-400 font-medium flex-shrink-0">{Math.max(0, FREEMIUM_LIMIT - applicationsUsed)} left</span>
                 </div>
               </div>
             </div>
