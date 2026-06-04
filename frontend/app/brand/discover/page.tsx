@@ -584,6 +584,8 @@ export default function BrandDiscover() {
   const [maxPrice, setMaxPrice] = useState('');
   const [minPriceInput, setMinPriceInput] = useState('');
   const [maxPriceInput, setMaxPriceInput] = useState('');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -591,14 +593,21 @@ export default function BrandDiscover() {
     fetchInfluencers();
   }, []);
 
+  // Debounce the search box so we don't refetch on every keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
   useEffect(() => {
     fetchInfluencers();
-  }, [selectedNiches, selectedCity, selectedPlatform, minFollowers, maxFollowers, minPrice, maxPrice]);
+  }, [selectedNiches, selectedCity, selectedPlatform, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch]);
 
   const fetchInfluencers = async () => {
     setLoading(true);
     try {
       const params: Record<string, string> = {};
+      if (debouncedSearch) params.search = debouncedSearch;
       if (selectedNiches.length > 0) params.niche = selectedNiches.join(',');
       if (selectedCity) params.city = selectedCity;
       if (selectedPlatform) params.platform = selectedPlatform;
@@ -647,6 +656,7 @@ export default function BrandDiscover() {
   };
 
   const clearFilters = () => {
+    setSearch('');
     setSelectedNiches([]);
     setSelectedCity('');
     setSelectedPlatform('');
@@ -1114,6 +1124,33 @@ export default function BrandDiscover() {
 
           {/* Creator grid */}
           <div>
+            {/* Search */}
+            <div className="relative mb-4">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </span>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search creators by name, @slug, city or niche…"
+                className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/60 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] transition-all"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              )}
+            </div>
+
             <div className="flex items-center justify-between mb-4 px-1">
               <div className="flex items-center gap-2.5">
                 <span className="inline-flex items-center justify-center min-w-[2rem] h-6 px-2 rounded-full bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white text-xs font-bold shadow-sm">

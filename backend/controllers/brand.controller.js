@@ -555,6 +555,7 @@ exports.discoverInfluencers = async (req, res) => {
     }
 
     const {
+      search,
       niche, platform, city,
       minFollowers, maxFollowers,
       minPrice, maxPrice,
@@ -562,6 +563,20 @@ exports.discoverInfluencers = async (req, res) => {
     } = req.query;
 
     const query = {};
+
+    // Free-text search across name (on User), slug, bio, city and niche.
+    if (search && search.trim()) {
+      const safe = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const rx = new RegExp(safe, 'i');
+      const matchedUsers = await User.find({ role: 'influencer', name: rx }).select('_id');
+      query.$or = [
+        { slug: rx },
+        { bio: rx },
+        { city: rx },
+        { niche: rx },
+        { userId: { $in: matchedUsers.map(u => u._id) } },
+      ];
+    }
 
     if (niche) {
       query.niche = { $in: niche.split(',') };
