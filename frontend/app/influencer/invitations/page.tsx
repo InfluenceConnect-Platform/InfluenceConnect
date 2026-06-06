@@ -150,12 +150,13 @@ export default function InfluencerInvitations() {
     setActing(inv._id);
     try {
       const res = await api.put(`/api/invitations/${inv._id}/respond`, { action });
+      const newDealId = res.data.dealId ?? inv.dealId;
       setInvitations(prev => prev.map(i =>
-        i._id === inv._id ? { ...i, status: res.data.status, dealId: res.data.dealId ?? i.dealId } : i
+        i._id === inv._id ? { ...i, status: res.data.status, dealId: newDealId } : i
       ));
       if (action === 'accept') {
         toast.success('Invitation accepted! Opening your messages…');
-        setTimeout(() => router.push('/influencer/messages'), 1200);
+        setTimeout(() => router.push(newDealId ? `/influencer/messages?deal=${newDealId}` : '/influencer/messages'), 1200);
       } else {
         toast.success('Invitation declined.');
       }
@@ -444,7 +445,7 @@ export default function InfluencerInvitations() {
                           <svg width="13" height="13" className="text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                           Deal created — collaborate in Messages.
                         </p>
-                        <button onClick={() => router.push('/influencer/messages')}
+                        <button onClick={() => router.push(inv.dealId ? `/influencer/messages?deal=${inv.dealId}` : '/influencer/messages')}
                           className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#3d7178] to-[#5D8A8F] hover:from-[#2f6168] hover:to-[#4d767b] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                           Go to Messages

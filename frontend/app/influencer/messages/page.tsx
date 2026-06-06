@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
@@ -108,6 +108,7 @@ const getAvatarColor = (name: string) =>
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function MessagesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isDark } = useTheme();
   const toast = useToast();
   const confirm = useConfirm();
@@ -241,6 +242,15 @@ export default function MessagesPage() {
   const goBackToList = () => {
     setShowChat(false);
   };
+
+  // Open a specific conversation when navigated with ?deal=<dealId> (e.g. from an accepted invitation).
+  useEffect(() => {
+    const dealParam = searchParams.get('deal');
+    if (!dealParam || deals.length === 0 || selectedDeal) return;
+    const match = deals.find(d => d._id === dealParam);
+    if (match) selectDeal(match);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deals, searchParams]);
 
   const handleSubmitContent = async () => {
     if (!selectedDeal) return;
