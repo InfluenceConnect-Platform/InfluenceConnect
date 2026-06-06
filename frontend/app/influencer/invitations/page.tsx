@@ -234,6 +234,7 @@ export default function InfluencerInvitations() {
               const deadline = campaign?.deadline ? new Date(campaign.deadline) : null;
               const now = new Date();
               const days = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / 86400000) : null;
+              const closed = days !== null && days < 0;
               const urgency = days !== null && days >= 0 && days <= 3;
               const soonish = days !== null && days >= 0 && days <= 7 && !urgency;
               const cities = (campaign?.targetCity || []).filter((c: string) => c !== 'all');
@@ -402,7 +403,21 @@ export default function InfluencerInvitations() {
                     )}
 
                     {/* ── Actions ── */}
-                    {inv.status === 'pending' ? (
+                    {inv.status === 'pending' && closed ? (
+                      <div className="pt-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between gap-2">
+                        <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
+                          <svg width="13" height="13" className="text-red-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                          This campaign's deadline has passed — it can no longer be accepted.
+                        </p>
+                        <button
+                          onClick={() => respond(inv, 'reject')}
+                          disabled={acting === inv._id}
+                          className="flex-shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-all disabled:opacity-60 cursor-pointer"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    ) : inv.status === 'pending' ? (
                       <div className="flex items-center gap-2.5 pt-4 border-t border-gray-100 dark:border-slate-700/60">
                         <button
                           onClick={() => respond(inv, 'accept')}

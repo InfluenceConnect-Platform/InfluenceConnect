@@ -274,6 +274,14 @@ exports.respondToInvitation = async (req, res) => {
     const campaign = invitation.campaignId;
     if (!campaign) return res.status(404).json({ error: 'Campaign no longer exists.' });
 
+    // Block accepting once the campaign deadline has passed (matches the UI's "Closed" rule).
+    if (campaign.deadline) {
+      const daysLeft = Math.ceil((new Date(campaign.deadline).getTime() - Date.now()) / 86400000);
+      if (daysLeft < 0) {
+        return res.status(400).json({ error: "This campaign's deadline has passed — it can no longer be accepted." });
+      }
+    }
+
     // Reuse an existing application if the influencer already applied, else create one.
     let application = await Application.findOne({
       campaignId: campaign._id,
