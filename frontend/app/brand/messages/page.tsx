@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
@@ -123,11 +123,7 @@ const RupeeIcon = () => (
 
 export default function BrandMessages() {
   const router = useRouter();
-  const searchParams = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search)
-    : null;
-  const autoInfluencerId = searchParams?.get('influencerId') ?? null;
-  const autoDealId = searchParams?.get('deal') ?? null;
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -189,15 +185,6 @@ export default function BrandMessages() {
       const res = await api.get('/api/brand/deals');
       const loaded: Deal[] = res.data.deals || [];
       setDeals(loaded);
-      if ((autoDealId || autoInfluencerId) && !selectedDeal) {
-        const match = autoDealId
-          ? loaded.find(d => d._id === autoDealId)
-          : loaded.find(d => d.influencerId?._id === autoInfluencerId);
-        if (match) {
-          setSelectedDeal(match);
-          setShowChat(true);
-        }
-      }
     } catch (err) {
       console.error('Fetch deals error:', err);
     } finally {
@@ -247,6 +234,20 @@ export default function BrandMessages() {
     setDeals(prev => prev.map(d => d._id === deal._id ? { ...d, unreadCount: 0 } : d));
     setTimeout(() => inputRef.current?.focus(), 100);
   };
+
+  // Open a specific conversation when navigated with ?deal=<dealId> (exact) or
+  // ?influencerId=<id> (fallback) — e.g. from an accepted invitation's "Message" button.
+  useEffect(() => {
+    if (deals.length === 0 || selectedDeal) return;
+    const dealParam = searchParams.get('deal');
+    const influencerParam = searchParams.get('influencerId');
+    if (!dealParam && !influencerParam) return;
+    const match = dealParam
+      ? deals.find(d => d._id === dealParam)
+      : deals.find(d => d.influencerId?._id === influencerParam);
+    if (match) selectDeal(match);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deals, searchParams]);
 
   const goBackToList = () => {
     setShowChat(false);
