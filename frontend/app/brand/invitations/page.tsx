@@ -29,6 +29,7 @@ interface Invitation {
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
   respondedAt?: string | null;
+  dealId?: string | null;
   influencerName?: string;
   influencerSlug?: string;
   influencerProfilePicUrl?: string;
@@ -185,7 +186,7 @@ export default function BrandInvitations() {
                     {/* Accepted → jump into the conversation */}
                     {inv.status === 'accepted' && (
                       <button
-                        onClick={() => router.push('/brand/messages')}
+                        onClick={() => router.push(inv.dealId ? `/brand/messages?deal=${inv.dealId}` : '/brand/messages')}
                         className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer"
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>

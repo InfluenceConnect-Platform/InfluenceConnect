@@ -127,6 +127,7 @@ export default function BrandMessages() {
     ? new URLSearchParams(window.location.search)
     : null;
   const autoInfluencerId = searchParams?.get('influencerId') ?? null;
+  const autoDealId = searchParams?.get('deal') ?? null;
   const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -188,8 +189,10 @@ export default function BrandMessages() {
       const res = await api.get('/api/brand/deals');
       const loaded: Deal[] = res.data.deals || [];
       setDeals(loaded);
-      if (autoInfluencerId && !selectedDeal) {
-        const match = loaded.find(d => d.influencerId?._id === autoInfluencerId);
+      if ((autoDealId || autoInfluencerId) && !selectedDeal) {
+        const match = autoDealId
+          ? loaded.find(d => d._id === autoDealId)
+          : loaded.find(d => d.influencerId?._id === autoInfluencerId);
         if (match) {
           setSelectedDeal(match);
           setShowChat(true);
