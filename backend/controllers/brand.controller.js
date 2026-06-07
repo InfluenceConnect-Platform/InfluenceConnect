@@ -694,6 +694,73 @@ exports.getDashboardStats = async (req, res) => {
       influencerProfile: recentProfileByUser.get(app.influencerId._id.toString()) || null,
     }));
 
+    // ── Analytics (all real data, aggregated from this brand's records) ──
+    const brandId = req.userId;
+
+    // Start of the month 5 months ago → continuous 6-month window.
+    const windowStart = new Date();
+    windowStart.setMonth(windowStart.getMonth() - 5);
+    windowStart.setDate(1);
+    windowStart.setHours(0, 0, 0, 0);
+
+    const [appsByMonthRaw, funnelRaw, pipelineRaw, spendRaw] = await Promise.all([
+      // Applications per month over the last 6 months
+      Application.aggregate([
+        { $match: { brandId, createdAt: { $gte: windowStart } } },
+        { $group: { _id: { y: { $year: '$createdAt' }, m: { $month: '$createdAt' } }, count: { $sum: 1 } } },
+      ]),
+      // Applications by current status (funnel)
+      Application.aggregate([
+        { $match: { brandId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]),
+      // Deals by status (pipeline)
+      Deal.aggregate([
+        { $match: { brandId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]),
+      // Agreed deal value per campaign (excluding cancelled), top 6
+      Deal.aggregate([
+        { $match: { brandId, status: { $ne: 'cancelled' } } },
+        { $group: { _id: '$campaignId', amount: { $sum: '$agreedAmount' } } },
+        { $sort: { amount: -1 } },
+        { $limit: 6 },
+        { $lookup: { from: 'campaigns', localField: '_id', foreignField: '_id', as: 'campaign' } },
+        { $unwind: '$campaign' },
+        { $project: { _id: 0, title: '$campaign.title', amount: 1 } },
+      ]),
+    ]);
+
+    const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthCount = new Map(appsByMonthRaw.map(r => [`${r._id.y}-${r._id.m}`, r.count]));
+    const applicationsOverTime = [];
+    const cursor = new Date(windowStart);
+    for (let i = 0; i < 6; i++) {
+      const key = `${cursor.getFullYear()}-${cursor.getMonth() + 1}`;
+      applicationsOverTime.push({ month: MONTH_LABELS[cursor.getMonth()], count: monthCount.get(key) || 0 });
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+
+    const funnelMap = new Map(funnelRaw.map(r => [r._id, r.count]));
+    const pipelineMap = new Map(pipelineRaw.map(r => [r._id, r.count]));
+
+    const analytics = {
+      applicationsOverTime,
+      funnel: {
+        applied: funnelMap.get('applied') || 0,
+        shortlisted: funnelMap.get('shortlisted') || 0,
+        accepted: funnelMap.get('accepted') || 0,
+        rejected: funnelMap.get('rejected') || 0,
+      },
+      dealPipeline: {
+        inProgress: pipelineMap.get('in-progress') || 0,
+        contentSubmitted: pipelineMap.get('content-submitted') || 0,
+        completed: pipelineMap.get('completed') || 0,
+        cancelled: pipelineMap.get('cancelled') || 0,
+      },
+      spendByCampaign: spendRaw.map(r => ({ title: r.title, amount: r.amount || 0 })),
+    };
+
     res.json({
       stats: {
         activeCampaigns,
@@ -701,6 +768,7 @@ exports.getDashboardStats = async (req, res) => {
         activeDeals,
         completedDeals
       },
+      analytics,
       recentApplications: enrichedApplications
     });
 

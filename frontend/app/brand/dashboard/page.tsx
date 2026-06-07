@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
+import BrandAnalytics, { BrandAnalyticsData } from '@/components/charts/BrandAnalytics';
 
 const STATUS_CONFIG: Record<string, { cls: string; label: string }> = {
   applied:     { cls: 'bg-blue-50 text-blue-700 border border-blue-100',   label: 'Applied' },
@@ -36,6 +37,7 @@ export default function BrandDashboard() {
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
   const [stats, setStats] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<BrandAnalyticsData | null>(null);
   const [recentApplications, setRecentApplications] = useState<any[]>([]);
   const [logoUrl, setLogoUrl] = useState('');
   const [loading, setLoading] = useState(true);
@@ -56,6 +58,7 @@ export default function BrandDashboard() {
         api.get('/api/brand/profile/me').catch(() => null),
       ]);
       setStats(statsRes.data.stats);
+      setAnalytics(statsRes.data.analytics ?? null);
       setRecentApplications(statsRes.data.recentApplications);
       if (profileRes?.data?.profile?.logoUrl) setLogoUrl(profileRes.data.profile.logoUrl);
     } catch (error) {
@@ -256,6 +259,9 @@ export default function BrandDashboard() {
             </div>
           ))}
         </section>
+
+        {/* ── Insights charts ── */}
+        {analytics && <BrandAnalytics analytics={analytics} />}
 
         {/* ── Main grid ── */}
         <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
