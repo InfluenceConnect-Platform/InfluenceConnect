@@ -16,6 +16,7 @@ const CAMPAIGN_STATUS_STYLES: Record<string, string> = {
   'in-progress': 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
   completed:     'bg-gradient-to-r from-blue-500 to-indigo-600 text-white',
   closed:        'bg-gradient-to-r from-red-500 to-rose-600 text-white',
+  expired:       'bg-gradient-to-r from-gray-500 to-gray-600 text-white',
 };
 
 const InstagramLogo = ({ size = 12 }: { size?: number }) => (
@@ -53,10 +54,11 @@ const CAMPAIGN_STATUS_LABELS: Record<string, string> = {
   'in-progress': 'In Progress',
   completed:     'Completed',
   closed:        'Closed',
+  expired:       'Expired',
   all:           'All',
 };
 
-const TABS = ['active', 'draft', 'in-progress', 'completed', 'all'] as const;
+const TABS = ['active', 'draft', 'in-progress', 'completed', 'expired', 'all'] as const;
 
 export default function BrandCampaigns() {
   const router = useRouter();
@@ -749,6 +751,7 @@ export default function BrandCampaigns() {
                     campaign.status === 'draft' ? 'bg-gradient-to-r from-gray-300 to-gray-400' :
                     campaign.status === 'in-progress' ? 'bg-gradient-to-r from-amber-400 to-orange-500' :
                     campaign.status === 'closed' ? 'bg-gradient-to-r from-red-400 to-rose-500' :
+                    campaign.status === 'expired' ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
                     'bg-gradient-to-r from-blue-400 to-indigo-500'
                   }`} />
                   <div className="p-5">
@@ -778,7 +781,7 @@ export default function BrandCampaigns() {
                           </svg>
                         </button>
                       )}
-                      {(campaign.status === 'draft' || campaign.status === 'active') && (
+                      {(campaign.status === 'draft' || campaign.status === 'active' || campaign.status === 'expired') && (
                         <button
                           onClick={e => { e.stopPropagation(); handleDeleteCampaign(campaign._id, campaign.title); }}
                           disabled={deletingId === campaign._id}

@@ -4,6 +4,7 @@ const Application = require('../models/Application');
 const Deal = require('../models/Deal');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
+const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 
 // ─────────────────────────────────────────
 // CREATE BRAND PROFILE
@@ -160,6 +161,9 @@ exports.createCampaign = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getMyCampaigns = async (req, res) => {
   try {
+    // Move this brand's overdue campaigns to 'expired' before listing them.
+    await expireOverdueCampaigns({ brandId: req.userId });
+
     const { status } = req.query;
     const query = { brandId: req.userId };
     if (status) query.status = status;
@@ -664,6 +668,9 @@ exports.getInfluencerBySlug = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getDashboardStats = async (req, res) => {
   try {
+    // Expire overdue campaigns so the active-campaign count is accurate.
+    await expireOverdueCampaigns({ brandId: req.userId });
+
     const [
       activeCampaigns,
       totalApplications,

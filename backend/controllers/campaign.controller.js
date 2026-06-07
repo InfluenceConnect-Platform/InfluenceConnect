@@ -2,6 +2,7 @@ const Campaign = require('../models/Campaign');
 const Application = require('../models/Application');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
+const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 
 // ─────────────────────────────────────────
 // GET ALL CAMPAIGNS (for influencer browse)
@@ -15,6 +16,9 @@ exports.getCampaigns = async (req, res) => {
       page = 1,
       limit = 12
     } = req.query;
+
+    // Flip any overdue campaigns to 'expired' so they drop out of the browse list.
+    await expireOverdueCampaigns();
 
     // Fetch this influencer's niches for automatic campaign filtering
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId }).select('niche');
@@ -127,10 +131,18 @@ exports.getCampaigns = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getCampaignById = async (req, res) => {
   try {
+    // Keep this campaign's status current before serving it.
+    await expireOverdueCampaigns({ _id: req.params.id });
+
     const campaign = await Campaign.findById(req.params.id)
       .populate('brandId', 'name');
 
     if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    // Expired campaigns are no longer visible to influencers.
+    if (campaign.status === 'expired') {
       return res.status(404).json({ error: 'Campaign not found' });
     }
 
@@ -171,6 +183,11 @@ exports.applyToCampaign = async (req, res) => {
 
     if (campaign.status !== 'active') {
       return res.status(400).json({ error: 'This campaign is no longer accepting applications.' });
+    }
+
+    // Block applications once the deadline has passed (campaign is effectively expired).
+    if (campaign.deadline && new Date(campaign.deadline).getTime() < Date.now()) {
+      return res.status(400).json({ error: "This campaign's deadline has passed — it is no longer accepting applications." });
     }
 
     // Block if there's already an accepted deal for this campaign
@@ -302,6 +319,10 @@ exports.getNewSinceCount = async (req, res) => {
     if (!since) return res.json({ count: 0 });
     const sinceDate = new Date(parseInt(since));
     if (isNaN(sinceDate.getTime())) return res.json({ count: 0 });
+
+    // Don't count campaigns that have since expired.
+    await expireOverdueCampaigns();
+
     const rejectedApps = await Application.find({
       influencerId: req.userId,
       status: 'rejected'

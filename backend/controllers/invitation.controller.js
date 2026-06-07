@@ -39,6 +39,11 @@ exports.sendInvitations = async (req, res) => {
     if (!['active', 'in-progress'].includes(campaign.status)) {
       return res.status(400).json({ error: 'You can only invite influencers to a published campaign.' });
     }
+    // An overdue campaign that never reached a deal is expired — block invites to it.
+    if (campaign.status === 'active' && campaign.deadline &&
+        new Date(campaign.deadline).getTime() < Date.now()) {
+      return res.status(400).json({ error: "This campaign's deadline has passed — it can no longer receive invitations." });
+    }
 
     // Keep only valid influencer accounts.
     const validInfluencers = await User.find({
