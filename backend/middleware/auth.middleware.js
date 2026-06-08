@@ -28,8 +28,11 @@ const authenticate = async (req, res, next) => {
     }
 
     if (user.status === 'suspended') {
-      return res.status(403).json({ 
-        error: 'Your account has been suspended.' 
+      // `code` lets the frontend reliably distinguish a mid-session suspension
+      // from other 403s and end the session immediately.
+      return res.status(403).json({
+        error: 'Your account has been suspended.',
+        code: 'ACCOUNT_SUSPENDED'
       });
     }
 

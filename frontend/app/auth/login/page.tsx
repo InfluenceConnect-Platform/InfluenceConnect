@@ -28,6 +28,8 @@ export default function LoginPage() {
       setError('Google sign-in failed. Please try again or use email and password.');
     } else if (errorCode === 'email_exists') {
       setAuthConflict('use_password');
+    } else if (errorCode === 'suspended') {
+      setError('Your account has been suspended. Please contact support.');
     }
   }, [searchParams]);
 

@@ -26,4 +26,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// When an admin suspends an account, the backend starts rejecting that user's
+// requests with code 'ACCOUNT_SUSPENDED'. Because every page polls in the
+// background (useLiveData / nav badges), this interceptor catches that response
+// and ends the session immediately — no need to wait for a manual logout.
+let handlingSuspension = false;
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      typeof window !== 'undefined' &&
+      error?.response?.data?.code === 'ACCOUNT_SUSPENDED' &&
+      !handlingSuspension &&
+      !window.location.pathname.includes('/login')
+    ) {
+      handlingSuspension = true;
+      let loginPath = '/auth/login';
+      try {
+        const role = JSON.parse(localStorage.getItem('user') || '{}')?.role;
+        if (role === 'admin') loginPath = '/admin/login';
+      } catch {}
+      localStorage.clear();
+      window.location.href = `${loginPath}?error=suspended`;
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
