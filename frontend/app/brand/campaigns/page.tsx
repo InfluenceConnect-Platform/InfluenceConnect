@@ -303,21 +303,27 @@ export default function BrandCampaigns() {
     }
   };
 
-  // Expired campaigns can only be relaunched by pushing the deadline forward;
-  // every other field stays locked, so we send just the deadline + status.
+  // Relaunching an expired campaign: every field is editable, the only added
+  // rule is that the deadline must be today or later. Sends the full form plus
+  // status:'active'.
   const handleRepublishCampaign = async () => {
-    if (!form.deadline) { showToast('Please set a new deadline to republish.'); return; }
+    if (!form.title || !form.description || !form.deliverables) {
+      showToast('Please fill in campaign title, description, and deliverables.');
+      return;
+    }
+    if (!form.deadline) { showToast('Please set a deadline to republish.'); return; }
     const newDeadline = new Date(form.deadline);
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    if (newDeadline < today) { showToast('The new deadline must be a future date.'); return; }
-    if (editingCampaign?.deadline) {
-      const oldDeadline = new Date(editingCampaign.deadline.split('T')[0]);
-      if (newDeadline <= oldDeadline) { showToast('The new deadline must be later than the previous one.'); return; }
-    }
+    if (newDeadline < today) { showToast('The deadline must be today or a future date.'); return; }
+    const budgetMin = parseInt(form.budgetMin);
+    const budgetMax = parseInt(form.budgetMax);
+    if (!form.budgetMin || isNaN(budgetMin) || budgetMin <= 0) { showToast('Budget min must be a positive value.'); return; }
+    if (!form.budgetMax || isNaN(budgetMax) || budgetMax <= 0) { showToast('Budget max must be a positive value.'); return; }
+    if (budgetMin > budgetMax) { showToast('Budget min cannot be greater than budget max.'); return; }
     setSaving(true);
     try {
       const res = await api.put(`/api/brand/campaigns/${editingCampaign._id}`, {
-        deadline: form.deadline, status: 'active',
+        ...form, budgetMin, budgetMax, minFollowers: parseInt(form.minFollowers) || 0, status: 'active',
       });
       showToast('Campaign republished successfully!');
       setCampaigns(prev => prev.map(c => c._id === editingCampaign._id ? res.data.campaign : c));
@@ -379,22 +385,10 @@ export default function BrandCampaigns() {
   const fieldClass = 'w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] hover:border-gray-300 transition-all placeholder:text-gray-400';
   const labelClass = 'text-xs font-semibold text-gray-600 block mb-1.5';
 
-  // When relaunching an expired campaign, every field except the deadline is locked.
+  // Relaunching an expired campaign: all fields stay editable, the only rule is
+  // that the new deadline must be today or later.
   const isExpiredEdit = editingCampaign?.status === 'expired';
-  // Standalone class (not derived from fieldClass) so bg-gray-100/text-gray-400
-  // aren't overridden by fieldClass's bg-white/text-gray-900 in the cascade.
-  const lockedClass = 'w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed select-none';
-  // Deadline must move strictly forward — past today and past the old deadline.
-  const minDeadline = (() => {
-    const candidates = [new Date()];
-    if (editingCampaign?.deadline) {
-      const next = new Date(editingCampaign.deadline.split('T')[0]);
-      next.setDate(next.getDate() + 1);
-      candidates.push(next);
-    }
-    const latest = new Date(Math.max(...candidates.map(d => d.getTime())));
-    return latest.toISOString().split('T')[0];
-  })();
+  const minDeadline = new Date().toISOString().split('T')[0];
 
   return (
     <div className="min-h-screen bg-[#F4F6FB]">
@@ -605,21 +599,21 @@ export default function BrandCampaigns() {
               {isExpiredEdit && (
                 <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  <p className="text-xs text-amber-700 leading-relaxed">This campaign has expired. Set a new deadline (later than the previous one) to republish it — all other details are locked.</p>
+                  <p className="text-xs text-amber-700 leading-relaxed">This campaign has expired. Update any details and set a deadline of today or later to republish it.</p>
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className={labelClass}>Campaign title <span className="text-red-400">*</span></label>
-                  <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Summer Skincare Launch 2025" className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit} />
+                  <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Summer Skincare Launch 2025" className={fieldClass} />
                 </div>
                 <div className="sm:col-span-2">
                   <label className={labelClass}>Description <span className="text-red-400">*</span></label>
-                  <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className={`${isExpiredEdit ? lockedClass : fieldClass} resize-none`} disabled={isExpiredEdit} />
+                  <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className={`${fieldClass} resize-none`} />
                 </div>
                 <div>
                   <label className={labelClass}>Deliverables <span className="text-red-400">*</span></label>
-                  <input value={form.deliverables} onChange={e => setForm(p => ({ ...p, deliverables: e.target.value }))} placeholder="e.g. 2 reels + 3 stories" className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit} />
+                  <input value={form.deliverables} onChange={e => setForm(p => ({ ...p, deliverables: e.target.value }))} placeholder="e.g. 2 reels + 3 stories" className={fieldClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Deadline <span className="text-red-400">*</span></label>
@@ -627,21 +621,21 @@ export default function BrandCampaigns() {
                 </div>
                 <div>
                   <label className={labelClass}>Budget min (₹) <span className="text-red-400">*</span></label>
-                  <input type="number" min={1} value={form.budgetMin} onChange={e => setForm(p => ({ ...p, budgetMin: e.target.value }))} className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit} />
+                  <input type="number" min={1} value={form.budgetMin} onChange={e => setForm(p => ({ ...p, budgetMin: e.target.value }))} className={fieldClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Budget max (₹) <span className="text-red-400">*</span></label>
-                  <input type="number" min={1} value={form.budgetMax} onChange={e => setForm(p => ({ ...p, budgetMax: e.target.value }))} className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit} />
+                  <input type="number" min={1} value={form.budgetMax} onChange={e => setForm(p => ({ ...p, budgetMax: e.target.value }))} className={fieldClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Target city</label>
-                  <select value={form.targetCity[0]} onChange={e => setForm(p => ({ ...p, targetCity: [e.target.value] }))} className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit}>
+                  <select value={form.targetCity[0]} onChange={e => setForm(p => ({ ...p, targetCity: [e.target.value] }))} className={fieldClass}>
                     {CITIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All India' : c}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className={labelClass}>Platform</label>
-                  <select value={form.targetPlatform} onChange={e => setForm(p => ({ ...p, targetPlatform: e.target.value }))} className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit}>
+                  <select value={form.targetPlatform} onChange={e => setForm(p => ({ ...p, targetPlatform: e.target.value }))} className={fieldClass}>
                     {['any', 'instagram', 'youtube', 'facebook'].map(p => (
                       <option key={p} value={p}>{p === 'any' ? 'Any platform' : p.charAt(0).toUpperCase() + p.slice(1)}</option>
                     ))}
@@ -651,12 +645,10 @@ export default function BrandCampaigns() {
                   <label className={labelClass}>Niche</label>
                   <div className="flex flex-wrap gap-2">
                     {NICHES.map(n => (
-                      <button key={n} type="button" disabled={isExpiredEdit}
+                      <button key={n} type="button"
                         onClick={() => setForm(p => ({ ...p, niche: p.niche.includes(n) ? p.niche.filter(x => x !== n) : [...p.niche, n] }))}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all ${isExpiredEdit ? 'cursor-not-allowed' : 'cursor-pointer'} ${
-                          form.niche.includes(n)
-                            ? `bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm ${isExpiredEdit ? 'opacity-50' : ''}`
-                            : isExpiredEdit ? 'bg-gray-100 border-gray-200 text-gray-400' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                          form.niche.includes(n) ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
                         }`}
                       >{n}</button>
                     ))}

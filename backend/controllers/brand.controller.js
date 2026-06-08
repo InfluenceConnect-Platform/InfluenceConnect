@@ -217,12 +217,16 @@ exports.updateCampaign = async (req, res) => {
 
     const { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers, status } = req.body;
 
-    // Republishing an EXPIRED campaign → active. Only the deadline may change;
-    // it must be pushed to a future date that is later than the old deadline.
+    // Republishing an EXPIRED campaign → active. All fields are editable; the
+    // only added rule is that the deadline must be today or a future date.
     if (status === 'active' && campaign.status === 'expired') {
-      if (!deadline) {
-        return res.status(400).json({ error: 'A new deadline is required to republish.' });
-      }
+      if (!title || !title.trim()) return res.status(400).json({ error: 'Campaign title is required.' });
+      if (!description || !description.trim()) return res.status(400).json({ error: 'Description is required.' });
+      if (!deliverables || !deliverables.trim()) return res.status(400).json({ error: 'Deliverables are required.' });
+      if (!deadline) return res.status(400).json({ error: 'A deadline is required to republish.' });
+      if (!budgetMin || isNaN(budgetMin) || Number(budgetMin) <= 0) return res.status(400).json({ error: 'Budget min must be a positive number.' });
+      if (!budgetMax || isNaN(budgetMax) || Number(budgetMax) <= 0) return res.status(400).json({ error: 'Budget max must be a positive number.' });
+
       const newDeadline = new Date(deadline);
       if (isNaN(newDeadline.getTime())) {
         return res.status(400).json({ error: 'Invalid deadline.' });
@@ -230,10 +234,7 @@ exports.updateCampaign = async (req, res) => {
       const endOfNewDay = new Date(newDeadline);
       endOfNewDay.setHours(23, 59, 59, 999);
       if (endOfNewDay.getTime() < Date.now()) {
-        return res.status(400).json({ error: 'The new deadline must be a future date.' });
-      }
-      if (campaign.deadline && newDeadline.getTime() <= new Date(campaign.deadline).getTime()) {
-        return res.status(400).json({ error: 'The new deadline must be later than the previous deadline.' });
+        return res.status(400).json({ error: 'The deadline must be today or a future date.' });
       }
 
       // Going active again counts toward the freemium active-campaign limit.
@@ -250,7 +251,7 @@ exports.updateCampaign = async (req, res) => {
 
       const republished = await Campaign.findByIdAndUpdate(
         campaignId,
-        { deadline, status: 'active' },
+        { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers, status: 'active' },
         { new: true }
       );
       return res.json({ message: 'Campaign republished successfully.', campaign: republished });
