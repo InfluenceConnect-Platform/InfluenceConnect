@@ -103,6 +103,14 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   // differ between SSR and hydration → the hydration mismatch.
   const [localUser, setLocalUser] = useState<any>(null);
 
+  // Tracks whether we've hydrated. Until then we ignore even a synchronously
+  // provided `userProp`, so the first client render matches the server HTML
+  // (which has no localStorage) and we avoid a hydration mismatch on the
+  // avatar initial / plan badge / title — regardless of how the parent page
+  // initialises the user it passes down.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
     try {
       const s = localStorage.getItem('user');
@@ -110,7 +118,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
     } catch {}
   }, []);
 
-  const user = userProp ?? localUser;
+  const user = mounted ? (userProp ?? localUser) : null;
   const isPremium = user?.plan === 'premium';
 
   useEffect(() => {

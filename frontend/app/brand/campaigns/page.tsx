@@ -66,10 +66,10 @@ export default function BrandCampaigns() {
   const searchParams = useSearchParams();
   const toast = useToast();
   const confirm = useConfirm();
-  const [user] = useState<any>(() => {
-    if (typeof window === 'undefined') return null;
-    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
-  });
+  // Start null so the first client render matches the server HTML; the real
+  // user is read from localStorage after mount (reading it in the initializer
+  // would make the BrandNav plan badge differ between SSR and hydration).
+  const [user, setUser] = useState<any>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [applications, setApplications] = useState<any[]>([]);
@@ -99,7 +99,9 @@ export default function BrandCampaigns() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token || !localStorage.getItem('user')) { router.push('/auth/login'); return; }
+    const stored = localStorage.getItem('user');
+    if (!token || !stored) { router.push('/auth/login'); return; }
+    try { setUser(JSON.parse(stored)); } catch {}
     fetchCampaigns();
   }, []);
 
@@ -794,9 +796,12 @@ export default function BrandCampaigns() {
               </div>
             ) : (
               filteredCampaigns.map(campaign => (
-                <button
+                <div
                   key={campaign._id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleSelectCampaign(campaign)}
+                  onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); handleSelectCampaign(campaign); } }}
                   className={`w-full text-left bg-white border rounded-2xl overflow-hidden transition-all shadow-sm cursor-pointer ${
                     selectedCampaign?._id === campaign._id
                       ? 'border-[#3D5087] shadow-md ring-2 ring-[#3D5087]/15'
@@ -985,7 +990,7 @@ export default function BrandCampaigns() {
                     </div>
                   )}
                   </div>
-                </button>
+                </div>
               ))
             )}
           </div>
