@@ -87,6 +87,7 @@ export default function InfluencerCampaigns() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState<string | null>(null);
   const [appliedIds, setAppliedIds] = useState<string[]>([]);
+  const [invitedIds, setInvitedIds] = useState<string[]>([]);
 
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState('any');
@@ -117,13 +118,14 @@ export default function InfluencerCampaigns() {
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchCampaigns();
     fetchMyApplications();
+    fetchInvitedCampaigns();
   }, []);
 
   useEffect(() => {
     if (!loading) fetchCampaigns();
   }, [selectedNiches, selectedPlatform]);
 
-  useLiveData(() => { fetchCampaigns(); fetchMyApplications(); });
+  useLiveData(() => { fetchCampaigns(); fetchMyApplications(); fetchInvitedCampaigns(); });
 
   const fetchCampaigns = async () => {
     try {
@@ -148,6 +150,19 @@ export default function InfluencerCampaigns() {
       setApplicationsUsed(
         response.data.applications.filter((a: any) => new Date(a.createdAt) >= thisMonth).length
       );
+    } catch {}
+  };
+
+  // Campaigns this influencer has an open (non-declined) brand invitation to —
+  // they can't apply to these, they respond from the Invitations page instead.
+  const fetchInvitedCampaigns = async () => {
+    try {
+      const response = await api.get('/api/invitations/influencer');
+      const ids = (response.data.invitations || [])
+        .filter((inv: any) => inv.status !== 'rejected')
+        .map((inv: any) => inv.campaignId?._id || inv.campaignId)
+        .filter(Boolean);
+      setInvitedIds(ids);
     } catch {}
   };
 
@@ -437,6 +452,7 @@ export default function InfluencerCampaigns() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
             {sortedCampaigns.map(campaign => {
               const alreadyApplied = appliedIds.includes(campaign._id);
+              const isInvited      = !alreadyApplied && invitedIds.includes(campaign._id);
               const isApplying     = applying === campaign._id;
               const days           = daysUntil(campaign.deadline);
               const deadlinePassed = days < 0;
@@ -485,6 +501,12 @@ export default function InfluencerCampaigns() {
                             <span className="flex items-center gap-1 text-[11px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full flex-shrink-0">
                               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                               Applied
+                            </span>
+                          )}
+                          {isInvited && (
+                            <span className="flex items-center gap-1 text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+                              Invited
                             </span>
                           )}
                         </div>
@@ -627,6 +649,11 @@ export default function InfluencerCampaigns() {
                         <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-green-50 dark:bg-emerald-900/30 text-green-600 dark:text-emerald-400 border border-green-200 dark:border-emerald-800/50 rounded-xl cursor-not-allowed font-semibold">
                           Applied ✓
                         </button>
+                      ) : isInvited ? (
+                        <Link href="/influencer/invitations" title="You've been invited — respond from your Invitations"
+                          className="flex-shrink-0 text-xs px-4 py-2 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 border border-violet-200 dark:border-violet-800/50 rounded-xl font-semibold text-center hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">
+                          Invited ✓
+                        </Link>
                       ) : deadlinePassed ? (
                         <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-gray-100 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 rounded-xl cursor-not-allowed font-semibold">
                           Closed
