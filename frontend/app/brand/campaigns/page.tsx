@@ -301,6 +301,33 @@ export default function BrandCampaigns() {
     }
   };
 
+  // Expired campaigns can only be relaunched by pushing the deadline forward;
+  // every other field stays locked, so we send just the deadline + status.
+  const handleRepublishCampaign = async () => {
+    if (!form.deadline) { showToast('Please set a new deadline to republish.'); return; }
+    const newDeadline = new Date(form.deadline);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (newDeadline < today) { showToast('The new deadline must be a future date.'); return; }
+    if (editingCampaign?.deadline) {
+      const oldDeadline = new Date(editingCampaign.deadline.split('T')[0]);
+      if (newDeadline <= oldDeadline) { showToast('The new deadline must be later than the previous one.'); return; }
+    }
+    setSaving(true);
+    try {
+      const res = await api.put(`/api/brand/campaigns/${editingCampaign._id}`, {
+        deadline: form.deadline, status: 'active',
+      });
+      showToast('Campaign republished successfully!');
+      setCampaigns(prev => prev.map(c => c._id === editingCampaign._id ? res.data.campaign : c));
+      if (selectedCampaign?._id === editingCampaign._id) setSelectedCampaign(res.data.campaign);
+      closeEdit();
+    } catch (error: any) {
+      showToast(error.response?.data?.message || error.response?.data?.error || 'Failed to republish campaign.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
     if (!(await confirm({
       title: `Delete "${campaignTitle}"?`,
@@ -349,6 +376,21 @@ export default function BrandCampaigns() {
 
   const fieldClass = 'w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] hover:border-gray-300 transition-all placeholder:text-gray-400';
   const labelClass = 'text-xs font-semibold text-gray-600 block mb-1.5';
+
+  // When relaunching an expired campaign, every field except the deadline is locked.
+  const isExpiredEdit = editingCampaign?.status === 'expired';
+  const lockedClass = `${fieldClass} bg-gray-100 text-gray-400 cursor-not-allowed`;
+  // Deadline must move strictly forward — past today and past the old deadline.
+  const minDeadline = (() => {
+    const candidates = [new Date()];
+    if (editingCampaign?.deadline) {
+      const next = new Date(editingCampaign.deadline.split('T')[0]);
+      next.setDate(next.getDate() + 1);
+      candidates.push(next);
+    }
+    const latest = new Date(Math.max(...candidates.map(d => d.getTime())));
+    return latest.toISOString().split('T')[0];
+  })();
 
   return (
     <div className="min-h-screen bg-[#F4F6FB]">
@@ -545,7 +587,7 @@ export default function BrandCampaigns() {
           <div className="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[92vh] flex flex-col">
             <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100 flex-shrink-0">
               <div>
-                <h3 className="font-bold text-gray-900">Edit campaign</h3>
+                <h3 className="font-bold text-gray-900">{isExpiredEdit ? 'Republish campaign' : 'Edit campaign'}</h3>
                 <p className="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{editingCampaign.title}</p>
               </div>
               <button onClick={closeEdit} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all cursor-pointer">
@@ -556,40 +598,46 @@ export default function BrandCampaigns() {
             </div>
 
             <div className="overflow-y-auto flex-1 px-5 sm:px-6 py-5">
+              {isExpiredEdit && (
+                <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <p className="text-xs text-amber-700 leading-relaxed">This campaign has expired. Set a new deadline (later than the previous one) to republish it — all other details are locked.</p>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className={labelClass}>Campaign title <span className="text-red-400">*</span></label>
-                  <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Summer Skincare Launch 2025" className={fieldClass} />
+                  <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Summer Skincare Launch 2025" className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit} />
                 </div>
                 <div className="sm:col-span-2">
                   <label className={labelClass}>Description <span className="text-red-400">*</span></label>
-                  <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className={`${fieldClass} resize-none`} />
+                  <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={3} className={`${isExpiredEdit ? lockedClass : fieldClass} resize-none`} disabled={isExpiredEdit} />
                 </div>
                 <div>
                   <label className={labelClass}>Deliverables <span className="text-red-400">*</span></label>
-                  <input value={form.deliverables} onChange={e => setForm(p => ({ ...p, deliverables: e.target.value }))} placeholder="e.g. 2 reels + 3 stories" className={fieldClass} />
+                  <input value={form.deliverables} onChange={e => setForm(p => ({ ...p, deliverables: e.target.value }))} placeholder="e.g. 2 reels + 3 stories" className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit} />
                 </div>
                 <div>
                   <label className={labelClass}>Deadline <span className="text-red-400">*</span></label>
-                  <input type="date" value={form.deadline} onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))} className={fieldClass} />
+                  <input type="date" value={form.deadline} min={isExpiredEdit ? minDeadline : undefined} onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))} className={fieldClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Budget min (₹) <span className="text-red-400">*</span></label>
-                  <input type="number" min={1} value={form.budgetMin} onChange={e => setForm(p => ({ ...p, budgetMin: e.target.value }))} className={fieldClass} />
+                  <input type="number" min={1} value={form.budgetMin} onChange={e => setForm(p => ({ ...p, budgetMin: e.target.value }))} className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit} />
                 </div>
                 <div>
                   <label className={labelClass}>Budget max (₹) <span className="text-red-400">*</span></label>
-                  <input type="number" min={1} value={form.budgetMax} onChange={e => setForm(p => ({ ...p, budgetMax: e.target.value }))} className={fieldClass} />
+                  <input type="number" min={1} value={form.budgetMax} onChange={e => setForm(p => ({ ...p, budgetMax: e.target.value }))} className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit} />
                 </div>
                 <div>
                   <label className={labelClass}>Target city</label>
-                  <select value={form.targetCity[0]} onChange={e => setForm(p => ({ ...p, targetCity: [e.target.value] }))} className={fieldClass}>
+                  <select value={form.targetCity[0]} onChange={e => setForm(p => ({ ...p, targetCity: [e.target.value] }))} className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit}>
                     {CITIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All India' : c}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className={labelClass}>Platform</label>
-                  <select value={form.targetPlatform} onChange={e => setForm(p => ({ ...p, targetPlatform: e.target.value }))} className={fieldClass}>
+                  <select value={form.targetPlatform} onChange={e => setForm(p => ({ ...p, targetPlatform: e.target.value }))} className={isExpiredEdit ? lockedClass : fieldClass} disabled={isExpiredEdit}>
                     {['any', 'instagram', 'youtube', 'facebook'].map(p => (
                       <option key={p} value={p}>{p === 'any' ? 'Any platform' : p.charAt(0).toUpperCase() + p.slice(1)}</option>
                     ))}
@@ -599,10 +647,12 @@ export default function BrandCampaigns() {
                   <label className={labelClass}>Niche</label>
                   <div className="flex flex-wrap gap-2">
                     {NICHES.map(n => (
-                      <button key={n} type="button"
+                      <button key={n} type="button" disabled={isExpiredEdit}
                         onClick={() => setForm(p => ({ ...p, niche: p.niche.includes(n) ? p.niche.filter(x => x !== n) : [...p.niche, n] }))}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
-                          form.niche.includes(n) ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all ${isExpiredEdit ? 'cursor-not-allowed' : 'cursor-pointer'} ${
+                          form.niche.includes(n)
+                            ? `bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm ${isExpiredEdit ? 'opacity-50' : ''}`
+                            : `bg-white border-gray-200 ${isExpiredEdit ? 'text-gray-300' : 'text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'}`
                         }`}
                       >{n}</button>
                     ))}
@@ -612,9 +662,9 @@ export default function BrandCampaigns() {
             </div>
 
             <div className="px-5 sm:px-6 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
-              <button onClick={handleEditCampaign} disabled={saving}
+              <button onClick={isExpiredEdit ? handleRepublishCampaign : handleEditCampaign} disabled={saving}
                 className="flex-1 sm:flex-none bg-[#3D5087] hover:bg-[#2B3B68] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2">
-                {saving ? (<><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Saving…</>) : 'Save changes'}
+                {saving ? (<><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{isExpiredEdit ? 'Republishing…' : 'Saving…'}</>) : (isExpiredEdit ? 'Republish campaign' : 'Save changes')}
               </button>
               <button onClick={closeEdit} className="flex-1 sm:flex-none px-6 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all cursor-pointer">
                 Cancel
@@ -896,6 +946,20 @@ export default function BrandCampaigns() {
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                           </svg>
                         )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Republish strip — expired campaigns only */}
+                  {campaign.status === 'expired' && (
+                    <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex items-center justify-between gap-2">
+                      <p className="text-[10px] text-gray-400 font-medium">Expired — push the deadline forward to relaunch</p>
+                      <button
+                        onClick={e => { e.stopPropagation(); openEdit(campaign); }}
+                        className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-sm"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        Republish
                       </button>
                     </div>
                   )}

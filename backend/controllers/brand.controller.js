@@ -217,6 +217,45 @@ exports.updateCampaign = async (req, res) => {
 
     const { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers, status } = req.body;
 
+    // Republishing an EXPIRED campaign → active. Only the deadline may change;
+    // it must be pushed to a future date that is later than the old deadline.
+    if (status === 'active' && campaign.status === 'expired') {
+      if (!deadline) {
+        return res.status(400).json({ error: 'A new deadline is required to republish.' });
+      }
+      const newDeadline = new Date(deadline);
+      if (isNaN(newDeadline.getTime())) {
+        return res.status(400).json({ error: 'Invalid deadline.' });
+      }
+      const endOfNewDay = new Date(newDeadline);
+      endOfNewDay.setHours(23, 59, 59, 999);
+      if (endOfNewDay.getTime() < Date.now()) {
+        return res.status(400).json({ error: 'The new deadline must be a future date.' });
+      }
+      if (campaign.deadline && newDeadline.getTime() <= new Date(campaign.deadline).getTime()) {
+        return res.status(400).json({ error: 'The new deadline must be later than the previous deadline.' });
+      }
+
+      // Going active again counts toward the freemium active-campaign limit.
+      const isPremium = req.user.plan === 'premium';
+      if (!isPremium) {
+        const activeCampaigns = await Campaign.countDocuments({ brandId: req.userId, status: 'active' });
+        if (activeCampaigns >= 2) {
+          return res.status(403).json({
+            error: 'freemium_limit',
+            message: 'Upgrade to Premium to relaunch this campaign — you already have 2 active campaigns.'
+          });
+        }
+      }
+
+      const republished = await Campaign.findByIdAndUpdate(
+        campaignId,
+        { deadline, status: 'active' },
+        { new: true }
+      );
+      return res.json({ message: 'Campaign republished successfully.', campaign: republished });
+    }
+
     // Publishing a draft → active requires full validation + freemium check
     if (status === 'active' && campaign.status === 'draft') {
       if (!title || !title.trim()) return res.status(400).json({ error: 'Campaign title is required.' });
