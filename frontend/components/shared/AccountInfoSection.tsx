@@ -17,6 +17,7 @@ interface Props {
   account: AccountInfo;
   accentColor: string; // e.g. '#3D5087' for brand, '#5D8A8F' for influencer
   onUpdate: (updates: Partial<AccountInfo>) => void;
+  showPlan?: boolean;  // false for accounts without a plan (e.g. admin)
 }
 
 type FieldState = 'idle' | 'sending' | 'otp' | 'verifying' | 'done';
@@ -35,7 +36,7 @@ interface FieldMsg {
   text: string;
 }
 
-export default function AccountInfoSection({ account, accentColor, onUpdate }: Props) {
+export default function AccountInfoSection({ account, accentColor, onUpdate, showPlan = true }: Props) {
   const { isDark } = useTheme();
 
   const [name, setName] = useState(account.name);
@@ -330,7 +331,8 @@ export default function AccountInfoSection({ account, accentColor, onUpdate }: P
       </div>
 
       <p className={`text-xs pt-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
-        Member since {new Date(account.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })} · {account.plan === 'premium' ? '★ Premium' : 'Freemium'} plan
+        Member since {new Date(account.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+        {showPlan && <> · {account.plan === 'premium' ? '★ Premium' : 'Freemium'} plan</>}
       </p>
     </div>
   );

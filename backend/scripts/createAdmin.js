@@ -2,11 +2,15 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
+// Bootstrap-only credentials. These just seed the FIRST admin account; the
+// admin is expected to change the email + password from the in-app Admin
+// Settings page afterwards. Prefer env vars so nothing sensitive lives in
+// source control — the literals below are only a development fallback.
 const adminData = {
-  name: 'Influence Connect Admin',
-  email: 'influenceconnect.app@gmail.com',
-  mobile: '+919000000000',
-  password: 'Admin@Secure2026',   // plain text — the model pre-save hook hashes it
+  name: process.env.ADMIN_NAME || 'Influence Connect Admin',
+  email: (process.env.ADMIN_EMAIL || 'influenceconnect.app@gmail.com').toLowerCase(),
+  mobile: process.env.ADMIN_MOBILE || '+919000000000',
+  password: process.env.ADMIN_PASSWORD || 'Admin@Secure2026',   // plain text — the model pre-save hook hashes it
   role: 'admin',
   emailVerified: true,
   mobileVerified: true,
