@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
@@ -121,6 +122,8 @@ export default function InfluencerCampaigns() {
   useEffect(() => {
     if (!loading) fetchCampaigns();
   }, [selectedNiches, selectedPlatform]);
+
+  useLiveData(() => { fetchCampaigns(); fetchMyApplications(); });
 
   const fetchCampaigns = async () => {
     try {
@@ -680,12 +683,16 @@ function MyApplications() {
   const [loading, setLoading] = useState(true);
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadApplications = () => {
     api.get('/api/campaigns/my-applications')
       .then(r => setApplications(r.data.applications))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadApplications(); }, []);
+
+  useLiveData(() => { loadApplications(); });
 
   const handleWithdraw = async (applicationId: string) => {
     if (!(await confirm({

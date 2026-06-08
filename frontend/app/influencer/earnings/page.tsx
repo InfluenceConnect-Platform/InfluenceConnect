@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 
 interface EarningsSummary {
@@ -68,6 +69,8 @@ export default function EarningsPage() {
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchEarnings();
   }, []);
+
+  useLiveData(() => { fetchEarnings(); });
 
   const fetchEarnings = async () => {
     try {

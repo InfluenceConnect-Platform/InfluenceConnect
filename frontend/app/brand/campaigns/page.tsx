@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
@@ -135,6 +136,11 @@ export default function BrandCampaigns() {
     fetchApplications(campaign._id);
     setShowPanel(true);
   };
+
+  useLiveData(() => {
+    fetchCampaigns();
+    if (selectedCampaign) fetchApplications(selectedCampaign._id);
+  });
 
   // Routes legacy showToast(msg) calls to the global toast, inferring the
   // variant from the message so success/error/info are coloured appropriately.

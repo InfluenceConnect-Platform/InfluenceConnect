@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
 import { useTheme } from '@/lib/useTheme';
@@ -179,6 +180,9 @@ export default function BrandMessages() {
     }, 3000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [selectedDealId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep the conversation list fresh (new deals / latest message) without reload.
+  useLiveData(() => { fetchDeals(); });
 
   const fetchDeals = async () => {
     try {

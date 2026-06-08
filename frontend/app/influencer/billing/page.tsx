@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
@@ -119,11 +120,17 @@ export default function BillingPage() {
     if (!token || !stored) { router.push('/auth/login'); return; }
     setUser(JSON.parse(stored));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
+    fetchAccount();
+  }, []);
+
+  const fetchAccount = () => {
     api.get('/api/auth/account').then(res => {
       setPremiumStartedAt(res.data.premiumStartedAt ?? null);
       setPremiumUntil(res.data.premiumUntil ?? null);
     }).catch(() => {});
-  }, []);
+  };
+
+  useLiveData(() => { fetchAccount(); });
 
   // Routes legacy showToast(msg) calls to the global toast, inferring the
   // variant from the message so success/error/info are coloured appropriately.

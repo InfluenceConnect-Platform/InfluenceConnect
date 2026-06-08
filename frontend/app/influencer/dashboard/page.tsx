@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import EngagementTrendChart from '@/components/charts/EngagementTrendChart';
 import MonthlyReachChart from '@/components/charts/MonthlyReachChart';
@@ -108,6 +109,8 @@ export default function InfluencerDashboard() {
     setUser(parsedUser);
     fetchProfile();
   }, []);
+
+  useLiveData(() => { fetchProfile(); });
 
   const fetchProfile = async () => {
     try {

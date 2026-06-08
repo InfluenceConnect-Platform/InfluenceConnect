@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
 
@@ -52,8 +53,8 @@ export default function AdminCampaigns() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
-  const fetchCampaigns = async () => {
-    setLoading(true);
+  const fetchCampaigns = async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
     try {
       const params: Record<string, string> = {};
       if (statusFilter) params.status = statusFilter;
@@ -66,6 +67,8 @@ export default function AdminCampaigns() {
       setLoading(false);
     }
   };
+
+  useLiveData(() => { fetchCampaigns({ silent: true }); });
 
   const showToast = (msg: string) => {
     toast.show(msg, /fail|error|cannot|unable|wrong/.test(msg.toLowerCase()) ? 'error' : 'success');

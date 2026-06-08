@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import BrandAnalytics, { BrandAnalyticsData } from '@/components/charts/BrandAnalytics';
 
@@ -49,6 +50,8 @@ export default function BrandDashboard() {
     if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     fetchDashboard();
   }, []);
+
+  useLiveData(() => { fetchDashboard(); });
 
   const fetchDashboard = async () => {
     try {

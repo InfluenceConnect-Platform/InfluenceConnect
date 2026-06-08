@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
 
@@ -37,8 +38,8 @@ export default function AdminUsers() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleFilter, page]);
 
-  const fetchUsers = async () => {
-    setLoading(true);
+  const fetchUsers = async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
     try {
       const params: Record<string, string | number> = { limit: 20, page };
       if (roleFilter) params.role = roleFilter;
@@ -53,6 +54,8 @@ export default function AdminUsers() {
       setLoading(false);
     }
   };
+
+  useLiveData(() => { fetchUsers({ silent: true }); });
 
   const handleSearch = () => { setPage(1); fetchUsers(); };
   const handleRoleFilter = (role: string) => { setRoleFilter(role); setPage(1); };

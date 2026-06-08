@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
 
@@ -49,6 +50,8 @@ export default function AdminDashboard() {
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useLiveData(() => { fetchData(); });
 
   const fetchData = async () => {
     try {

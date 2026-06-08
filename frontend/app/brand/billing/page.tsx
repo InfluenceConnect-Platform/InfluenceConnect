@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import BrandNav from '@/components/shared/BrandNav';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 
@@ -118,11 +119,17 @@ export default function BrandBillingPage() {
     const parsed = JSON.parse(stored);
     if (parsed.role !== 'brand') { router.push('/auth/login'); return; }
     setUser(parsed);
+    fetchAccount();
+  }, [router]);
+
+  const fetchAccount = () => {
     api.get('/api/auth/account').then(res => {
       setPremiumStartedAt(res.data.premiumStartedAt ?? null);
       setPremiumUntil(res.data.premiumUntil ?? null);
     }).catch(() => {});
-  }, [router]);
+  };
+
+  useLiveData(() => { fetchAccount(); });
 
   // Routes legacy showToast(msg) calls to the global toast, inferring the
   // variant from the message so success/error/info are coloured appropriately.

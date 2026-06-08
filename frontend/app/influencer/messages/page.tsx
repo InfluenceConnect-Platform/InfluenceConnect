@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useTheme } from '@/lib/useTheme';
@@ -160,6 +161,9 @@ export default function MessagesPage() {
     }, 3000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [selectedDealId]);
+
+  // Keep the conversation list fresh (new deals / latest message) without reload.
+  useLiveData(() => { fetchDeals(); });
 
   const fetchDeals = async () => {
     try {

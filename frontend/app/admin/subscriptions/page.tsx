@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 
 export default function AdminSubscriptions() {
@@ -19,6 +20,8 @@ export default function AdminSubscriptions() {
     fetchOverview();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useLiveData(() => { fetchOverview(); });
 
   const fetchOverview = async () => {
     try {

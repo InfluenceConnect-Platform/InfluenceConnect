@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
@@ -56,6 +57,8 @@ export default function BrandInvitations() {
     // Clear the brand-side "new response" badge once they view this page.
     api.put('/api/invitations/brand/seen').catch(() => {});
   }, []);
+
+  useLiveData(() => { fetchInvitations(); });
 
   const fetchInvitations = async () => {
     try {
