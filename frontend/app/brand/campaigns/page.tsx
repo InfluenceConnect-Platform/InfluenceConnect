@@ -379,7 +379,9 @@ export default function BrandCampaigns() {
 
   // When relaunching an expired campaign, every field except the deadline is locked.
   const isExpiredEdit = editingCampaign?.status === 'expired';
-  const lockedClass = `${fieldClass} bg-gray-100 text-gray-400 cursor-not-allowed`;
+  // Standalone class (not derived from fieldClass) so bg-gray-100/text-gray-400
+  // aren't overridden by fieldClass's bg-white/text-gray-900 in the cascade.
+  const lockedClass = 'w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed select-none';
   // Deadline must move strictly forward — past today and past the old deadline.
   const minDeadline = (() => {
     const candidates = [new Date()];
@@ -652,7 +654,7 @@ export default function BrandCampaigns() {
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all ${isExpiredEdit ? 'cursor-not-allowed' : 'cursor-pointer'} ${
                           form.niche.includes(n)
                             ? `bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm ${isExpiredEdit ? 'opacity-50' : ''}`
-                            : `bg-white border-gray-200 ${isExpiredEdit ? 'text-gray-300' : 'text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'}`
+                            : isExpiredEdit ? 'bg-gray-100 border-gray-200 text-gray-400' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
                         }`}
                       >{n}</button>
                     ))}
