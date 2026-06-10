@@ -32,11 +32,25 @@ exports.getOverviewStats = async (req, res) => {
       User.countDocuments({ plan: 'premium' })
     ]);
 
-    // Recent signups
-    const recentSignups = await User.find()
+    // Recent signups (with avatars: creator profile pic / brand logo)
+    const recentSignupsRaw = await User.find()
       .sort({ createdAt: -1 })
       .limit(8)
       .select('name email role plan status createdAt');
+
+    const recentInfIds   = recentSignupsRaw.filter(u => u.role === 'influencer').map(u => u._id);
+    const recentBrandIds = recentSignupsRaw.filter(u => u.role === 'brand').map(u => u._id);
+    const [recentInfProfiles, recentBrandProfiles] = await Promise.all([
+      InfluencerProfile.find({ userId: { $in: recentInfIds } }).select('userId profilePicUrl'),
+      BrandProfile.find({ userId: { $in: recentBrandIds } }).select('userId logoUrl')
+    ]);
+    const recentAvatarMap = new Map();
+    recentInfProfiles.forEach(p => p.profilePicUrl && recentAvatarMap.set(String(p.userId), p.profilePicUrl));
+    recentBrandProfiles.forEach(p => p.logoUrl && recentAvatarMap.set(String(p.userId), p.logoUrl));
+    const recentSignups = recentSignupsRaw.map(u => ({
+      ...u.toObject(),
+      avatarUrl: recentAvatarMap.get(String(u._id)) || ''
+    }));
 
     // MRR calculation
     const influencerPremium = await User.countDocuments({

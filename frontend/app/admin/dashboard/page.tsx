@@ -296,9 +296,13 @@ export default function AdminDashboard() {
                     <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0 shadow-sm">
-                            {u.name?.charAt(0).toUpperCase()}
-                          </div>
+                          {u.avatarUrl ? (
+                            <img src={u.avatarUrl} alt={u.name} className="w-7 h-7 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0 shadow-sm">
+                              {u.name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">{u.name}</p>
                             <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
@@ -337,9 +341,13 @@ export default function AdminDashboard() {
             <div className="md:hidden divide-y divide-gray-50">
               {recentSignups.map((u, i) => (
                 <div key={i} className="flex items-center gap-3 px-4 py-3.5">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
-                    {u.name?.charAt(0).toUpperCase()}
-                  </div>
+                  {u.avatarUrl ? (
+                    <img src={u.avatarUrl} alt={u.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
+                      {u.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{u.name}</p>
                     <p className="text-xs text-gray-400 truncate">{u.email}</p>
