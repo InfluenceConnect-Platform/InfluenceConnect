@@ -49,6 +49,16 @@ module.exports = {
   // 12 — brand: content submitted
   contentSubmittedBrand:  make('contentSubmittedBrand'),
 
+  // Campaign + invitations
+  newCampaignToInfluencer:   make('newCampaignToInfluencer'),
+  invitationReceived:        make('invitationReceived'),
+  invitationSentBrand:       make('invitationSentBrand'),
+  invitationDeclinedBrand:   make('invitationDeclinedBrand'),
+
+  // Account lifecycle
+  accountDeletionScheduled:  make('accountDeletionScheduled'),
+  accountDeletionCancelled:  make('accountDeletionCancelled'),
+
   // Admin actions
   accountSuspended:          make('accountSuspended'),
   accountRestored:           make('accountRestored'),

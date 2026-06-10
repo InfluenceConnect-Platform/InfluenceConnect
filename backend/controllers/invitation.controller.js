@@ -5,6 +5,7 @@ const Deal = require('../models/Deal');
 const User = require('../models/User');
 const BrandProfile = require('../models/BrandProfile');
 const InfluencerProfile = require('../models/InfluencerProfile');
+const notify = require('../services/email');
 
 // ─────────────────────────────────────────
 // BRAND → SEND INVITATIONS (premium only)
@@ -71,6 +72,24 @@ exports.sendInvitations = async (req, res) => {
     let created = [];
     if (toCreate.length > 0) {
       created = await Invitation.insertMany(toCreate, { ordered: false });
+
+      // Email each invited influencer + a confirmation to the brand (both parties).
+      const invitedUsers = await User.find({
+        _id: { $in: created.map(c => c.influencerId) }
+      }).select('email');
+      invitedUsers.forEach(u => {
+        if (u.email) {
+          notify.invitationReceived(u.email, {
+            campaignTitle: campaign.title,
+            brandName: req.user.name,
+            message: (message || '').trim(),
+          });
+        }
+      });
+      notify.invitationSentBrand(req.user.email, {
+        campaignTitle: campaign.title,
+        count: created.length,
+      });
     }
 
     res.json({
@@ -272,6 +291,15 @@ exports.respondToInvitation = async (req, res) => {
       invitation.respondedAt = new Date();
       invitation.brandSeenResponse = false; // notify the brand
       await invitation.save();
+
+      // Email the brand that the invitation was declined.
+      const brand = await User.findById(invitation.brandId).select('email');
+      if (brand?.email) {
+        notify.invitationDeclinedBrand(brand.email, {
+          campaignTitle: invitation.campaignId?.title,
+          influencerName: req.user.name,
+        });
+      }
       return res.json({ message: 'Invitation declined.', status: 'rejected' });
     }
 
@@ -337,6 +365,21 @@ exports.respondToInvitation = async (req, res) => {
     invitation.dealId = deal._id;
     invitation.brandSeenResponse = false; // notify the brand
     await invitation.save();
+
+    // Both parties: confirm the new deal to the influencer + the brand.
+    const brand = await User.findById(invitation.brandId).select('name email');
+    notify.applicationAccepted(req.user.email, {
+      campaignTitle: campaign.title,
+      brandName: brand?.name,
+      amount: deal.agreedAmount,
+    });
+    if (brand?.email) {
+      notify.dealInProgressBrand(brand.email, {
+        influencerName: req.user.name,
+        campaignTitle: campaign.title,
+        amount: deal.agreedAmount,
+      });
+    }
 
     res.json({
       message: 'Invitation accepted — a deal has been created.',

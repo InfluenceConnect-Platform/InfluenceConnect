@@ -237,6 +237,94 @@ module.exports = {
     };
   },
 
+  // New campaign published (to a matching influencer)
+  newCampaignToInfluencer({ campaignTitle, brandName, budgetMin, budgetMax, niche }) {
+    const budget = budgetMin || budgetMax ? `${inr(budgetMin)} – ${inr(budgetMax)}` : 'Open';
+    const nicheList = Array.isArray(niche) && niche.length ? niche.join(', ') : null;
+    return {
+      subject: `New campaign you might like — ${campaignTitle}`,
+      html: layout({
+        heading: 'A new campaign just went live 🔔',
+        bodyHtml:
+          para(`${esc(brandName || 'A brand')} posted a new campaign that fits your profile. Apply early to stand out.`) +
+          details([['Campaign', campaignTitle], ['Brand', brandName], ['Budget', budget], ['Niche', nicheList]]) +
+          button('View campaign', `${APP_URL}/influencer/campaigns`),
+      }),
+    };
+  },
+
+  // Invitation received (to influencer)
+  invitationReceived({ campaignTitle, brandName, message }) {
+    return {
+      subject: `${brandName || 'A brand'} invited you to a campaign`,
+      html: layout({
+        heading: "You've got an invitation ✉️",
+        bodyHtml:
+          para(`${esc(brandName || 'A brand')} personally invited you to collaborate on <strong>${esc(campaignTitle)}</strong>.`) +
+          (message ? para(`<em style="color:#6b7280;">"${esc(message)}"</em>`) : '') +
+          details([['Campaign', campaignTitle], ['Brand', brandName]]) +
+          button('View invitation', `${APP_URL}/influencer/invitations`),
+      }),
+    };
+  },
+
+  // Invitation(s) sent confirmation (to brand)
+  invitationSentBrand({ campaignTitle, count }) {
+    const n = count || 1;
+    return {
+      subject: `Invitation${n > 1 ? 's' : ''} sent — ${campaignTitle}`,
+      html: layout({
+        heading: `Invitation${n > 1 ? 's' : ''} sent 📨`,
+        bodyHtml:
+          para(`You invited ${n} creator${n > 1 ? 's' : ''} to <strong>${esc(campaignTitle)}</strong>. We'll let you know as soon as they respond.`) +
+          button('View invitations', `${APP_URL}/brand/invitations`),
+      }),
+    };
+  },
+
+  // Invitation declined (to brand)
+  invitationDeclinedBrand({ campaignTitle, influencerName }) {
+    return {
+      subject: `Invitation declined — ${campaignTitle}`,
+      html: layout({
+        heading: 'An invitation was declined',
+        bodyHtml:
+          para(`${esc(influencerName || 'A creator')} declined your invitation to <strong>${esc(campaignTitle)}</strong>.`) +
+          para('No worries — you can invite other creators from Discover.') +
+          button('Discover creators', `${APP_URL}/brand/discover`),
+      }),
+    };
+  },
+
+  // Account deletion scheduled (to user)
+  accountDeletionScheduled({ name, deleteAt }) {
+    const when = deleteAt
+      ? new Date(deleteAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+      : 'in 30 days';
+    return {
+      subject: 'Your account is scheduled for deletion',
+      html: layout({
+        heading: 'Account deletion scheduled',
+        bodyHtml:
+          para(`Hi ${esc(name || 'there')}, we've scheduled your Influence Connect account for permanent deletion on <strong>${esc(when)}</strong>.`) +
+          para('Changed your mind? You can cancel anytime before then from your account settings — no data is lost until the deletion date.') +
+          button('Keep my account', `${APP_URL}/`),
+      }),
+    };
+  },
+
+  // Account deletion cancelled (to user)
+  accountDeletionCancelled({ name }) {
+    return {
+      subject: 'Your account deletion has been cancelled',
+      html: layout({
+        heading: 'Your account is safe ✅',
+        bodyHtml:
+          para(`Hi ${esc(name || 'there')}, your scheduled account deletion has been cancelled and your account will stay active. Welcome back!`),
+      }),
+    };
+  },
+
   // ── Admin actions (account / verification / moderation) ──
 
   // Account suspended by admin (to user)

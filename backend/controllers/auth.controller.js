@@ -889,6 +889,8 @@ exports.scheduleAccountDeletion = async (req, res) => {
     user.deleteScheduledAt = deleteAt;
     await user.save();
 
+    notify.accountDeletionScheduled(user.email, { name: user.name, deleteAt });
+
     res.json({
       message: 'Account deletion scheduled. Your account will be permanently deleted in 30 days.',
       deleteScheduledAt: user.deleteScheduledAt,
@@ -913,6 +915,8 @@ exports.cancelAccountDeletion = async (req, res) => {
 
     user.deleteScheduledAt = null;
     await user.save();
+
+    notify.accountDeletionCancelled(user.email, { name: user.name });
 
     res.json({ message: 'Account deletion cancelled. Your account is safe.' });
   } catch (error) {

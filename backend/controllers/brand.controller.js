@@ -7,6 +7,37 @@ const User = require('../models/User');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
 
+// Email influencers when a campaign goes live. Matches on niche overlap (or
+// all active creators if the campaign has no niche), capped to keep the
+// fan-out bounded. Fire-and-forget — never blocks the publish response.
+async function notifyInfluencersOfNewCampaign(campaign, brandName) {
+  try {
+    const nicheFilter = campaign.niche && campaign.niche.length
+      ? { niche: { $in: campaign.niche } }
+      : {};
+    const profiles = await InfluencerProfile.find(nicheFilter).select('userId').limit(200);
+    if (profiles.length === 0) return;
+    const influencers = await User.find({
+      _id: { $in: profiles.map(p => p.userId) },
+      role: 'influencer',
+      status: 'active',
+    }).select('email').limit(200);
+    influencers.forEach(inf => {
+      if (inf.email) {
+        notify.newCampaignToInfluencer(inf.email, {
+          campaignTitle: campaign.title,
+          brandName,
+          budgetMin: campaign.budgetMin,
+          budgetMax: campaign.budgetMax,
+          niche: campaign.niche,
+        });
+      }
+    });
+  } catch (err) {
+    console.error('[EMAIL] notifyInfluencersOfNewCampaign failed', err.message);
+  }
+}
+
 // ─────────────────────────────────────────
 // CREATE BRAND PROFILE
 // ─────────────────────────────────────────
@@ -146,6 +177,11 @@ exports.createCampaign = async (req, res) => {
       status: isDraft ? 'draft' : 'active'
     });
 
+    // Live campaign → notify matching influencers
+    if (!isDraft) {
+      notifyInfluencersOfNewCampaign(campaign, req.user.name);
+    }
+
     res.status(201).json({
       message: isDraft ? 'Campaign saved as draft.' : 'Campaign created successfully',
       campaign
@@ -260,6 +296,8 @@ exports.updateCampaign = async (req, res) => {
         { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers, status: 'active' },
         { new: true }
       );
+      // Back on the market → notify matching influencers
+      notifyInfluencersOfNewCampaign(republished, req.user.name);
       return res.json({ message: 'Campaign republished successfully.', campaign: republished });
     }
 
@@ -292,6 +330,11 @@ exports.updateCampaign = async (req, res) => {
       updateFields,
       { new: true }
     );
+
+    // First-time publish (draft → active) → notify matching influencers
+    if (status === 'active' && campaign.status === 'draft') {
+      notifyInfluencersOfNewCampaign(updated, req.user.name);
+    }
 
     res.json({ message: 'Campaign updated successfully.', campaign: updated });
   } catch (error) {
