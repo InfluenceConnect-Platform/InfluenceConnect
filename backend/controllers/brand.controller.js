@@ -365,13 +365,15 @@ exports.getCampaignApplications = async (req, res) => {
     const profileByUser = new Map(profiles.map(p => [p.userId.toString(), p]));
     const dealByApp = new Map(deals.map(d => [d.applicationId.toString(), d]));
 
-    const enriched = applications.map(app => ({
-      ...app.toObject(),
-      influencerProfile: profileByUser.get(app.influencerId._id.toString()) || null,
-      dealStatus: app.status === 'accepted'
-        ? (dealByApp.get(app._id.toString())?.status ?? null)
-        : null,
-    }));
+    const enriched = applications.map(app => {
+      const deal = app.status === 'accepted' ? dealByApp.get(app._id.toString()) : null;
+      return {
+        ...app.toObject(),
+        influencerProfile: profileByUser.get(app.influencerId._id.toString()) || null,
+        dealStatus: deal?.status ?? null,
+        dealId: deal?._id?.toString() ?? null,
+      };
+    });
 
     res.json({ applications: enriched, campaign });
 

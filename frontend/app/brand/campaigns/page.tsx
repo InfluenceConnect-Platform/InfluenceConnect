@@ -1240,7 +1240,7 @@ function ApplicationsList({
                     Deal active
                   </div>
                   <a
-                    href={`/brand/messages${app.influencerId?._id ? `?influencerId=${app.influencerId._id}` : ''}`}
+                    href={`/brand/messages${app.dealId ? `?deal=${app.dealId}` : app.influencerId?._id ? `?influencerId=${app.influencerId._id}` : ''}`}
                     className="flex items-center gap-1 text-xs font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#5D8A8F] px-2.5 py-1 rounded-lg hover:shadow-md transition-all duration-150 cursor-pointer"
                   >
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
