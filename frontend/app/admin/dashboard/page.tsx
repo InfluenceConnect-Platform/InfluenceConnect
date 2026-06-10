@@ -40,7 +40,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5] flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-gray-500 font-medium">Loading admin panel…</p>
@@ -118,9 +118,8 @@ export default function AdminDashboard() {
       label: 'Total Users',
       value: stats?.totalUsers ?? 0,
       sub: `${stats?.totalInfluencers ?? 0} creators · ${stats?.totalBrands ?? 0} brands`,
-      iconBg: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      accent: 'bg-blue-500',
+      gradient: 'from-blue-500 to-blue-600',
+      glow: 'group-hover:shadow-blue-500/10',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -132,9 +131,8 @@ export default function AdminDashboard() {
       label: 'Active Campaigns',
       value: stats?.activeCampaigns ?? 0,
       sub: 'Currently live on the platform',
-      iconBg: 'bg-amber-50',
-      iconColor: 'text-amber-600',
-      accent: 'bg-amber-400',
+      gradient: 'from-amber-400 to-orange-500',
+      glow: 'group-hover:shadow-amber-500/10',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -146,9 +144,8 @@ export default function AdminDashboard() {
       label: 'Total Deals',
       value: stats?.totalDeals ?? 0,
       sub: `${stats?.completedDeals ?? 0} completed`,
-      iconBg: 'bg-violet-50',
-      iconColor: 'text-violet-600',
-      accent: 'bg-violet-500',
+      gradient: 'from-violet-500 to-purple-600',
+      glow: 'group-hover:shadow-violet-500/10',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -159,9 +156,8 @@ export default function AdminDashboard() {
       label: 'MRR',
       value: `₹${(stats?.mrr ?? 0).toLocaleString('en-IN')}`,
       sub: `${stats?.premiumUsers ?? 0} premium subscribers`,
-      iconBg: 'bg-emerald-50',
-      iconColor: 'text-emerald-600',
-      accent: 'bg-emerald-500',
+      gradient: 'from-emerald-500 to-teal-600',
+      glow: 'group-hover:shadow-emerald-500/10',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -188,8 +184,7 @@ export default function AdminDashboard() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
-
+    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
 
       <AdminNav user={user} />
 
@@ -198,12 +193,12 @@ export default function AdminDashboard() {
         {/* Page header */}
         <div className="flex items-start justify-between mb-7">
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Platform overview</p>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+            <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Platform overview</p>
+            <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">Dashboard</h1>
           </div>
           <button
             onClick={fetchData}
-            className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-gray-500 px-3 py-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-all cursor-pointer shadow-sm"
+            className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-gray-600 px-3.5 py-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer shadow-sm"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
@@ -216,15 +211,17 @@ export default function AdminDashboard() {
         {/* Stat cards */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
           {STAT_CARDS.map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200/80 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-              <div className={`absolute top-0 left-0 right-0 h-[3px] ${s.accent} rounded-t-2xl`} />
+            <div
+              key={i}
+              className={`group bg-white rounded-2xl border border-gray-200/70 p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] ${s.glow} hover:-translate-y-0.5 transition-all duration-200`}
+            >
               <div className="flex items-start justify-between mb-4">
-                <p className="text-xs font-semibold text-gray-500 leading-tight">{s.label}</p>
-                <div className={`w-9 h-9 rounded-xl ${s.iconBg} ${s.iconColor} flex items-center justify-center flex-shrink-0`}>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider leading-tight pt-1">{s.label}</p>
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-white/20`}>
                   {s.icon}
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 leading-none mb-1.5 tabular-nums">{s.value}</p>
+              <p className="text-[26px] sm:text-[30px] font-bold text-gray-900 leading-none mb-1.5 tabular-nums tracking-tight">{s.value}</p>
               <p className="text-xs text-gray-400 leading-tight">{s.sub}</p>
             </div>
           ))}
@@ -262,7 +259,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-5 mb-5">
 
           {/* Recent signups */}
-          <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div>
                 <h3 className="font-semibold text-gray-900">Recent signups</h3>
@@ -366,7 +363,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Right column: subscription mix */}
-          <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm p-5 flex flex-col gap-5">
+          <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] p-5 flex flex-col gap-5">
 
             {/* Freemium vs Premium */}
             <div>
@@ -455,7 +452,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* GSTIN Queue */}
-        <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div>
               <h3 className="font-semibold text-gray-900">GSTIN verification queue</h3>

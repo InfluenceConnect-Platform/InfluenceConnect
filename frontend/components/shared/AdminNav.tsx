@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 const NAV_ITEMS = [
   {
@@ -62,51 +63,56 @@ interface AdminNavProps {
 export default function AdminNav({ user }: AdminNavProps) {
   const pathname  = usePathname();
   const router    = useRouter();
+  const confirm   = useConfirm();
   const [open, setOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: 'Log out?',
+      description: 'You will need to sign in again to access the admin panel.',
+      confirmLabel: 'Log out',
+      variant: 'warning',
+    });
+    if (!ok) return;
     localStorage.clear();
     router.push('/admin/login');
   };
 
   return (
     <>
-      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[64px] sticky top-0 z-30 shadow-[0_1px_0_0_rgba(0,0,0,0.05),0_2px_8px_rgba(0,0,0,0.04)]">
+      <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[64px] sticky top-0 z-30 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_4px_16px_rgba(16,24,40,0.04)]">
 
         {/* Left: logo + desktop nav */}
         <div className="flex items-center gap-6 min-w-0 h-full">
 
-          <Link href="/admin/dashboard" className="flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-[#3E4751] flex items-center justify-center text-white font-bold text-[13px] shadow-sm">
+          <Link href="/admin/dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#3E4751] to-[#262C33] flex items-center justify-center text-white font-bold text-[13px] shadow-[0_2px_8px_rgba(62,71,81,0.35)] ring-1 ring-white/10 group-hover:shadow-[0_4px_14px_rgba(62,71,81,0.45)] transition-shadow duration-200">
               IC
             </div>
             <div className="hidden sm:block">
               <p className="font-bold text-gray-900 text-[14px] tracking-tight leading-none">Influence Connect</p>
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mt-0.5">Admin</p>
+              <p className="text-[10px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mt-1">Admin</p>
             </div>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden lg:flex items-center h-full gap-0.5">
+          {/* Desktop nav — segmented pills */}
+          <div className="hidden lg:flex items-center gap-1 bg-gray-50/80 border border-gray-200/70 rounded-2xl p-1">
             {NAV_ITEMS.map(item => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative flex items-center gap-2 px-3.5 h-full text-[13px] font-medium transition-all duration-150 group ${
+                  className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'text-[#3E4751]'
-                      : 'text-gray-500 hover:text-gray-800'
+                      ? 'bg-[#3E4751] text-white shadow-[0_2px_8px_rgba(62,71,81,0.28)]'
+                      : 'text-gray-500 hover:text-gray-800 hover:bg-white'
                   }`}
                 >
-                  <span className={`transition-colors ${isActive ? 'text-[#3E4751]' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                  <span className={`transition-colors ${isActive ? 'text-white' : 'text-gray-400'}`}>
                     {item.icon}
                   </span>
                   {item.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3E4751] rounded-t-full" />
-                  )}
                 </Link>
               );
             })}
@@ -115,23 +121,26 @@ export default function AdminNav({ user }: AdminNavProps) {
 
         {/* Right */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#3E4751]/8 text-[#3E4751] border border-[#3E4751]/12">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3E4751]/60 flex-shrink-0" />
+          <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+            <span className="relative flex w-1.5 h-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+              <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            </span>
             Admin
           </span>
 
           <button
             onClick={handleLogout}
-            className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-all cursor-pointer font-medium"
+            className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500 px-3 py-1.5 border border-gray-200 rounded-xl bg-white hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all duration-150 cursor-pointer font-semibold shadow-sm"
           >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/>
               <line x1="21" y1="12" x2="9" y2="12"/>
             </svg>
             Log out
           </button>
 
-          <div className="w-8 h-8 rounded-full bg-[#3E4751] text-white flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm flex-shrink-0 select-none">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3E4751] to-[#262C33] text-white flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-[0_2px_8px_rgba(62,71,81,0.3)] flex-shrink-0 select-none">
             {user?.name?.charAt(0).toUpperCase() ?? 'A'}
           </div>
 
@@ -166,13 +175,13 @@ export default function AdminNav({ user }: AdminNavProps) {
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                       isActive
-                        ? 'bg-[#3E4751]/8 text-[#3E4751]'
+                        ? 'bg-[#3E4751] text-white shadow-sm'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <span className={isActive ? 'text-[#3E4751]' : 'text-gray-400'}>
+                    <span className={isActive ? 'text-white' : 'text-gray-400'}>
                       {item.icon}
                     </span>
                     {item.label}

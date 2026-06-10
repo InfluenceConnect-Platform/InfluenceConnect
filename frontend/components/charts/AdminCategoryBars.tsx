@@ -20,7 +20,7 @@ export default function AdminCategoryBars({
   const hasData = rows.some(r => r.value > 0);
 
   return (
-    <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
       <div className="px-5 sm:px-6 pt-5 pb-1">
         <h3 className="font-semibold text-gray-900 text-base">{title}</h3>
         {subtitle && <p className="text-[11px] text-gray-400 mt-0.5">{subtitle}</p>}

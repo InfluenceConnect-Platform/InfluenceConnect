@@ -84,13 +84,14 @@ export default function AdminSettings() {
   const accentBtn = 'flex items-center gap-2 bg-[#3E4751] hover:bg-[#2f363e] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 cursor-pointer';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
       <AdminNav user={user} />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">Admin Settings</h1>
-          <p className="text-sm mt-1 text-gray-500">
+          <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Account &amp; security</p>
+          <h1 className="text-[26px] font-bold tracking-tight text-gray-900">Admin Settings</h1>
+          <p className="text-sm mt-1.5 text-gray-500">
             Manage the admin account&apos;s email and password. Keep these credentials private.
           </p>
         </div>

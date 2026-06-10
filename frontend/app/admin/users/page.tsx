@@ -88,18 +88,18 @@ export default function AdminUsers() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
 
       <AdminNav />
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-9">
 
         <div className="mb-7">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">User management</p>
+          <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">User management</p>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">All Users</h1>
+            <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">All Users</h1>
             {total > 0 && (
-              <span className="text-sm font-semibold text-gray-400 bg-gray-100 px-2.5 py-0.5 rounded-full">
+              <span className="text-sm font-semibold text-gray-500 bg-gray-100 border border-gray-200/70 px-2.5 py-0.5 rounded-full tabular-nums">
                 {total}
               </span>
             )}
@@ -143,7 +143,7 @@ export default function AdminUsers() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
 
           {/* Desktop table */}
           <div className="hidden md:block overflow-x-auto">

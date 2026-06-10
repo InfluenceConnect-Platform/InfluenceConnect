@@ -41,14 +41,14 @@ export default function AdminSubscriptions() {
   const fmt = (n: number) => n.toLocaleString('en-IN');
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
       <AdminNav />
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-9">
 
         <div className="mb-7">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Revenue &amp; subscriptions</p>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Subscriptions</h1>
+          <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Revenue &amp; subscriptions</p>
+          <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">Subscriptions</h1>
         </div>
 
         {loading ? (

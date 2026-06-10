@@ -55,7 +55,7 @@ export default function AdminGrowthChart({ data }: Props) {
   const innerGap = barW * 0.25;
 
   return (
-    <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
       <div className="flex items-start justify-between px-5 sm:px-6 pt-5 pb-3 gap-3">
         <div>
           <h3 className="font-semibold text-gray-900 text-base">User growth</h3>
