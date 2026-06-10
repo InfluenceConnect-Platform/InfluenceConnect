@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 import CampaignDetailDrawer from '@/components/shared/CampaignDetailDrawer';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -39,6 +40,7 @@ const STATUS_FILTERS = [
 export default function AdminCampaigns() {
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
   const [campaigns, setCampaigns]       = useState<any[]>([]);
   const [loading, setLoading]           = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -80,7 +82,14 @@ export default function AdminCampaigns() {
     toast.show(msg, /fail|error|cannot|unable|wrong/.test(msg.toLowerCase()) ? 'error' : 'success');
   };
 
-  const handleRemove = async (campaignId: string) => {
+  const handleRemove = async (campaignId: string, title?: string) => {
+    const ok = await confirm({
+      title: 'Remove this campaign?',
+      description: `"${title || 'This campaign'}" will be closed and hidden from creators, and any active collaborations will be cancelled. This cannot be undone.`,
+      confirmLabel: 'Remove',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       const res = await api.put(`/api/admin/campaigns/${campaignId}/remove`);
       const cancelled = res.data?.dealsCancelled ?? 0;
@@ -90,6 +99,26 @@ export default function AdminCampaigns() {
       fetchCampaigns();
     } catch (err: any) {
       showToast(err?.response?.data?.error || 'Failed to remove campaign.');
+    }
+  };
+
+  const handleFlag = async (campaignId: string, title?: string, currentlyFlagged?: boolean) => {
+    const next = !currentlyFlagged;
+    if (next) {
+      const ok = await confirm({
+        title: 'Flag this campaign?',
+        description: `"${title || 'This campaign'}" will be marked for review. It stays live for the brand and creators — flagging only highlights it for the admin team.`,
+        confirmLabel: 'Flag',
+        variant: 'warning',
+      });
+      if (!ok) return;
+    }
+    try {
+      await api.put(`/api/admin/campaigns/${campaignId}/flag`, { flagged: next });
+      showToast(next ? 'Campaign flagged for review.' : 'Campaign flag cleared.');
+      fetchCampaigns();
+    } catch (err: any) {
+      showToast(err?.response?.data?.error || 'Failed to update campaign flag.');
     }
   };
 
@@ -184,18 +213,40 @@ export default function AdminCampaigns() {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                          {STATUS_LABELS[c.status] ?? c.status}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {STATUS_LABELS[c.status] ?? c.status}
+                          </span>
+                          {c.flagged && (
+                            <span className="text-[11px] px-2 py-1 rounded-full font-semibold bg-amber-50 text-amber-700 border border-amber-100 inline-flex items-center gap-1">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
+                              </svg>
+                              Flagged
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-4">
                         {c.status !== 'closed' && c.status !== 'completed' && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleRemove(c._id); }}
-                            className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-all cursor-pointer font-semibold"
-                          >
-                            Remove
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleFlag(c._id, c.title, c.flagged); }}
+                              className={`text-xs px-3 py-1.5 rounded-lg border transition-all cursor-pointer font-semibold ${
+                                c.flagged
+                                  ? 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200'
+                                  : 'bg-white text-amber-600 border-amber-200 hover:bg-amber-50'
+                              }`}
+                            >
+                              {c.flagged ? 'Unflag' : 'Flag'}
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRemove(c._id, c.title); }}
+                              className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-all cursor-pointer font-semibold"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -228,9 +279,16 @@ export default function AdminCampaigns() {
                           {c.niche?.join(', ') || 'No niche'}
                         </p>
                       </div>
-                      <span className={`flex-shrink-0 text-[11px] px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {STATUS_LABELS[c.status] ?? c.status}
-                      </span>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {STATUS_LABELS[c.status] ?? c.status}
+                        </span>
+                        {c.flagged && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-700 border border-amber-100">
+                            Flagged
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mb-3">
                       <span>Brand: <span className="font-semibold text-gray-700">{c.brandId?.name ?? '—'}</span></span>
@@ -245,12 +303,24 @@ export default function AdminCampaigns() {
                       <span>Applicants: <span className="font-semibold text-gray-700">{c.applicantCount ?? 0}</span></span>
                     </div>
                     {c.status !== 'closed' && c.status !== 'completed' && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleRemove(c._id); }}
-                        className="text-xs px-3.5 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-all cursor-pointer font-semibold"
-                      >
-                        Remove campaign
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleFlag(c._id, c.title, c.flagged); }}
+                          className={`text-xs px-3.5 py-2 rounded-lg border transition-all cursor-pointer font-semibold ${
+                            c.flagged
+                              ? 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200'
+                              : 'bg-white text-amber-600 border-amber-200 hover:bg-amber-50'
+                          }`}
+                        >
+                          {c.flagged ? 'Unflag' : 'Flag'}
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRemove(c._id, c.title); }}
+                          className="text-xs px-3.5 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-all cursor-pointer font-semibold"
+                        >
+                          Remove campaign
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}

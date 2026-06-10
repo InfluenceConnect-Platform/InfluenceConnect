@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 import UserDetailDrawer from '@/components/shared/UserDetailDrawer';
 
 const ROLE_STYLES: Record<string, string> = {
@@ -17,6 +18,7 @@ const ROLE_STYLES: Record<string, string> = {
 export default function AdminUsers() {
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
   const [users, setUsers]           = useState<any[]>([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
@@ -66,10 +68,19 @@ export default function AdminUsers() {
     toast.show(msg, /fail|error|cannot|unable|wrong/.test(msg.toLowerCase()) ? 'error' : 'success');
   };
 
-  const handleStatusUpdate = async (userId: string, status: string) => {
+  const handleStatusUpdate = async (userId: string, status: string, name?: string) => {
+    if (status === 'suspended') {
+      const ok = await confirm({
+        title: 'Suspend this account?',
+        description: `${name || 'This user'} will be signed out immediately and blocked from accessing the platform until restored.`,
+        confirmLabel: 'Suspend',
+        variant: 'danger',
+      });
+      if (!ok) return;
+    }
     try {
       await api.put(`/api/admin/users/${userId}/status`, { status });
-      showToast(`User ${status} successfully.`);
+      showToast(`User ${status === 'suspended' ? 'suspended' : 'restored'} successfully.`);
       fetchUsers();
     } catch {
       showToast('Failed to update user status.');
@@ -211,7 +222,7 @@ export default function AdminUsers() {
                         {u.role !== 'admin' && (
                           u.status !== 'suspended' ? (
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleStatusUpdate(u._id, 'suspended'); }}
+                              onClick={(e) => { e.stopPropagation(); handleStatusUpdate(u._id, 'suspended', u.name); }}
                               className="text-xs px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-gray-500 transition-all cursor-pointer font-semibold"
                             >
                               Suspend
@@ -266,7 +277,7 @@ export default function AdminUsers() {
                           {u.role !== 'admin' && (
                             u.status !== 'suspended' ? (
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleStatusUpdate(u._id, 'suspended'); }}
+                                onClick={(e) => { e.stopPropagation(); handleStatusUpdate(u._id, 'suspended', u.name); }}
                                 className="flex-shrink-0 text-xs px-3 py-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-semibold"
                               >
                                 Suspend

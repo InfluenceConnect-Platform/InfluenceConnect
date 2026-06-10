@@ -125,6 +125,30 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
     }
   };
 
+  const handleFlag = async () => {
+    const next = !c?.flagged;
+    if (next) {
+      const ok = await confirm({
+        title: 'Flag this campaign?',
+        description: `"${c?.title}" will be marked for review. It stays live for the brand and creators — flagging only highlights it for the admin team.`,
+        confirmLabel: 'Flag',
+        variant: 'warning',
+      });
+      if (!ok) return;
+    }
+    setActing(true);
+    try {
+      await api.put(`/api/admin/campaigns/${campaignId}/flag`, { flagged: next });
+      showToast(next ? 'Campaign flagged for review.' : 'Campaign flag cleared.');
+      await fetchDetails();
+      onChanged();
+    } catch (err: any) {
+      showToast(err?.response?.data?.error || 'Failed to update campaign flag.');
+    } finally {
+      setActing(false);
+    }
+  };
+
   const handleCopyId = async () => {
     try {
       await navigator.clipboard.writeText(String(campaignId));
@@ -210,9 +234,19 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                     </div>
                   )}
                 </div>
-                <span className={`flex-shrink-0 text-[11px] px-2.5 py-1 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {STATUS_LABELS[c.status] ?? c.status}
-                </span>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <span className={`text-[11px] px-2.5 py-1 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {STATUS_LABELS[c.status] ?? c.status}
+                  </span>
+                  {c.flagged && (
+                    <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-700 border border-amber-100 inline-flex items-center gap-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
+                      </svg>
+                      Flagged
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Activity summary chips */}
@@ -373,6 +407,19 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
               </p>
             )}
             <div className="flex gap-2">
+              {c.status !== 'closed' && c.status !== 'completed' && (
+                <button
+                  onClick={handleFlag}
+                  disabled={acting}
+                  className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-[13px] font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                    c.flagged
+                      ? 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200'
+                      : 'bg-white text-amber-600 border-amber-200 hover:bg-amber-50'
+                  }`}
+                >
+                  {c.flagged ? 'Unflag' : 'Flag'}
+                </button>
+              )}
               {canRemove ? (
                 <button
                   onClick={handleRemove}

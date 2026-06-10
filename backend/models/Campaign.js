@@ -77,6 +77,23 @@ const campaignSchema = new mongoose.Schema({
   applicantCount: {
     type: Number,
     default: 0
+  },
+
+  // Admin moderation flag — marks a campaign for review without removing it.
+  // Reversible; does not change the campaign's lifecycle status.
+  flagged: {
+    type: Boolean,
+    default: false
+  },
+
+  flagReason: {
+    type: String,
+    default: ''
+  },
+
+  flaggedAt: {
+    type: Date,
+    default: null
   }
 
 }, { timestamps: true });

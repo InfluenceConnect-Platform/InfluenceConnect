@@ -567,6 +567,9 @@ exports.getCampaignDetails = async (req, res) => {
         maxFollowers: campaign.maxFollowers || 0,
         status: campaign.status,
         applicantCount: campaign.applicantCount || 0,
+        flagged: campaign.flagged || false,
+        flagReason: campaign.flagReason || '',
+        flaggedAt: campaign.flaggedAt || null,
         createdAt: campaign.createdAt,
         updatedAt: campaign.updatedAt
       },
@@ -688,6 +691,42 @@ exports.removeCampaign = async (req, res) => {
 
   } catch (error) {
     console.error('Remove campaign error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// FLAG / UNFLAG CAMPAIGN
+// Soft moderation: marks a campaign for review without changing its lifecycle
+// status. Reversible — sending again clears the flag. Optional `reason`.
+// ─────────────────────────────────────────
+exports.flagCampaign = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const { flagged, reason } = req.body;
+
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    // Default behaviour is a toggle, but the client may pass an explicit boolean.
+    const next = typeof flagged === 'boolean' ? flagged : !campaign.flagged;
+
+    campaign.flagged    = next;
+    campaign.flagReason = next ? (reason || '') : '';
+    campaign.flaggedAt  = next ? new Date() : null;
+    await campaign.save();
+
+    res.json({
+      message: next ? 'Campaign flagged for review.' : 'Campaign flag cleared.',
+      flagged: campaign.flagged,
+      flagReason: campaign.flagReason,
+      flaggedAt: campaign.flaggedAt
+    });
+
+  } catch (error) {
+    console.error('Flag campaign error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

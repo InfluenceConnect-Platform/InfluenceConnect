@@ -10,6 +10,7 @@ const {
   getAllCampaigns,
   getCampaignDetails,
   removeCampaign,
+  flagCampaign,
   getPendingGSTIN,
   updateGSTINStatus,
   getSubscriptionOverview
@@ -25,6 +26,7 @@ router.put('/users/:userId/status', updateUserStatus);
 router.get('/campaigns', getAllCampaigns);
 router.get('/campaigns/:campaignId/details', getCampaignDetails);
 router.put('/campaigns/:campaignId/remove', removeCampaign);
+router.put('/campaigns/:campaignId/flag', flagCampaign);
 router.get('/gstin/pending', getPendingGSTIN);
 router.put('/gstin/:brandProfileId/status', updateGSTINStatus);
 router.get('/subscriptions/overview', getSubscriptionOverview);

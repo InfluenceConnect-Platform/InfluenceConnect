@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 
 // Cached across client-side navigations so the profile picture shows instantly
 // on re-mount instead of flashing the letter avatar while it re-fetches. It's
@@ -90,6 +91,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   const pathname = usePathname();
   const router = useRouter();
   const { isDark } = useTheme();
+  const confirm = useConfirm();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
@@ -180,7 +182,14 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
     }
   }, [pathname]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: 'Log out?',
+      description: 'You will need to sign in again to access your account.',
+      confirmLabel: 'Log out',
+      variant: 'warning',
+    });
+    if (!ok) return;
     localStorage.clear();
     router.push('/auth/login');
   };
