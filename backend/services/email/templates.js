@@ -1,10 +1,30 @@
 // ─────────────────────────────────────────────────────────────
 // Email content. Each builder returns { subject, html } for one
 // notification type. They take plain data (no DB access) so they stay easy to
-// preview and test. Shared branded layout matches the OTP email style.
+// preview and test.
+//
+// Theming is role-based: brand emails use the lavender/indigo brand colour,
+// influencer emails use the teal creator colour — matching the in-app palette.
 // ─────────────────────────────────────────────────────────────
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+
+// Role palettes (top accent bar, logo chip, CTA button gradients).
+const THEMES = {
+  brand: {
+    bar:    'linear-gradient(90deg,#5D8A8F,#3D5087)',
+    logo:   'linear-gradient(135deg,#5D8A8F,#3D5087)',
+    button: 'linear-gradient(135deg,#3D5087,#5D8A8F)',
+  },
+  influencer: {
+    bar:    'linear-gradient(90deg,#7FA8AD,#27717E)',
+    logo:   'linear-gradient(135deg,#7FA8AD,#27717E)',
+    button: 'linear-gradient(135deg,#27717E,#5BA8B5)',
+  },
+};
+const BRAND = THEMES.brand;
+const CREATOR = THEMES.influencer;
+const themeFor = (role) => (role === 'brand' ? BRAND : CREATOR);
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const esc = (s) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
@@ -29,16 +49,16 @@ function details(rows) {
   return `<table cellpadding="0" cellspacing="0" width="100%" style="background:#f9fafb;border:1px solid #f0f1f3;border-radius:12px;padding:8px 18px;margin:0 0 24px;">${items}</table>`;
 }
 
-function button(label, url) {
+function button(label, url, theme = CREATOR) {
   return `
     <table cellpadding="0" cellspacing="0" style="margin:4px 0 28px;"><tr>
-      <td style="border-radius:10px;background:linear-gradient(135deg,#3D5087,#5D8A8F);">
+      <td style="border-radius:10px;background:${theme.button};">
         <a href="${url}" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">${esc(label)} →</a>
       </td>
     </tr></table>`;
 }
 
-function layout({ heading, bodyHtml }) {
+function layout({ heading, bodyHtml, theme = CREATOR }) {
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -46,11 +66,11 @@ function layout({ heading, bodyHtml }) {
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
     <tr><td align="center">
       <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-        <tr><td style="height:4px;background:linear-gradient(90deg,#7FA8AD,#5D8A8F,#3D5087);"></td></tr>
+        <tr><td style="height:4px;background:${theme.bar};"></td></tr>
         <tr><td style="padding:36px 40px 32px;">
           <div style="margin-bottom:28px;">
             <table cellpadding="0" cellspacing="0"><tr>
-              <td style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7FA8AD,#3D5087);text-align:center;vertical-align:middle;">
+              <td style="width:32px;height:32px;border-radius:8px;background:${theme.logo};text-align:center;vertical-align:middle;">
                 <span style="color:#fff;font-weight:700;font-size:12px;line-height:32px;">IC</span>
               </td>
               <td style="padding-left:10px;vertical-align:middle;">
@@ -71,13 +91,15 @@ function layout({ heading, bodyHtml }) {
 }
 
 module.exports = {
-  // 2 — Welcome (account activated)
+  // 2 — Welcome (account activated) — themed by the recipient's role
   welcome({ name, role }) {
     const isBrand = role === 'brand';
+    const theme = themeFor(role);
     const url = `${APP_URL}/${isBrand ? 'brand' : 'influencer'}/dashboard`;
     return {
       subject: 'Welcome to Influence Connect 🎉',
       html: layout({
+        theme,
         heading: `Welcome aboard, ${esc(name || 'there')}!`,
         bodyHtml:
           para('Your email and mobile are verified and your account is now active.') +
@@ -86,7 +108,7 @@ module.exports = {
               ? 'Next up: create your first campaign and start discovering creators who fit your brand.'
               : 'Next up: complete your profile and start applying to campaigns that match your niche.'
           ) +
-          button('Go to dashboard', url),
+          button('Go to dashboard', url, theme),
       }),
     };
   },
@@ -96,11 +118,12 @@ module.exports = {
     return {
       subject: `Application submitted — ${campaignTitle}`,
       html: layout({
+        theme: CREATOR,
         heading: 'Your application is in 🚀',
         bodyHtml:
           para(`We've submitted your application. ${esc(brandName || 'The brand')} will review it soon.`) +
           details([['Campaign', campaignTitle], ['Brand', brandName]]) +
-          button('View my applications', `${APP_URL}/influencer/campaigns`),
+          button('View my applications', `${APP_URL}/influencer/campaigns`, CREATOR),
       }),
     };
   },
@@ -110,12 +133,13 @@ module.exports = {
     return {
       subject: `You've been shortlisted — ${campaignTitle}`,
       html: layout({
+        theme: CREATOR,
         heading: "You're shortlisted! ✨",
         bodyHtml:
           para(`${esc(brandName || 'The brand')} shortlisted your application for <strong>${esc(campaignTitle)}</strong>.`) +
           para('Keep an eye on your inbox — they may reach out or accept your application next.') +
           details([['Campaign', campaignTitle], ['Brand', brandName]]) +
-          button('View my applications', `${APP_URL}/influencer/campaigns`),
+          button('View my applications', `${APP_URL}/influencer/campaigns`, CREATOR),
       }),
     };
   },
@@ -125,12 +149,13 @@ module.exports = {
     return {
       subject: `Congratulations! You're booked — ${campaignTitle}`,
       html: layout({
+        theme: CREATOR,
         heading: 'Your application was accepted 🎉',
         bodyHtml:
           para(`Great news — ${esc(brandName || 'the brand')} accepted your application and a deal has been created.`) +
           details([['Campaign', campaignTitle], ['Brand', brandName], ['Agreed amount', inr(amount)]]) +
           para('Head to your messages to coordinate deliverables and timelines with the brand.') +
-          button('Open messages', `${APP_URL}/influencer/messages`),
+          button('Open messages', `${APP_URL}/influencer/messages`, CREATOR),
       }),
     };
   },
@@ -140,11 +165,12 @@ module.exports = {
     return {
       subject: `Update on your application — ${campaignTitle}`,
       html: layout({
+        theme: CREATOR,
         heading: 'An update on your application',
         bodyHtml:
           para(`Thanks for applying to <strong>${esc(campaignTitle)}</strong>${brandName ? ` by ${esc(brandName)}` : ''}. Unfortunately the brand has decided to move forward with other creators this time.`) +
           para("Don't be discouraged — new campaigns are posted regularly, and the right fit is out there. Browse what's live now:") +
-          button('Browse campaigns', `${APP_URL}/influencer/campaigns`),
+          button('Browse campaigns', `${APP_URL}/influencer/campaigns`, CREATOR),
       }),
     };
   },
@@ -154,10 +180,11 @@ module.exports = {
     return {
       subject: `New message from ${fromName || 'a brand'}`,
       html: layout({
+        theme: CREATOR,
         heading: `${esc(fromName || 'A brand')} sent you a message`,
         bodyHtml:
           (preview ? para(`<em style="color:#6b7280;">"${esc(preview)}"</em>`) : para('You have a new message in one of your active deals.')) +
-          button('Open messages', `${APP_URL}/influencer/messages`),
+          button('Open messages', `${APP_URL}/influencer/messages`, CREATOR),
       }),
     };
   },
@@ -167,6 +194,7 @@ module.exports = {
     return {
       subject: `Deal completed — ${campaignTitle}`,
       html: layout({
+        theme: CREATOR,
         heading: 'Deal completed — nice work! 🏆',
         bodyHtml:
           para(`Your deal for <strong>${esc(campaignTitle)}</strong> has been marked complete by the brand.`) +
@@ -175,7 +203,7 @@ module.exports = {
             ['Final amount', inr(amount)],
             ['Total earnings', inr(totalEarnings)],
           ]) +
-          button('View earnings', `${APP_URL}/influencer/earnings`),
+          button('View earnings', `${APP_URL}/influencer/earnings`, CREATOR),
       }),
     };
   },
@@ -185,11 +213,12 @@ module.exports = {
     return {
       subject: `New application — ${campaignTitle}`,
       html: layout({
+        theme: BRAND,
         heading: 'You have a new applicant 📥',
         bodyHtml:
           para(`${esc(influencerName || 'A creator')} just applied to <strong>${esc(campaignTitle)}</strong>.`) +
           details([['Creator', influencerName], ['Campaign', campaignTitle]]) +
-          button('Review applications', `${APP_URL}/brand/campaigns`),
+          button('Review applications', `${APP_URL}/brand/campaigns`, BRAND),
       }),
     };
   },
@@ -199,10 +228,11 @@ module.exports = {
     return {
       subject: `New message from ${fromName || 'a creator'}`,
       html: layout({
+        theme: BRAND,
         heading: `${esc(fromName || 'A creator')} sent you a message`,
         bodyHtml:
           (preview ? para(`<em style="color:#6b7280;">"${esc(preview)}"</em>`) : para('You have a new message in one of your active deals.')) +
-          button('Open messages', `${APP_URL}/brand/messages`),
+          button('Open messages', `${APP_URL}/brand/messages`, BRAND),
       }),
     };
   },
@@ -212,12 +242,13 @@ module.exports = {
     return {
       subject: `Deal started with ${influencerName || 'a creator'} — ${campaignTitle}`,
       html: layout({
+        theme: BRAND,
         heading: 'Your deal is in progress 🤝',
         bodyHtml:
           para(`You accepted ${esc(influencerName || 'a creator')} for <strong>${esc(campaignTitle)}</strong> and a deal is now active.`) +
           details([['Creator', influencerName], ['Campaign', campaignTitle], ['Agreed amount', inr(amount)]]) +
           para('Use messages to align on deliverables and timelines. Once the creator submits content, you can review and complete the deal.') +
-          button('Open messages', `${APP_URL}/brand/messages`),
+          button('Open messages', `${APP_URL}/brand/messages`, BRAND),
       }),
     };
   },
@@ -227,12 +258,13 @@ module.exports = {
     return {
       subject: `Content submitted — ${campaignTitle}`,
       html: layout({
+        theme: BRAND,
         heading: 'Content is ready for review 📝',
         bodyHtml:
           para(`${esc(influencerName || 'The creator')} submitted content for <strong>${esc(campaignTitle)}</strong>.`) +
           details([['Creator', influencerName], ['Campaign', campaignTitle]]) +
           para('Please review the deliverables and mark the deal complete once you\'re satisfied.') +
-          button('Review & approve', `${APP_URL}/brand/messages`),
+          button('Review & approve', `${APP_URL}/brand/messages`, BRAND),
       }),
     };
   },
@@ -244,11 +276,12 @@ module.exports = {
     return {
       subject: `New campaign you might like — ${campaignTitle}`,
       html: layout({
+        theme: CREATOR,
         heading: 'A new campaign just went live 🔔',
         bodyHtml:
           para(`${esc(brandName || 'A brand')} posted a new campaign that fits your profile. Apply early to stand out.`) +
           details([['Campaign', campaignTitle], ['Brand', brandName], ['Budget', budget], ['Niche', nicheList]]) +
-          button('View campaign', `${APP_URL}/influencer/campaigns`),
+          button('View campaign', `${APP_URL}/influencer/campaigns`, CREATOR),
       }),
     };
   },
@@ -258,12 +291,13 @@ module.exports = {
     return {
       subject: `${brandName || 'A brand'} invited you to a campaign`,
       html: layout({
+        theme: CREATOR,
         heading: "You've got an invitation ✉️",
         bodyHtml:
           para(`${esc(brandName || 'A brand')} personally invited you to collaborate on <strong>${esc(campaignTitle)}</strong>.`) +
           (message ? para(`<em style="color:#6b7280;">"${esc(message)}"</em>`) : '') +
           details([['Campaign', campaignTitle], ['Brand', brandName]]) +
-          button('View invitation', `${APP_URL}/influencer/invitations`),
+          button('View invitation', `${APP_URL}/influencer/invitations`, CREATOR),
       }),
     };
   },
@@ -274,10 +308,11 @@ module.exports = {
     return {
       subject: `Invitation${n > 1 ? 's' : ''} sent — ${campaignTitle}`,
       html: layout({
+        theme: BRAND,
         heading: `Invitation${n > 1 ? 's' : ''} sent 📨`,
         bodyHtml:
           para(`You invited ${n} creator${n > 1 ? 's' : ''} to <strong>${esc(campaignTitle)}</strong>. We'll let you know as soon as they respond.`) +
-          button('View invitations', `${APP_URL}/brand/invitations`),
+          button('View invitations', `${APP_URL}/brand/invitations`, BRAND),
       }),
     };
   },
@@ -287,37 +322,41 @@ module.exports = {
     return {
       subject: `Invitation declined — ${campaignTitle}`,
       html: layout({
+        theme: BRAND,
         heading: 'An invitation was declined',
         bodyHtml:
           para(`${esc(influencerName || 'A creator')} declined your invitation to <strong>${esc(campaignTitle)}</strong>.`) +
           para('No worries — you can invite other creators from Discover.') +
-          button('Discover creators', `${APP_URL}/brand/discover`),
+          button('Discover creators', `${APP_URL}/brand/discover`, BRAND),
       }),
     };
   },
 
-  // Account deletion scheduled (to user)
-  accountDeletionScheduled({ name, deleteAt }) {
+  // Account deletion scheduled (to user) — themed by role
+  accountDeletionScheduled({ name, deleteAt, role }) {
+    const theme = themeFor(role);
     const when = deleteAt
       ? new Date(deleteAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
       : 'in 30 days';
     return {
       subject: 'Your account is scheduled for deletion',
       html: layout({
+        theme,
         heading: 'Account deletion scheduled',
         bodyHtml:
           para(`Hi ${esc(name || 'there')}, we've scheduled your Influence Connect account for permanent deletion on <strong>${esc(when)}</strong>.`) +
           para('Changed your mind? You can cancel anytime before then from your account settings — no data is lost until the deletion date.') +
-          button('Keep my account', `${APP_URL}/`),
+          button('Keep my account', `${APP_URL}/`, theme),
       }),
     };
   },
 
-  // Account deletion cancelled (to user)
-  accountDeletionCancelled({ name }) {
+  // Account deletion cancelled (to user) — themed by role
+  accountDeletionCancelled({ name, role }) {
     return {
       subject: 'Your account deletion has been cancelled',
       html: layout({
+        theme: themeFor(role),
         heading: 'Your account is safe ✅',
         bodyHtml:
           para(`Hi ${esc(name || 'there')}, your scheduled account deletion has been cancelled and your account will stay active. Welcome back!`),
@@ -327,11 +366,12 @@ module.exports = {
 
   // ── Admin actions (account / verification / moderation) ──
 
-  // Account suspended by admin (to user)
-  accountSuspended({ name }) {
+  // Account suspended by admin (to user) — themed by role
+  accountSuspended({ name, role }) {
     return {
       subject: 'Your Influence Connect account has been suspended',
       html: layout({
+        theme: themeFor(role),
         heading: 'Your account has been suspended',
         bodyHtml:
           para(`Hi ${esc(name || 'there')}, your Influence Connect account has been suspended by our team and access is temporarily disabled.`) +
@@ -340,16 +380,18 @@ module.exports = {
     };
   },
 
-  // Account restored by admin (to user)
+  // Account restored by admin (to user) — themed by role
   accountRestored({ name, role }) {
+    const theme = themeFor(role);
     const url = `${APP_URL}/${role === 'brand' ? 'brand' : 'influencer'}/dashboard`;
     return {
       subject: 'Your Influence Connect account has been restored',
       html: layout({
+        theme,
         heading: 'Welcome back — your account is active again ✅',
         bodyHtml:
           para(`Hi ${esc(name || 'there')}, good news — your account has been restored and you have full access again.`) +
-          button('Go to dashboard', url),
+          button('Go to dashboard', url, theme),
       }),
     };
   },
@@ -359,10 +401,11 @@ module.exports = {
     return {
       subject: 'Your GSTIN has been verified ✅',
       html: layout({
+        theme: BRAND,
         heading: 'GSTIN verified',
         bodyHtml:
           para(`Good news${companyName ? `, ${esc(companyName)}` : ''} — your GSTIN has been verified and your brand is now fully verified on Influence Connect.`) +
-          button('Go to dashboard', `${APP_URL}/brand/dashboard`),
+          button('Go to dashboard', `${APP_URL}/brand/dashboard`, BRAND),
       }),
     };
   },
@@ -372,10 +415,11 @@ module.exports = {
     return {
       subject: 'Action needed: your GSTIN could not be verified',
       html: layout({
+        theme: BRAND,
         heading: 'GSTIN verification unsuccessful',
         bodyHtml:
           para(`We couldn't verify the GSTIN on your account${companyName ? `, ${esc(companyName)}` : ''}. Please double-check the number and resubmit it from your profile.`) +
-          button('Update GSTIN', `${APP_URL}/brand/profile`),
+          button('Update GSTIN', `${APP_URL}/brand/profile`, BRAND),
       }),
     };
   },
@@ -385,6 +429,7 @@ module.exports = {
     return {
       subject: `Your campaign was removed — ${campaignTitle}`,
       html: layout({
+        theme: BRAND,
         heading: 'A campaign was removed',
         bodyHtml:
           para(`Your campaign <strong>${esc(campaignTitle)}</strong> has been removed by our moderation team and is no longer live.`) +
@@ -398,10 +443,11 @@ module.exports = {
     return {
       subject: `Collaboration cancelled — ${campaignTitle}`,
       html: layout({
+        theme: CREATOR,
         heading: 'A collaboration was cancelled',
         bodyHtml:
           para(`The campaign <strong>${esc(campaignTitle)}</strong>${brandName ? ` by ${esc(brandName)}` : ''} was removed by our moderation team, so your active collaboration has been cancelled. No further action is needed.`) +
-          button('Browse campaigns', `${APP_URL}/influencer/campaigns`),
+          button('Browse campaigns', `${APP_URL}/influencer/campaigns`, CREATOR),
       }),
     };
   },

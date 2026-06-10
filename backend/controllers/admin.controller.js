@@ -419,7 +419,7 @@ exports.updateUserStatus = async (req, res) => {
 
     // Notify the affected user of the action taken on their account.
     if (status === 'suspended') {
-      notify.accountSuspended(user.email, { name: user.name });
+      notify.accountSuspended(user.email, { name: user.name, role: user.role });
     } else {
       notify.accountRestored(user.email, { name: user.name, role: user.role });
     }
