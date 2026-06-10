@@ -78,11 +78,14 @@ export default function AdminCampaigns() {
 
   const handleRemove = async (campaignId: string) => {
     try {
-      await api.put(`/api/admin/campaigns/${campaignId}/remove`);
-      showToast('Campaign removed successfully.');
+      const res = await api.put(`/api/admin/campaigns/${campaignId}/remove`);
+      const cancelled = res.data?.dealsCancelled ?? 0;
+      showToast(cancelled > 0
+        ? `Campaign removed — ${cancelled} active deal${cancelled > 1 ? 's' : ''} cancelled.`
+        : 'Campaign removed successfully.');
       fetchCampaigns();
-    } catch {
-      showToast('Failed to remove campaign.');
+    } catch (err: any) {
+      showToast(err?.response?.data?.error || 'Failed to remove campaign.');
     }
   };
 

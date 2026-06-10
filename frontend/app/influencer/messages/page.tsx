@@ -18,6 +18,7 @@ interface Message {
   createdAt: string;
   blocked?: boolean;
   blockReason?: string;
+  system?: boolean;
 }
 
 interface Deal {
@@ -648,6 +649,20 @@ export default function MessagesPage() {
                     </div>
 
                     {messages.map((msg, idx) => {
+                      // System notices (e.g. admin removed the campaign) sit centered.
+                      if (msg.system) {
+                        return (
+                          <div key={msg._id} className="flex justify-center my-3">
+                            <div className={`max-w-[85%] text-center text-[12px] font-medium px-3.5 py-2 rounded-xl border ${
+                              isDark
+                                ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                                : 'bg-amber-50 text-amber-700 border-amber-200/70'
+                            }`}>
+                              {msg.content}
+                            </div>
+                          </div>
+                        );
+                      }
                       const isMine = msg.senderId?.toString() === user?.id?.toString();
                       const prevMsg = idx > 0 ? messages[idx - 1] : null;
                       const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;

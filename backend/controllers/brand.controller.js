@@ -203,6 +203,11 @@ exports.updateCampaign = async (req, res) => {
       return res.status(404).json({ error: 'Campaign not found.' });
     }
 
+    // A campaign removed by an admin is terminal — it can't be edited or relaunched.
+    if (campaign.status === 'closed') {
+      return res.status(403).json({ error: 'This campaign was removed by an admin and can no longer be edited.' });
+    }
+
     // Block edit if any deal for this campaign is active (not cancelled)
     const activeDeal = await Deal.findOne({
       campaignId,

@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Campaign = require('../models/Campaign');
 const Application = require('../models/Application');
 const Deal = require('../models/Deal');
+const Message = require('../models/Message');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
 
@@ -502,11 +503,62 @@ exports.getCampaignDetails = async (req, res) => {
 // ─────────────────────────────────────────
 exports.removeCampaign = async (req, res) => {
   try {
-    await Campaign.findByIdAndUpdate(req.params.campaignId, {
-      status: 'closed'
-    });
+    const { campaignId } = req.params;
 
-    res.json({ message: 'Campaign removed successfully' });
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    if (campaign.status === 'closed') {
+      return res.status(400).json({ error: 'This campaign has already been removed.' });
+    }
+    if (campaign.status === 'completed') {
+      return res.status(400).json({ error: 'A completed campaign cannot be removed.' });
+    }
+
+    // Real-life guard: once an influencer has submitted content the work is
+    // mid-review (and possibly owed payment) — an admin can't simply unwind it.
+    const submittedDeal = await Deal.findOne({ campaignId, status: 'content-submitted' });
+    if (submittedDeal) {
+      return res.status(409).json({
+        error: 'Cannot remove — an influencer has already submitted content for this campaign. That deal must be resolved first.'
+      });
+    }
+
+    // Cancel every in-progress deal and drop a system notice into its chat so
+    // the influencer (and brand) understand why the collaboration ended.
+    const activeDeals = await Deal.find({ campaignId, status: 'in-progress' });
+    const notice = '⚠️ This campaign was removed by an admin, so this collaboration has been cancelled. No further action is needed.';
+
+    for (const deal of activeDeals) {
+      deal.status = 'cancelled';
+      await deal.save();
+
+      await Message.create({
+        dealId: deal._id,
+        senderId: deal.brandId,
+        receiverId: deal.influencerId,
+        content: notice,
+        system: true
+      });
+    }
+
+    // Reject all still-open applications (accepted ones already became deals).
+    const appResult = await Application.updateMany(
+      { campaignId, status: { $in: ['applied', 'shortlisted', 'on-hold'] } },
+      { $set: { status: 'rejected' } }
+    );
+
+    // Close the campaign — this is terminal, it can never go active again.
+    campaign.status = 'closed';
+    await campaign.save();
+
+    res.json({
+      message: 'Campaign removed successfully',
+      dealsCancelled: activeDeals.length,
+      applicationsRejected: appResult.modifiedCount || 0
+    });
 
   } catch (error) {
     console.error('Remove campaign error:', error);

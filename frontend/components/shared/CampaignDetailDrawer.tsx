@@ -95,24 +95,31 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
   const apps  = data?.applications;
   const deals = data?.deals;
 
-  const canRemove = c && c.status !== 'closed' && c.status !== 'completed';
+  const hasSubmittedContent = !!deals?.list?.some((d: any) => d.status === 'content-submitted');
+  const canRemove = c && c.status !== 'closed' && c.status !== 'completed' && !hasSubmittedContent;
+  const activeDealCount = deals?.active ?? 0;
 
   const handleRemove = async () => {
     const ok = await confirm({
       title: 'Remove this campaign?',
-      description: `"${c?.title}" will be closed and hidden from creators. This cannot be undone.`,
+      description: activeDealCount > 0
+        ? `"${c?.title}" will be closed and ${activeDealCount} active collaboration${activeDealCount > 1 ? 's' : ''} will be cancelled — the influencer${activeDealCount > 1 ? 's' : ''} will be notified in chat. This cannot be undone.`
+        : `"${c?.title}" will be closed and hidden from creators. This cannot be undone.`,
       confirmLabel: 'Remove',
       variant: 'danger',
     });
     if (!ok) return;
     setActing(true);
     try {
-      await api.put(`/api/admin/campaigns/${campaignId}/remove`);
-      showToast('Campaign removed successfully.');
+      const res = await api.put(`/api/admin/campaigns/${campaignId}/remove`);
+      const cancelled = res.data?.dealsCancelled ?? 0;
+      showToast(cancelled > 0
+        ? `Campaign removed — ${cancelled} active deal${cancelled > 1 ? 's' : ''} cancelled.`
+        : 'Campaign removed successfully.');
       await fetchDetails();
       onChanged();
-    } catch {
-      showToast('Failed to remove campaign.');
+    } catch (err: any) {
+      showToast(err?.response?.data?.error || 'Failed to remove campaign.');
     } finally {
       setActing(false);
     }
@@ -356,6 +363,11 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
         {/* Admin Actions (sticky footer) */}
         {data && c && (
           <div className="flex-shrink-0 border-t border-gray-200 bg-white px-5 py-3.5">
+            {hasSubmittedContent && c.status !== 'closed' && c.status !== 'completed' && (
+              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-2.5 leading-snug">
+                Can't remove — an influencer has already submitted content. Resolve that deal first.
+              </p>
+            )}
             <div className="flex gap-2">
               {canRemove ? (
                 <button
@@ -367,7 +379,9 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                 </button>
               ) : (
                 <div className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold bg-gray-50 text-gray-400 text-center border border-gray-100">
-                  {STATUS_LABELS[c.status] ?? cap(c.status)}
+                  {hasSubmittedContent && c.status !== 'closed' && c.status !== 'completed'
+                    ? 'Removal blocked'
+                    : STATUS_LABELS[c.status] ?? cap(c.status)}
                 </div>
               )}
               <button

@@ -38,6 +38,13 @@ const messageSchema = new mongoose.Schema({
   read: {
     type: Boolean,
     default: false
+  },
+
+  // System notices (e.g. an admin removed the campaign) are rendered as a
+  // centered banner in the chat rather than a sender's bubble.
+  system: {
+    type: Boolean,
+    default: false
   }
 
 }, { timestamps: true });
