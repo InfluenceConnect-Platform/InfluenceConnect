@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
+import UserDetailDrawer from '@/components/shared/UserDetailDrawer';
 
 const ROLE_STYLES: Record<string, string> = {
   influencer: 'bg-teal-50 text-teal-700 border border-teal-100',
@@ -23,6 +24,7 @@ export default function AdminUsers() {
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
   const [pages, setPages]           = useState(1);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     const token  = localStorage.getItem('token');
@@ -163,12 +165,16 @@ export default function AdminUsers() {
                   </tr>
                 ) : (
                   users.map((u, i) => (
-                    <tr key={i} className="hover:bg-gray-50/60 transition-colors group">
+                    <tr key={i} onClick={() => setSelectedId(u._id)} className="hover:bg-gray-50/60 transition-colors group cursor-pointer">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0 shadow-sm">
-                            {u.name?.charAt(0).toUpperCase()}
-                          </div>
+                          {u.avatarUrl ? (
+                            <img src={u.avatarUrl} alt={u.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0 shadow-sm">
+                              {u.name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">{u.name}</p>
                             <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
@@ -205,14 +211,14 @@ export default function AdminUsers() {
                         {u.role !== 'admin' && (
                           u.status !== 'suspended' ? (
                             <button
-                              onClick={() => handleStatusUpdate(u._id, 'suspended')}
+                              onClick={(e) => { e.stopPropagation(); handleStatusUpdate(u._id, 'suspended'); }}
                               className="text-xs px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-gray-500 transition-all cursor-pointer font-semibold"
                             >
                               Suspend
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleStatusUpdate(u._id, 'active')}
+                              onClick={(e) => { e.stopPropagation(); handleStatusUpdate(u._id, 'active'); }}
                               className="text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 border border-green-100 transition-all cursor-pointer font-semibold"
                             >
                               Restore
@@ -242,11 +248,15 @@ export default function AdminUsers() {
             ) : (
               <div className="divide-y divide-gray-50">
                 {users.map((u, i) => (
-                  <div key={i} className="px-4 py-4">
+                  <div key={i} onClick={() => setSelectedId(u._id)} className="px-4 py-4 cursor-pointer active:bg-gray-50">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
-                        {u.name?.charAt(0).toUpperCase()}
-                      </div>
+                      {u.avatarUrl ? (
+                        <img src={u.avatarUrl} alt={u.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
+                          {u.name?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="min-w-0">
@@ -256,14 +266,14 @@ export default function AdminUsers() {
                           {u.role !== 'admin' && (
                             u.status !== 'suspended' ? (
                               <button
-                                onClick={() => handleStatusUpdate(u._id, 'suspended')}
+                                onClick={(e) => { e.stopPropagation(); handleStatusUpdate(u._id, 'suspended'); }}
                                 className="flex-shrink-0 text-xs px-3 py-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-semibold"
                               >
                                 Suspend
                               </button>
                             ) : (
                               <button
-                                onClick={() => handleStatusUpdate(u._id, 'active')}
+                                onClick={(e) => { e.stopPropagation(); handleStatusUpdate(u._id, 'active'); }}
                                 className="flex-shrink-0 text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 border border-green-100 transition-all cursor-pointer font-semibold"
                               >
                                 Restore
@@ -350,6 +360,12 @@ export default function AdminUsers() {
           )}
         </div>
       </main>
+
+      <UserDetailDrawer
+        userId={selectedId}
+        onClose={() => setSelectedId(null)}
+        onChanged={() => fetchUsers({ silent: true })}
+      />
     </div>
   );
 }

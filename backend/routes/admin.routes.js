@@ -5,6 +5,7 @@ const adminOnly = require('../middleware/admin.middleware');
 const {
   getOverviewStats,
   getAllUsers,
+  getUserDetails,
   updateUserStatus,
   getAllCampaigns,
   removeCampaign,
@@ -18,6 +19,7 @@ router.use(authenticate, adminOnly);
 
 router.get('/stats', getOverviewStats);
 router.get('/users', getAllUsers);
+router.get('/users/:userId/details', getUserDetails);
 router.put('/users/:userId/status', updateUserStatus);
 router.get('/campaigns', getAllCampaigns);
 router.put('/campaigns/:campaignId/remove', removeCampaign);
