@@ -59,7 +59,7 @@ const CAMPAIGN_STATUS_LABELS: Record<string, string> = {
   all:           'All',
 };
 
-const TABS = ['active', 'draft', 'in-progress', 'completed', 'expired', 'all'] as const;
+const TABS = ['active', 'draft', 'in-progress', 'completed', 'expired', 'closed', 'all'] as const;
 
 export default function BrandCampaigns() {
   const router = useRouter();

@@ -14,6 +14,7 @@ const STATUS_STYLES: Record<string, string> = {
   'in-progress': 'bg-amber-50 text-amber-700 border border-amber-100',
   completed:     'bg-blue-50 text-blue-700 border border-blue-100',
   closed:        'bg-red-50 text-red-600 border border-red-100',
+  expired:       'bg-orange-50 text-orange-600 border border-orange-100',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -22,14 +23,17 @@ const STATUS_LABELS: Record<string, string> = {
   'in-progress': 'In Progress',
   completed:     'Completed',
   closed:        'Closed',
+  expired:       'Expired',
 };
 
 const STATUS_FILTERS = [
-  { value: '',           label: 'All' },
-  { value: 'active',     label: 'Active' },
-  { value: 'draft',      label: 'Draft' },
-  { value: 'closed',     label: 'Closed' },
-  { value: 'completed',  label: 'Completed' },
+  { value: '',            label: 'All' },
+  { value: 'active',      label: 'Active' },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'draft',       label: 'Draft' },
+  { value: 'completed',   label: 'Completed' },
+  { value: 'expired',     label: 'Expired' },
+  { value: 'closed',      label: 'Closed' },
 ];
 
 export default function AdminCampaigns() {

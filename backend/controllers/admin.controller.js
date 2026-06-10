@@ -5,6 +5,7 @@ const Deal = require('../models/Deal');
 const Message = require('../models/Message');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
+const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 
 
 // ─────────────────────────────────────────
@@ -417,6 +418,10 @@ exports.updateUserStatus = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getAllCampaigns = async (req, res) => {
   try {
+    // Flip any overdue campaigns to 'expired' so the admin view matches the
+    // brand view (which runs the same sweep before listing).
+    await expireOverdueCampaigns();
+
     const { status, page = 1, limit = 20 } = req.query;
     const query = {};
     if (status) query.status = status;
