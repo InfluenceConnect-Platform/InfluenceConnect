@@ -54,6 +54,8 @@ module.exports = {
   invitationReceived:        make('invitationReceived'),
   invitationSentBrand:       make('invitationSentBrand'),
   invitationDeclinedBrand:   make('invitationDeclinedBrand'),
+  invitationAccepted:        make('invitationAccepted'),
+  invitationAcceptedBrand:   make('invitationAcceptedBrand'),
 
   // Account lifecycle
   accountDeletionScheduled:  make('accountDeletionScheduled'),

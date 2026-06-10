@@ -12,9 +12,9 @@ const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 // Role palettes (top accent bar, logo chip, CTA button gradients).
 const THEMES = {
   brand: {
-    bar:    'linear-gradient(90deg,#5D8A8F,#3D5087)',
-    logo:   'linear-gradient(135deg,#5D8A8F,#3D5087)',
-    button: 'linear-gradient(135deg,#3D5087,#5D8A8F)',
+    bar:    'linear-gradient(90deg,#6B7FBB,#3D5087)',
+    logo:   'linear-gradient(135deg,#6B7FBB,#3D5087)',
+    button: 'linear-gradient(135deg,#3D5087,#6B7FBB)',
   },
   influencer: {
     bar:    'linear-gradient(90deg,#7FA8AD,#27717E)',
@@ -328,6 +328,38 @@ module.exports = {
           para(`${esc(influencerName || 'A creator')} declined your invitation to <strong>${esc(campaignTitle)}</strong>.`) +
           para('No worries — you can invite other creators from Discover.') +
           button('Discover creators', `${APP_URL}/brand/discover`, BRAND),
+      }),
+    };
+  },
+
+  // Invitation accepted, deal created (to influencer)
+  invitationAccepted({ campaignTitle, brandName, amount }) {
+    return {
+      subject: `You're booked — ${campaignTitle}`,
+      html: layout({
+        theme: CREATOR,
+        heading: 'Your deal is confirmed 🎉',
+        bodyHtml:
+          para(`You accepted ${esc(brandName || 'the brand')}'s invitation to <strong>${esc(campaignTitle)}</strong> and a deal has been created.`) +
+          details([['Campaign', campaignTitle], ['Brand', brandName], ['Agreed amount', inr(amount)]]) +
+          para('Head to your messages to coordinate deliverables and timelines with the brand.') +
+          button('Open messages', `${APP_URL}/influencer/messages`, CREATOR),
+      }),
+    };
+  },
+
+  // Invitation accepted, deal created (to brand)
+  invitationAcceptedBrand({ influencerName, campaignTitle, amount }) {
+    return {
+      subject: `${influencerName || 'A creator'} accepted your invitation — ${campaignTitle}`,
+      html: layout({
+        theme: BRAND,
+        heading: 'Your invitation was accepted 🤝',
+        bodyHtml:
+          para(`${esc(influencerName || 'A creator')} accepted your invitation to <strong>${esc(campaignTitle)}</strong> and a deal is now active.`) +
+          details([['Creator', influencerName], ['Campaign', campaignTitle], ['Agreed amount', inr(amount)]]) +
+          para('Use messages to align on deliverables and timelines. Once the creator submits content, you can review and complete the deal.') +
+          button('Open messages', `${APP_URL}/brand/messages`, BRAND),
       }),
     };
   },

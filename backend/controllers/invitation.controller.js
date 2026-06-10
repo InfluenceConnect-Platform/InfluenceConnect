@@ -368,13 +368,13 @@ exports.respondToInvitation = async (req, res) => {
 
     // Both parties: confirm the new deal to the influencer + the brand.
     const brand = await User.findById(invitation.brandId).select('name email');
-    notify.applicationAccepted(req.user.email, {
+    notify.invitationAccepted(req.user.email, {
       campaignTitle: campaign.title,
       brandName: brand?.name,
       amount: deal.agreedAmount,
     });
     if (brand?.email) {
-      notify.dealInProgressBrand(brand.email, {
+      notify.invitationAcceptedBrand(brand.email, {
         influencerName: req.user.name,
         campaignTitle: campaign.title,
         amount: deal.agreedAmount,
