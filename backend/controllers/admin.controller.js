@@ -6,6 +6,7 @@ const Message = require('../models/Message');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
+const notify = require('../services/email');
 
 
 // ─────────────────────────────────────────
@@ -402,6 +403,13 @@ exports.updateUserStatus = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Notify the affected user of the action taken on their account.
+    if (status === 'suspended') {
+      notify.accountSuspended(user.email, { name: user.name });
+    } else {
+      notify.accountRestored(user.email, { name: user.name, role: user.role });
+    }
+
     res.json({
       message: `User ${status} successfully`,
       user
@@ -638,6 +646,25 @@ exports.removeCampaign = async (req, res) => {
     campaign.status = 'closed';
     await campaign.save();
 
+    // Email the brand owner, and any influencer whose active deal was cancelled.
+    const brand = await User.findById(campaign.brandId).select('name email');
+    if (brand?.email) {
+      notify.campaignRemovedBrand(brand.email, { campaignTitle: campaign.title });
+    }
+    if (activeDeals.length > 0) {
+      const influencers = await User.find({
+        _id: { $in: activeDeals.map(d => d.influencerId) }
+      }).select('email');
+      influencers.forEach(inf => {
+        if (inf.email) {
+          notify.campaignRemovedInfluencer(inf.email, {
+            campaignTitle: campaign.title,
+            brandName: brand?.name,
+          });
+        }
+      });
+    }
+
     res.json({
       message: 'Campaign removed successfully',
       dealsCancelled: activeDeals.length,
@@ -678,10 +705,17 @@ exports.updateGSTINStatus = async (req, res) => {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
-    await BrandProfile.findByIdAndUpdate(brandProfileId, {
+    const profile = await BrandProfile.findByIdAndUpdate(brandProfileId, {
       gstinStatus: status,
       gstinVerified: status === 'verified'
-    });
+    }, { new: true }).populate('userId', 'email');
+
+    // Notify the brand of the verification outcome.
+    if (profile?.userId?.email) {
+      const payload = { companyName: profile.companyName };
+      if (status === 'verified') notify.gstinApproved(profile.userId.email, payload);
+      else notify.gstinRejected(profile.userId.email, payload);
+    }
 
     res.json({ message: `GSTIN ${status} successfully` });
 

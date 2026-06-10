@@ -236,4 +236,85 @@ module.exports = {
       }),
     };
   },
+
+  // ── Admin actions (account / verification / moderation) ──
+
+  // Account suspended by admin (to user)
+  accountSuspended({ name }) {
+    return {
+      subject: 'Your Influence Connect account has been suspended',
+      html: layout({
+        heading: 'Your account has been suspended',
+        bodyHtml:
+          para(`Hi ${esc(name || 'there')}, your Influence Connect account has been suspended by our team and access is temporarily disabled.`) +
+          para('If you believe this was a mistake or would like to appeal, reply to this email and our support team will help.'),
+      }),
+    };
+  },
+
+  // Account restored by admin (to user)
+  accountRestored({ name, role }) {
+    const url = `${APP_URL}/${role === 'brand' ? 'brand' : 'influencer'}/dashboard`;
+    return {
+      subject: 'Your Influence Connect account has been restored',
+      html: layout({
+        heading: 'Welcome back — your account is active again ✅',
+        bodyHtml:
+          para(`Hi ${esc(name || 'there')}, good news — your account has been restored and you have full access again.`) +
+          button('Go to dashboard', url),
+      }),
+    };
+  },
+
+  // GSTIN verified by admin (to brand)
+  gstinApproved({ companyName }) {
+    return {
+      subject: 'Your GSTIN has been verified ✅',
+      html: layout({
+        heading: 'GSTIN verified',
+        bodyHtml:
+          para(`Good news${companyName ? `, ${esc(companyName)}` : ''} — your GSTIN has been verified and your brand is now fully verified on Influence Connect.`) +
+          button('Go to dashboard', `${APP_URL}/brand/dashboard`),
+      }),
+    };
+  },
+
+  // GSTIN rejected by admin (to brand)
+  gstinRejected({ companyName }) {
+    return {
+      subject: 'Action needed: your GSTIN could not be verified',
+      html: layout({
+        heading: 'GSTIN verification unsuccessful',
+        bodyHtml:
+          para(`We couldn't verify the GSTIN on your account${companyName ? `, ${esc(companyName)}` : ''}. Please double-check the number and resubmit it from your profile.`) +
+          button('Update GSTIN', `${APP_URL}/brand/profile`),
+      }),
+    };
+  },
+
+  // Campaign removed by admin (to brand owner)
+  campaignRemovedBrand({ campaignTitle }) {
+    return {
+      subject: `Your campaign was removed — ${campaignTitle}`,
+      html: layout({
+        heading: 'A campaign was removed',
+        bodyHtml:
+          para(`Your campaign <strong>${esc(campaignTitle)}</strong> has been removed by our moderation team and is no longer live.`) +
+          para('If you have questions about this decision, reply to this email and our support team will help.'),
+      }),
+    };
+  },
+
+  // Campaign removed by admin (to an influencer whose active deal was cancelled)
+  campaignRemovedInfluencer({ campaignTitle, brandName }) {
+    return {
+      subject: `Collaboration cancelled — ${campaignTitle}`,
+      html: layout({
+        heading: 'A collaboration was cancelled',
+        bodyHtml:
+          para(`The campaign <strong>${esc(campaignTitle)}</strong>${brandName ? ` by ${esc(brandName)}` : ''} was removed by our moderation team, so your active collaboration has been cancelled. No further action is needed.`) +
+          button('Browse campaigns', `${APP_URL}/influencer/campaigns`),
+      }),
+    };
+  },
 };

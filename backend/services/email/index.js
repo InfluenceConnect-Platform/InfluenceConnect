@@ -48,4 +48,12 @@ module.exports = {
   dealInProgressBrand:    make('dealInProgressBrand'),
   // 12 — brand: content submitted
   contentSubmittedBrand:  make('contentSubmittedBrand'),
+
+  // Admin actions
+  accountSuspended:          make('accountSuspended'),
+  accountRestored:           make('accountRestored'),
+  gstinApproved:             make('gstinApproved'),
+  gstinRejected:             make('gstinRejected'),
+  campaignRemovedBrand:      make('campaignRemovedBrand'),
+  campaignRemovedInfluencer: make('campaignRemovedInfluencer'),
 };
