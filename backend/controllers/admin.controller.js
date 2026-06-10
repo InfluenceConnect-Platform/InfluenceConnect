@@ -364,6 +364,140 @@ exports.getAllCampaigns = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// GET FULL CAMPAIGN DETAILS (360° drawer view)
+// Returns the campaign + owning brand + applicant and deal aggregates
+// in a single response so the admin drawer needs one request.
+// ─────────────────────────────────────────
+exports.getCampaignDetails = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+
+    const campaign = await Campaign.findById(campaignId)
+      .populate('brandId', 'name email status plan');
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    const brandUserId = campaign.brandId?._id;
+
+    const [brandProfile, applications, deals] = await Promise.all([
+      brandUserId ? BrandProfile.findOne({ userId: brandUserId }) : null,
+      Application.find({ campaignId })
+        .populate('influencerId', 'name email')
+        .sort({ createdAt: -1 }),
+      Deal.find({ campaignId })
+        .populate('influencerId', 'name')
+        .sort({ updatedAt: -1 })
+    ]);
+
+    // Applicant avatars (creator profile pics) in one batched query.
+    const influencerIds = applications
+      .filter(a => a.influencerId)
+      .map(a => a.influencerId._id);
+    const infProfiles = await InfluencerProfile
+      .find({ userId: { $in: influencerIds } })
+      .select('userId profilePicUrl slug');
+    const picMap  = new Map();
+    const slugMap = new Map();
+    infProfiles.forEach(p => {
+      if (p.profilePicUrl) picMap.set(String(p.userId), p.profilePicUrl);
+      if (p.slug)          slugMap.set(String(p.userId), p.slug);
+    });
+
+    const appBreakdown = { applied: 0, shortlisted: 0, accepted: 0, rejected: 0, 'on-hold': 0 };
+    applications.forEach(a => {
+      if (appBreakdown[a.status] !== undefined) appBreakdown[a.status]++;
+    });
+
+    const applicants = applications.map(a => ({
+      name: a.influencerId?.name || '—',
+      email: a.influencerId?.email || '',
+      avatarUrl: a.influencerId ? (picMap.get(String(a.influencerId._id)) || '') : '',
+      slug: a.influencerId ? (slugMap.get(String(a.influencerId._id)) || '') : '',
+      proposedRate: a.proposedRate || 0,
+      message: a.message || '',
+      status: a.status,
+      appliedAt: a.createdAt
+    }));
+
+    const activeStatuses = ['in-progress', 'content-submitted'];
+    const dealList = deals.map(d => ({
+      influencerName: d.influencerId?.name || '—',
+      agreedAmount: d.agreedAmount || 0,
+      status: d.status,
+      isActive: activeStatuses.includes(d.status)
+    }));
+
+    // Money committed across all non-cancelled deals; paid = completed only.
+    const totalCommitted = deals
+      .filter(d => d.status !== 'cancelled')
+      .reduce((sum, d) => sum + (d.agreedAmount || 0), 0);
+    const totalPaid = deals
+      .filter(d => d.status === 'completed')
+      .reduce((sum, d) => sum + (d.agreedAmount || 0), 0);
+
+    const daysLive = Math.max(
+      0,
+      Math.floor((Date.now() - new Date(campaign.createdAt)) / (1000 * 60 * 60 * 24))
+    );
+    const daysToDeadline = campaign.deadline
+      ? Math.ceil((new Date(campaign.deadline) - Date.now()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    res.json({
+      campaign: {
+        _id: campaign._id,
+        title: campaign.title,
+        description: campaign.description || '',
+        niche: campaign.niche || [],
+        deliverables: campaign.deliverables || '',
+        budgetMin: campaign.budgetMin || 0,
+        budgetMax: campaign.budgetMax || 0,
+        deadline: campaign.deadline,
+        targetCity: campaign.targetCity || [],
+        targetPlatform: campaign.targetPlatform || 'any',
+        minFollowers: campaign.minFollowers || 0,
+        status: campaign.status,
+        applicantCount: campaign.applicantCount || 0,
+        createdAt: campaign.createdAt,
+        updatedAt: campaign.updatedAt
+      },
+      brand: campaign.brandId ? {
+        userId: campaign.brandId._id,
+        name: campaign.brandId.name || '—',
+        email: campaign.brandId.email || '',
+        status: campaign.brandId.status,
+        plan: campaign.brandId.plan,
+        companyName: brandProfile?.companyName || '',
+        industry: brandProfile?.industry || '',
+        website: brandProfile?.website || '',
+        logoUrl: brandProfile?.logoUrl || '',
+        gstinStatus: brandProfile?.gstinStatus || 'not_submitted'
+      } : null,
+      applications: {
+        total: applications.length,
+        breakdown: appBreakdown,
+        list: applicants
+      },
+      deals: {
+        total: deals.length,
+        active: dealList.filter(d => d.isActive).length,
+        completed: deals.filter(d => d.status === 'completed').length,
+        totalCommitted,
+        totalPaid,
+        list: dealList
+      },
+      daysLive,
+      daysToDeadline
+    });
+
+  } catch (error) {
+    console.error('Get campaign details error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // REMOVE CAMPAIGN
 // ─────────────────────────────────────────
 exports.removeCampaign = async (req, res) => {

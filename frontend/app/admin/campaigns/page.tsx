@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
+import CampaignDetailDrawer from '@/components/shared/CampaignDetailDrawer';
 
 const STATUS_STYLES: Record<string, string> = {
   active:        'bg-green-50 text-green-700 border border-green-100',
@@ -38,6 +39,7 @@ export default function AdminCampaigns() {
   const [loading, setLoading]           = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [total, setTotal]               = useState(0);
+  const [selectedId, setSelectedId]     = useState<string | null>(null);
 
   useEffect(() => {
     const token  = localStorage.getItem('token');
@@ -153,7 +155,7 @@ export default function AdminCampaigns() {
                   </tr>
                 ) : (
                   campaigns.map((c, i) => (
-                    <tr key={i} className="hover:bg-gray-50/60 transition-colors">
+                    <tr key={i} onClick={() => setSelectedId(c._id)} className="hover:bg-gray-50/60 transition-colors cursor-pointer">
                       <td className="px-5 py-4 max-w-[200px]">
                         <p className="text-sm font-semibold text-gray-900 truncate">{c.title}</p>
                         <p className="text-[11px] text-gray-400 capitalize truncate mt-0.5">{c.niche?.join(', ') || '—'}</p>
@@ -182,7 +184,7 @@ export default function AdminCampaigns() {
                       <td className="px-5 py-4">
                         {c.status !== 'closed' && c.status !== 'completed' && (
                           <button
-                            onClick={() => handleRemove(c._id)}
+                            onClick={(e) => { e.stopPropagation(); handleRemove(c._id); }}
                             className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-all cursor-pointer font-semibold"
                           >
                             Remove
@@ -211,7 +213,7 @@ export default function AdminCampaigns() {
             ) : (
               <div className="divide-y divide-gray-50">
                 {campaigns.map((c, i) => (
-                  <div key={i} className="px-4 py-4">
+                  <div key={i} onClick={() => setSelectedId(c._id)} className="px-4 py-4 cursor-pointer active:bg-gray-50">
                     <div className="flex items-start justify-between gap-2 mb-2.5">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">{c.title}</p>
@@ -237,7 +239,7 @@ export default function AdminCampaigns() {
                     </div>
                     {c.status !== 'closed' && c.status !== 'completed' && (
                       <button
-                        onClick={() => handleRemove(c._id)}
+                        onClick={(e) => { e.stopPropagation(); handleRemove(c._id); }}
                         className="text-xs px-3.5 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-all cursor-pointer font-semibold"
                       >
                         Remove campaign
@@ -250,6 +252,12 @@ export default function AdminCampaigns() {
           </div>
         </div>
       </main>
+
+      <CampaignDetailDrawer
+        campaignId={selectedId}
+        onClose={() => setSelectedId(null)}
+        onChanged={() => fetchCampaigns({ silent: true })}
+      />
     </div>
   );
 }
