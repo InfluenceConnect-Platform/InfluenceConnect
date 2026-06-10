@@ -5,6 +5,7 @@ const Deal = require('../models/Deal');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
+const notify = require('../services/email');
 
 // ─────────────────────────────────────────
 // CREATE BRAND PROFILE
@@ -449,6 +450,31 @@ exports.updateApplicationStatus = async (req, res) => {
       );
     }
 
+    // Notify the influencer of the status change (#4/#5/#6) and, on accept,
+    // confirm the in-progress deal to the brand (#11).
+    const influencer = await User.findById(application.influencerId).select('name email');
+    const campaignTitle = application.campaignId.title;
+    const brandName = req.user.name;
+
+    if (influencer?.email) {
+      if (status === 'shortlisted') {
+        notify.applicationShortlisted(influencer.email, { campaignTitle, brandName });
+      } else if (status === 'rejected') {
+        notify.applicationRejected(influencer.email, { campaignTitle, brandName });
+      } else if (status === 'accepted') {
+        const amount = application.proposedRate || application.campaignId.budgetMin;
+        notify.applicationAccepted(influencer.email, { campaignTitle, brandName, amount });
+      }
+    }
+    if (status === 'accepted') {
+      const amount = application.proposedRate || application.campaignId.budgetMin;
+      notify.dealInProgressBrand(req.user.email, {
+        influencerName: influencer?.name,
+        campaignTitle,
+        amount,
+      });
+    }
+
     res.json({
       message: `Application ${status} successfully`,
       application
@@ -561,6 +587,21 @@ exports.updateDealStatus = async (req, res) => {
         influencerProfile.level = influencerProfile.calculateLevel();
         influencerProfile.credibilityScore = influencerProfile.calculateCredibilityScore();
         await influencerProfile.save();
+      }
+
+      // Deal completed → notify the influencer with the updated earnings (#8)
+      const [influencer, campaign, completedDeals] = await Promise.all([
+        User.findById(deal.influencerId).select('name email'),
+        Campaign.findById(deal.campaignId).select('title'),
+        Deal.find({ influencerId: deal.influencerId, status: 'completed' }).select('agreedAmount'),
+      ]);
+      if (influencer?.email) {
+        const totalEarnings = completedDeals.reduce((sum, d) => sum + (d.agreedAmount || 0), 0);
+        notify.dealCompletedInfluencer(influencer.email, {
+          campaignTitle: campaign?.title,
+          amount: deal.agreedAmount,
+          totalEarnings,
+        });
       }
     } else {
       // cancelled

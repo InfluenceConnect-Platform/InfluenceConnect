@@ -2,6 +2,7 @@ const User = require('../models/User');
 const OTP = require('../models/OTP');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
+const notify = require('../services/email');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -215,6 +216,9 @@ exports.verifyOTP = async (req, res) => {
     const user = await User.findById(userId);
     if (user.emailVerified && user.mobileVerified) {
       await User.findByIdAndUpdate(userId, { status: 'active' });
+
+      // Account fully verified & activated → welcome email (#2)
+      notify.welcome(user.email, { name: user.name, role: user.role });
 
       // Generate JWT token — user is fully verified
       const token = generateToken(user._id);

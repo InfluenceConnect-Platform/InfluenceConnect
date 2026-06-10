@@ -2,7 +2,9 @@ const Campaign = require('../models/Campaign');
 const Application = require('../models/Application');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
+const User = require('../models/User');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
+const notify = require('../services/email');
 
 // ─────────────────────────────────────────
 // GET ALL CAMPAIGNS (for influencer browse)
@@ -241,6 +243,19 @@ exports.applyToCampaign = async (req, res) => {
     await Campaign.findByIdAndUpdate(campaignId, {
       $inc: { applicantCount: 1 }
     });
+
+    // Confirmation to the influencer (#3) + new-applicant alert to the brand (#9)
+    const brand = await User.findById(campaign.brandId).select('name email');
+    notify.applicationSubmitted(req.user.email, {
+      campaignTitle: campaign.title,
+      brandName: brand?.name,
+    });
+    if (brand?.email) {
+      notify.newApplicationToBrand(brand.email, {
+        influencerName: req.user.name,
+        campaignTitle: campaign.title,
+      });
+    }
 
     res.status(201).json({
       message: 'Application submitted successfully. Brand will review within 48 hours.',

@@ -2,6 +2,8 @@ const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
 const Deal = require('../models/Deal');
 const Message = require('../models/Message');
+const Campaign = require('../models/Campaign');
+const notify = require('../services/email');
 
 // ─────────────────────────────────────────
 // Generate slug from name
@@ -251,6 +253,18 @@ exports.updateDealStatus = async (req, res) => {
 
     deal.status = 'content-submitted';
     await deal.save();
+
+    // Prompt the brand to review & approve the submitted content (#12)
+    const [brand, campaign] = await Promise.all([
+      User.findById(deal.brandId).select('email'),
+      Campaign.findById(deal.campaignId).select('title'),
+    ]);
+    if (brand?.email) {
+      notify.contentSubmittedBrand(brand.email, {
+        influencerName: req.user.name,
+        campaignTitle: campaign?.title,
+      });
+    }
 
     res.json({ message: 'Content submitted successfully', deal });
 

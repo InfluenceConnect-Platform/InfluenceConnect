@@ -1,5 +1,7 @@
 const Message = require('../models/Message');
 const Deal = require('../models/Deal');
+const User = require('../models/User');
+const notify = require('../services/email');
 
 const BLOCKED_PATTERN = /(\+?\d[\d\s\-()\u200c]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|instagram|insta\.me|facebook|fb\.com|whatsapp|wa\.me|telegram|t\.me|snapchat)/i;
 
@@ -123,6 +125,14 @@ exports.sendMessage = async (req, res) => {
       receiverId,
       content: content.trim()
     });
+
+    // Notify the recipient of the new message (#7 influencer / #10 brand)
+    const receiver = await User.findById(receiverId).select('email role');
+    if (receiver?.email) {
+      const payload = { fromName: req.user.name, preview: content.trim().slice(0, 140) };
+      if (receiver.role === 'influencer') notify.newMessageToInfluencer(receiver.email, payload);
+      else notify.newMessageToBrand(receiver.email, payload);
+    }
 
     // Return plain strings so frontend === comparison works reliably
     res.status(201).json({
