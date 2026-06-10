@@ -70,8 +70,8 @@ interface FilterPanelProps {
   toggleNiche: (n: string) => void;
   selectedCity: string;
   setSelectedCity: (v: string) => void;
-  selectedPlatform: string;
-  setSelectedPlatform: (v: string) => void;
+  selectedPlatforms: string[];
+  togglePlatform: (v: string) => void;
   minInput: string;
   setMinInput: (v: string) => void;
   maxInput: string;
@@ -95,7 +95,7 @@ interface FilterPanelProps {
 function FilterPanel({
   selectedNiches, toggleNiche,
   selectedCity, setSelectedCity,
-  selectedPlatform, setSelectedPlatform,
+  selectedPlatforms, togglePlatform,
   minInput, setMinInput,
   maxInput, setMaxInput,
   minFollowers, maxFollowers,
@@ -199,26 +199,30 @@ function FilterPanel({
           </p>
           <div className="flex flex-col gap-2">
             {[
-              { value: '', label: 'Any platform', logo: null },
               { value: 'instagram', label: 'Instagram', logo: <InstagramLogo size={16} /> },
               { value: 'youtube', label: 'YouTube', logo: <YouTubeLogo size={16} /> },
               { value: 'facebook', label: 'Facebook', logo: <FacebookLogo size={16} /> },
-            ].map(p => (
-              <label key={p.value} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setSelectedPlatform(p.value)}>
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-                  selectedPlatform === p.value
-                    ? 'border-[#3D5087] bg-[#3D5087]'
-                    : 'border-gray-300 group-hover:border-[#3D5087]'
-                }`}>
-                  {selectedPlatform === p.value && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                </div>
-                <input type="radio" name="platform" value={p.value} checked={selectedPlatform === p.value} onChange={() => setSelectedPlatform(p.value)} className="sr-only" />
-                <div className="flex items-center gap-1.5">
-                  {p.logo}
-                  <span className={`text-sm transition-colors ${selectedPlatform === p.value ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{p.label}</span>
-                </div>
-              </label>
-            ))}
+            ].map(p => {
+              const checked = selectedPlatforms.includes(p.value);
+              return (
+                <label key={p.value} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => togglePlatform(p.value)}>
+                  <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                    checked
+                      ? 'border-[#3D5087] bg-[#3D5087]'
+                      : 'border-gray-300 group-hover:border-[#3D5087]'
+                  }`}>
+                    {checked && (
+                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    )}
+                  </div>
+                  <input type="checkbox" value={p.value} checked={checked} onChange={() => togglePlatform(p.value)} className="sr-only" />
+                  <div className="flex items-center gap-1.5">
+                    {p.logo}
+                    <span className={`text-sm transition-colors ${checked ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{p.label}</span>
+                  </div>
+                </label>
+              );
+            })}
           </div>
         </div>
 
@@ -573,17 +577,27 @@ export default function BrandDiscover() {
     }
   };
 
-  const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
-  const [selectedCity, setSelectedCity] = useState('');
-  const [selectedPlatform, setSelectedPlatform] = useState('');
-  const [minFollowers, setMinFollowers] = useState('');
-  const [maxFollowers, setMaxFollowers] = useState('');
-  const [minInput, setMinInput] = useState('');
-  const [maxInput, setMaxInput] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [minPriceInput, setMinPriceInput] = useState('');
-  const [maxPriceInput, setMaxPriceInput] = useState('');
+  // When the brand arrives from "Invite influencers", the campaign's targeting
+  // is passed as URL params — pre-fill the filters from them.
+  const initialNiche = searchParams.get('niche');
+  const initialCity = searchParams.get('city') || '';
+  const initialPlatform = searchParams.get('platform');
+  const initialMinFollowers = searchParams.get('minFollowers') || '';
+  const initialMaxFollowers = searchParams.get('maxFollowers') || '';
+  const initialMinPrice = searchParams.get('minPrice') || '';
+  const initialMaxPrice = searchParams.get('maxPrice') || '';
+
+  const [selectedNiches, setSelectedNiches] = useState<string[]>(initialNiche ? initialNiche.split(',') : []);
+  const [selectedCity, setSelectedCity] = useState(initialCity);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(initialPlatform ? initialPlatform.split(',') : []);
+  const [minFollowers, setMinFollowers] = useState(initialMinFollowers);
+  const [maxFollowers, setMaxFollowers] = useState(initialMaxFollowers);
+  const [minInput, setMinInput] = useState(initialMinFollowers);
+  const [maxInput, setMaxInput] = useState(initialMaxFollowers);
+  const [minPrice, setMinPrice] = useState(initialMinPrice);
+  const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
+  const [minPriceInput, setMinPriceInput] = useState(initialMinPrice);
+  const [maxPriceInput, setMaxPriceInput] = useState(initialMaxPrice);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -601,7 +615,7 @@ export default function BrandDiscover() {
 
   useEffect(() => {
     fetchInfluencers();
-  }, [selectedNiches, selectedCity, selectedPlatform, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch]);
+  }, [selectedNiches, selectedCity, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch]);
 
   const fetchInfluencers = async () => {
     setLoading(true);
@@ -610,7 +624,7 @@ export default function BrandDiscover() {
       if (debouncedSearch) params.search = debouncedSearch;
       if (selectedNiches.length > 0) params.niche = selectedNiches.join(',');
       if (selectedCity) params.city = selectedCity;
-      if (selectedPlatform) params.platform = selectedPlatform;
+      if (selectedPlatforms.length > 0) params.platform = selectedPlatforms.join(',');
       if (minFollowers) params.minFollowers = minFollowers;
       if (maxFollowers) params.maxFollowers = maxFollowers;
       if (minPrice) params.minPrice = minPrice;
@@ -628,6 +642,12 @@ export default function BrandDiscover() {
   const toggleNiche = (niche: string) => {
     setSelectedNiches(prev =>
       prev.includes(niche) ? prev.filter(n => n !== niche) : [...prev, niche]
+    );
+  };
+
+  const togglePlatform = (platform: string) => {
+    setSelectedPlatforms(prev =>
+      prev.includes(platform) ? prev.filter(p => p !== platform) : [...prev, platform]
     );
   };
 
@@ -659,7 +679,7 @@ export default function BrandDiscover() {
     setSearch('');
     setSelectedNiches([]);
     setSelectedCity('');
-    setSelectedPlatform('');
+    setSelectedPlatforms([]);
     setMinFollowers('');
     setMaxFollowers('');
     setMinInput('');
@@ -671,7 +691,7 @@ export default function BrandDiscover() {
   };
 
   const activeFilterCount =
-    selectedNiches.length + (selectedCity ? 1 : 0) + (selectedPlatform ? 1 : 0) +
+    selectedNiches.length + (selectedCity ? 1 : 0) + selectedPlatforms.length +
     (minFollowers ? 1 : 0) + (maxFollowers ? 1 : 0) + (minPrice || maxPrice ? 1 : 0);
 
   const getPrimaryPlatform = (influencer: any) => {
@@ -684,7 +704,7 @@ export default function BrandDiscover() {
   const filterPanelProps: FilterPanelProps = {
     selectedNiches, toggleNiche,
     selectedCity, setSelectedCity,
-    selectedPlatform, setSelectedPlatform,
+    selectedPlatforms, togglePlatform,
     minInput, setMinInput,
     maxInput, setMaxInput,
     minFollowers, maxFollowers,
@@ -698,148 +718,6 @@ export default function BrandDiscover() {
     activeFilterCount,
     clearFilters,
   };
-
-  if (false) return (
-    <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm">
-      {/* Panel header */}
-      <div className="px-5 py-3.5 bg-gradient-to-r from-blue-50/70 to-white border-b border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-1 h-5 rounded-full bg-gradient-to-b from-[#3D5087] to-[#2B3B68]" />
-          <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Filters</h4>
-          {activeFilterCount > 0 && (
-            <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white text-[10px] font-bold flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
-        {activeFilterCount > 0 && (
-          <button onClick={clearFilters} className="text-xs text-red-500 font-semibold hover:text-red-700 cursor-pointer transition-colors">
-            Clear all
-          </button>
-        )}
-      </div>
-
-      <div className="p-5">
-        {/* Niche */}
-        <div className="mb-5">
-          <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-gradient-to-br from-violet-500 to-purple-600 flex-shrink-0" />
-            Niche
-          </p>
-          <div className="flex flex-col gap-2">
-            {NICHES.map(n => (
-              <label key={n} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleNiche(n)}>
-                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-                  selectedNiches.includes(n)
-                    ? 'border-0 bg-gradient-to-br from-[#3D5087] to-[#2B3B68] shadow-sm'
-                    : 'border-gray-300 group-hover:border-[#3D5087]'
-                }`}>
-                  {selectedNiches.includes(n) && (
-                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  )}
-                </div>
-                <input type="checkbox" checked={selectedNiches.includes(n)} onChange={() => toggleNiche(n)} className="sr-only" />
-                <span className={`text-sm capitalize transition-colors ${selectedNiches.includes(n) ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{n}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="h-px bg-gray-100 mb-5" />
-
-        {/* City */}
-        <div className="mb-5">
-          <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-gradient-to-br from-emerald-500 to-green-600 flex-shrink-0" />
-            City
-          </p>
-          <select value={selectedCity} onChange={e => setSelectedCity(e.target.value)} className={FIELD_CLASS}>
-            <option value="">All cities</option>
-            {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-
-        <div className="h-px bg-gray-100 mb-5" />
-
-        {/* Platform */}
-        <div className="mb-5">
-          <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-gradient-to-br from-pink-500 to-rose-600 flex-shrink-0" />
-            Platform
-          </p>
-          <div className="flex flex-col gap-2">
-            {[
-              { value: '', label: 'Any platform', logo: null },
-              { value: 'instagram', label: 'Instagram', logo: <InstagramLogo size={16} /> },
-              { value: 'youtube', label: 'YouTube', logo: <YouTubeLogo size={16} /> },
-              { value: 'facebook', label: 'Facebook', logo: <FacebookLogo size={16} /> },
-            ].map(p => (
-              <label key={p.value} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setSelectedPlatform(p.value)}>
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-                  selectedPlatform === p.value
-                    ? 'border-[#3D5087] bg-[#3D5087]'
-                    : 'border-gray-300 group-hover:border-[#3D5087]'
-                }`}>
-                  {selectedPlatform === p.value && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  )}
-                </div>
-                <input type="radio" name="platform" value={p.value} checked={selectedPlatform === p.value} onChange={() => setSelectedPlatform(p.value)} className="sr-only" />
-                <div className="flex items-center gap-1.5">
-                  {p.logo}
-                  <span className={`text-sm transition-colors ${selectedPlatform === p.value ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{p.label}</span>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="h-px bg-gray-100 mb-5" />
-
-        {/* Follower range */}
-        <div>
-          <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-gradient-to-br from-amber-500 to-orange-500 flex-shrink-0" />
-            Follower range
-          </p>
-          <div className="flex gap-2 mb-2">
-            <div className="flex-1">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="Min e.g. 5000"
-                value={minInput}
-                onChange={e => setMinInput(e.target.value.replace(/[^\d]/g, ''))}
-                onBlur={applyFollowerRange}
-                onKeyDown={e => e.key === 'Enter' && applyFollowerRange()}
-                className={FIELD_CLASS}
-              />
-            </div>
-            <div className="flex-1">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="Max e.g. 500000"
-                value={maxInput}
-                onChange={e => setMaxInput(e.target.value.replace(/[^\d]/g, ''))}
-                onBlur={applyFollowerRange}
-                onKeyDown={e => e.key === 'Enter' && applyFollowerRange()}
-                className={FIELD_CLASS}
-              />
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-400">Press Enter or click away to apply</p>
-          {(minFollowers || maxFollowers) && (
-            <p className="text-[11px] text-[#3D5087] font-semibold mt-1">
-              Applied: {minFollowers ? Number(minFollowers).toLocaleString('en-IN') : '0'} – {maxFollowers ? Number(maxFollowers).toLocaleString('en-IN') : '∞'}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#F4F6FB]">

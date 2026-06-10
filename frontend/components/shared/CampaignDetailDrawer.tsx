@@ -233,8 +233,12 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   <Field label="Budget" value={budgetLabel} />
                   <Field label="Applicants" value={fmtNum(c.applicantCount)} />
-                  <Field label="Target platform" value={cap(c.targetPlatform)} />
-                  <Field label="Min followers" value={c.minFollowers ? fmtNum(c.minFollowers) : '—'} />
+                  <Field label="Target platforms" value={c.targetPlatforms?.length ? c.targetPlatforms.map(cap).join(', ') : 'Any'} />
+                  <Field label="Followers" value={
+                    c.minFollowers || c.maxFollowers
+                      ? `${c.minFollowers ? fmtNum(c.minFollowers) : '0'} – ${c.maxFollowers ? fmtNum(c.maxFollowers) : '∞'}`
+                      : '—'
+                  } />
                   <Field label="Target city" value={
                     c.targetCity?.length ? c.targetCity.join(', ') : 'All'
                   } full />

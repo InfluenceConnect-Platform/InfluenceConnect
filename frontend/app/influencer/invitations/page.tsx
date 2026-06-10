@@ -97,9 +97,10 @@ interface Invitation {
     budgetMin?: number;
     budgetMax?: number;
     deadline?: string;
-    targetPlatform?: string;
+    targetPlatforms?: string[];
     targetCity?: string[];
     minFollowers?: number;
+    maxFollowers?: number;
   };
 }
 
@@ -282,14 +283,14 @@ export default function InfluencerInvitations() {
                               {inv.brandIndustry}
                             </span>
                           )}
-                          {campaign?.targetPlatform && campaign.targetPlatform !== 'any' && (
-                            <span className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide text-white ${campaign.targetPlatform === 'instagram' ? 'bg-gradient-to-r from-[#ee2a7b] to-[#6228d7]' : campaign.targetPlatform === 'youtube' ? 'bg-[#FF0000]' : 'bg-[#1877F2]'}`}>
-                              {campaign.targetPlatform === 'instagram' && <InstagramLogo size={10} />}
-                              {campaign.targetPlatform === 'youtube'   && <YouTubeLogo size={10} />}
-                              {campaign.targetPlatform === 'facebook'  && <FacebookLogo size={10} />}
-                              {campaign.targetPlatform}
+                          {(campaign?.targetPlatforms ?? []).map((plat: string) => (
+                            <span key={plat} className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide text-white ${plat === 'instagram' ? 'bg-gradient-to-r from-[#ee2a7b] to-[#6228d7]' : plat === 'youtube' ? 'bg-[#FF0000]' : 'bg-[#1877F2]'}`}>
+                              {plat === 'instagram' && <InstagramLogo size={10} />}
+                              {plat === 'youtube'   && <YouTubeLogo size={10} />}
+                              {plat === 'facebook'  && <FacebookLogo size={10} />}
+                              {plat}
                             </span>
-                          )}
+                          ))}
                           {inv.brandWebsite && (
                             <a href={inv.brandWebsite.startsWith('http') ? inv.brandWebsite : `https://${inv.brandWebsite}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
                               className="flex items-center gap-1 text-[11px] text-[#3D5087] dark:text-[#7FA8AD] hover:underline font-medium">

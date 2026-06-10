@@ -28,8 +28,9 @@ interface Campaign {
   budgetMax: number;
   deadline: string;
   targetCity: string[];
-  targetPlatform: string;
+  targetPlatforms: string[];
   minFollowers: number;
+  maxFollowers: number;
   applicantCount: number;
   brandId: { name: string };
   brandLogoUrl?: string;
@@ -530,15 +531,15 @@ export default function InfluencerCampaigns() {
                               {campaign.brandWebsite.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                             </a>
                           ) : null}
-                          {campaign.targetPlatform && campaign.targetPlatform !== 'any' && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide text-white ${
-                              campaign.targetPlatform === 'instagram' ? 'bg-gradient-to-r from-[#ee2a7b] to-[#6228d7]' :
-                              campaign.targetPlatform === 'youtube' ? 'bg-[#FF0000]' :
-                              campaign.targetPlatform === 'facebook' ? 'bg-[#1877F2]' : 'bg-gray-500'
+                          {(campaign.targetPlatforms ?? []).map((plat: string) => (
+                            <span key={plat} className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide text-white ${
+                              plat === 'instagram' ? 'bg-gradient-to-r from-[#ee2a7b] to-[#6228d7]' :
+                              plat === 'youtube' ? 'bg-[#FF0000]' :
+                              plat === 'facebook' ? 'bg-[#1877F2]' : 'bg-gray-500'
                             }`}>
-                              {campaign.targetPlatform === 'instagram' ? 'IG' : campaign.targetPlatform === 'youtube' ? 'YT' : campaign.targetPlatform === 'facebook' ? 'FB' : campaign.targetPlatform}
+                              {plat === 'instagram' ? 'IG' : plat === 'youtube' ? 'YT' : plat === 'facebook' ? 'FB' : plat}
                             </span>
-                          )}
+                          ))}
                         </div>
                         {campaign.brandDescription && (
                           <div className="mt-1.5">

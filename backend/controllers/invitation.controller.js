@@ -188,7 +188,7 @@ exports.markBrandResponsesSeen = async (req, res) => {
 exports.getInfluencerInvitations = async (req, res) => {
   try {
     const invitations = await Invitation.find({ influencerId: req.userId })
-      .populate('campaignId', 'title description deliverables niche budgetMin budgetMax deadline status targetPlatform targetCity minFollowers')
+      .populate('campaignId', 'title description deliverables niche budgetMin budgetMax deadline status targetPlatforms targetCity minFollowers maxFollowers')
       .populate('brandId', 'name')
       .sort({ createdAt: -1 });
 

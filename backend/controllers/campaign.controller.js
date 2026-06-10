@@ -75,7 +75,17 @@ exports.getCampaigns = async (req, res) => {
     }
 
     if (platform && platform !== 'any') {
-      query.targetPlatform = { $in: [platform, 'any'] };
+      // Match campaigns that target this platform, plus campaigns with no
+      // platform restriction (empty targetPlatforms = "any platform").
+      const platformCond = { $or: [{ targetPlatforms: { $size: 0 } }, { targetPlatforms: platform }] };
+      if (query.$and) {
+        query.$and.push(platformCond);
+      } else if (query.$or) {
+        query.$and = [{ $or: query.$or }, platformCond];
+        delete query.$or;
+      } else {
+        query.$or = platformCond.$or;
+      }
     }
 
     // Paginate
@@ -377,8 +387,9 @@ exports.seedCampaigns = async (req, res) => {
         budgetMax: 12000,
         deadline: new Date('2026-06-15'),
         targetCity: ['Delhi', 'Mumbai'],
-        targetPlatform: 'instagram',
+        targetPlatforms: ['instagram'],
         minFollowers: 10000,
+        maxFollowers: 200000,
         status: 'active'
       },
       {
@@ -391,8 +402,9 @@ exports.seedCampaigns = async (req, res) => {
         budgetMax: 20000,
         deadline: new Date('2026-07-01'),
         targetCity: ['all'],
-        targetPlatform: 'instagram',
+        targetPlatforms: ['instagram', 'facebook'],
         minFollowers: 5000,
+        maxFollowers: 150000,
         status: 'active'
       },
       {
@@ -405,8 +417,9 @@ exports.seedCampaigns = async (req, res) => {
         budgetMax: 7000,
         deadline: new Date('2026-06-20'),
         targetCity: ['Bangalore'],
-        targetPlatform: 'instagram',
+        targetPlatforms: ['instagram'],
         minFollowers: 3000,
+        maxFollowers: 100000,
         status: 'active'
       },
       {
@@ -419,8 +432,9 @@ exports.seedCampaigns = async (req, res) => {
         budgetMax: 15000,
         deadline: new Date('2026-07-30'),
         targetCity: ['all'],
-        targetPlatform: 'youtube',
+        targetPlatforms: ['youtube'],
         minFollowers: 8000,
+        maxFollowers: 500000,
         status: 'active'
       },
       {
@@ -433,8 +447,9 @@ exports.seedCampaigns = async (req, res) => {
         budgetMax: 9000,
         deadline: new Date('2026-06-28'),
         targetCity: ['Mumbai', 'Pune'],
-        targetPlatform: 'instagram',
+        targetPlatforms: ['instagram', 'youtube'],
         minFollowers: 5000,
+        maxFollowers: 120000,
         status: 'active'
       },
       {
@@ -447,8 +462,9 @@ exports.seedCampaigns = async (req, res) => {
         budgetMax: 10000,
         deadline: new Date('2026-07-10'),
         targetCity: ['all'],
-        targetPlatform: 'any',
+        targetPlatforms: [],
         minFollowers: 5000,
+        maxFollowers: 0,
         status: 'active'
       }
     ];

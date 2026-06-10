@@ -129,7 +129,7 @@ exports.createCampaign = async (req, res) => {
     const {
       title, description, niche, deliverables,
       budgetMin, budgetMax, deadline,
-      targetCity, targetPlatform, minFollowers,
+      targetCity, targetPlatforms, minFollowers, maxFollowers,
       status: requestedStatus
     } = req.body;
 
@@ -172,8 +172,9 @@ exports.createCampaign = async (req, res) => {
       budgetMax: budgetMax || 0,
       deadline: deadline || null,
       targetCity: targetCity || ['all'],
-      targetPlatform: targetPlatform || 'any',
+      targetPlatforms: Array.isArray(targetPlatforms) ? targetPlatforms : [],
       minFollowers: minFollowers || 0,
+      maxFollowers: maxFollowers || 0,
       status: isDraft ? 'draft' : 'active'
     });
 
@@ -257,7 +258,8 @@ exports.updateCampaign = async (req, res) => {
       });
     }
 
-    const { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers, status } = req.body;
+    const { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms, minFollowers, maxFollowers, status } = req.body;
+    const normalizedPlatforms = Array.isArray(targetPlatforms) ? targetPlatforms : [];
 
     // Republishing an EXPIRED campaign → active. All fields are editable; the
     // only added rule is that the deadline must be today or a future date.
@@ -293,7 +295,7 @@ exports.updateCampaign = async (req, res) => {
 
       const republished = await Campaign.findByIdAndUpdate(
         campaignId,
-        { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers, status: 'active' },
+        { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers, status: 'active' },
         { new: true }
       );
       // Back on the market → notify matching influencers
@@ -322,7 +324,7 @@ exports.updateCampaign = async (req, res) => {
       }
     }
 
-    const updateFields = { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatform, minFollowers };
+    const updateFields = { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers };
     if (status === 'active' || status === 'draft') updateFields.status = status;
 
     const updated = await Campaign.findByIdAndUpdate(
@@ -722,7 +724,9 @@ exports.discoverInfluencers = async (req, res) => {
     }
 
     if (platform) {
-      query['platforms.name'] = platform;
+      // Accept a single platform or a comma-separated list (e.g. "instagram,facebook").
+      const platforms = platform.split(',').map(p => p.trim()).filter(Boolean);
+      query['platforms.name'] = platforms.length > 1 ? { $in: platforms } : platforms[0];
     }
 
     if (minFollowers || maxFollowers) {

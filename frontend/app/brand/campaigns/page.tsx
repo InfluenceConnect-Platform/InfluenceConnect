@@ -9,6 +9,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
+const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
 const CAMPAIGN_STATUS_STYLES: Record<string, string> = {
@@ -93,8 +94,9 @@ export default function BrandCampaigns() {
     budgetMax: '',
     deadline: '',
     targetCity: ['all'],
-    targetPlatform: 'any',
-    minFollowers: '0',
+    targetPlatforms: [] as string[],
+    minFollowers: '',
+    maxFollowers: '',
   });
 
   useEffect(() => {
@@ -160,7 +162,7 @@ export default function BrandCampaigns() {
     title: '', description: '', niche: [],
     deliverables: '', budgetMin: '', budgetMax: '',
     deadline: '', targetCity: ['all'],
-    targetPlatform: 'any', minFollowers: '0',
+    targetPlatforms: [], minFollowers: '', maxFollowers: '',
   });
 
   const handleCreateCampaign = async () => {
@@ -193,6 +195,7 @@ export default function BrandCampaigns() {
         budgetMin,
         budgetMax,
         minFollowers: parseInt(form.minFollowers) || 0,
+        maxFollowers: parseInt(form.maxFollowers) || 0,
       });
       showToast('Campaign created successfully!');
       setShowForm(false);
@@ -214,6 +217,7 @@ export default function BrandCampaigns() {
         budgetMin: parseInt(form.budgetMin) || 0,
         budgetMax: parseInt(form.budgetMax) || 0,
         minFollowers: parseInt(form.minFollowers) || 0,
+        maxFollowers: parseInt(form.maxFollowers) || 0,
         status: 'draft',
       });
       showToast('Draft saved successfully!');
@@ -239,8 +243,9 @@ export default function BrandCampaigns() {
         budgetMax: campaign.budgetMax,
         deadline: campaign.deadline,
         targetCity: campaign.targetCity,
-        targetPlatform: campaign.targetPlatform,
+        targetPlatforms: campaign.targetPlatforms ?? [],
         minFollowers: campaign.minFollowers,
+        maxFollowers: campaign.maxFollowers,
         status: 'active',
       });
       setCampaigns(prev => prev.map(c => c._id === campaign._id ? res.data.campaign : c));
@@ -266,8 +271,9 @@ export default function BrandCampaigns() {
       budgetMax: campaign.budgetMax?.toString() ?? '',
       deadline: campaign.deadline ? campaign.deadline.split('T')[0] : '',
       targetCity: campaign.targetCity ?? ['all'],
-      targetPlatform: campaign.targetPlatform ?? 'any',
-      minFollowers: campaign.minFollowers?.toString() ?? '0',
+      targetPlatforms: campaign.targetPlatforms ?? [],
+      minFollowers: campaign.minFollowers ? campaign.minFollowers.toString() : '',
+      maxFollowers: campaign.maxFollowers ? campaign.maxFollowers.toString() : '',
     });
   };
 
@@ -290,7 +296,7 @@ export default function BrandCampaigns() {
     setSaving(true);
     try {
       const res = await api.put(`/api/brand/campaigns/${editingCampaign._id}`, {
-        ...form, budgetMin, budgetMax, minFollowers: parseInt(form.minFollowers) || 0,
+        ...form, budgetMin, budgetMax, minFollowers: parseInt(form.minFollowers) || 0, maxFollowers: parseInt(form.maxFollowers) || 0,
       });
       showToast('Campaign updated successfully!');
       setCampaigns(prev => prev.map(c => c._id === editingCampaign._id ? res.data.campaign : c));
@@ -323,7 +329,7 @@ export default function BrandCampaigns() {
     setSaving(true);
     try {
       const res = await api.put(`/api/brand/campaigns/${editingCampaign._id}`, {
-        ...form, budgetMin, budgetMax, minFollowers: parseInt(form.minFollowers) || 0, status: 'active',
+        ...form, budgetMin, budgetMax, minFollowers: parseInt(form.minFollowers) || 0, maxFollowers: parseInt(form.maxFollowers) || 0, status: 'active',
       });
       showToast('Campaign republished successfully!');
       setCampaigns(prev => prev.map(c => c._id === editingCampaign._id ? res.data.campaign : c));
@@ -365,7 +371,20 @@ export default function BrandCampaigns() {
       router.push('/brand/billing');
       return;
     }
-    router.push(`/brand/discover?inviteCampaign=${campaign._id}&campaignTitle=${encodeURIComponent(campaign.title)}`);
+    // Carry the campaign's targeting into Discover so the filters pre-fill:
+    // niche, city, platform(s), follower range, and price range (from budget).
+    const params = new URLSearchParams();
+    params.set('inviteCampaign', campaign._id);
+    params.set('campaignTitle', campaign.title);
+    if (campaign.niche?.length) params.set('niche', campaign.niche.join(','));
+    const city = campaign.targetCity?.find((c: string) => c && c !== 'all');
+    if (city) params.set('city', city);
+    if (campaign.targetPlatforms?.length) params.set('platform', campaign.targetPlatforms.join(','));
+    if (campaign.minFollowers > 0) params.set('minFollowers', String(campaign.minFollowers));
+    if (campaign.maxFollowers > 0) params.set('maxFollowers', String(campaign.maxFollowers));
+    if (campaign.budgetMin > 0) params.set('minPrice', String(campaign.budgetMin));
+    if (campaign.budgetMax > 0) params.set('maxPrice', String(campaign.budgetMax));
+    router.push(`/brand/discover?${params.toString()}`);
   };
 
   const handleUpdateStatus = async (applicationId: string, status: string) => {
@@ -496,18 +515,55 @@ export default function BrandCampaigns() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Platform</label>
-                  <select
-                    value={form.targetPlatform}
-                    onChange={e => setForm(p => ({ ...p, targetPlatform: e.target.value }))}
-                    className={fieldClass}
-                  >
-                    {['any', 'instagram', 'youtube', 'facebook'].map(p => (
-                      <option key={p} value={p} className="capitalize">
-                        {p === 'any' ? 'Any platform' : p.charAt(0).toUpperCase() + p.slice(1)}
-                      </option>
-                    ))}
-                  </select>
+                  <label className={labelClass}>Follower range</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      value={form.minFollowers}
+                      onChange={e => setForm(p => ({ ...p, minFollowers: e.target.value }))}
+                      placeholder="Min"
+                      className={fieldClass}
+                    />
+                    <span className="text-gray-400 text-sm">–</span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={form.maxFollowers}
+                      onChange={e => setForm(p => ({ ...p, maxFollowers: e.target.value }))}
+                      placeholder="Max"
+                      className={fieldClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>Platform <span className="font-normal text-gray-400">(leave empty for any)</span></label>
+                  <div className="flex flex-wrap gap-2">
+                    {PLATFORMS.map(p => {
+                      const active = form.targetPlatforms.includes(p);
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setForm(prev => ({
+                            ...prev,
+                            targetPlatforms: active ? prev.targetPlatforms.filter(x => x !== p) : [...prev.targetPlatforms, p],
+                          }))}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                            active
+                              ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm'
+                              : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                          }`}
+                        >
+                          {p === 'instagram' && <InstagramLogo size={12} />}
+                          {p === 'youtube' && <YouTubeLogo size={12} />}
+                          {p === 'facebook' && <FacebookLogo size={12} />}
+                          {p}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -634,12 +690,33 @@ export default function BrandCampaigns() {
                   </select>
                 </div>
                 <div>
-                  <label className={labelClass}>Platform</label>
-                  <select value={form.targetPlatform} onChange={e => setForm(p => ({ ...p, targetPlatform: e.target.value }))} className={fieldClass}>
-                    {['any', 'instagram', 'youtube', 'facebook'].map(p => (
-                      <option key={p} value={p}>{p === 'any' ? 'Any platform' : p.charAt(0).toUpperCase() + p.slice(1)}</option>
-                    ))}
-                  </select>
+                  <label className={labelClass}>Follower range</label>
+                  <div className="flex items-center gap-2">
+                    <input type="number" min={0} value={form.minFollowers} onChange={e => setForm(p => ({ ...p, minFollowers: e.target.value }))} placeholder="Min" className={fieldClass} />
+                    <span className="text-gray-400 text-sm">–</span>
+                    <input type="number" min={0} value={form.maxFollowers} onChange={e => setForm(p => ({ ...p, maxFollowers: e.target.value }))} placeholder="Max" className={fieldClass} />
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>Platform <span className="font-normal text-gray-400">(leave empty for any)</span></label>
+                  <div className="flex flex-wrap gap-2">
+                    {PLATFORMS.map(p => {
+                      const active = form.targetPlatforms.includes(p);
+                      return (
+                        <button key={p} type="button"
+                          onClick={() => setForm(prev => ({ ...prev, targetPlatforms: active ? prev.targetPlatforms.filter(x => x !== p) : [...prev.targetPlatforms, p] }))}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                            active ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                          }`}
+                        >
+                          {p === 'instagram' && <InstagramLogo size={12} />}
+                          {p === 'youtube' && <YouTubeLogo size={12} />}
+                          {p === 'facebook' && <FacebookLogo size={12} />}
+                          {p}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="sm:col-span-2">
                   <label className={labelClass}>Niche</label>
@@ -902,14 +979,14 @@ export default function BrandCampaigns() {
                   {/* Footer row — platform + city + mobile hint */}
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center gap-1.5">
-                      {campaign.targetPlatform && campaign.targetPlatform !== 'any' && (
-                        <span className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md capitalize">
-                          {campaign.targetPlatform === 'instagram' && <InstagramLogo size={11} />}
-                          {campaign.targetPlatform === 'youtube'   && <YouTubeLogo size={11} />}
-                          {campaign.targetPlatform === 'facebook'  && <FacebookLogo size={11} />}
-                          {campaign.targetPlatform}
+                      {(campaign.targetPlatforms ?? []).map((plat: string) => (
+                        <span key={plat} className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md capitalize">
+                          {plat === 'instagram' && <InstagramLogo size={11} />}
+                          {plat === 'youtube'   && <YouTubeLogo size={11} />}
+                          {plat === 'facebook'  && <FacebookLogo size={11} />}
+                          {plat}
                         </span>
-                      )}
+                      ))}
                       {campaign.targetCity?.[0] && campaign.targetCity[0] !== 'all' && (
                         <span className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
                           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>

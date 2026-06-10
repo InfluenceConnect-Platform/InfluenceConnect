@@ -52,13 +52,18 @@ const campaignSchema = new mongoose.Schema({
     default: 'all'
   }],
 
-  targetPlatform: {
+  // Target platforms for this campaign. An empty array means "any platform".
+  targetPlatforms: [{
     type: String,
-    enum: ['instagram', 'youtube', 'facebook', 'any'],
-    default: 'any'
-  },
+    enum: ['instagram', 'youtube', 'facebook']
+  }],
 
   minFollowers: {
+    type: Number,
+    default: 0
+  },
+
+  maxFollowers: {
     type: Number,
     default: 0
   },
