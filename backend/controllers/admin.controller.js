@@ -5,8 +5,17 @@ const Deal = require('../models/Deal');
 const Message = require('../models/Message');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
+const AdminLog = require('../models/AdminLog');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
+const logAdminAction = require('../utils/logAdminAction');
+
+// Best-effort client IP for the audit trail (honours a proxy's X-Forwarded-For).
+const getIp = (req) =>
+  (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+  req.ip ||
+  req.socket?.remoteAddress ||
+  '';
 
 
 // ─────────────────────────────────────────
@@ -264,6 +273,7 @@ exports.getUserDetails = async (req, res) => {
       const activeDeals = deals
         .filter(d => activeStatuses.includes(d.status))
         .map(d => ({
+          customId: d.customId || '',
           brandName: d.brandId?.name || '—',
           campaignTitle: d.campaignId?.title || '—',
           agreedAmount: d.agreedAmount || 0,
@@ -343,6 +353,7 @@ exports.getUserDetails = async (req, res) => {
       const activeDeals = deals
         .filter(d => activeStatuses.includes(d.status))
         .map(d => ({
+          customId: d.customId || '',
           influencerName: d.influencerId?.name || '—',
           campaignTitle: d.campaignId?.title || '—',
           agreedAmount: d.agreedAmount || 0,
@@ -423,6 +434,19 @@ exports.updateUserStatus = async (req, res) => {
     } else {
       notify.accountRestored(user.email, { name: user.name, role: user.role });
     }
+
+    // Audit trail.
+    await logAdminAction({
+      adminId: req.userId,
+      adminName: req.user?.name,
+      action: status === 'suspended' ? 'USER_SUSPENDED' : 'USER_RESTORED',
+      targetType: 'user',
+      targetId: user.customId || '',
+      targetName: user.name,
+      details: `${status === 'suspended' ? 'Suspended' : 'Restored'} ${user.role} account "${user.name}" (${user.email}).`,
+      metadata: { newStatus: status, role: user.role, email: user.email },
+      ipAddress: getIp(req),
+    });
 
     res.json({
       message: `User ${status} successfully`,
@@ -517,6 +541,7 @@ exports.getCampaignDetails = async (req, res) => {
     });
 
     const applicants = applications.map(a => ({
+      customId: a.customId || '',
       name: a.influencerId?.name || '—',
       email: a.influencerId?.email || '',
       avatarUrl: a.influencerId ? (picMap.get(String(a.influencerId._id)) || '') : '',
@@ -529,6 +554,7 @@ exports.getCampaignDetails = async (req, res) => {
 
     const activeStatuses = ['in-progress', 'content-submitted'];
     const dealList = deals.map(d => ({
+      customId: d.customId || '',
       influencerName: d.influencerId?.name || '—',
       agreedAmount: d.agreedAmount || 0,
       status: d.status,
@@ -554,6 +580,7 @@ exports.getCampaignDetails = async (req, res) => {
     res.json({
       campaign: {
         _id: campaign._id,
+        customId: campaign.customId || '',
         title: campaign.title,
         description: campaign.description || '',
         niche: campaign.niche || [],
@@ -661,6 +688,7 @@ exports.removeCampaign = async (req, res) => {
     );
 
     // Close the campaign — this is terminal, it can never go active again.
+    const previousStatus = campaign.status;
     campaign.status = 'closed';
     await campaign.save();
 
@@ -682,6 +710,24 @@ exports.removeCampaign = async (req, res) => {
         }
       });
     }
+
+    // Audit trail.
+    await logAdminAction({
+      adminId: req.userId,
+      adminName: req.user?.name,
+      action: 'CAMPAIGN_REMOVED',
+      targetType: 'campaign',
+      targetId: campaign.customId || '',
+      targetName: campaign.title,
+      details: `Removed campaign "${campaign.title}"${brand?.name ? ` by ${brand.name}` : ''}. ${activeDeals.length} active deal(s) cancelled, ${appResult.modifiedCount || 0} open application(s) rejected.`,
+      metadata: {
+        previousStatus,
+        newStatus: 'closed',
+        dealsCancelled: activeDeals.length,
+        applicationsRejected: appResult.modifiedCount || 0,
+      },
+      ipAddress: getIp(req),
+    });
 
     res.json({
       message: 'Campaign removed successfully',
@@ -762,7 +808,7 @@ exports.updateGSTINStatus = async (req, res) => {
     const profile = await BrandProfile.findByIdAndUpdate(brandProfileId, {
       gstinStatus: status,
       gstinVerified: status === 'verified'
-    }, { new: true }).populate('userId', 'email');
+    }, { new: true }).populate('userId', 'email name customId');
 
     // Notify the brand of the verification outcome.
     if (profile?.userId?.email) {
@@ -770,6 +816,20 @@ exports.updateGSTINStatus = async (req, res) => {
       if (status === 'verified') notify.gstinApproved(profile.userId.email, payload);
       else notify.gstinRejected(profile.userId.email, payload);
     }
+
+    // Audit trail.
+    const brandName = profile?.companyName || profile?.userId?.name || 'Unknown brand';
+    await logAdminAction({
+      adminId: req.userId,
+      adminName: req.user?.name,
+      action: status === 'verified' ? 'GSTIN_APPROVED' : 'GSTIN_REJECTED',
+      targetType: 'gstin',
+      targetId: profile?.userId?.customId || '',
+      targetName: brandName,
+      details: `${status === 'verified' ? 'Approved' : 'Rejected'} GSTIN for "${brandName}".`,
+      metadata: { newStatus: status, gstin: profile?.gstin || '' },
+      ipAddress: getIp(req),
+    });
 
     res.json({ message: `GSTIN ${status} successfully` });
 
@@ -836,6 +896,92 @@ exports.getSubscriptionOverview = async (req, res) => {
 
   } catch (error) {
     console.error('Subscription overview error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// ADMIN ACTIVITY LOG — list (filterable, paginated)
+// ─────────────────────────────────────────
+exports.getAdminLogs = async (req, res) => {
+  try {
+    const { action, targetType, startDate, endDate } = req.query;
+
+    let page  = parseInt(req.query.page, 10)  || 1;
+    let limit = parseInt(req.query.limit, 10) || 20;
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 20;
+    if (limit > 100) limit = 100;
+
+    const query = {};
+    if (action)     query.action = action;
+    if (targetType) query.targetType = targetType;
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        // A date-only value (YYYY-MM-DD) should include the whole day.
+        if (/^\d{4}-\d{2}-\d{2}$/.test(endDate)) end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
+    }
+
+    const skip = (page - 1) * limit;
+    const [logs, total] = await Promise.all([
+      AdminLog.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      AdminLog.countDocuments(query)
+    ]);
+
+    res.json({
+      logs,
+      pagination: { total, page, pages: Math.ceil(total / limit) || 1 }
+    });
+
+  } catch (error) {
+    console.error('Get admin logs error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// ADMIN ACTIVITY LOG — summary stats for the page header chips
+// ─────────────────────────────────────────
+exports.getAdminLogStats = async (req, res) => {
+  try {
+    const now = new Date();
+
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+
+    // Start of the current week (Monday 00:00).
+    const startOfWeek = new Date(startOfToday);
+    const day = startOfWeek.getDay();           // 0=Sun … 6=Sat
+    const sinceMonday = day === 0 ? 6 : day - 1;
+    startOfWeek.setDate(startOfWeek.getDate() - sinceMonday);
+
+    const [todayCount, weekCount, mostCommonAgg, lastLog] = await Promise.all([
+      AdminLog.countDocuments({ createdAt: { $gte: startOfToday } }),
+      AdminLog.countDocuments({ createdAt: { $gte: startOfWeek } }),
+      AdminLog.aggregate([
+        { $match: { createdAt: { $gte: startOfWeek } } },
+        { $group: { _id: '$action', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 1 }
+      ]),
+      AdminLog.findOne().sort({ createdAt: -1 }).select('createdAt action')
+    ]);
+
+    res.json({
+      today: todayCount,
+      week: weekCount,
+      mostCommonAction: mostCommonAgg[0]?._id || null,
+      mostCommonCount: mostCommonAgg[0]?.count || 0,
+      lastActionAt: lastLog?.createdAt || null
+    });
+
+  } catch (error) {
+    console.error('Get admin log stats error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

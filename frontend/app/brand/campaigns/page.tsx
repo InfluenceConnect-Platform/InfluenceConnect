@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
+import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 
@@ -890,6 +891,7 @@ export default function BrandCampaigns() {
                   <div className="flex items-start justify-between mb-3 gap-2">
                     <div className="min-w-0">
                       <h3 className="font-semibold text-gray-900 mb-0.5 truncate">{campaign.title}</h3>
+                      {campaign.customId && <IdChip id={campaign.customId} size="xs" tone="subtle" />}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
@@ -1184,6 +1186,12 @@ function ApplicationsList({
                   </a>
                 )}
               </div>
+              {(app.customId || app.dealCustomId) && (
+                <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                  {app.customId && <IdChip id={app.customId} size="xs" tone="subtle" />}
+                  {app.dealCustomId && <IdChip id={app.dealCustomId} size="xs" tone="subtle" />}
+                </div>
+              )}
               <div className="flex items-center gap-2 text-[11px] text-gray-500 flex-wrap">
                 {totalFollowers > 0 && (
                   <span className="flex items-center gap-0.5 font-semibold text-gray-700">

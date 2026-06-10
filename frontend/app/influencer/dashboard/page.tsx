@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import IdChip from '@/components/shared/IdChip';
 import EngagementTrendChart from '@/components/charts/EngagementTrendChart';
 import MonthlyReachChart from '@/components/charts/MonthlyReachChart';
 
@@ -36,6 +37,7 @@ interface Profile {
   portfolioItems: any[];
   platforms: Platform[];
   profilePicUrl?: string;
+  userId?: { customId?: string; name?: string };
 }
 
 function getGreeting() {
@@ -239,9 +241,14 @@ export default function InfluencerDashboard() {
               <p className="text-teal-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
                 {getGreeting()}, {user?.name?.split(' ')[0]} 👋
               </p>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-2.5">
                 Your Creator Hub
               </h1>
+              {profile?.userId?.customId && (
+                <div className="mb-3">
+                  <IdChip id={profile.userId.customId} tone="dark" />
+                </div>
+              )}
               {/* inline stat chips */}
               <div className="flex flex-wrap items-center gap-2">
                 {totalFollowers > 0 && (

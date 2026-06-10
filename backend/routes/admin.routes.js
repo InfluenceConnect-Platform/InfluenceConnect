@@ -13,7 +13,9 @@ const {
   flagCampaign,
   getPendingGSTIN,
   updateGSTINStatus,
-  getSubscriptionOverview
+  getSubscriptionOverview,
+  getAdminLogs,
+  getAdminLogStats
 } = require('../controllers/admin.controller');
 
 // All admin routes require auth + admin role
@@ -30,5 +32,7 @@ router.put('/campaigns/:campaignId/flag', flagCampaign);
 router.get('/gstin/pending', getPendingGSTIN);
 router.put('/gstin/:brandProfileId/status', updateGSTINStatus);
 router.get('/subscriptions/overview', getSubscriptionOverview);
+router.get('/logs/stats', getAdminLogStats);
+router.get('/logs', getAdminLogs);
 
 module.exports = router;

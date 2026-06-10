@@ -19,6 +19,8 @@ build/
 
 # Logs
 logs/
+# …but not the admin "Logs" app route, which is real source code.
+!frontend/app/admin/logs/
 *.log
 npm-debug.log*
 

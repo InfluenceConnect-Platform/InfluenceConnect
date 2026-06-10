@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, ReactNode } from 'react';
 import api from '@/lib/api';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import IdChip from '@/components/shared/IdChip';
 
 const TEAL = '#7FA8AD';
 
@@ -151,7 +152,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
 
   const handleCopyId = async () => {
     try {
-      await navigator.clipboard.writeText(String(campaignId));
+      await navigator.clipboard.writeText(String(c?.customId || campaignId));
       showToast('Campaign ID copied to clipboard.');
     } catch {
       showToast('Unable to copy Campaign ID.');
@@ -224,6 +225,11 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-lg font-bold text-gray-900 leading-snug">{c.title}</h2>
+                  {c.customId && (
+                    <div className="mt-1.5">
+                      <IdChip id={c.customId} size="xs" tone="subtle" />
+                    </div>
+                  )}
                   {c.niche?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {c.niche.map((n: string) => (
@@ -351,6 +357,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                             <p className="text-[11px] text-gray-400 truncate">
                               {a.proposedRate ? `Proposed ${inr(a.proposedRate)}` : 'No rate proposed'}
                             </p>
+                            {a.customId && <div className="mt-1"><IdChip id={a.customId} size="xs" tone="subtle" /></div>}
                           </div>
                           <span className={`flex-shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold capitalize ${APP_STATUS_STYLES[a.status] || 'bg-gray-100 text-gray-600'}`}>
                             {a.status}
@@ -384,6 +391,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                           <div className="min-w-0">
                             <p className="text-[13px] font-semibold text-gray-900 truncate">{d.influencerName}</p>
                             <p className="text-[13px] font-bold text-gray-900 mt-0.5">{inr(d.agreedAmount)}</p>
+                            {d.customId && <div className="mt-1"><IdChip id={d.customId} size="xs" tone="subtle" /></div>}
                           </div>
                           <span className={`flex-shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold ${DEAL_STATUS_STYLES[d.status] || DEAL_STATUS_STYLES.cancelled}`}>
                             {d.status}

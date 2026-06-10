@@ -1,6 +1,15 @@
 const mongoose = require('mongoose');
+const generateId = require('../utils/generateId');
 
 const campaignSchema = new mongoose.Schema({
+  // Human-readable public ID (IC-CAM-000001). Auto-generated on first save.
+  customId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true
+  },
+
   brandId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -100,5 +109,17 @@ const campaignSchema = new mongoose.Schema({
 
 // Brand campaign lists, often filtered by status.
 campaignSchema.index({ brandId: 1, status: 1 });
+
+// Assign a human-readable customId on first save.
+campaignSchema.pre('save', async function(next) {
+  try {
+    if (!this.customId) {
+      this.customId = await generateId('campaign');
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = mongoose.model('Campaign', campaignSchema);

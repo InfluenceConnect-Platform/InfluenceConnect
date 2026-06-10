@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, ReactNode } from 'react';
 import api from '@/lib/api';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import IdChip from '@/components/shared/IdChip';
 
 const TEAL = '#7FA8AD';
 
@@ -133,7 +134,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
 
   const handleCopyId = async () => {
     try {
-      await navigator.clipboard.writeText(String(userId));
+      await navigator.clipboard.writeText(String(data?.user?.customId || userId));
       showToast('User ID copied to clipboard.');
     } catch {
       showToast('Unable to copy User ID.');
@@ -233,6 +234,11 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                     )}
                   </div>
                   <p className="text-[13px] text-gray-500 truncate">{user.email}</p>
+                  {user.customId && (
+                    <div className="mt-2">
+                      <IdChip id={user.customId} />
+                    </div>
+                  )}
                   <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                     <Badge className={
                       role === 'influencer' ? 'bg-teal-50 text-teal-700 border border-teal-100'
@@ -597,7 +603,10 @@ function DealList({ deals, nameKey, nameLabel }: { deals: any[]; nameKey: string
               {d.status}
             </span>
           </div>
-          <p className="text-[13px] font-bold text-gray-900 mt-1">{inr(d.agreedAmount)}</p>
+          <div className="flex items-center justify-between gap-2 mt-1">
+            <p className="text-[13px] font-bold text-gray-900">{inr(d.agreedAmount)}</p>
+            {d.customId && <IdChip id={d.customId} size="xs" tone="subtle" />}
+          </div>
         </div>
       ))}
     </div>

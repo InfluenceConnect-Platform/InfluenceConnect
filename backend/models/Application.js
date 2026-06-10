@@ -1,6 +1,15 @@
 const mongoose = require('mongoose');
+const generateId = require('../utils/generateId');
 
 const applicationSchema = new mongoose.Schema({
+  // Human-readable public ID (IC-APP-000001). Auto-generated on first save.
+  customId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true
+  },
+
   campaignId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Campaign',
@@ -46,5 +55,17 @@ applicationSchema.index(
 
 // Brand-wide application lists, newest first (dashboard + counts).
 applicationSchema.index({ brandId: 1, createdAt: -1 });
+
+// Assign a human-readable customId on first save.
+applicationSchema.pre('save', async function(next) {
+  try {
+    if (!this.customId) {
+      this.customId = await generateId('application');
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = mongoose.model('Application', applicationSchema);

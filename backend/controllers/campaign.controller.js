@@ -469,7 +469,9 @@ exports.seedCampaigns = async (req, res) => {
       }
     ];
 
-    await Campaign.insertMany(sampleCampaigns);
+    // Use create() (not insertMany) so the pre-save hook runs and each
+    // seeded campaign gets a human-readable customId.
+    await Campaign.create(sampleCampaigns);
 
     res.status(201).json({
       message: `${sampleCampaigns.length} sample campaigns created successfully`

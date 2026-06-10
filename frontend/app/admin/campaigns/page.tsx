@@ -7,6 +7,7 @@ import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import IdChip from '@/components/shared/IdChip';
 import CampaignDetailDrawer from '@/components/shared/CampaignDetailDrawer';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -165,7 +166,7 @@ export default function AdminCampaigns() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-100">
-                  {['Campaign', 'Brand', 'Budget', 'Applicants', 'Status', 'Actions'].map(h => (
+                  {['Campaign', 'ID', 'Brand', 'Budget', 'Applicants', 'Status', 'Actions'].map(h => (
                     <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                       {h}
                     </th>
@@ -175,7 +176,7 @@ export default function AdminCampaigns() {
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
+                    <td colSpan={7} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
                         <p className="text-sm text-gray-400 font-medium">Loading campaigns…</p>
@@ -184,7 +185,7 @@ export default function AdminCampaigns() {
                   </tr>
                 ) : campaigns.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
+                    <td colSpan={7} className="px-5 py-16 text-center">
                       <p className="text-sm font-medium text-gray-500">No campaigns found</p>
                       <p className="text-xs text-gray-400 mt-1">Try a different status filter</p>
                     </td>
@@ -195,6 +196,9 @@ export default function AdminCampaigns() {
                       <td className="px-5 py-4 max-w-[200px]">
                         <p className="text-sm font-semibold text-gray-900 truncate">{c.title}</p>
                         <p className="text-[11px] text-gray-400 capitalize truncate mt-0.5">{c.niche?.join(', ') || '—'}</p>
+                      </td>
+                      <td className="px-5 py-4">
+                        {c.customId ? <IdChip id={c.customId} size="xs" tone="subtle" /> : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-5 py-4">
                         <p className="text-sm text-gray-700 font-medium whitespace-nowrap">{c.brandId?.name ?? '—'}</p>
@@ -278,6 +282,7 @@ export default function AdminCampaigns() {
                         <p className="text-xs text-gray-400 capitalize truncate mt-0.5">
                           {c.niche?.join(', ') || 'No niche'}
                         </p>
+                        {c.customId && <div className="mt-1.5"><IdChip id={c.customId} size="xs" tone="subtle" /></div>}
                       </div>
                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
                         <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[c.status] ?? 'bg-gray-100 text-gray-600'}`}>

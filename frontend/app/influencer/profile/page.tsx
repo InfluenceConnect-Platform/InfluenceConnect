@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import IdChip from '@/components/shared/IdChip';
 import { useTheme } from '@/lib/useTheme';
 
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
@@ -808,7 +809,10 @@ export default function InfluencerProfile() {
                         </span>
                       )}
                     </div>
-                    {profile.slug && <p className="text-sm text-gray-400 font-mono mb-3">@{profile.slug}</p>}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      {profile.userId?.customId && <IdChip id={profile.userId.customId} />}
+                      {profile.slug && <p className="text-sm text-gray-400 font-mono">@{profile.slug}</p>}
+                    </div>
 
                     {(profile.niche ?? []).length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-4">

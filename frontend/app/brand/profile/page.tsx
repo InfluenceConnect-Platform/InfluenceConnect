@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
+import IdChip from '@/components/shared/IdChip';
 
 const INDUSTRIES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books', 'other'];
 
@@ -248,6 +249,11 @@ export default function BrandProfile() {
               <h2 className="text-xl font-bold text-gray-900 tracking-tight">{displayName}</h2>
               {user?.name && profile?.companyName && profile.companyName !== user.name && (
                 <p className="text-xs text-gray-400 mt-0.5">{user.name}</p>
+              )}
+              {profile?.userId?.customId && (
+                <div className="mt-2">
+                  <IdChip id={profile.userId.customId} />
+                </div>
               )}
             </div>
 

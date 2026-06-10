@@ -67,7 +67,7 @@ exports.createProfile = async (req, res) => {
 exports.getMyProfile = async (req, res) => {
   try {
     const profile = await BrandProfile.findOne({ userId: req.userId })
-      .populate('userId', 'name email mobile plan premiumUntil');
+      .populate('userId', 'name email mobile plan premiumUntil customId');
 
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
@@ -405,7 +405,7 @@ exports.getCampaignApplications = async (req, res) => {
     const [profiles, deals] = await Promise.all([
       InfluencerProfile.find({ userId: { $in: userIds } })
         .select('userId niche city platforms profilePicUrl credibilityScore level slug'),
-      Deal.find({ applicationId: { $in: acceptedAppIds } }).select('status applicationId'),
+      Deal.find({ applicationId: { $in: acceptedAppIds } }).select('status applicationId customId'),
     ]);
 
     const profileByUser = new Map(profiles.map(p => [p.userId.toString(), p]));
@@ -418,6 +418,7 @@ exports.getCampaignApplications = async (req, res) => {
         influencerProfile: profileByUser.get(app.influencerId._id.toString()) || null,
         dealStatus: deal?.status ?? null,
         dealId: deal?._id?.toString() ?? null,
+        dealCustomId: deal?.customId ?? null,
       };
     });
 

@@ -3,6 +3,7 @@ const OTP = require('../models/OTP');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const notify = require('../services/email');
+const logAdminAction = require('../utils/logAdminAction');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -362,6 +363,25 @@ exports.login = async (req, res) => {
 
     // Generate token
     const token = generateToken(user._id);
+
+    // Audit trail for admin sign-ins.
+    if (user.role === 'admin') {
+      await logAdminAction({
+        adminId: user._id,
+        adminName: user.name,
+        action: 'ADMIN_LOGIN',
+        targetType: 'system',
+        targetId: user.customId || '',
+        targetName: user.name,
+        details: `Admin "${user.name}" logged in.`,
+        metadata: {},
+        ipAddress:
+          (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+          req.ip ||
+          req.socket?.remoteAddress ||
+          '',
+      });
+    }
 
     res.json({
       message: 'Login successful',

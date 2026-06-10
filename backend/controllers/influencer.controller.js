@@ -69,7 +69,7 @@ exports.getMyProfile = async (req, res) => {
   try {
     const profile = await InfluencerProfile
       .findOne({ userId: req.userId })
-      .populate('userId', 'name email mobile plan premiumUntil');
+      .populate('userId', 'name email mobile plan premiumUntil customId');
 
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });

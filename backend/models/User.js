@@ -1,7 +1,17 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const generateId = require('../utils/generateId');
 
 const userSchema = new mongoose.Schema({
+  // Human-readable, role-specific public ID (IC-INF-000001 / IC-BRD-000001 /
+  // IC-ADM-000001). Auto-generated on first save; never shown as a raw ObjectId.
+  customId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true
+  },
+
   name: {
     type: String,
     required: [true, 'Name is required'],
@@ -91,6 +101,18 @@ const userSchema = new mongoose.Schema({
 
 }, {
   timestamps: true   // automatically adds createdAt and updatedAt
+});
+
+// Assign a role-specific human-readable customId on first save.
+userSchema.pre('save', async function(next) {
+  try {
+    if (!this.customId) {
+      this.customId = await generateId(this.role);
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Hash password before saving

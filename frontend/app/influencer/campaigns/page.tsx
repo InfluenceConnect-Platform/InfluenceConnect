@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 
@@ -20,6 +21,7 @@ const SORT_OPTIONS = [
 
 interface Campaign {
   _id: string;
+  customId?: string;
   title: string;
   description: string;
   niche: string[];
@@ -560,9 +562,14 @@ export default function InfluencerCampaigns() {
                     </div>
 
                     {/* Title + description */}
-                    <h3 className="text-[15px] font-bold text-gray-900 dark:text-slate-100 mb-1.5 leading-snug">
+                    <h3 className="text-[15px] font-bold text-gray-900 dark:text-slate-100 mb-1 leading-snug">
                       {campaign.title}
                     </h3>
+                    {campaign.customId && (
+                      <div className="mb-1.5">
+                        <IdChip id={campaign.customId} size="xs" tone="subtle" />
+                      </div>
+                    )}
                     <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed mb-4 flex-1 line-clamp-2">
                       {campaign.description}
                     </p>
@@ -772,7 +779,7 @@ function MyApplications() {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50/80 border-b border-gray-100">
-              {['Campaign', 'Brand', 'Budget', 'Applied on', 'Status', 'Actions'].map(h => (
+              {['Campaign', 'Application ID', 'Brand', 'Budget', 'Applied on', 'Status', 'Actions'].map(h => (
                 <th key={h} className="px-5 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
                   {h}
                 </th>
@@ -786,6 +793,9 @@ function MyApplications() {
                 <tr key={i} className="border-b border-gray-50 hover:bg-[#EEF4F5]/30 transition-colors">
                   <td className="px-5 py-4 text-sm font-bold text-gray-900 max-w-[200px] truncate">
                     {app.campaignId?.title || 'Campaign'}
+                  </td>
+                  <td className="px-5 py-4">
+                    {app.customId ? <IdChip id={app.customId} size="xs" tone="subtle" /> : <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-5 py-4 text-sm text-gray-500 font-medium">
                     {app.campaignId?.brandId?.name || app.brandId?.name || '—'}
@@ -830,6 +840,7 @@ function MyApplications() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-gray-900 truncate">{app.campaignId?.title || 'Campaign'}</p>
                   <p className="text-xs text-gray-400 mt-0.5 font-medium">{app.campaignId?.brandId?.name || app.brandId?.name || '—'}</p>
+                  {app.customId && <div className="mt-1.5"><IdChip id={app.customId} size="xs" tone="subtle" /></div>}
                 </div>
                 <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 ${cfg.cls}`}>
                   <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />

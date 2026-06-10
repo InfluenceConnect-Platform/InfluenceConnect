@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
+import IdChip from '@/components/shared/IdChip';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
 import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
@@ -22,6 +23,7 @@ interface Message {
 
 interface Deal {
   _id: string;
+  customId?: string;
   campaignId: { _id: string; title: string; niche: string[]; deliverables: string; budgetMin: number; budgetMax: number };
   influencerId: { _id: string; name: string };
   influencerProfile?: { niche: string[]; city: string; platforms: { name: string; followers: number }[]; profilePicUrl?: string };
@@ -584,6 +586,7 @@ export default function BrandMessages() {
                   <p className={`text-[14px] font-bold leading-tight ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{selectedDeal.influencerId?.name}</p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className={`text-[11px] truncate ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
+                    {selectedDeal.customId && <IdChip id={selectedDeal.customId} size="xs" tone={isDark ? 'dark' : 'subtle'} />}
                     {selectedDeal.negotiationStatus === 'agreed' ? (
                       <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200/60 flex-shrink-0">
                         ₹{selectedDeal.agreedAmount.toLocaleString()} agreed

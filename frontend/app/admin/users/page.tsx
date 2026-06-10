@@ -7,6 +7,7 @@ import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import IdChip from '@/components/shared/IdChip';
 import UserDetailDrawer from '@/components/shared/UserDetailDrawer';
 
 const ROLE_STYLES: Record<string, string> = {
@@ -150,7 +151,7 @@ export default function AdminUsers() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-100">
-                  {['User', 'Role', 'Plan', 'Status', 'Joined', 'Actions'].map(h => (
+                  {['User', 'ID', 'Role', 'Plan', 'Status', 'Joined', 'Actions'].map(h => (
                     <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                       {h}
                     </th>
@@ -160,7 +161,7 @@ export default function AdminUsers() {
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
+                    <td colSpan={7} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
                         <p className="text-sm text-gray-400 font-medium">Loading users…</p>
@@ -169,7 +170,7 @@ export default function AdminUsers() {
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
+                    <td colSpan={7} className="px-5 py-16 text-center">
                       <p className="text-sm font-medium text-gray-500">No users found</p>
                       <p className="text-xs text-gray-400 mt-1">Try adjusting your search or filter</p>
                     </td>
@@ -191,6 +192,9 @@ export default function AdminUsers() {
                             <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {u.customId ? <IdChip id={u.customId} size="xs" tone="subtle" /> : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-5 py-3.5">
                         <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${ROLE_STYLES[u.role]}`}>
@@ -293,6 +297,7 @@ export default function AdminUsers() {
                           )}
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5">
+                          {u.customId && <IdChip id={u.customId} size="xs" tone="subtle" />}
                           <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${ROLE_STYLES[u.role]}`}>
                             {u.role}
                           </span>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
+import IdChip from '@/components/shared/IdChip';
 import BrandAnalytics, { BrandAnalyticsData } from '@/components/charts/BrandAnalytics';
 
 const STATUS_CONFIG: Record<string, { cls: string; label: string }> = {
@@ -41,6 +42,7 @@ export default function BrandDashboard() {
   const [analytics, setAnalytics] = useState<BrandAnalyticsData | null>(null);
   const [recentApplications, setRecentApplications] = useState<any[]>([]);
   const [logoUrl, setLogoUrl] = useState('');
+  const [brandCustomId, setBrandCustomId] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function BrandDashboard() {
       setAnalytics(statsRes.data.analytics ?? null);
       setRecentApplications(statsRes.data.recentApplications);
       if (profileRes?.data?.profile?.logoUrl) setLogoUrl(profileRes.data.profile.logoUrl);
+      if (profileRes?.data?.profile?.userId?.customId) setBrandCustomId(profileRes.data.profile.userId.customId);
     } catch (error) {
       console.error('Fetch dashboard error:', error);
     } finally {
@@ -171,9 +174,14 @@ export default function BrandDashboard() {
               <p className="text-blue-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
                 {getGreeting()}, {user?.name?.split(' ')[0]} 👋
               </p>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-2.5">
                 Campaign Command Center
               </h1>
+              {brandCustomId && (
+                <div className="mb-3">
+                  <IdChip id={brandCustomId} tone="dark" />
+                </div>
+              )}
               {/* inline stat chips */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">

@@ -1,6 +1,15 @@
 const mongoose = require('mongoose');
+const generateId = require('../utils/generateId');
 
 const dealSchema = new mongoose.Schema({
+  // Human-readable public ID (IC-DEL-000001). Auto-generated on first save.
+  customId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true
+  },
+
   campaignId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Campaign',
@@ -68,5 +77,17 @@ dealSchema.index({ brandId: 1, updatedAt: -1 });
 dealSchema.index({ influencerId: 1, updatedAt: -1 });
 // Deal lookups by the originating application.
 dealSchema.index({ applicationId: 1 });
+
+// Assign a human-readable customId on first save.
+dealSchema.pre('save', async function(next) {
+  try {
+    if (!this.customId) {
+      this.customId = await generateId('deal');
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = mongoose.model('Deal', dealSchema);
