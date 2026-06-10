@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
+import AdminRevenueChart from '@/components/charts/AdminRevenueChart';
+import AdminDonut from '@/components/charts/AdminDonut';
 
 export default function AdminSubscriptions() {
   const router = useRouter();
   const [overview, setOverview] = useState<any>(null);
+  const [mrrTrend, setMrrTrend] = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
@@ -27,6 +30,7 @@ export default function AdminSubscriptions() {
     try {
       const response = await api.get('/api/admin/subscriptions/overview');
       setOverview(response.data.overview);
+      setMrrTrend(response.data.mrrTrend ?? []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -104,6 +108,25 @@ export default function AdminSubscriptions() {
                   <p className="text-2xl font-bold text-gray-900 tabular-nums">{s.value}</p>
                 </div>
               ))}
+            </div>
+
+            {/* MRR trend + premium mix */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5">
+              <AdminRevenueChart
+                data={mrrTrend}
+                title="MRR growth"
+                subtitle="Cumulative monthly recurring revenue · last 6 months"
+                color="#3E4751"
+              />
+              <AdminDonut
+                title="Premium mix"
+                subtitle="Premium subscribers by role"
+                centerLabel="Premium"
+                segments={[
+                  { label: 'Creators', value: overview?.premiumInfluencers ?? 0, color: '#7FA8AD' },
+                  { label: 'Brands',   value: overview?.premiumBrands ?? 0,      color: '#f59e0b' },
+                ]}
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

@@ -3,10 +3,12 @@
 import { useRef, useEffect, useState } from 'react';
 
 interface Point { month: string; value: number; }
-interface Props { data: Point[]; }
-
-const LINE = '#10b981';
-const FILL_TOP = '#10b981';
+interface Props {
+  data: Point[];
+  title?: string;
+  subtitle?: string;
+  color?: string;
+}
 
 function formatINR(n: number): string {
   if (n >= 10_000_000) return `₹${(n / 10_000_000).toFixed(1)}Cr`;
@@ -22,7 +24,14 @@ function niceYMax(max: number): number {
   return steps.find(s => s >= max * 1.1) ?? max * 1.2;
 }
 
-export default function AdminRevenueChart({ data }: Props) {
+export default function AdminRevenueChart({
+  data,
+  title = 'Revenue (GMV)',
+  subtitle,
+  color = '#10b981',
+}: Props) {
+  const LINE = color;
+  const FILL_TOP = color;
   const containerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(400);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -64,8 +73,10 @@ export default function AdminRevenueChart({ data }: Props) {
   return (
     <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
       <div className="px-5 sm:px-6 pt-5 pb-3">
-        <h3 className="font-semibold text-gray-900 text-base">Revenue (GMV)</h3>
-        <p className="text-[11px] text-gray-400 mt-0.5">Completed deal value · last 6 months · {formatINR(total)} total</p>
+        <h3 className="font-semibold text-gray-900 text-base">{title}</h3>
+        <p className="text-[11px] text-gray-400 mt-0.5">
+          {subtitle ?? `Completed deal value · last 6 months · ${formatINR(total)} total`}
+        </p>
       </div>
 
       <div ref={containerRef} className="px-2 sm:px-3 pb-4">
@@ -98,7 +109,7 @@ export default function AdminRevenueChart({ data }: Props) {
               <circle cx={p.x} cy={p.y} r={hovered === p.idx ? 5 : 3.5} fill="white" stroke={LINE} strokeWidth="2.5" />
               {hovered === p.idx && (
                 <g>
-                  <rect x={p.x - 36} y={p.y - 32} width={72} height={22} rx="6" fill="#065f46" />
+                  <rect x={p.x - 38} y={p.y - 32} width={76} height={22} rx="6" fill="#1f2937" />
                   <text x={p.x} y={p.y - 17} textAnchor="middle" fontSize="11" fontWeight="700" fill="white" fontFamily="sans-serif">
                     {formatINR(p.value)}
                   </text>
@@ -109,7 +120,7 @@ export default function AdminRevenueChart({ data }: Props) {
                 y={H - 8}
                 textAnchor="middle"
                 fontSize="11"
-                fill={hovered === p.idx ? '#065f46' : '#9aa0a6'}
+                fill={hovered === p.idx ? '#374151' : '#9aa0a6'}
                 fontWeight={hovered === p.idx ? '700' : '500'}
                 fontFamily="sans-serif"
               >

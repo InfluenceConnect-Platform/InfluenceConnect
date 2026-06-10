@@ -709,6 +709,29 @@ exports.getSubscriptionOverview = async (req, res) => {
     const mrr = (premiumInfluencers * 299) + (premiumBrands * 1499);
     const freemiumUsers = totalUsers - premiumInfluencers - premiumBrands;
 
+    // ── Cumulative MRR over the last 6 months ──
+    // Derived from currently-premium users' start dates: MRR at each month-end
+    // is the sum of plan prices for everyone who had upgraded by then.
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    const premiumMembers = await User.find({
+      plan: 'premium',
+      premiumStartedAt: { $ne: null }
+    }).select('role premiumStartedAt');
+
+    const mrrTrend = [];
+    for (let i = 5; i >= 0; i--) {
+      // Last millisecond of the month i months ago.
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+      let monthMrr = 0;
+      premiumMembers.forEach(u => {
+        if (new Date(u.premiumStartedAt) <= monthEnd) {
+          monthMrr += u.role === 'brand' ? 1499 : 299;
+        }
+      });
+      mrrTrend.push({ month: MONTHS[(now.getMonth() - i + 12) % 12], value: monthMrr });
+    }
+
     res.json({
       overview: {
         totalUsers,
@@ -719,7 +742,8 @@ exports.getSubscriptionOverview = async (req, res) => {
         mrr,
         influencerMRR: premiumInfluencers * 299,
         brandMRR: premiumBrands * 1499
-      }
+      },
+      mrrTrend
     });
 
   } catch (error) {
