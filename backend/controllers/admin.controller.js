@@ -84,6 +84,44 @@ exports.getOverviewStats = async (req, res) => {
     });
     const signupTrend = buckets.map(({ month, influencers, brands }) => ({ month, influencers, brands }));
 
+    // ── Deal pipeline, campaign status, top niches, revenue trend ──
+    const [dealStatusAgg, campaignStatusAgg, nicheAgg, revenueAgg] = await Promise.all([
+      Deal.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      Campaign.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      Campaign.aggregate([
+        { $unwind: '$niche' },
+        { $group: { _id: '$niche', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 6 }
+      ]),
+      Deal.aggregate([
+        { $match: { status: 'completed' } },
+        { $addFields: { _at: { $ifNull: ['$completedAt', '$updatedAt'] } } },
+        { $match: { _at: { $gte: trendStart } } },
+        { $group: {
+            _id: { y: { $year: '$_at' }, m: { $month: '$_at' } },
+            value: { $sum: '$agreedAmount' }
+        } }
+      ])
+    ]);
+
+    const dealStatus = { 'in-progress': 0, 'content-submitted': 0, completed: 0, cancelled: 0 };
+    dealStatusAgg.forEach(r => { if (dealStatus[r._id] !== undefined) dealStatus[r._id] = r.count; });
+
+    const campaignStatus = { draft: 0, active: 0, 'in-progress': 0, completed: 0, closed: 0, expired: 0 };
+    campaignStatusAgg.forEach(r => { if (campaignStatus[r._id] !== undefined) campaignStatus[r._id] = r.count; });
+
+    const topNiches = nicheAgg.map(r => ({ niche: r._id, count: r.count }));
+
+    // Revenue trend reuses the same 6 ordered month buckets as signups.
+    const revByKey = new Map();
+    revenueAgg.forEach(r => revByKey.set(`${r._id.y}-${r._id.m}`, r.value || 0));
+    const revenueTrend = buckets.map(b => ({ month: b.month, value: revByKey.get(b.key) || 0 }));
+
     res.json({
       stats: {
         totalUsers,
@@ -99,7 +137,11 @@ exports.getOverviewStats = async (req, res) => {
         freemiumUsers: totalUsers - premiumUsers
       },
       recentSignups,
-      signupTrend
+      signupTrend,
+      dealStatus,
+      campaignStatus,
+      topNiches,
+      revenueTrend
     });
 
   } catch (error) {

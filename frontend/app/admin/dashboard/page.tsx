@@ -8,6 +8,23 @@ import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
 import AdminGrowthChart from '@/components/charts/AdminGrowthChart';
+import AdminRevenueChart from '@/components/charts/AdminRevenueChart';
+import AdminDonut from '@/components/charts/AdminDonut';
+import AdminCategoryBars from '@/components/charts/AdminCategoryBars';
+
+const NICHE_LABELS: Record<string, string> = {
+  beauty: 'Beauty', fashion: 'Fashion', food: 'Food', fitness: 'Fitness',
+  lifestyle: 'Lifestyle', travel: 'Travel', tech: 'Tech', books: 'Books',
+};
+
+const CAMPAIGN_STATUS_META: { key: string; label: string; color: string }[] = [
+  { key: 'active',      label: 'Active',      color: '#22c55e' },
+  { key: 'in-progress', label: 'In progress', color: '#f59e0b' },
+  { key: 'draft',       label: 'Draft',       color: '#9ca3af' },
+  { key: 'completed',   label: 'Completed',   color: '#3b82f6' },
+  { key: 'closed',      label: 'Closed',      color: '#ef4444' },
+  { key: 'expired',     label: 'Expired',     color: '#fb923c' },
+];
 
 const ROLE_STYLES: Record<string, string> = {
   influencer: 'bg-teal-50 text-teal-700 border border-teal-100',
@@ -39,6 +56,10 @@ export default function AdminDashboard() {
   const [stats, setStats]                 = useState<any>(null);
   const [recentSignups, setRecentSignups] = useState<any[]>([]);
   const [signupTrend, setSignupTrend]     = useState<any[]>([]);
+  const [revenueTrend, setRevenueTrend]   = useState<any[]>([]);
+  const [dealStatus, setDealStatus]       = useState<any>(null);
+  const [campaignStatus, setCampaignStatus] = useState<any>(null);
+  const [topNiches, setTopNiches]         = useState<any[]>([]);
   const [pendingGSTIN, setPendingGSTIN]   = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
 
@@ -64,6 +85,10 @@ export default function AdminDashboard() {
       setStats(statsRes.data.stats);
       setRecentSignups(statsRes.data.recentSignups);
       setSignupTrend(statsRes.data.signupTrend ?? []);
+      setRevenueTrend(statsRes.data.revenueTrend ?? []);
+      setDealStatus(statsRes.data.dealStatus ?? null);
+      setCampaignStatus(statsRes.data.campaignStatus ?? null);
+      setTopNiches(statsRes.data.topNiches ?? []);
       setPendingGSTIN(gstinRes.data.pending);
     } catch (err) {
       console.error('Admin data error:', err);
@@ -145,6 +170,23 @@ export default function AdminDashboard() {
     },
   ];
 
+  const dealSegments = [
+    { label: 'In progress',       value: dealStatus?.['in-progress'] ?? 0,       color: '#3b82f6' },
+    { label: 'Content submitted', value: dealStatus?.['content-submitted'] ?? 0, color: '#8b5cf6' },
+    { label: 'Completed',         value: dealStatus?.completed ?? 0,             color: '#10b981' },
+    { label: 'Cancelled',         value: dealStatus?.cancelled ?? 0,             color: '#9ca3af' },
+  ];
+
+  const campaignRows = CAMPAIGN_STATUS_META
+    .map(m => ({ label: m.label, value: campaignStatus?.[m.key] ?? 0, color: m.color }))
+    .filter(r => r.value > 0);
+
+  const nicheRows = topNiches.map(n => ({
+    label: NICHE_LABELS[n.niche] ?? n.niche,
+    value: n.count,
+    color: '#7FA8AD',
+  }));
+
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
 
@@ -188,9 +230,33 @@ export default function AdminDashboard() {
           ))}
         </section>
 
-        {/* Growth chart */}
-        <section className="mb-5">
+        {/* Growth + revenue charts */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
           <AdminGrowthChart data={signupTrend} />
+          <AdminRevenueChart data={revenueTrend} />
+        </section>
+
+        {/* Deal pipeline + campaign status + top niches */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+          <AdminDonut
+            title="Deal pipeline"
+            subtitle="All deals by current status"
+            segments={dealSegments}
+            centerLabel="Deals"
+          />
+          <AdminCategoryBars
+            title="Campaigns by status"
+            subtitle="Distribution across the platform"
+            rows={campaignRows}
+            emptyText="No campaigns yet"
+          />
+          <AdminCategoryBars
+            title="Top niches"
+            subtitle="Most in-demand campaign categories"
+            rows={nicheRows}
+            defaultColor="#7FA8AD"
+            emptyText="No campaign niches yet"
+          />
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-5 mb-5">
