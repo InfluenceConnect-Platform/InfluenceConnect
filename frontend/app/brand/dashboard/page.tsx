@@ -310,8 +310,12 @@ export default function BrandDashboard() {
                   const cfg  = STATUS_CONFIG[app.status];
                   return (
                     <Link key={i} href={`/brand/campaigns?campaign=${app.campaignId?._id}`} className="flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-gray-50/60 transition-colors group cursor-pointer">
-                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm`}>
-                        {app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'}
+                      <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm ${app.influencerProfile?.profilePicUrl ? 'bg-gray-100' : `bg-gradient-to-br ${grad} text-white`}`}>
+                        {app.influencerProfile?.profilePicUrl ? (
+                          <img src={app.influencerProfile.profilePicUrl} alt={app.influencerId?.name} className="w-full h-full object-cover" />
+                        ) : (
+                          app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-gray-900 truncate">{app.influencerId?.name}</p>
