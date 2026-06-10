@@ -48,6 +48,42 @@ exports.getOverviewStats = async (req, res) => {
     const brandMRR = brandPremium * 1499;
     const mrr = influencerMRR + brandMRR;
 
+    // ── Monthly signup trend (last 6 months, split by role) ──
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const trendStart = new Date();
+    trendStart.setMonth(trendStart.getMonth() - 5);
+    trendStart.setDate(1);
+    trendStart.setHours(0, 0, 0, 0);
+
+    const signupAgg = await User.aggregate([
+      { $match: { createdAt: { $gte: trendStart }, role: { $in: ['influencer', 'brand'] } } },
+      { $group: {
+          _id: { y: { $year: '$createdAt' }, m: { $month: '$createdAt' }, role: '$role' },
+          count: { $sum: 1 }
+      } }
+    ]);
+
+    // Build 6 ordered month buckets and fill counts (0 where none).
+    const buckets = [];
+    const cursor = new Date(trendStart);
+    for (let i = 0; i < 6; i++) {
+      buckets.push({
+        key: `${cursor.getFullYear()}-${cursor.getMonth() + 1}`,
+        month: MONTHS[cursor.getMonth()],
+        influencers: 0,
+        brands: 0
+      });
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+    const bucketByKey = new Map(buckets.map(b => [b.key, b]));
+    signupAgg.forEach(row => {
+      const b = bucketByKey.get(`${row._id.y}-${row._id.m}`);
+      if (!b) return;
+      if (row._id.role === 'influencer') b.influencers = row.count;
+      else if (row._id.role === 'brand') b.brands = row.count;
+    });
+    const signupTrend = buckets.map(({ month, influencers, brands }) => ({ month, influencers, brands }));
+
     res.json({
       stats: {
         totalUsers,
@@ -62,7 +98,8 @@ exports.getOverviewStats = async (req, res) => {
         brandMRR,
         freemiumUsers: totalUsers - premiumUsers
       },
-      recentSignups
+      recentSignups,
+      signupTrend
     });
 
   } catch (error) {

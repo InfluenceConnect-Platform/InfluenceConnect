@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
+import AdminGrowthChart from '@/components/charts/AdminGrowthChart';
 
 const ROLE_STYLES: Record<string, string> = {
   influencer: 'bg-teal-50 text-teal-700 border border-teal-100',
@@ -37,6 +38,7 @@ export default function AdminDashboard() {
   const [user, setUser]                   = useState<any>(null);
   const [stats, setStats]                 = useState<any>(null);
   const [recentSignups, setRecentSignups] = useState<any[]>([]);
+  const [signupTrend, setSignupTrend]     = useState<any[]>([]);
   const [pendingGSTIN, setPendingGSTIN]   = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
 
@@ -61,6 +63,7 @@ export default function AdminDashboard() {
       ]);
       setStats(statsRes.data.stats);
       setRecentSignups(statsRes.data.recentSignups);
+      setSignupTrend(statsRes.data.signupTrend ?? []);
       setPendingGSTIN(gstinRes.data.pending);
     } catch (err) {
       console.error('Admin data error:', err);
@@ -183,6 +186,11 @@ export default function AdminDashboard() {
               <p className="text-xs text-gray-400 leading-tight">{s.sub}</p>
             </div>
           ))}
+        </section>
+
+        {/* Growth chart */}
+        <section className="mb-5">
+          <AdminGrowthChart data={signupTrend} />
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-5 mb-5">
