@@ -62,6 +62,21 @@ function buildProfileMatchConditions(profile) {
     conditions.push({ $or: perPlatform });
   }
 
+  // 4. CITY — the influencer's city must be one the campaign targets. Campaigns
+  //    that target everyone (no targetCity, or the 'all' sentinel) qualify for
+  //    anyone. Skipped when the profile has no city set, so an unfilled city
+  //    doesn't over-hide.
+  const city = profile.city;
+  if (city) {
+    conditions.push({
+      $or: [
+        { targetCity: { $size: 0 } },
+        { targetCity: 'all' },
+        { targetCity: city },
+      ],
+    });
+  }
+
   return conditions;
 }
 
@@ -130,9 +145,24 @@ function computeCampaignMatch(profile, campaign) {
     if (afford) reasons.push('Budget fits your rate');
   }
 
-  const score = Math.round(100 * (0.35 * nicheQ + 0.20 * platformQ + 0.25 * followersQ + 0.20 * budgetQ));
+  // City — is the influencer in one of the campaign's targeted cities? Campaigns
+  // that target everyone ('all' / no city) give full credit to anyone.
+  let cityQ = 1, city = 'na';
+  const cCities = (campaign.targetCity ?? []).filter(c => c && c !== 'all');
+  if (cCities.length === 0) {
+    city = 'open';
+  } else if (profile.city) {
+    const inCity = cCities.includes(profile.city);
+    cityQ = inCity ? 1 : 0;
+    city = inCity ? 'full' : 'none';
+    if (inCity) reasons.push(`Based in ${profile.city}`);
+  }
 
-  return { score, niche, platform, followers, budget, reasons };
+  const score = Math.round(100 * (
+    0.30 * nicheQ + 0.20 * cityQ + 0.15 * platformQ + 0.20 * followersQ + 0.15 * budgetQ
+  ));
+
+  return { score, niche, city, platform, followers, budget, reasons };
 }
 
 // ─────────────────────────────────────────
@@ -154,7 +184,7 @@ exports.getCampaigns = async (req, res) => {
     // Fetch this influencer's profile for automatic relevance matching
     // (niche, budget vs price card, platforms, follower range).
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('niche priceRangeMin platforms');
+      .select('niche priceRangeMin platforms city');
     const influencerNiches = influencerProfile?.niche ?? [];
 
     // Exclude campaigns where this influencer was explicitly rejected
@@ -464,7 +494,7 @@ exports.getNewSinceCount = async (req, res) => {
 
     // Count only campaigns relevant to this influencer, matching the browse list.
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('niche priceRangeMin platforms');
+      .select('niche priceRangeMin platforms city');
     const and = buildProfileMatchConditions(influencerProfile);
 
     const query = {
