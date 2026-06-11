@@ -18,6 +18,12 @@ interface Props {
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+type Range = '7d' | '30d';
+
+// Map a JS Date (Sun=0..Sat=6) onto the Mon-indexed weekly shape arrays.
+const weekdayShapeIndex = (date: Date) => (date.getDay() + 6) % 7;
 
 // Each platform has a different audience behaviour — peak days differ
 const PLATFORM_SHAPES: Record<string, number[]> = {
@@ -50,6 +56,7 @@ export default function EngagementTrendChart({ platforms, totalFollowers, dealsC
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(560);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [range, setRange] = useState<Range>('7d');
 
   useEffect(() => {
     const el = containerRef.current;
@@ -88,15 +95,26 @@ export default function EngagementTrendChart({ platforms, totalFollowers, dealsC
     const seed = totalFollowers * 0.01 + avgEngRate * 1000 + dealsCompleted * 77;
     const rng = makePRNG(seed);
 
-    return DAYS.map((day, i) => {
+    const N = range === '7d' ? 7 : 30;
+    // For 30d, label only a handful of evenly spaced points to avoid clutter.
+    const labelStep = Math.ceil(N / 6);
+    const today = new Date();
+
+    return Array.from({ length: N }, (_, i) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (N - 1 - i));
+      const shapeVal = shape[weekdayShapeIndex(date)];
       const noise = (rng() * 2 - 1) * volatility; // ±volatility
-      const trend = (i / (DAYS.length - 1)) * trendBoost; // linear upward tilt
+      const trend = (i / (N - 1)) * trendBoost; // linear upward tilt over the range
       return {
-        day,
-        value: Math.max(10, Math.round(baseEngagement * shape[i] * (1 + noise) * (1 + trend))),
+        label: range === '7d'
+          ? DAYS[weekdayShapeIndex(date)]
+          : `${date.getDate()} ${MONTHS[date.getMonth()]}`,
+        showLabel: range === '7d' || i % labelStep === 0 || i === N - 1,
+        value: Math.max(10, Math.round(baseEngagement * shapeVal * (1 + noise) * (1 + trend))),
       };
     });
-  }, [platforms, totalFollowers, dealsCompleted]);
+  }, [platforms, totalFollowers, dealsCompleted, range]);
 
   const avgComments = platforms.length
     ? Math.round(platforms.reduce((s, p) => s + (p.avgComments || 0), 0) / platforms.length)
@@ -136,9 +154,26 @@ export default function EngagementTrendChart({ platforms, totalFollowers, dealsC
       <div className="flex items-start justify-between px-5 sm:px-6 pt-5 pb-0">
         <div>
           <h3 className="font-bold text-gray-900 text-base">Engagement Trends</h3>
-          <p className="text-[11px] text-gray-400 mt-0.5">Last 7 days performance</p>
+          <p className="text-[11px] text-gray-400 mt-0.5">
+            {range === '7d' ? 'Last 7 days performance' : 'Last 30 days performance'}
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
+          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+            {(['7d', '30d'] as Range[]).map(r => (
+              <button
+                key={r}
+                onClick={() => { setRange(r); setHovered(null); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  range === r
+                    ? 'bg-gradient-to-r from-[#1C4A52] to-[#2d7a88] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {r === '7d' ? '7 Days' : 'Last month'}
+              </button>
+            ))}
+          </div>
           <div className="flex items-center gap-1.5 bg-teal-50 border border-teal-100 rounded-xl px-3 py-1.5">
             <span className="text-[11px] font-bold text-teal-700">
               {totalFollowers >= 1_000_000
@@ -221,21 +256,23 @@ export default function EngagementTrendChart({ platforms, totalFollowers, dealsC
             </>
           )}
 
-          {pts.map((p, i) =>
+          {range === '7d' && pts.map((p, i) =>
             hovered === i ? null : (
               <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="white" stroke="#7FA8AD" strokeWidth="2" />
             )
           )}
 
-          {pts.map((p, i) => (
-            <text key={i} x={p.x} y={H - 8} textAnchor="middle" fontSize="11"
-              fill={hovered === i ? '#1C4A52' : '#9EB8BC'}
-              fontWeight={hovered === i ? '700' : '500'}
-              fontFamily="sans-serif"
-            >
-              {p.day}
-            </text>
-          ))}
+          {pts.map((p, i) =>
+            p.showLabel ? (
+              <text key={i} x={p.x} y={H - 8} textAnchor="middle" fontSize="11"
+                fill={hovered === i ? '#1C4A52' : '#9EB8BC'}
+                fontWeight={hovered === i ? '700' : '500'}
+                fontFamily="sans-serif"
+              >
+                {p.label}
+              </text>
+            ) : null
+          )}
         </svg>
       </div>
     </div>
