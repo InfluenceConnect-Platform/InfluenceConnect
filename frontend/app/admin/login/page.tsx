@@ -182,7 +182,7 @@ export default function AdminLoginPage() {
 
               {/* Email */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[0.7rem] font-bold uppercase tracking-widest text-amber-700/60">
+                <label className="text-[0.7rem] font-bold uppercase tracking-widest text-amber-700/60 dark:text-amber-300/80">
                   Email address
                 </label>
                 <input
@@ -191,14 +191,14 @@ export default function AdminLoginPage() {
                   placeholder="admin@example.com"
                   value={email}
                   onChange={e => { setEmail(e.target.value); setError(''); }}
-                  className="w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-400 bg-amber-50/60 border border-amber-200/70 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 hover:border-amber-300 hover:bg-amber-50 transition-all duration-200"
+                  className="w-full px-4 py-3 text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-400 bg-amber-50/60 dark:bg-white/[0.06] border border-amber-200/70 dark:border-white/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 hover:border-amber-300 dark:hover:border-white/25 hover:bg-amber-50 dark:hover:bg-white/[0.1] transition-all duration-200"
                 />
               </div>
 
               {/* Password */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[0.7rem] font-bold uppercase tracking-widest text-amber-700/60">
+                  <label className="text-[0.7rem] font-bold uppercase tracking-widest text-amber-700/60 dark:text-amber-300/80">
                     Password
                   </label>
                   <button
@@ -216,7 +216,7 @@ export default function AdminLoginPage() {
                     placeholder="Min. 8 characters"
                     value={password}
                     onChange={e => { setPassword(e.target.value); setError(''); }}
-                    className="w-full px-4 py-3 pr-11 text-sm text-gray-900 placeholder-gray-400 bg-amber-50/60 border border-amber-200/70 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 hover:border-amber-300 hover:bg-amber-50 transition-all duration-200"
+                    className="w-full px-4 py-3 pr-11 text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-400 bg-amber-50/60 dark:bg-white/[0.06] border border-amber-200/70 dark:border-white/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 hover:border-amber-300 dark:hover:border-white/25 hover:bg-amber-50 dark:hover:bg-white/[0.1] transition-all duration-200"
                   />
                   <button
                     type="button"
