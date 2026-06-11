@@ -1073,12 +1073,15 @@ export default function BrandCampaigns() {
                           {plat}
                         </span>
                       ))}
-                      {campaign.targetCity?.[0] && campaign.targetCity[0] !== 'all' && (
-                        <span className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                          {campaign.targetCity[0]}
-                        </span>
-                      )}
+                      {(() => {
+                        const cities = (campaign.targetCity ?? []).filter((c: string) => c && c !== 'all');
+                        return cities.length > 0 ? (
+                          <span className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            {cities.join(', ')}
+                          </span>
+                        ) : null;
+                      })()}
                     </div>
                     {campaign.status !== 'draft' && (
                       <p className="text-[10px] text-[#3D5087] font-semibold lg:hidden flex items-center gap-0.5">
