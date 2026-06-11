@@ -137,6 +137,7 @@ export default function InfluencerCampaigns() {
   const [expandedNiches, setExpandedNiches] = useState<Set<string>>(new Set());
   const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
   const [expandedDesc, setExpandedDesc] = useState<Set<string>>(new Set());
+  const [expandedCampDesc, setExpandedCampDesc] = useState<Set<string>>(new Set());
 
   const toggleNicheExpand = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -149,6 +150,10 @@ export default function InfluencerCampaigns() {
   const toggleDescExpand = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setExpandedDesc(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  };
+  const toggleCampDescExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedCampDesc(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   };
   const FREEMIUM_LIMIT = 5;
   const searchRef = useRef<HTMLInputElement>(null);
@@ -637,9 +642,25 @@ export default function InfluencerCampaigns() {
                         <IdChip id={campaign.customId} size="xs" tone="subtle" />
                       </div>
                     )}
-                    <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed mb-4 flex-1 line-clamp-2">
-                      {campaign.description}
-                    </p>
+                    <div className="mb-4 flex-1">
+                      {campaign.description && (
+                        <>
+                          <div className="bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-700/60 rounded-lg px-3 py-2">
+                            <p className={`text-[13px] text-gray-700 dark:text-slate-200 leading-relaxed ${expandedCampDesc.has(campaign._id) ? '' : 'line-clamp-2'}`}>
+                              {campaign.description}
+                            </p>
+                          </div>
+                          {campaign.description.length > 100 && (
+                            <button
+                              onClick={e => toggleCampDescExpand(campaign._id, e)}
+                              className="text-[11px] font-semibold text-[#5D8A8F] dark:text-teal-400 hover:underline mt-1 cursor-pointer"
+                            >
+                              {expandedCampDesc.has(campaign._id) ? 'View less ↑' : 'View more ↓'}
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
 
                     {/* Stats row */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
