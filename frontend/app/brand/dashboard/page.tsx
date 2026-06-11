@@ -317,7 +317,7 @@ export default function BrandDashboard() {
                   const grad = AVATAR_GRADS[(app.influencerId?.name?.charCodeAt(0) || 0) % AVATAR_GRADS.length];
                   const cfg  = STATUS_CONFIG[app.status];
                   return (
-                    <Link key={i} href={`/brand/campaigns?campaign=${app.campaignId?._id}`} className="flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-gray-50/60 transition-colors group cursor-pointer">
+                    <Link key={i} href={`/brand/campaigns?campaign=${app.campaignId?._id}`} className="flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-gray-50/60 dark:hover:bg-slate-800/60 transition-colors group cursor-pointer">
                       <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm ${app.influencerProfile?.profilePicUrl ? 'bg-gray-100' : `bg-gradient-to-br ${grad} text-white`}`}>
                         {app.influencerProfile?.profilePicUrl ? (
                           <img src={app.influencerProfile.profilePicUrl} alt={app.influencerId?.name} className="w-full h-full object-cover" />
@@ -382,7 +382,7 @@ export default function BrandDashboard() {
                   <Link
                     key={action.label}
                     href={action.href}
-                    className="flex flex-col items-center gap-2.5 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-100 hover:border-gray-200 transition-all group cursor-pointer"
+                    className="flex flex-col items-center gap-2.5 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 dark:hover:bg-slate-800/60 border border-gray-100 hover:border-gray-200 dark:hover:border-slate-700 transition-all group cursor-pointer"
                   >
                     <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.grad} text-white flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow`}>
                       {action.icon}
