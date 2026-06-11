@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
+import { useTheme } from '@/lib/useTheme';
 
 export interface BrandAnalyticsData {
   applicationsOverTime: { month: string; count: number }[];
@@ -188,8 +189,11 @@ function ApplicationFunnel({ funnel }: { funnel: BrandAnalyticsData['funnel'] })
 
 // ── 3. Deal Pipeline (donut) ────────────────────────────────────────────────
 function DealPipeline({ pipeline }: { pipeline: BrandAnalyticsData['dealPipeline'] }) {
+  const { isDark } = useTheme();
   const segs = [
-    { label: 'In-progress', value: pipeline.inProgress, color: '#3D5087' },
+    // In-progress uses the brand navy, which blends into the dark card — lift it
+    // to a brighter indigo in dark mode so the segment and legend stay visible.
+    { label: 'In-progress', value: pipeline.inProgress, color: isDark ? '#818cf8' : '#3D5087' },
     { label: 'Content submitted', value: pipeline.contentSubmitted, color: '#f59e0b' },
     { label: 'Completed', value: pipeline.completed, color: '#10b981' },
     { label: 'Cancelled', value: pipeline.cancelled, color: '#94a3b8' },
@@ -220,7 +224,7 @@ function DealPipeline({ pipeline }: { pipeline: BrandAnalyticsData['dealPipeline
                 offset += len;
                 return el;
               })}
-              <text x="70" y="66" textAnchor="middle" fontSize="26" fontWeight="800" fill="#1e2f5c" fontFamily="sans-serif">{total}</text>
+              <text x="70" y="66" textAnchor="middle" fontSize="26" fontWeight="800" fill={isDark ? '#f1f5f9' : '#1e2f5c'} fontFamily="sans-serif">{total}</text>
               <text x="70" y="84" textAnchor="middle" fontSize="10" fontWeight="600" fill="#9aa3ba" fontFamily="sans-serif">deals</text>
             </svg>
             <div className="flex-1 flex flex-col gap-2">
