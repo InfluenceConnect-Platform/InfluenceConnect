@@ -13,6 +13,23 @@ const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', '
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
+// Compact follower count, e.g. 250000 → "250K", 1500000 → "1.5M".
+const fmtFollowers = (n: number) => {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(n % 1_000 === 0 ? 0 : 1)}K`;
+  return `${n}`;
+};
+
+// Human label for a campaign's required follower range. Returns null when the
+// campaign sets no follower constraint (so the chip can be hidden).
+const followerRangeLabel = (min: number, max: number) => {
+  const lo = min || 0, hi = max || 0;
+  if (lo <= 0 && hi <= 0) return null;
+  if (lo > 0 && hi > 0) return `${fmtFollowers(lo)}–${fmtFollowers(hi)}`;
+  if (lo > 0) return `${fmtFollowers(lo)}+`;
+  return `up to ${fmtFollowers(hi)}`;
+};
+
 // Multi-select dropdown for a campaign's target cities. "All India" is mutually
 // exclusive with specific cities: picking it clears the rest, and picking any
 // city clears "All India". Clearing the last city falls back to ['all'].
@@ -1016,7 +1033,7 @@ export default function BrandCampaigns() {
                   </div>
 
                   {/* Stat cards row */}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-center">
                       <p className="text-base font-black text-blue-900 leading-none mb-1">{campaign.applicantCount ?? 0}</p>
                       <p className="text-[10px] font-semibold text-blue-500">Applicants</p>
@@ -1028,6 +1045,12 @@ export default function BrandCampaigns() {
                           : 'Open'}
                       </p>
                       <p className="text-[10px] font-semibold text-emerald-600">Budget</p>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200/80 text-center">
+                      <p className="text-[11px] font-black text-rose-900 leading-none mb-1 truncate">
+                        {followerRangeLabel(campaign.minFollowers, campaign.maxFollowers) ?? 'Any'}
+                      </p>
+                      <p className="text-[10px] font-semibold text-rose-500">Followers</p>
                     </div>
                     <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 text-center">
                       <p className="text-[11px] font-black text-amber-900 leading-none mb-1">
