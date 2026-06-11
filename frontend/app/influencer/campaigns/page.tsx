@@ -504,7 +504,7 @@ export default function InfluencerCampaigns() {
               const urgency        = !deadlinePassed && days <= 3;
               const soonish        = !deadlinePassed && days <= 7 && days > 3;
               // Prefer the registered company name over the account holder's personal name.
-              const brandName      = campaign.brandCompanyName || campaign.brandId?.name || 'Brand';
+              const brandName      = campaign.brandId?.name || campaign.brandCompanyName || 'Brand';
               const brandGrad      = BRAND_GRADS[(brandName.charCodeAt(0) || 0) % BRAND_GRADS.length];
 
               return (

@@ -133,7 +133,7 @@ export default function BrandProfile() {
     </div>
   );
 
-  const displayName = profile?.companyName || user?.name || 'Your Brand';
+  const displayName = user?.name || profile?.companyName || 'Your Brand';
   const isPremium   = user?.plan === 'premium';
   const industryChip = profile?.industry ? (INDUSTRY_COLORS[profile.industry] ?? INDUSTRY_COLORS.other) : null;
 
@@ -247,8 +247,8 @@ export default function BrandProfile() {
             {/* Name + meta */}
             <div className="mb-1.5">
               <h2 className="text-xl font-bold text-gray-900 tracking-tight">{displayName}</h2>
-              {user?.name && profile?.companyName && profile.companyName !== user.name && (
-                <p className="text-xs text-gray-400 mt-0.5">{user.name}</p>
+              {profile?.companyName && profile.companyName !== user?.name && (
+                <p className="text-xs text-gray-400 mt-0.5">{profile.companyName}</p>
               )}
               {profile?.userId?.customId && (
                 <div className="mt-2">

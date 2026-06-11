@@ -303,11 +303,11 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                         <img src={brand.logoUrl} alt={brand.name} className="w-11 h-11 rounded-full object-cover flex-shrink-0 shadow-sm" />
                       ) : (
                         <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
-                          {(brand.companyName || brand.name)?.charAt(0).toUpperCase()}
+                          {(brand.name || brand.companyName)?.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className="text-[14px] font-bold text-gray-900 truncate">{brand.companyName || brand.name}</p>
+                        <p className="text-[14px] font-bold text-gray-900 truncate">{brand.name || brand.companyName}</p>
                         <p className="text-[12px] text-gray-400 truncate">{brand.email}</p>
                       </div>
                       {brand.status === 'suspended' && (
@@ -315,6 +315,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-3.5">
+                      <Field label="Company" value={brand.companyName || '—'} />
                       <Field label="Industry" value={cap(brand.industry)} />
                       <Field label="GSTIN" value={brand.gstinStatus === 'not_submitted' ? 'Not submitted' : cap(brand.gstinStatus)} />
                       <Field label="Website" value={
