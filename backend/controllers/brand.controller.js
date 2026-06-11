@@ -866,9 +866,11 @@ exports.getDashboardStats = async (req, res) => {
         { $match: { brandId } },
         { $group: { _id: '$status', count: { $sum: 1 } } },
       ]),
-      // Agreed deal value per campaign (excluding cancelled), top 6
+      // Agreed deal value per campaign, top 6. Only count deals where both
+      // parties have finalized the price (negotiationStatus 'agreed'); deals
+      // still being negotiated ('open') or cancelled don't represent real spend.
       Deal.aggregate([
-        { $match: { brandId, status: { $ne: 'cancelled' } } },
+        { $match: { brandId, negotiationStatus: 'agreed', status: { $ne: 'cancelled' } } },
         { $group: { _id: '$campaignId', amount: { $sum: '$agreedAmount' } } },
         { $sort: { amount: -1 } },
         { $limit: 6 },
