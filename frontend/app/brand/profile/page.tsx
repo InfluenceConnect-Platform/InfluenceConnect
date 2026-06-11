@@ -366,7 +366,7 @@ export default function BrandProfile() {
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">Website</label>
                     <input type="url" value={website} onChange={e => setWebsite(e.target.value)}
-                      placeholder="https://yourbrand.com" className={fieldClass} />
+                      placeholder="www.yourbrand.com" className={fieldClass} />
                   </div>
                 </div>
               </div>
