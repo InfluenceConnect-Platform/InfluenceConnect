@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
@@ -12,6 +12,74 @@ import { useConfirm } from '@/components/shared/ConfirmModal';
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
+
+// Multi-select dropdown for a campaign's target cities. "All India" is mutually
+// exclusive with specific cities: picking it clears the rest, and picking any
+// city clears "All India". Clearing the last city falls back to ['all'].
+function CityMultiSelect({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  const cities = value.filter(c => c && c !== 'all');
+  const isAll = cities.length === 0;
+
+  const toggle = (c: string) => {
+    if (c === 'all') { onChange(['all']); return; }
+    const next = cities.includes(c) ? cities.filter(x => x !== c) : [...cities, c];
+    onChange(next.length === 0 ? ['all'] : next);
+  };
+
+  const summary = isAll
+    ? 'All India'
+    : cities.length <= 2
+      ? cities.join(', ')
+      : `${cities.slice(0, 2).join(', ')} +${cities.length - 2}`;
+
+  const fieldClass = 'w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] hover:border-gray-300 transition-all';
+
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen(o => !o)} className={`${fieldClass} flex items-center justify-between text-left`}>
+        <span className={isAll ? 'text-gray-400' : 'text-gray-900'}>{summary}</span>
+        <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto py-1">
+          {CITIES.map(c => {
+            const checked = c === 'all' ? isAll : cities.includes(c);
+            return (
+              <div
+                key={c}
+                role="checkbox"
+                aria-checked={checked}
+                onClick={() => toggle(c)}
+                className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-gray-50 group"
+              >
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                  checked ? 'border-0 bg-gradient-to-br from-emerald-500 to-green-600 shadow-sm' : 'border-gray-300 group-hover:border-emerald-500'
+                }`}>
+                  {checked && (
+                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  )}
+                </div>
+                <span className={`text-sm transition-colors ${checked ? 'text-emerald-600 font-semibold' : 'text-gray-700'}`}>{c === 'all' ? 'All India' : c}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const CAMPAIGN_STATUS_STYLES: Record<string, string> = {
   active:        'bg-gradient-to-r from-emerald-500 to-green-600 text-white',
@@ -378,8 +446,8 @@ export default function BrandCampaigns() {
     params.set('inviteCampaign', campaign._id);
     params.set('campaignTitle', campaign.title);
     if (campaign.niche?.length) params.set('niche', campaign.niche.join(','));
-    const city = campaign.targetCity?.find((c: string) => c && c !== 'all');
-    if (city) params.set('city', city);
+    const cities = (campaign.targetCity ?? []).filter((c: string) => c && c !== 'all');
+    if (cities.length) params.set('city', cities.join(','));
     if (campaign.targetPlatforms?.length) params.set('platform', campaign.targetPlatforms.join(','));
     if (campaign.minFollowers > 0) params.set('minFollowers', String(campaign.minFollowers));
     if (campaign.maxFollowers > 0) params.set('maxFollowers', String(campaign.maxFollowers));
@@ -504,15 +572,10 @@ export default function BrandCampaigns() {
 
                 <div>
                   <label className={labelClass}>Target city</label>
-                  <select
-                    value={form.targetCity[0]}
-                    onChange={e => setForm(p => ({ ...p, targetCity: [e.target.value] }))}
-                    className={fieldClass}
-                  >
-                    {CITIES.map(c => (
-                      <option key={c} value={c}>{c === 'all' ? 'All India' : c}</option>
-                    ))}
-                  </select>
+                  <CityMultiSelect
+                    value={form.targetCity}
+                    onChange={cities => setForm(p => ({ ...p, targetCity: cities }))}
+                  />
                 </div>
 
                 <div>
@@ -686,9 +749,7 @@ export default function BrandCampaigns() {
                 </div>
                 <div>
                   <label className={labelClass}>Target city</label>
-                  <select value={form.targetCity[0]} onChange={e => setForm(p => ({ ...p, targetCity: [e.target.value] }))} className={fieldClass}>
-                    {CITIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All India' : c}</option>)}
-                  </select>
+                  <CityMultiSelect value={form.targetCity} onChange={cities => setForm(p => ({ ...p, targetCity: cities }))} />
                 </div>
                 <div>
                   <label className={labelClass}>Follower range</label>

@@ -721,7 +721,11 @@ exports.discoverInfluencers = async (req, res) => {
     }
 
     if (city) {
-      query.city = city;
+      // Accept a single city or a comma-separated list (e.g. "Delhi,Mumbai").
+      const cities = city.split(',').map(c => c.trim()).filter(Boolean);
+      if (cities.length > 0) {
+        query.city = cities.length > 1 ? { $in: cities } : cities[0];
+      }
     }
 
     if (platform) {

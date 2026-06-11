@@ -68,8 +68,8 @@ const FIELD_CLASS = 'w-full px-3 py-2 text-sm text-gray-900 border border-gray-2
 interface FilterPanelProps {
   selectedNiches: string[];
   toggleNiche: (n: string) => void;
-  selectedCity: string;
-  setSelectedCity: (v: string) => void;
+  selectedCities: string[];
+  toggleCity: (v: string) => void;
   selectedPlatforms: string[];
   togglePlatform: (v: string) => void;
   minInput: string;
@@ -94,7 +94,7 @@ interface FilterPanelProps {
 
 function FilterPanel({
   selectedNiches, toggleNiche,
-  selectedCity, setSelectedCity,
+  selectedCities, toggleCity,
   selectedPlatforms, togglePlatform,
   minInput, setMinInput,
   maxInput, setMaxInput,
@@ -156,7 +156,7 @@ function FilterPanel({
           </p>
           <div className="flex flex-col gap-2">
             {NICHES.map(n => (
-              <label key={n} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleNiche(n)}>
+              <div key={n} role="checkbox" aria-checked={selectedNiches.includes(n)} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleNiche(n)}>
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                   selectedNiches.includes(n)
                     ? 'border-0 bg-gradient-to-br from-[#3D5087] to-[#2B3B68] shadow-sm'
@@ -168,9 +168,8 @@ function FilterPanel({
                     </svg>
                   )}
                 </div>
-                <input type="checkbox" checked={selectedNiches.includes(n)} onChange={() => toggleNiche(n)} className="sr-only" />
                 <span className={`text-sm capitalize transition-colors ${selectedNiches.includes(n) ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{n}</span>
-              </label>
+              </div>
             ))}
           </div>
         </div>
@@ -183,10 +182,24 @@ function FilterPanel({
             <span className="w-3 h-3 rounded bg-gradient-to-br from-emerald-500 to-green-600 flex-shrink-0" />
             City
           </p>
-          <select value={selectedCity} onChange={e => setSelectedCity(e.target.value)} className={FIELD_CLASS}>
-            <option value="">All cities</option>
-            {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+          <div className="flex flex-col gap-2">
+            {CITIES.map(c => (
+              <div key={c} role="checkbox" aria-checked={selectedCities.includes(c)} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleCity(c)}>
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                  selectedCities.includes(c)
+                    ? 'border-0 bg-gradient-to-br from-emerald-500 to-green-600 shadow-sm'
+                    : 'border-gray-300 group-hover:border-emerald-500'
+                }`}>
+                  {selectedCities.includes(c) && (
+                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  )}
+                </div>
+                <span className={`text-sm transition-colors ${selectedCities.includes(c) ? 'text-emerald-600 font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{c}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="h-px bg-gray-100 mb-5" />
@@ -205,7 +218,7 @@ function FilterPanel({
             ].map(p => {
               const checked = selectedPlatforms.includes(p.value);
               return (
-                <label key={p.value} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => togglePlatform(p.value)}>
+                <div key={p.value} role="checkbox" aria-checked={checked} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => togglePlatform(p.value)}>
                   <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                     checked
                       ? 'border-[#3D5087] bg-[#3D5087]'
@@ -215,12 +228,11 @@ function FilterPanel({
                       <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     )}
                   </div>
-                  <input type="checkbox" value={p.value} checked={checked} onChange={() => togglePlatform(p.value)} className="sr-only" />
                   <div className="flex items-center gap-1.5">
                     {p.logo}
                     <span className={`text-sm transition-colors ${checked ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{p.label}</span>
                   </div>
-                </label>
+                </div>
               );
             })}
           </div>
@@ -581,6 +593,7 @@ export default function BrandDiscover() {
   // is passed as URL params — pre-fill the filters from them.
   const initialNiche = searchParams.get('niche');
   const initialCity = searchParams.get('city') || '';
+  const initialCities = initialCity ? initialCity.split(',').map(c => c.trim()).filter(Boolean) : [];
   const initialPlatform = searchParams.get('platform');
   const initialMinFollowers = searchParams.get('minFollowers') || '';
   const initialMaxFollowers = searchParams.get('maxFollowers') || '';
@@ -588,7 +601,7 @@ export default function BrandDiscover() {
   const initialMaxPrice = searchParams.get('maxPrice') || '';
 
   const [selectedNiches, setSelectedNiches] = useState<string[]>(initialNiche ? initialNiche.split(',') : []);
-  const [selectedCity, setSelectedCity] = useState(initialCity);
+  const [selectedCities, setSelectedCities] = useState<string[]>(initialCities);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(initialPlatform ? initialPlatform.split(',') : []);
   const [minFollowers, setMinFollowers] = useState(initialMinFollowers);
   const [maxFollowers, setMaxFollowers] = useState(initialMaxFollowers);
@@ -615,7 +628,7 @@ export default function BrandDiscover() {
 
   useEffect(() => {
     fetchInfluencers();
-  }, [selectedNiches, selectedCity, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch]);
+  }, [selectedNiches, selectedCities, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch]);
 
   const fetchInfluencers = async () => {
     setLoading(true);
@@ -623,7 +636,7 @@ export default function BrandDiscover() {
       const params: Record<string, string> = {};
       if (debouncedSearch) params.search = debouncedSearch;
       if (selectedNiches.length > 0) params.niche = selectedNiches.join(',');
-      if (selectedCity) params.city = selectedCity;
+      if (selectedCities.length > 0) params.city = selectedCities.join(',');
       if (selectedPlatforms.length > 0) params.platform = selectedPlatforms.join(',');
       if (minFollowers) params.minFollowers = minFollowers;
       if (maxFollowers) params.maxFollowers = maxFollowers;
@@ -642,6 +655,12 @@ export default function BrandDiscover() {
   const toggleNiche = (niche: string) => {
     setSelectedNiches(prev =>
       prev.includes(niche) ? prev.filter(n => n !== niche) : [...prev, niche]
+    );
+  };
+
+  const toggleCity = (city: string) => {
+    setSelectedCities(prev =>
+      prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city]
     );
   };
 
@@ -678,7 +697,7 @@ export default function BrandDiscover() {
   const clearFilters = () => {
     setSearch('');
     setSelectedNiches([]);
-    setSelectedCity('');
+    setSelectedCities([]);
     setSelectedPlatforms([]);
     setMinFollowers('');
     setMaxFollowers('');
@@ -691,7 +710,7 @@ export default function BrandDiscover() {
   };
 
   const activeFilterCount =
-    selectedNiches.length + (selectedCity ? 1 : 0) + selectedPlatforms.length +
+    selectedNiches.length + selectedCities.length + selectedPlatforms.length +
     (minFollowers ? 1 : 0) + (maxFollowers ? 1 : 0) + (minPrice || maxPrice ? 1 : 0);
 
   const getPrimaryPlatform = (influencer: any) => {
@@ -703,7 +722,7 @@ export default function BrandDiscover() {
 
   const filterPanelProps: FilterPanelProps = {
     selectedNiches, toggleNiche,
-    selectedCity, setSelectedCity,
+    selectedCities, toggleCity,
     selectedPlatforms, togglePlatform,
     minInput, setMinInput,
     maxInput, setMaxInput,

@@ -135,11 +135,16 @@ export default function InfluencerCampaigns() {
 
   const [applicationsUsed, setApplicationsUsed] = useState(0);
   const [expandedNiches, setExpandedNiches] = useState<Set<string>>(new Set());
+  const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
   const [expandedDesc, setExpandedDesc] = useState<Set<string>>(new Set());
 
   const toggleNicheExpand = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setExpandedNiches(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  };
+  const toggleCityExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedCities(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   };
   const toggleDescExpand = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -709,9 +714,21 @@ export default function InfluencerCampaigns() {
                           </button>
                         )}
                         {campaign.targetCity.length > 0 && campaign.targetCity[0] !== 'all' && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">
-                            {campaign.targetCity[0]}{campaign.targetCity.length > 1 ? ` +${campaign.targetCity.length - 1}` : ''}
-                          </span>
+                          <>
+                            {(expandedCities.has(campaign._id) ? campaign.targetCity : campaign.targetCity.slice(0, 1)).map((c: string) => (
+                              <span key={c} className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">
+                                {c}
+                              </span>
+                            ))}
+                            {campaign.targetCity.length > 1 && (
+                              <button
+                                onClick={e => toggleCityExpand(campaign._id, e)}
+                                className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600 hover:bg-[#EEF4F5] dark:hover:bg-slate-600/60 hover:text-[#2A3E42] dark:hover:text-slate-200 transition-colors cursor-pointer"
+                              >
+                                {expandedCities.has(campaign._id) ? '↑ less' : `+${campaign.targetCity.length - 1}`}
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
 
