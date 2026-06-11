@@ -111,14 +111,9 @@ const campaignSchema = new mongoose.Schema({
 campaignSchema.index({ brandId: 1, status: 1 });
 
 // Assign a human-readable customId on first save.
-campaignSchema.pre('save', async function(next) {
-  try {
-    if (!this.customId) {
-      this.customId = await generateId('campaign');
-    }
-    next();
-  } catch (err) {
-    next(err);
+campaignSchema.pre('save', async function() {
+  if (!this.customId) {
+    this.customId = await generateId('campaign');
   }
 });
 

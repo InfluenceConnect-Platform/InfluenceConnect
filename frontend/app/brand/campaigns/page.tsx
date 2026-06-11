@@ -203,7 +203,7 @@ export default function BrandCampaigns() {
       resetForm();
       fetchCampaigns();
     } catch (error: any) {
-      showToast(error.response?.data?.message || 'Failed to create campaign.');
+      showToast(error.response?.data?.message || error.response?.data?.error || 'Failed to create campaign.');
     } finally {
       setCreating(false);
     }

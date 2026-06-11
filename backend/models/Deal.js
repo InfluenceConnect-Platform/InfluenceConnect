@@ -79,14 +79,9 @@ dealSchema.index({ influencerId: 1, updatedAt: -1 });
 dealSchema.index({ applicationId: 1 });
 
 // Assign a human-readable customId on first save.
-dealSchema.pre('save', async function(next) {
-  try {
-    if (!this.customId) {
-      this.customId = await generateId('deal');
-    }
-    next();
-  } catch (err) {
-    next(err);
+dealSchema.pre('save', async function() {
+  if (!this.customId) {
+    this.customId = await generateId('deal');
   }
 });
 

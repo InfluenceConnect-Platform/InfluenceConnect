@@ -57,14 +57,9 @@ applicationSchema.index(
 applicationSchema.index({ brandId: 1, createdAt: -1 });
 
 // Assign a human-readable customId on first save.
-applicationSchema.pre('save', async function(next) {
-  try {
-    if (!this.customId) {
-      this.customId = await generateId('application');
-    }
-    next();
-  } catch (err) {
-    next(err);
+applicationSchema.pre('save', async function() {
+  if (!this.customId) {
+    this.customId = await generateId('application');
   }
 });
 

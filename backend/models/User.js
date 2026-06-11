@@ -104,14 +104,9 @@ const userSchema = new mongoose.Schema({
 });
 
 // Assign a role-specific human-readable customId on first save.
-userSchema.pre('save', async function(next) {
-  try {
-    if (!this.customId) {
-      this.customId = await generateId(this.role);
-    }
-    next();
-  } catch (err) {
-    next(err);
+userSchema.pre('save', async function() {
+  if (!this.customId) {
+    this.customId = await generateId(this.role);
   }
 });
 

@@ -7,6 +7,135 @@ const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
 
 // ─────────────────────────────────────────
+// RELEVANCE MATCHING
+// Build the campaign-match conditions for an influencer profile so they only
+// see campaigns relevant to them (and brands only get relevant applicants).
+// Each rule is skipped when the profile lacks the data for it, so incomplete
+// profiles see more rather than being over-filtered.
+// Returns an array of conditions meant to be ANDed into the campaign query.
+// ─────────────────────────────────────────
+function buildProfileMatchConditions(profile) {
+  const conditions = [];
+  if (!profile) return conditions;
+
+  // 1. NICHE — campaign niches overlap the influencer's niches (partial match).
+  //    Campaigns with no niche set are treated as relevant to everyone.
+  const niches = profile.niche ?? [];
+  if (niches.length > 0) {
+    conditions.push({ $or: [{ niche: { $size: 0 } }, { niche: { $in: niches } }] });
+  }
+
+  // 2. BUDGET — the brand must be able to afford the influencer: the campaign's
+  //    top budget reaches at least the influencer's price floor. Campaigns that
+  //    pay more than the influencer charges are still shown. budgetMax 0 means
+  //    the brand left the budget open-ended, so it always qualifies.
+  const priceMin = profile.priceRangeMin ?? 0;
+  if (priceMin > 0) {
+    conditions.push({ $or: [{ budgetMax: 0 }, { budgetMax: { $gte: priceMin } }] });
+  }
+
+  // 3. PLATFORMS + FOLLOWERS (coupled, per-platform) — the influencer is
+  //    relevant if at least ONE of their platforms is BOTH targeted by the
+  //    campaign (or the campaign targets any) AND has a follower count inside
+  //    the campaign's requested range. Checking the range against the SAME
+  //    platform the campaign targets — not the influencer's biggest platform —
+  //    avoids e.g. a YouTube campaign matching someone purely on their Instagram
+  //    size. The influencer's platforms are known here, so this still resolves
+  //    to a single DB query (an $or over each platform).
+  //    A platform with 0/unknown followers isn't gated on the range (it only has
+  //    to be targeted), so an unfilled follower count doesn't over-hide.
+  //    maxFollowers 0 means the campaign set no upper limit.
+  const platforms = (profile.platforms ?? []).filter(p => p.name);
+  if (platforms.length > 0) {
+    const perPlatform = platforms.map(p => {
+      const followers = p.followers || 0;
+      const targeted = { $or: [{ targetPlatforms: { $size: 0 } }, { targetPlatforms: p.name }] };
+      if (followers <= 0) return targeted;
+      return {
+        $and: [
+          targeted,
+          { minFollowers: { $lte: followers } },
+          { $or: [{ maxFollowers: 0 }, { maxFollowers: { $gte: followers } }] },
+        ],
+      };
+    });
+    conditions.push({ $or: perPlatform });
+  }
+
+  return conditions;
+}
+
+// ─────────────────────────────────────────
+// MATCH BREAKDOWN
+// Describe HOW well a single campaign fits the influencer, for the match badge.
+// Returns a per-dimension label and a 0–100 score. A dimension is 'open' when
+// the campaign sets no constraint, 'na' when the profile lacks the data to
+// judge, and 'full'/'partial'/'none' otherwise. Both 'open' and 'na' count as
+// neutral (full credit) so they neither inflate nor unfairly lower the score.
+// ─────────────────────────────────────────
+function computeCampaignMatch(profile, campaign) {
+  if (!profile) return null;
+
+  const niches = profile.niche ?? [];
+  const platforms = (profile.platforms ?? []).filter(p => p.name);
+  const platformNames = platforms.map(p => p.name);
+  const reasons = [];
+
+  // Niche overlap
+  let nicheQ = 1, niche = 'na';
+  const cNiche = campaign.niche ?? [];
+  if (cNiche.length === 0) {
+    niche = 'open';
+  } else if (niches.length > 0) {
+    const matched = cNiche.filter(n => niches.includes(n));
+    nicheQ = matched.length / cNiche.length;
+    niche = matched.length === cNiche.length ? 'full' : matched.length > 0 ? 'partial' : 'none';
+    if (matched.length) reasons.push(`Niche: ${matched.join(', ')}`);
+  }
+
+  // Platform overlap
+  let platformQ = 1, platform = 'na';
+  const cPlat = campaign.targetPlatforms ?? [];
+  if (cPlat.length === 0) {
+    platform = 'open';
+  } else if (platformNames.length > 0) {
+    const matched = cPlat.filter(p => platformNames.includes(p));
+    platformQ = matched.length / cPlat.length;
+    platform = matched.length === cPlat.length ? 'full' : matched.length > 0 ? 'partial' : 'none';
+    if (matched.length) reasons.push(`On ${matched.join(', ')}`);
+  }
+
+  // Followers — judged on the platforms the campaign targets (or all if it targets any)
+  let followersQ = 1, followers = 'na';
+  const relevant = cPlat.length ? platforms.filter(p => cPlat.includes(p.name)) : platforms;
+  const reach = Math.max(0, ...relevant.map(p => p.followers || 0));
+  const min = campaign.minFollowers || 0;
+  const max = campaign.maxFollowers || 0;
+  if (min === 0 && max === 0) {
+    followers = 'open';
+  } else if (reach > 0) {
+    const inRange = reach >= min && (max === 0 || reach <= max);
+    followersQ = inRange ? 1 : 0;
+    followers = inRange ? 'full' : 'none';
+    if (inRange) reasons.push('Your audience size fits');
+  }
+
+  // Budget — can the brand afford the influencer's floor?
+  let budgetQ = 1, budget = 'na';
+  const priceMin = profile.priceRangeMin ?? 0;
+  if (priceMin > 0) {
+    const afford = (campaign.budgetMax || 0) === 0 || campaign.budgetMax >= priceMin;
+    budgetQ = afford ? 1 : 0;
+    budget = afford ? 'full' : 'none';
+    if (afford) reasons.push('Budget fits your rate');
+  }
+
+  const score = Math.round(100 * (0.35 * nicheQ + 0.20 * platformQ + 0.25 * followersQ + 0.20 * budgetQ));
+
+  return { score, niche, platform, followers, budget, reasons };
+}
+
+// ─────────────────────────────────────────
 // GET ALL CAMPAIGNS (for influencer browse)
 // ─────────────────────────────────────────
 exports.getCampaigns = async (req, res) => {
@@ -22,8 +151,10 @@ exports.getCampaigns = async (req, res) => {
     // Flip any overdue campaigns to 'expired' so they drop out of the browse list.
     await expireOverdueCampaigns();
 
-    // Fetch this influencer's niches for automatic campaign filtering
-    const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId }).select('niche');
+    // Fetch this influencer's profile for automatic relevance matching
+    // (niche, budget vs price card, platforms, follower range).
+    const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
+      .select('niche priceRangeMin platforms');
     const influencerNiches = influencerProfile?.niche ?? [];
 
     // Exclude campaigns where this influencer was explicitly rejected
@@ -33,17 +164,9 @@ exports.getCampaigns = async (req, res) => {
     }).select('campaignId');
     const rejectedCampaignIds = rejectedApplications.map(a => a.campaignId);
 
-    // Build filter query
+    // Build filter query. All relevance and manual-filter rules are ANDed.
     const query = { status: 'active', _id: { $nin: rejectedCampaignIds } };
-
-    // Only show campaigns whose niches overlap with the influencer's niches.
-    // Campaigns with no niches set are shown to everyone.
-    if (influencerNiches.length > 0) {
-      query.$or = [
-        { niche: { $size: 0 } },
-        { niche: { $in: influencerNiches } },
-      ];
-    }
+    const and = buildProfileMatchConditions(influencerProfile);
 
     // Manual niche filter from the UI narrows further within the influencer's niches
     if (niche) {
@@ -53,40 +176,24 @@ exports.getCampaigns = async (req, res) => {
         ? requestedNiches.filter(n => influencerNiches.includes(n))
         : requestedNiches;
       if (allowed.length > 0) {
-        // Replace the $or with a stricter niche match
-        delete query.$or;
-        query.niche = { $in: allowed };
+        and.push({ niche: { $in: allowed } });
       } else if (influencerNiches.length > 0) {
         // Requested niches have no overlap with the influencer's profile niches — no results
         query._id = { $in: [] };
-        delete query.$or;
       }
     }
 
     if (city && city !== 'all') {
-      const cityConditions = [{ targetCity: city }, { targetCity: 'all' }];
-      // Merge with existing $or if present
-      if (query.$or) {
-        query.$and = [{ $or: query.$or }, { $or: cityConditions }];
-        delete query.$or;
-      } else {
-        query.$or = cityConditions;
-      }
+      and.push({ $or: [{ targetCity: city }, { targetCity: 'all' }] });
     }
 
     if (platform && platform !== 'any') {
       // Match campaigns that target this platform, plus campaigns with no
       // platform restriction (empty targetPlatforms = "any platform").
-      const platformCond = { $or: [{ targetPlatforms: { $size: 0 } }, { targetPlatforms: platform }] };
-      if (query.$and) {
-        query.$and.push(platformCond);
-      } else if (query.$or) {
-        query.$and = [{ $or: query.$or }, platformCond];
-        delete query.$or;
-      } else {
-        query.$or = platformCond.$or;
-      }
+      and.push({ $or: [{ targetPlatforms: { $size: 0 } }, { targetPlatforms: platform }] });
     }
+
+    if (and.length > 0) query.$and = and;
 
     // Paginate
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -120,6 +227,7 @@ exports.getCampaigns = async (req, res) => {
         brandIndustry: bp?.industry || '',
         brandDescription: bp?.description || '',
         brandGstinVerified: bp?.gstinVerified || false,
+        match: computeCampaignMatch(influencerProfile, c),
       };
     });
 
@@ -354,11 +462,19 @@ exports.getNewSinceCount = async (req, res) => {
     }).select('campaignId');
     const rejectedIds = rejectedApps.map(a => a.campaignId);
 
-    const count = await Campaign.countDocuments({
+    // Count only campaigns relevant to this influencer, matching the browse list.
+    const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
+      .select('niche priceRangeMin platforms');
+    const and = buildProfileMatchConditions(influencerProfile);
+
+    const query = {
       status: 'active',
       createdAt: { $gt: sinceDate },
       _id: { $nin: rejectedIds }
-    });
+    };
+    if (and.length > 0) query.$and = and;
+
+    const count = await Campaign.countDocuments(query);
     res.json({ count });
   } catch (error) {
     res.status(500).json({ error: 'Something went wrong.' });
