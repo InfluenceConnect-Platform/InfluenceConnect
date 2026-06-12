@@ -33,6 +33,13 @@ const otpSchema = new mongoose.Schema({
   used: {
     type: Boolean,
     default: false
+  },
+
+  // Number of incorrect verification attempts. The code is invalidated once
+  // this reaches MAX_OTP_ATTEMPTS, to stop brute-forcing the 6-digit value.
+  attempts: {
+    type: Number,
+    default: 0
   }
 
 }, {

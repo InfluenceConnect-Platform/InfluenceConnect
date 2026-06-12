@@ -3,28 +3,29 @@ const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const authenticate = require('../middleware/auth.middleware');
+const { sensitiveAuthLimiter, accountActionLimiter } = require('../middleware/rateLimit.middleware');
 const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion, requestEmailChange, verifyEmailChange, requestMobileChange, verifyMobileChange } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
-router.post('/register', register);
+router.post('/register', accountActionLimiter, register);
 
 // POST /api/auth/verify-otp
-router.post('/verify-otp', verifyOTP);
+router.post('/verify-otp', sensitiveAuthLimiter, verifyOTP);
 
 // POST /api/auth/resend-otp
-router.post('/resend-otp', resendOTP);
+router.post('/resend-otp', accountActionLimiter, resendOTP);
 
 // POST /api/auth/login
-router.post('/login', login);
+router.post('/login', sensitiveAuthLimiter, login);
 
 // POST /api/auth/send-mobile-otp  (Google OAuth completion step)
-router.post('/send-mobile-otp', sendMobileOtp);
+router.post('/send-mobile-otp', accountActionLimiter, sendMobileOtp);
 
 // POST /api/auth/forgot-password
-router.post('/forgot-password', forgotPassword);
+router.post('/forgot-password', accountActionLimiter, forgotPassword);
 
 // POST /api/auth/reset-password
-router.post('/reset-password', resetPassword);
+router.post('/reset-password', sensitiveAuthLimiter, resetPassword);
 
 // POST /api/auth/upgrade  — bypass payment, set plan = premium
 router.post('/upgrade', authenticate, upgradePlan);

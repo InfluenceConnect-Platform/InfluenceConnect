@@ -14,6 +14,22 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Max wrong guesses before a code is burned. A 6-digit OTP is only 1,000,000
+// combinations, so without this an attacker could brute-force it (especially on
+// the password-reset flow) within the 10-minute window.
+const MAX_OTP_ATTEMPTS = 5;
+
+// Record a failed OTP guess and invalidate the code once the limit is reached.
+// Returns true if the code is now locked, so the caller can adjust its message.
+async function registerFailedOtpAttempt(otpRecord) {
+  otpRecord.attempts = (otpRecord.attempts || 0) + 1;
+  if (otpRecord.attempts >= MAX_OTP_ATTEMPTS) {
+    otpRecord.used = true; // burn the code so further guesses are useless
+  }
+  await otpRecord.save();
+  return otpRecord.used;
+}
+
 // Professional email OTP template
 function buildOtpEmail({ title, heading, body, otp, codeLabel, devNote }) {
   return `<!DOCTYPE html>
@@ -93,7 +109,13 @@ function generateToken(userId) {
 // ─────────────────────────────────────────
 exports.register = async (req, res) => {
   try {
-    const { name, email, mobile, password, role, gstin } = req.body;
+    const { name, email, mobile, password, gstin } = req.body;
+
+    // SECURITY: never trust a client-supplied role. Self-service signup may only
+    // create 'brand' or 'influencer' accounts — admins are provisioned manually.
+    // Without this, anyone could register with role:'admin' and gain full
+    // admin access after verifying the OTP on their own email.
+    const role = req.body.role === 'brand' ? 'brand' : 'influencer';
 
     // Brands must submit a valid GSTIN at signup — it's the basis for the
     // manual verification flow that follows.
@@ -227,7 +249,12 @@ exports.verifyOTP = async (req, res) => {
 
     // Check if OTP matches
     if (otpRecord.otp !== otp) {
-      return res.status(400).json({ error: 'Incorrect OTP. Please try again.' });
+      const locked = await registerFailedOtpAttempt(otpRecord);
+      return res.status(400).json({
+        error: locked
+          ? 'Too many incorrect attempts. Please request a new code.'
+          : 'Incorrect OTP. Please try again.'
+      });
     }
 
     // Mark OTP as used
@@ -547,7 +574,12 @@ exports.resetPassword = async (req, res) => {
     }
 
     if (otpRecord.otp !== otp) {
-      return res.status(400).json({ error: 'Incorrect code. Please try again.' });
+      const locked = await registerFailedOtpAttempt(otpRecord);
+      return res.status(400).json({
+        error: locked
+          ? 'Too many incorrect attempts. Please request a new reset code.'
+          : 'Incorrect code. Please try again.'
+      });
     }
 
     await OTP.findByIdAndUpdate(otpRecord._id, { used: true });
@@ -828,7 +860,14 @@ exports.verifyEmailChange = async (req, res) => {
     const otpRecord = await OTP.findOne({ userId: req.userId, type: 'email_change', used: false });
     if (!otpRecord) return res.status(400).json({ error: 'No pending email change found. Please request a new code.' });
     if (otpRecord.expiresAt < new Date()) return res.status(400).json({ error: 'Code has expired. Please request a new one.' });
-    if (otpRecord.otp !== otp) return res.status(400).json({ error: 'Incorrect code. Please try again.' });
+    if (otpRecord.otp !== otp) {
+      const locked = await registerFailedOtpAttempt(otpRecord);
+      return res.status(400).json({
+        error: locked
+          ? 'Too many incorrect attempts. Please request a new code.'
+          : 'Incorrect code. Please try again.'
+      });
+    }
 
     const newEmail = otpRecord.pendingValue;
     const exists = await User.findOne({ email: newEmail, _id: { $ne: req.userId } });
@@ -905,7 +944,14 @@ exports.verifyMobileChange = async (req, res) => {
     const otpRecord = await OTP.findOne({ userId: req.userId, type: 'mobile_change', used: false });
     if (!otpRecord) return res.status(400).json({ error: 'No pending phone change found. Please request a new code.' });
     if (otpRecord.expiresAt < new Date()) return res.status(400).json({ error: 'Code has expired. Please request a new one.' });
-    if (otpRecord.otp !== otp) return res.status(400).json({ error: 'Incorrect code. Please try again.' });
+    if (otpRecord.otp !== otp) {
+      const locked = await registerFailedOtpAttempt(otpRecord);
+      return res.status(400).json({
+        error: locked
+          ? 'Too many incorrect attempts. Please request a new code.'
+          : 'Incorrect code. Please try again.'
+      });
+    }
 
     const newMobile = otpRecord.pendingValue;
     const exists = await User.findOne({ mobile: newMobile, _id: { $ne: req.userId } });
