@@ -155,30 +155,35 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Testimonial card */}
+          {/* Trust card */}
           <div className={`p-5 backdrop-blur-sm border rounded-2xl transition-colors ${
             isDark
               ? 'bg-slate-800/60 border-slate-700/50 shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
               : 'bg-white/70 border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.06)]'
           }`}>
-            <div className="flex gap-1 mb-3">
-              {[...Array(5)].map((_, i) => (
-                <svg key={i} className="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center flex-shrink-0 shadow-md">
+                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>
                 </svg>
-              ))}
-            </div>
-            <p className={`text-sm italic mb-4 leading-relaxed transition-colors ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
-              &ldquo;Influence Connect helped us close 3 brand deals in our first week. The platform just works.&rdquo;
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-md">
-                A
               </div>
               <div>
-                <p className={`text-xs font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Aarav Mehta</p>
-                <p className={`text-[0.7rem] font-medium transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Travel Creator · 180K followers</p>
+                <p className={`text-sm font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Built for safe collaborations</p>
+                <p className={`text-[0.7rem] font-medium transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Verified brands · protected deals</p>
               </div>
+            </div>
+            <div className={`space-y-2.5 pt-3.5 border-t transition-colors ${isDark ? 'border-slate-700/50' : 'border-gray-200'}`}>
+              {[
+                'Every brand is GST-verified before going live',
+                'Contact details stay private until a deal is agreed',
+              ].map((line, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <svg className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                  <span className={`text-xs leading-relaxed transition-colors ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>{line}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
