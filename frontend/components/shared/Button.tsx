@@ -25,7 +25,7 @@ export default function Button({
   const primaryColors: Record<string, string> = {
     default:    'bg-gradient-to-r from-[#5D8A8F] via-[#4E7A80] to-[#3D5087] hover:from-[#4A7A7F] hover:via-[#3D6B70] hover:to-[#2B3B68] text-white shadow-md hover:shadow-lg',
     influencer: 'bg-gradient-to-r from-[#5D8A8F] via-[#4E7A80] to-[#3D7082] hover:from-[#4A7A7F] hover:via-[#3D6B70] hover:to-[#2B6075] text-white shadow-md hover:shadow-lg',
-    brand:      'bg-gradient-to-r from-violet-500 via-purple-500 to-violet-600 hover:from-violet-600 hover:via-purple-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg',
+    brand:      'bg-gradient-to-r from-[#4a5fa0] via-[#3D5087] to-[#2B3B68] hover:from-[#3D5087] hover:via-[#2d3d6a] hover:to-[#1e2a4a] text-white shadow-md hover:shadow-lg',
   };
 
   const variants = {

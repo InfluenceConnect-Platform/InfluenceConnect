@@ -55,7 +55,8 @@ const ROLE_META: Record<Role, {
   brand: {
     label: 'Brand',
     sub: 'Businesses, companies & agencies',
-    gradient: 'from-violet-500 to-purple-600',
+    // Matches the brand profile's theme (deep indigo-navy, #3D5087).
+    gradient: 'from-[#4a5fa0] to-[#1e2f5c]',
     icon: (
       <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
@@ -225,7 +226,7 @@ export default function SignupPage() {
           <div className={`h-[3px] bg-gradient-to-r ${
             role === 'influencer'
               ? 'from-[#7FA8AD] via-[#5D8A8F] to-[#3D7082]'
-              : 'from-violet-500 via-purple-500 to-violet-600'
+              : 'from-[#1e2f5c] via-[#3D5087] to-[#4a5fa0]'
           } transition-all duration-300`} />
 
           <div className={`px-8 pt-7 pb-8 transition-colors ${isDark ? 'bg-[#0E1B2E]' : 'bg-white'}`}>
