@@ -152,7 +152,9 @@ exports.register = async (req, res) => {
     });
 
     // Brand signup → create the profile up front with the submitted GSTIN
-    // queued for admin review, and acknowledge receipt by email.
+    // queued for admin review. The "GSTIN is being verified" acknowledgement is
+    // NOT sent here — it goes out only once the account is fully verified and
+    // active (see verifyOTP), so an abandoned signup never receives it.
     if (role === 'brand') {
       await BrandProfile.create({
         userId: user._id,
@@ -160,7 +162,6 @@ exports.register = async (req, res) => {
         gstinStatus: 'pending',
         gstinVerified: false,
       });
-      notify.gstinSubmitted(user.email, { companyName: name, gstin: normalizedGstin });
     }
 
     // Generate OTPs
@@ -275,8 +276,9 @@ exports.verifyOTP = async (req, res) => {
       // point (register / send-mobile-otp create the BrandProfile up front), so
       // this only blocks accounts that skipped the GST step via direct API calls
       // (e.g. hitting resend-otp + verify-otp without ever providing a GSTIN).
+      let brandProfile = null;
       if (user.role === 'brand') {
-        const brandProfile = await BrandProfile.findOne({ userId: user._id });
+        brandProfile = await BrandProfile.findOne({ userId: user._id });
         if (!brandProfile || !brandProfile.gstin) {
           return res.status(400).json({
             error: 'A GST number is required to activate a brand account. Please complete your brand details.',
@@ -288,6 +290,16 @@ exports.verifyOTP = async (req, res) => {
 
       // Account fully verified & activated → welcome email (#2)
       notify.welcome(user.email, { name: user.name, role: user.role });
+
+      // Brands: acknowledge the GSTIN is queued for review. Sent here — only
+      // once the account is fully created (all OTPs verified, account active) —
+      // rather than at submission time, so an abandoned signup never receives it.
+      if (user.role === 'brand' && brandProfile) {
+        notify.gstinSubmitted(user.email, {
+          companyName: brandProfile.companyName || user.name,
+          gstin: brandProfile.gstin,
+        });
+      }
 
       // Generate JWT token — user is fully verified
       const token = generateToken(user._id);
@@ -655,8 +667,9 @@ exports.sendMobileOtp = async (req, res) => {
     await User.findByIdAndUpdate(userId, { mobile: cleanMobile });
 
     // Ensure the brand profile carries the submitted GSTIN, queued for admin
-    // review. Only (re)queue + email when the value actually changes, so a
-    // "resend OTP" doesn't fire a duplicate acknowledgement.
+    // review. The "GSTIN is being verified" acknowledgement is NOT sent here —
+    // it goes out only once the account is fully verified and active (see
+    // verifyOTP), so an abandoned signup never receives it.
     if (user.role === 'brand' && normalizedGstin) {
       let profile = await BrandProfile.findOne({ userId });
       if (!profile) {
@@ -666,13 +679,11 @@ exports.sendMobileOtp = async (req, res) => {
           gstinStatus: 'pending',
           gstinVerified: false,
         });
-        notify.gstinSubmitted(user.email, { companyName: user.name, gstin: normalizedGstin });
       } else if (normalizedGstin !== profile.gstin) {
         profile.gstin = normalizedGstin;
         profile.gstinStatus = 'pending';
         profile.gstinVerified = false;
         await profile.save();
-        notify.gstinSubmitted(user.email, { companyName: profile.companyName || user.name, gstin: normalizedGstin });
       }
     }
 
