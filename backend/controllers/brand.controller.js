@@ -6,6 +6,7 @@ const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
+const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 
 // Email influencers when a campaign goes live. Matches on niche overlap (or
 // all active creators if the campaign has no niche), capped to keep the
@@ -101,14 +102,30 @@ exports.updateProfile = async (req, res) => {
     if (industry !== undefined)    profile.industry = industry;
     if (website !== undefined)     profile.website = website;
 
-    // GSTIN submission — triggers manual admin review
-    if (gstin !== undefined && gstin !== profile.gstin) {
-      profile.gstin = gstin;
-      profile.gstinStatus = 'pending';
-      profile.gstinVerified = false;
+    // GSTIN (re)submission — validate, queue for manual admin review, and
+    // acknowledge by email. Only acts when the value actually changes.
+    let gstinResubmitted = false;
+    if (gstin !== undefined) {
+      const normalized = normalizeGstin(gstin);
+      if (normalized && normalized !== profile.gstin) {
+        if (!isValidGstin(normalized)) {
+          return res.status(400).json({ error: 'Please enter a valid 15-character GST number.' });
+        }
+        profile.gstin = normalized;
+        profile.gstinStatus = 'pending';
+        profile.gstinVerified = false;
+        gstinResubmitted = true;
+      }
     }
 
     await profile.save();
+
+    if (gstinResubmitted) {
+      notify.gstinSubmitted(req.user.email, {
+        companyName: profile.companyName || req.user.name,
+        gstin: profile.gstin,
+      });
+    }
 
     res.json({
       message: 'Profile updated successfully',

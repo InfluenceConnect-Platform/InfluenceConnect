@@ -115,7 +115,7 @@ export default function AdminUsers() {
             </svg>
             <input
               type="text"
-              placeholder="Search by name or email…"
+              placeholder="Search by name, email or user ID…"
               value={search}
               onChange={e => setSearch(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}

@@ -428,6 +428,26 @@ module.exports = {
     };
   },
 
+  // GSTIN submitted at signup / resubmitted from profile (to brand)
+  gstinSubmitted({ companyName, gstin }) {
+    return {
+      subject: 'We received your GSTIN — verification in progress',
+      html: layout({
+        theme: BRAND,
+        heading: 'Your GSTIN is being verified',
+        bodyHtml:
+          para(`Thanks${companyName ? `, ${esc(companyName)}` : ''} — we've received your GSTIN and our team will verify it <strong>within 72 hours</strong>.`) +
+          details([
+            ['GSTIN', gstin],
+            ['Status', 'Pending review'],
+          ]) +
+          para('⚠️ Please double-check that the GSTIN you submitted is correct. An incorrect or invalid number may lead to your account being suspended.') +
+          para(`You can keep using Influence Connect while we review it.`) +
+          button('Go to your profile', `${APP_URL}/brand/profile`, BRAND),
+      }),
+    };
+  },
+
   // GSTIN verified by admin (to brand)
   gstinApproved({ companyName }) {
     return {
@@ -442,7 +462,8 @@ module.exports = {
     };
   },
 
-  // GSTIN rejected by admin (to brand)
+  // GSTIN rejected by admin (to brand). Rejection suspends the account, so the
+  // brand must contact support to have it restored before resubmitting.
   gstinRejected({ companyName }) {
     return {
       subject: 'Action needed: your GSTIN could not be verified',
@@ -450,8 +471,24 @@ module.exports = {
         theme: BRAND,
         heading: 'GSTIN verification unsuccessful',
         bodyHtml:
-          para(`We couldn't verify the GSTIN on your account${companyName ? `, ${esc(companyName)}` : ''}. Please double-check the number and resubmit it from your profile.`) +
-          button('Update GSTIN', `${APP_URL}/brand/profile`, BRAND),
+          para(`We couldn't verify the GSTIN on your account${companyName ? `, ${esc(companyName)}` : ''}. As a result, your account has been <strong>suspended</strong> as a precaution.`) +
+          para('If you believe this was a mistake or you entered the wrong number, reply to this email or contact our support team — we&rsquo;ll help you correct your GSTIN and restore your account.') +
+          button('Contact support', `${APP_URL}/brand/profile`, BRAND),
+      }),
+    };
+  },
+
+  // GSTIN rejection reopened by support — account restored, resubmission asked
+  gstinResubmitRequested({ companyName }) {
+    return {
+      subject: 'Your account is active again — please update your GSTIN',
+      html: layout({
+        theme: BRAND,
+        heading: 'Account restored — update your GSTIN',
+        bodyHtml:
+          para(`Good news${companyName ? `, ${esc(companyName)}` : ''} — we&rsquo;ve reactivated your Influence Connect account so you can correct your GST details.`) +
+          para('Head to your profile and submit your correct GSTIN. Our team will review it within 72 hours. Please double-check the number — an incorrect GSTIN may lead to suspension again.') +
+          button('Update your GSTIN', `${APP_URL}/brand/profile`, BRAND),
       }),
     };
   },

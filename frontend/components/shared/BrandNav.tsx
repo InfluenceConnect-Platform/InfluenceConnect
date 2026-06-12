@@ -97,6 +97,10 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
   const [inviteResponseCount, setInviteResponseCount] = useState(0);
+  // True when the brand's GSTIN needs their attention — rejected (e.g. their
+  // account was restored so they can submit the correct number) or never
+  // submitted. Drives a dot on the Profile nav item, like unread messages.
+  const [gstNeedsAction, setGstNeedsAction] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Start null so the first client render matches the SSR HTML (the server has
@@ -151,6 +155,13 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
       setUnreadCount(msgRes.data.count ?? 0);
       setPendingOfferCount(offerRes.data.count ?? 0);
       setInviteResponseCount(inviteRes.data.count ?? 0);
+    } catch {}
+
+    // GSTIN status — separate try so a profile hiccup never wipes the counts.
+    try {
+      const profRes = await api.get('/api/brand/profile/me');
+      const st = profRes.data?.profile?.gstinStatus;
+      setGstNeedsAction(st === 'rejected' || st === 'not_submitted');
     } catch {}
   };
 
@@ -221,8 +232,10 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
             {NAV_ITEMS.map(item => {
               const isMessages = item.href === '/brand/messages';
               const isInvites  = item.href === '/brand/invitations';
+              const isProfile  = item.href === '/brand/profile';
               const isActive   = pathname === item.href;
-              const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0);
+              const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction);
+              const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
               return (
                 <Link
                   key={item.href}
@@ -239,7 +252,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-[#3D5087]" />
                   )}
                   {hasDot && (
-                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-violet-400 ${dotShadow}`} />
+                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${dotColorCls} ${dotShadow}`} />
                   )}
                 </Link>
               );
@@ -335,8 +348,10 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
               {NAV_ITEMS.map(item => {
                 const isMessages = item.href === '/brand/messages';
                 const isInvites  = item.href === '/brand/invitations';
+                const isProfile  = item.href === '/brand/profile';
                 const isActive   = pathname === item.href;
-                const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0);
+                const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction);
+                const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
                 return (
                   <Link
                     key={item.href}
@@ -352,7 +367,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
                       <span className={isActive ? activeIconCls : isDark ? 'text-slate-600' : 'text-gray-400'}>{item.icon}</span>
                       {item.label}
                     </span>
-                    {hasDot && <span className="w-2 h-2 rounded-full bg-violet-400 flex-shrink-0" />}
+                    {hasDot && <span className={`w-2 h-2 rounded-full ${dotColorCls} flex-shrink-0`} />}
                   </Link>
                 );
               })}
@@ -397,8 +412,10 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           {NAV_ITEMS.map(item => {
             const isMessages = item.href === '/brand/messages';
             const isInvites  = item.href === '/brand/invitations';
+            const isProfile  = item.href === '/brand/profile';
             const isActive   = pathname === item.href;
-            const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0);
+            const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction);
+            const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
             return (
               <Link
                 key={item.href}
@@ -410,7 +427,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
                 <span className={isActive ? activeIconCls : ''}>{item.icon}</span>
                 {item.label}
                 {hasDot && (
-                  <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-violet-400 ${dotShadow}`} />
+                  <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full ${dotColorCls} ${dotShadow}`} />
                 )}
               </Link>
             );

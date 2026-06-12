@@ -7,11 +7,16 @@ import api from '@/lib/api';
 
 type Step = 'phone' | 'otp';
 
+// Structural check for an Indian GSTIN (mirrors the backend validator).
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
 export default function CompleteProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [userId, setUserId] = useState('');
+  const [role, setRole] = useState('');
+  const [gstin, setGstin] = useState('');
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [step, setStep] = useState<Step>('phone');
@@ -26,7 +31,10 @@ export default function CompleteProfilePage() {
     const id = searchParams.get('userId');
     if (!id) { router.replace('/auth/login'); return; }
     setUserId(id);
+    setRole(searchParams.get('role') || '');
   }, [searchParams, router]);
+
+  const isBrand = role === 'brand';
 
   // Countdown timer for resend
   useEffect(() => {
@@ -43,9 +51,18 @@ export default function CompleteProfilePage() {
       return;
     }
 
+    const normalizedGstin = gstin.replace(/\s+/g, '').toUpperCase();
+    if (isBrand) {
+      if (!normalizedGstin) { setError('GST number is required to register as a brand.'); return; }
+      if (!GSTIN_REGEX.test(normalizedGstin)) { setError('Please enter a valid 15-character GST number.'); return; }
+    }
+
     setLoading(true);
     try {
-      await api.post('/api/auth/send-mobile-otp', { userId, mobile: digits });
+      await api.post('/api/auth/send-mobile-otp', {
+        userId, mobile: digits,
+        ...(isBrand ? { gstin: normalizedGstin } : {}),
+      });
       setStep('otp');
       setResendCooldown(30);
       setSuccess('OTP sent! Check your messages.');
@@ -146,10 +163,12 @@ export default function CompleteProfilePage() {
                     </svg>
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900 tracking-tight mb-1">
-                    Verify your mobile
+                    {isBrand ? 'Complete your brand profile' : 'Verify your mobile'}
                   </h2>
                   <p className="text-sm text-gray-500 leading-relaxed">
-                    Add your mobile number to enable two-factor authentication and receive real-time campaign notifications.
+                    {isBrand
+                      ? 'Add your mobile number for two-factor authentication and your GST number so we can verify your brand.'
+                      : 'Add your mobile number to enable two-factor authentication and receive real-time campaign notifications.'}
                   </p>
                 </div>
 
@@ -174,11 +193,32 @@ export default function CompleteProfilePage() {
                   <p className="text-xs text-gray-500">A verification code will be sent to this number</p>
                 </div>
 
+                {/* GST number — brands only */}
+                {isBrand && (
+                  <div className="flex flex-col gap-1.5 mb-5">
+                    <label className="text-xs font-medium text-gray-700">GST number (GSTIN)</label>
+                    <input
+                      type="text"
+                      maxLength={15}
+                      placeholder="e.g. 22AAAAA0000A1Z5"
+                      value={gstin}
+                      onChange={e => setGstin(e.target.value.toUpperCase())}
+                      className="w-full px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 font-mono tracking-wider border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#7FA8AD] focus:border-[#7FA8AD] hover:border-gray-300 transition-all"
+                    />
+                    <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[0.72rem] leading-relaxed text-amber-800">
+                      <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                      </svg>
+                      <span>Your GST number will be verified by our team within <strong>72 hours</strong>. Make sure you enter it correctly — an incorrect GSTIN may trigger cancellation of your account.</span>
+                    </div>
+                  </div>
+                )}
+
                 {error && <ErrorBox message={error} />}
 
                 <button
                   onClick={handleSendOtp}
-                  disabled={loading || mobile.replace(/\s/g, '').length < 10}
+                  disabled={loading || mobile.replace(/\s/g, '').length < 10 || (isBrand && !GSTIN_REGEX.test(gstin.replace(/\s+/g, '').toUpperCase()))}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm text-white bg-[#7FA8AD] hover:bg-[#5D8A8F] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer"
                 >
                   {loading ? (

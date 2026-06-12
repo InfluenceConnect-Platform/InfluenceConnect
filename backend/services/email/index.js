@@ -64,8 +64,10 @@ module.exports = {
   // Admin actions
   accountSuspended:          make('accountSuspended'),
   accountRestored:           make('accountRestored'),
+  gstinSubmitted:            make('gstinSubmitted'),
   gstinApproved:             make('gstinApproved'),
   gstinRejected:             make('gstinRejected'),
+  gstinResubmitRequested:    make('gstinResubmitRequested'),
   campaignRemovedBrand:      make('campaignRemovedBrand'),
   campaignRemovedInfluencer: make('campaignRemovedInfluencer'),
 };

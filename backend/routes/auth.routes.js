@@ -97,7 +97,7 @@ router.get('/google/callback', (req, res, next) => {
 
     // New Google user — mobile not yet collected
     if (!user.mobileVerified) {
-      return res.redirect(`${frontendUrl}/auth/complete-profile?userId=${user._id}&step=mobile`);
+      return res.redirect(`${frontendUrl}/auth/complete-profile?userId=${user._id}&step=mobile&role=${user.role}`);
     }
 
     // Fully verified user — issue JWT and go to dashboard

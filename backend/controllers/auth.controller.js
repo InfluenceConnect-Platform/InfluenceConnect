@@ -1,9 +1,11 @@
 const User = require('../models/User');
 const OTP = require('../models/OTP');
+const BrandProfile = require('../models/BrandProfile');
 const jwt = require('jsonwebtoken');
 const { Resend } = require('resend');
 const notify = require('../services/email');
 const logAdminAction = require('../utils/logAdminAction');
+const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -91,7 +93,20 @@ function generateToken(userId) {
 // ─────────────────────────────────────────
 exports.register = async (req, res) => {
   try {
-    const { name, email, mobile, password, role } = req.body;
+    const { name, email, mobile, password, role, gstin } = req.body;
+
+    // Brands must submit a valid GSTIN at signup — it's the basis for the
+    // manual verification flow that follows.
+    let normalizedGstin = '';
+    if (role === 'brand') {
+      normalizedGstin = normalizeGstin(gstin);
+      if (!normalizedGstin) {
+        return res.status(400).json({ error: 'GST number is required to register as a brand.' });
+      }
+      if (!isValidGstin(normalizedGstin)) {
+        return res.status(400).json({ error: 'Please enter a valid 15-character GST number.' });
+      }
+    }
 
     // Check if email already exists
     const emailExists = await User.findOne({ email });
@@ -113,6 +128,18 @@ exports.register = async (req, res) => {
       password,
       role
     });
+
+    // Brand signup → create the profile up front with the submitted GSTIN
+    // queued for admin review, and acknowledge receipt by email.
+    if (role === 'brand') {
+      await BrandProfile.create({
+        userId: user._id,
+        gstin: normalizedGstin,
+        gstinStatus: 'pending',
+        gstinVerified: false,
+      });
+      notify.gstinSubmitted(user.email, { companyName: name, gstin: normalizedGstin });
+    }
 
     // Generate OTPs
     const emailOTP = generateOTP();
@@ -544,7 +571,7 @@ exports.resetPassword = async (req, res) => {
 // ─────────────────────────────────────────
 exports.sendMobileOtp = async (req, res) => {
   try {
-    const { userId, mobile } = req.body;
+    const { userId, mobile, gstin } = req.body;
 
     if (!userId || !mobile) {
       return res.status(400).json({ error: 'User ID and mobile number are required.' });
@@ -565,8 +592,43 @@ exports.sendMobileOtp = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
+    // Brands completing a Google signup must also submit a valid GSTIN — it's
+    // collected on the same step as the mobile number.
+    let normalizedGstin = null;
+    if (user.role === 'brand') {
+      normalizedGstin = normalizeGstin(gstin);
+      if (!normalizedGstin) {
+        return res.status(400).json({ error: 'GST number is required to register as a brand.' });
+      }
+      if (!isValidGstin(normalizedGstin)) {
+        return res.status(400).json({ error: 'Please enter a valid 15-character GST number.' });
+      }
+    }
+
     // Save mobile to user record
     await User.findByIdAndUpdate(userId, { mobile: cleanMobile });
+
+    // Ensure the brand profile carries the submitted GSTIN, queued for admin
+    // review. Only (re)queue + email when the value actually changes, so a
+    // "resend OTP" doesn't fire a duplicate acknowledgement.
+    if (user.role === 'brand' && normalizedGstin) {
+      let profile = await BrandProfile.findOne({ userId });
+      if (!profile) {
+        await BrandProfile.create({
+          userId,
+          gstin: normalizedGstin,
+          gstinStatus: 'pending',
+          gstinVerified: false,
+        });
+        notify.gstinSubmitted(user.email, { companyName: user.name, gstin: normalizedGstin });
+      } else if (normalizedGstin !== profile.gstin) {
+        profile.gstin = normalizedGstin;
+        profile.gstinStatus = 'pending';
+        profile.gstinVerified = false;
+        await profile.save();
+        notify.gstinSubmitted(user.email, { companyName: profile.companyName || user.name, gstin: normalizedGstin });
+      }
+    }
 
     // Clear any previous unused mobile OTPs
     await OTP.deleteMany({ userId, type: 'mobile', used: false });

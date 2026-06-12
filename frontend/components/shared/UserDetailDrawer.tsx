@@ -119,6 +119,15 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
 
   const handleGstin = async (status: 'verified' | 'rejected') => {
     if (!brand?.brandProfileId) return;
+    if (status === 'rejected') {
+      const ok = await confirm({
+        title: 'Reject this GSTIN?',
+        description: `${brand.companyName || data?.user?.name || 'This brand'}'s GSTIN will be marked invalid and their account suspended immediately. They'll be notified by email.`,
+        confirmLabel: 'Reject & suspend',
+        variant: 'danger',
+      });
+      if (!ok) return;
+    }
     setActing(true);
     try {
       await api.put(`/api/admin/gstin/${brand.brandProfileId}/status`, { status });
@@ -127,6 +136,28 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
       onChanged();
     } catch {
       showToast('Failed to update GSTIN status.');
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const handleReopenGstin = async () => {
+    if (!brand?.brandProfileId) return;
+    const ok = await confirm({
+      title: 'Restore for resubmission?',
+      description: `${brand.companyName || data?.user?.name || 'This brand'}'s account will be reactivated and they'll be emailed to submit a corrected GSTIN. Use this when a brand says they entered the wrong number.`,
+      confirmLabel: 'Restore & request GSTIN',
+      variant: 'info',
+    });
+    if (!ok) return;
+    setActing(true);
+    try {
+      await api.put(`/api/admin/gstin/${brand.brandProfileId}/reopen`);
+      showToast('Account restored — brand asked to resubmit their GSTIN.');
+      await fetchDetails();
+      onChanged();
+    } catch {
+      showToast('Failed to restore the account.');
     } finally {
       setActing(false);
     }
@@ -141,7 +172,8 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
     }
   };
 
-  const gstinPending = role === 'brand' && brand?.gstinStatus === 'pending';
+  const gstinPending  = role === 'brand' && brand?.gstinStatus === 'pending';
+  const gstinRejected = role === 'brand' && brand?.gstinStatus === 'rejected';
 
   // Stat chips — most important numbers per role
   const chips: { label: string; value: string }[] =
@@ -423,6 +455,29 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                               Reject
                             </button>
                           </div>
+                        )}
+                        {gstinRejected && (
+                          <>
+                            <p className="text-[11px] text-gray-400 mt-3 mb-2 leading-relaxed">
+                              Rejected — account suspended. If the brand says they mistyped, restore them so they can resubmit a corrected GSTIN.
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleReopenGstin}
+                                disabled={acting}
+                                className="flex-1 py-2 rounded-lg text-[12px] font-semibold bg-[#3E4751] text-white hover:bg-[#2c333b] transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                Restore to resubmit
+                              </button>
+                              <button
+                                onClick={() => handleGstin('verified')}
+                                disabled={acting}
+                                className="flex-1 py-2 rounded-lg text-[12px] font-semibold bg-white border border-green-200 text-green-700 hover:bg-green-50 transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                Approve
+                              </button>
+                            </div>
+                          </>
                         )}
                       </div>
                     </Section>

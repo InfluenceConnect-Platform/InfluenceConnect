@@ -2,10 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import api from '@/lib/api';
 
-const NAV_ITEMS = [
+type NavItem = { label: string; href: string; icon: ReactNode; badgeKey?: string };
+
+const NAV_ITEMS: NavItem[] = [
   {
     label: 'Overview',
     href: '/admin/dashboard',
@@ -33,6 +36,16 @@ const NAV_ITEMS = [
       <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
         <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'GST',
+    href: '/admin/gst',
+    badgeKey: 'gstin',
+    icon: (
+      <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/>
       </svg>
     ),
   },
@@ -74,6 +87,17 @@ export default function AdminNav({ user }: AdminNavProps) {
   const router    = useRouter();
   const confirm   = useConfirm();
   const [open, setOpen] = useState(false);
+  const [pendingGstin, setPendingGstin] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    api.get('/api/admin/gstin', { params: { status: 'pending' } })
+      .then(res => { if (active) setPendingGstin(res.data?.counts?.pending || 0); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [pathname]);
+
+  const badgeFor = (key?: string) => (key === 'gstin' && pendingGstin > 0 ? pendingGstin : 0);
 
   const handleLogout = async () => {
     const ok = await confirm({
@@ -122,6 +146,13 @@ export default function AdminNav({ user }: AdminNavProps) {
                     {item.icon}
                   </span>
                   {item.label}
+                  {badgeFor(item.badgeKey) > 0 && (
+                    <span className={`ml-0.5 min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center rounded-full text-[10px] font-bold tabular-nums ${
+                      isActive ? 'bg-white text-[#3E4751]' : 'bg-amber-500 text-white'
+                    }`}>
+                      {badgeFor(item.badgeKey)}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -194,6 +225,13 @@ export default function AdminNav({ user }: AdminNavProps) {
                       {item.icon}
                     </span>
                     {item.label}
+                    {badgeFor(item.badgeKey) > 0 && (
+                      <span className={`ml-auto min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full text-[11px] font-bold tabular-nums ${
+                        isActive ? 'bg-white text-[#3E4751]' : 'bg-amber-500 text-white'
+                      }`}>
+                        {badgeFor(item.badgeKey)}
+                      </span>
+                    )}
                   </Link>
                 );
               })}

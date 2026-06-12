@@ -11,6 +11,9 @@ import { useTheme } from '@/lib/useTheme';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// Structural check for an Indian GSTIN (mirrors the backend validator).
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
 type Role = 'influencer' | 'brand';
 
 const ROLE_META: Record<Role, {
@@ -118,16 +121,25 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
+  const [gstin, setGstin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSignup = async () => {
     if (!name || !email || !mobile || !password) { setError('All fields are required.'); return; }
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    const normalizedGstin = gstin.replace(/\s+/g, '').toUpperCase();
+    if (role === 'brand') {
+      if (!normalizedGstin) { setError('GST number is required to register as a brand.'); return; }
+      if (!GSTIN_REGEX.test(normalizedGstin)) { setError('Please enter a valid 15-character GST number.'); return; }
+    }
     setLoading(true);
     setError('');
     try {
-      const response = await api.post('/api/auth/register', { name, email, mobile: `+91${mobile}`, password, role });
+      const response = await api.post('/api/auth/register', {
+        name, email, mobile: `+91${mobile}`, password, role,
+        ...(role === 'brand' ? { gstin: normalizedGstin } : {}),
+      });
       localStorage.setItem('pendingUserId', response.data.userId);
       localStorage.setItem('pendingEmail', email);
       localStorage.setItem('pendingMobile', mobile);
@@ -287,6 +299,30 @@ export default function SignupPage() {
               <Input dark={isDark} label={ROLE_META[role].fields.email.label} type="email" placeholder={ROLE_META[role].fields.email.placeholder} helper={ROLE_META[role].fields.email.helper} value={email} onChange={setEmail} />
               <Input dark={isDark} label={ROLE_META[role].fields.mobile.label} type="tel" placeholder={ROLE_META[role].fields.mobile.placeholder} helper={ROLE_META[role].fields.mobile.helper} value={mobile} onChange={setMobile} prefix="+91" />
               <Input dark={isDark} label={ROLE_META[role].fields.password.label} type="password" placeholder={ROLE_META[role].fields.password.placeholder} value={password} onChange={setPassword} showPasswordToggle />
+
+              {role === 'brand' && (
+                <div className="flex flex-col gap-2">
+                  <Input
+                    dark={isDark}
+                    label="GST number (GSTIN)"
+                    placeholder="e.g. 22AAAAA0000A1Z5"
+                    value={gstin}
+                    onChange={(v) => setGstin(v.toUpperCase())}
+                  />
+                  <div className={`flex items-start gap-2.5 p-3 border rounded-xl text-[0.72rem] leading-relaxed ${
+                    isDark
+                      ? 'bg-amber-900/20 border-amber-700/40 text-amber-200/90'
+                      : 'bg-amber-50 border-amber-200 text-amber-800'
+                  }`}>
+                    <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>
+                      Your GST number will be verified by our team within <strong>72 hours</strong>. Make sure you enter it correctly — an incorrect GSTIN may trigger cancellation of your account.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {error && (

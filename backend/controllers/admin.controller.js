@@ -30,7 +30,8 @@ exports.getOverviewStats = async (req, res) => {
       activeCampaigns,
       totalDeals,
       completedDeals,
-      premiumUsers
+      premiumUsers,
+      pendingGstin
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: 'influencer' }),
@@ -38,7 +39,8 @@ exports.getOverviewStats = async (req, res) => {
       Campaign.countDocuments({ status: 'active' }),
       Deal.countDocuments(),
       Deal.countDocuments({ status: 'completed' }),
-      User.countDocuments({ plan: 'premium' })
+      User.countDocuments({ plan: 'premium' }),
+      BrandProfile.countDocuments({ gstinStatus: 'pending' })
     ]);
 
     // Recent signups (with avatars: creator profile pic / brand logo)
@@ -156,6 +158,7 @@ exports.getOverviewStats = async (req, res) => {
         totalDeals,
         completedDeals,
         premiumUsers,
+        pendingGstin,
         mrr,
         influencerMRR,
         brandMRR,
@@ -186,9 +189,13 @@ exports.getAllUsers = async (req, res) => {
     if (role) query.role = role;
     if (status) query.status = status;
     if (search) {
+      // Escape regex metacharacters so a raw user ID (with its hyphens) and any
+      // pasted value are matched literally, not parsed as a pattern.
+      const safe = String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { name: { $regex: safe, $options: 'i' } },
+        { email: { $regex: safe, $options: 'i' } },
+        { customId: { $regex: safe, $options: 'i' } }
       ];
     }
 
@@ -778,17 +785,59 @@ exports.flagCampaign = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
-// GET GSTIN PENDING VERIFICATIONS
+// GET GSTIN VERIFICATIONS  (counts + filterable list)
+// Powers the admin GST Verification panel. `?status=pending|verified|rejected`
+// filters the list; counts always cover every state so the tabs stay accurate.
 // ─────────────────────────────────────────
-exports.getPendingGSTIN = async (req, res) => {
+exports.getGstinVerifications = async (req, res) => {
   try {
-    const pending = await BrandProfile.find({ gstinStatus: 'pending' })
-      .populate('userId', 'name email');
+    const { status } = req.query;
 
-    res.json({ pending });
+    // Only brands that have actually submitted a GSTIN are relevant here.
+    const submittedFilter = { gstinStatus: { $in: ['pending', 'verified', 'rejected'] } };
+
+    const listFilter = ['pending', 'verified', 'rejected'].includes(status)
+      ? { gstinStatus: status }
+      : submittedFilter;
+
+    const [countsAgg, list] = await Promise.all([
+      BrandProfile.aggregate([
+        { $match: submittedFilter },
+        { $group: { _id: '$gstinStatus', count: { $sum: 1 } } },
+      ]),
+      BrandProfile.find(listFilter)
+        .sort({ updatedAt: -1 })
+        .populate('userId', 'name email customId status createdAt')
+        .select('companyName gstin gstinStatus gstinVerified updatedAt userId'),
+    ]);
+
+    const countMap = new Map(countsAgg.map(c => [c._id, c.count]));
+    const counts = {
+      pending:  countMap.get('pending')  || 0,
+      verified: countMap.get('verified') || 0,
+      rejected: countMap.get('rejected') || 0,
+    };
+    counts.total = counts.pending + counts.verified + counts.rejected;
+
+    // Shape the rows the table needs (flatten the populated user).
+    const verifications = list.map(p => ({
+      brandProfileId: p._id,
+      userId:         p.userId?._id || null,
+      name:           p.userId?.name || '—',
+      email:          p.userId?.email || '',
+      customId:       p.userId?.customId || '',
+      accountStatus:  p.userId?.status || '',
+      companyName:    p.companyName || '',
+      gstin:          p.gstin || '',
+      gstinStatus:    p.gstinStatus || 'not_submitted',
+      submittedAt:    p.userId?.createdAt || null,
+      updatedAt:      p.updatedAt,
+    }));
+
+    res.json({ counts, verifications });
 
   } catch (error) {
-    console.error('Get pending GSTIN error:', error);
+    console.error('Get GSTIN verifications error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };
@@ -808,7 +857,22 @@ exports.updateGSTINStatus = async (req, res) => {
     const profile = await BrandProfile.findByIdAndUpdate(brandProfileId, {
       gstinStatus: status,
       gstinVerified: status === 'verified'
-    }, { new: true }).populate('userId', 'email name customId');
+    }, { new: true }).populate('userId', 'email name customId status');
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Brand profile not found' });
+    }
+
+    // A rejected GSTIN auto-suspends the brand's account as a precaution.
+    if (status === 'rejected' && profile.userId && profile.userId.status !== 'suspended') {
+      await User.findByIdAndUpdate(profile.userId._id, { status: 'suspended' });
+    }
+
+    // Approving a brand that was previously suspended (e.g. an earlier rejection
+    // was a mistake) reactivates their account in the same action.
+    if (status === 'verified' && profile.userId && profile.userId.status === 'suspended') {
+      await User.findByIdAndUpdate(profile.userId._id, { status: 'active' });
+    }
 
     // Notify the brand of the verification outcome.
     if (profile?.userId?.email) {
@@ -826,7 +890,9 @@ exports.updateGSTINStatus = async (req, res) => {
       targetType: 'gstin',
       targetId: profile?.userId?.customId || '',
       targetName: brandName,
-      details: `${status === 'verified' ? 'Approved' : 'Rejected'} GSTIN for "${brandName}".`,
+      details: status === 'verified'
+        ? `Approved GSTIN for "${brandName}".`
+        : `Rejected GSTIN for "${brandName}" — account suspended.`,
       metadata: { newStatus: status, gstin: profile?.gstin || '' },
       ipAddress: getIp(req),
     });
@@ -835,6 +901,58 @@ exports.updateGSTINStatus = async (req, res) => {
 
   } catch (error) {
     console.error('Update GSTIN error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// REOPEN A REJECTED GSTIN  (support flow)
+// A rejection suspends the account, so a brand that typed the wrong number
+// can't fix it themselves. When they contact support, the admin reopens the
+// case here: the account is reactivated and the brand is emailed to resubmit
+// the correct GSTIN. The status stays 'rejected' so their profile prompts a
+// fresh submission (which moves it back to 'pending' for re-review).
+// ─────────────────────────────────────────
+exports.reopenGstinRejection = async (req, res) => {
+  try {
+    const { brandProfileId } = req.params;
+
+    const profile = await BrandProfile.findById(brandProfileId)
+      .populate('userId', 'email name customId status');
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Brand profile not found' });
+    }
+    if (profile.gstinStatus !== 'rejected') {
+      return res.status(400).json({ error: 'Only a rejected GSTIN can be reopened for resubmission.' });
+    }
+
+    // Reactivate the account so the brand can correct their GSTIN.
+    if (profile.userId && profile.userId.status === 'suspended') {
+      await User.findByIdAndUpdate(profile.userId._id, { status: 'active' });
+    }
+
+    if (profile.userId?.email) {
+      notify.gstinResubmitRequested(profile.userId.email, { companyName: profile.companyName });
+    }
+
+    const brandName = profile.companyName || profile.userId?.name || 'Unknown brand';
+    await logAdminAction({
+      adminId: req.userId,
+      adminName: req.user?.name,
+      action: 'USER_RESTORED',
+      targetType: 'user',
+      targetId: profile.userId?.customId || '',
+      targetName: brandName,
+      details: `Restored "${brandName}" and requested a GSTIN resubmission.`,
+      metadata: { reason: 'gstin_resubmission', gstin: profile.gstin || '' },
+      ipAddress: getIp(req),
+    });
+
+    res.json({ message: 'Account restored. The brand can now resubmit their GSTIN.' });
+
+  } catch (error) {
+    console.error('Reopen GSTIN error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

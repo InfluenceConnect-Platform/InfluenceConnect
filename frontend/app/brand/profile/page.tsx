@@ -8,6 +8,9 @@ import IdChip from '@/components/shared/IdChip';
 
 const INDUSTRIES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books', 'other'];
 
+// Structural check for an Indian GSTIN (mirrors the backend validator).
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
 const INDUSTRY_COLORS: Record<string, string> = {
   beauty:    'bg-pink-50   dark:bg-pink-900/30   text-pink-700   dark:text-pink-300   border-pink-200   dark:border-pink-800/40',
   fashion:   'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/40',
@@ -40,6 +43,11 @@ export default function BrandProfile() {
   const [description, setDescription] = useState('');
   const [industry, setIndustry]       = useState('');
   const [website, setWebsite]         = useState('');
+
+  const [gstinInput, setGstinInput]   = useState('');
+  const [savingGstin, setSavingGstin] = useState(false);
+  const [gstinError, setGstinError]   = useState('');
+  const [gstinSaved, setGstinSaved]   = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -89,6 +97,24 @@ export default function BrandProfile() {
     setIndustry(profile?.industry || '');
     setWebsite(profile?.website || '');
     setIsEditing(false); setError('');
+  };
+
+  const handleSubmitGstin = async () => {
+    const normalized = gstinInput.replace(/\s+/g, '').toUpperCase();
+    if (!normalized) { setGstinError('Please enter your GST number.'); return; }
+    if (!GSTIN_REGEX.test(normalized)) { setGstinError('Please enter a valid 15-character GST number.'); return; }
+    setSavingGstin(true); setGstinError('');
+    try {
+      await api.put('/api/brand/profile', { gstin: normalized });
+      setGstinSaved(true);
+      setTimeout(() => setGstinSaved(false), 3000);
+      setGstinInput('');
+      await fetchProfile();
+    } catch (err: any) {
+      setGstinError(err.response?.data?.error || 'Failed to submit GST number.');
+    } finally {
+      setSavingGstin(false);
+    }
   };
 
   const handleRemoveLogo = async () => {
@@ -246,7 +272,17 @@ export default function BrandProfile() {
 
             {/* Name + meta */}
             <div className="mb-1.5">
-              <h2 className="text-xl font-bold text-gray-900 tracking-tight">{displayName}</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-xl font-bold text-gray-900 tracking-tight">{displayName}</h2>
+                {profile?.gstinVerified && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200" title="GSTIN verified by Influence Connect">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 11 11 13 15 9"/>
+                    </svg>
+                    GST Verified
+                  </span>
+                )}
+              </div>
               {profile?.companyName && profile.companyName !== user?.name && (
                 <p className="text-xs text-gray-400 mt-0.5">{profile.companyName}</p>
               )}
@@ -432,15 +468,17 @@ export default function BrandProfile() {
             </div>
           </div>
 
-          <div className="px-5 sm:px-6 py-5">
+          <div className="px-5 sm:px-6 py-5 space-y-4">
             <div className={`flex items-center gap-3.5 px-4 py-3.5 rounded-xl border ${
               profile?.gstinStatus === 'verified' ? 'bg-emerald-50 border-emerald-200' :
               profile?.gstinStatus === 'pending'  ? 'bg-amber-50  border-amber-200'  :
+              profile?.gstinStatus === 'rejected' ? 'bg-red-50    border-red-200'    :
                                                     'bg-gray-50   border-gray-200'
             }`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                 profile?.gstinStatus === 'verified' ? 'bg-emerald-100' :
-                profile?.gstinStatus === 'pending'  ? 'bg-amber-100'  : 'bg-gray-100'
+                profile?.gstinStatus === 'pending'  ? 'bg-amber-100'  :
+                profile?.gstinStatus === 'rejected' ? 'bg-red-100'    : 'bg-gray-100'
               }`}>
                 {profile?.gstinStatus === 'verified' ? (
                   <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -449,6 +487,10 @@ export default function BrandProfile() {
                 ) : profile?.gstinStatus === 'pending' ? (
                   <svg className="w-4 h-4 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                ) : profile?.gstinStatus === 'rejected' ? (
+                  <svg className="w-4 h-4 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
                   </svg>
                 ) : (
                   <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -459,20 +501,58 @@ export default function BrandProfile() {
               <div>
                 <p className={`text-sm font-semibold ${
                   profile?.gstinStatus === 'verified' ? 'text-emerald-800' :
-                  profile?.gstinStatus === 'pending'  ? 'text-amber-800'  : 'text-gray-700'
+                  profile?.gstinStatus === 'pending'  ? 'text-amber-800'  :
+                  profile?.gstinStatus === 'rejected' ? 'text-red-800'    : 'text-gray-700'
                 }`}>
                   {profile?.gstinStatus === 'verified' ? 'GSTIN verified' :
                    profile?.gstinStatus === 'pending'  ? 'Verification in progress' :
+                   profile?.gstinStatus === 'rejected' ? 'GSTIN could not be verified' :
                    profile?.gstin ? 'GSTIN submitted — awaiting review' : 'No GSTIN submitted yet'}
                 </p>
                 {profile?.gstin && (
                   <p className="text-xs text-gray-500 font-mono mt-0.5 tracking-wider">{profile.gstin}</p>
                 )}
-                {!profile?.gstin && (
-                  <p className="text-xs text-gray-400 mt-0.5">Contact support to submit your GSTIN for verification.</p>
+                {profile?.gstinStatus === 'pending' && (
+                  <p className="text-xs text-amber-700/80 mt-0.5">Our team verifies new GSTINs within 72 hours.</p>
+                )}
+                {profile?.gstinStatus === 'rejected' && (
+                  <p className="text-xs text-red-600/90 mt-0.5">Your account was suspended. Re-enter the correct GSTIN below to request another review.</p>
+                )}
+                {!profile?.gstin && profile?.gstinStatus !== 'rejected' && (
+                  <p className="text-xs text-gray-400 mt-0.5">Submit your GSTIN below to get your brand verified.</p>
                 )}
               </div>
             </div>
+
+            {/* (Re)submit form — when nothing submitted yet, or after a rejection */}
+            {(!profile?.gstin || profile?.gstinStatus === 'rejected') && (
+              <div className="space-y-2.5">
+                <label className="block text-xs font-semibold text-gray-700">GST number (GSTIN)</label>
+                <input
+                  type="text"
+                  value={gstinInput}
+                  onChange={e => setGstinInput(e.target.value.toUpperCase())}
+                  placeholder="e.g. 22AAAAA0000A1Z5"
+                  maxLength={15}
+                  className={`${fieldClass} font-mono tracking-wider`}
+                />
+                <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[0.72rem] leading-relaxed text-amber-800">
+                  <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <span>Your GST number will be verified by our team within <strong>72 hours</strong>. Make sure you enter it correctly — an incorrect GSTIN may trigger cancellation of your account.</span>
+                </div>
+                {gstinError && <p className="text-xs font-medium text-red-500">{gstinError}</p>}
+                {gstinSaved && <p className="text-xs font-medium text-emerald-600">GSTIN submitted — verification in progress.</p>}
+                <button
+                  onClick={handleSubmitGstin}
+                  disabled={savingGstin}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 bg-[#3D5087] hover:bg-[#2B3B68] text-white rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                >
+                  {savingGstin ? 'Submitting…' : 'Submit for verification'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
