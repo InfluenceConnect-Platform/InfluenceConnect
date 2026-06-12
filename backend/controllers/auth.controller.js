@@ -270,6 +270,20 @@ exports.verifyOTP = async (req, res) => {
     // Check if both are now verified
     const user = await User.findById(userId);
     if (user.emailVerified && user.mobileVerified) {
+      // SECURITY: a brand account may never become active without a GSTIN on
+      // file. The standard email and Google flows both submit it before this
+      // point (register / send-mobile-otp create the BrandProfile up front), so
+      // this only blocks accounts that skipped the GST step via direct API calls
+      // (e.g. hitting resend-otp + verify-otp without ever providing a GSTIN).
+      if (user.role === 'brand') {
+        const brandProfile = await BrandProfile.findOne({ userId: user._id });
+        if (!brandProfile || !brandProfile.gstin) {
+          return res.status(400).json({
+            error: 'A GST number is required to activate a brand account. Please complete your brand details.',
+          });
+        }
+      }
+
       await User.findByIdAndUpdate(userId, { status: 'active' });
 
       // Account fully verified & activated → welcome email (#2)
