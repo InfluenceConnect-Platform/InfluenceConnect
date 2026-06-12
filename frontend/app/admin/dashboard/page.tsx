@@ -80,7 +80,7 @@ export default function AdminDashboard() {
     try {
       const [statsRes, gstinRes] = await Promise.all([
         api.get('/api/admin/stats'),
-        api.get('/api/admin/gstin/pending'),
+        api.get('/api/admin/gstin', { params: { status: 'pending' } }),
       ]);
       setStats(statsRes.data.stats);
       setRecentSignups(statsRes.data.recentSignups);
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
       setDealStatus(statsRes.data.dealStatus ?? null);
       setCampaignStatus(statsRes.data.campaignStatus ?? null);
       setTopNiches(statsRes.data.topNiches ?? []);
-      setPendingGSTIN(gstinRes.data.pending);
+      setPendingGSTIN(gstinRes.data.verifications ?? []);
     } catch (err) {
       console.error('Admin data error:', err);
     } finally {
@@ -482,24 +482,24 @@ export default function AdminDashboard() {
               {pendingGSTIN.map((item, i) => (
                 <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4 hover:bg-gray-50/50 transition-colors">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-sm flex-shrink-0 border border-blue-100">
-                    {item.userId?.name?.charAt(0).toUpperCase()}
+                    {item.name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{item.userId?.name}</p>
-                    <p className="text-xs text-gray-400">{item.userId?.email}</p>
+                    <p className="text-sm font-semibold text-gray-900">{item.name}</p>
+                    <p className="text-xs text-gray-400">{item.email}</p>
                     <p className="text-xs font-mono text-gray-600 mt-1.5 bg-gray-100 px-2.5 py-1 rounded-lg inline-block tracking-wider">
                       {item.gstin}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
                     <button
-                      onClick={() => handleGSTIN(item._id, 'verified')}
+                      onClick={() => handleGSTIN(item.brandProfileId, 'verified')}
                       className="text-xs px-4 py-2 font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all cursor-pointer shadow-sm"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => handleGSTIN(item._id, 'rejected')}
+                      onClick={() => handleGSTIN(item.brandProfileId, 'rejected')}
                       className="text-xs px-4 py-2 font-semibold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-all cursor-pointer border border-red-100"
                     >
                       Reject
