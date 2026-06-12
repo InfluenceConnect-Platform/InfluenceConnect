@@ -96,11 +96,22 @@ exports.getMyProfile = async (req, res) => {
 // ─────────────────────────────────────────
 exports.updateProfile = async (req, res) => {
   try {
-    const { bio, niche, city, priceRangeMin, priceRangeMax, platforms } = req.body;
+    const { name, bio, niche, city, priceRangeMin, priceRangeMax, platforms } = req.body;
 
     const profile = await InfluencerProfile.findOne({ userId: req.userId });
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Allow editing the influencer's display name (stored on the User). The
+    // public profile slug is generated once at profile creation and is NOT
+    // regenerated here, so the profile URL stays stable across name changes.
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      if (!trimmedName) {
+        return res.status(400).json({ error: 'Name cannot be empty.' });
+      }
+      await User.findByIdAndUpdate(req.userId, { name: trimmedName });
     }
 
     // Update fields

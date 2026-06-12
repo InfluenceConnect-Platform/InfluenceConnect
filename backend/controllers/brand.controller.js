@@ -88,13 +88,23 @@ exports.getMyProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const {
-      companyName, description, industry,
+      name, companyName, description, industry,
       website, gstin
     } = req.body;
 
     const profile = await BrandProfile.findOne({ userId: req.userId });
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Allow editing the brand's display name (stored on the User). Validated
+    // separately from the brand profile fields so an empty value is rejected.
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      if (!trimmedName) {
+        return res.status(400).json({ error: 'Name cannot be empty.' });
+      }
+      await User.findByIdAndUpdate(req.userId, { name: trimmedName });
     }
 
     if (companyName !== undefined) profile.companyName = companyName;

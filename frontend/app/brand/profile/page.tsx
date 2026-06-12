@@ -39,6 +39,7 @@ export default function BrandProfile() {
   const [error, setError]           = useState('');
   const [isEditing, setIsEditing]   = useState(false);
 
+  const [name, setName]               = useState(user?.name || '');
   const [companyName, setCompanyName] = useState('');
   const [description, setDescription] = useState('');
   const [industry, setIndustry]       = useState('');
@@ -76,9 +77,18 @@ export default function BrandProfile() {
   };
 
   const handleSave = async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) { setError('Brand name cannot be empty.'); return; }
     setSaving(true); setError('');
     try {
-      await api.put('/api/brand/profile', { companyName, description, industry, website });
+      await api.put('/api/brand/profile', { name: trimmedName, companyName, description, industry, website });
+      // Sync the edited display name into localStorage + state so the header and
+      // top nav reflect it immediately.
+      if (user) {
+        const updatedUser = { ...user, name: trimmedName };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
       setIsEditing(false);
@@ -91,6 +101,7 @@ export default function BrandProfile() {
   };
 
   const handleCancel = () => {
+    setName(user?.name || '');
     setCompanyName(profile?.companyName || '');
     setDescription(profile?.description || '');
     setIndustry(profile?.industry || '');
@@ -369,6 +380,11 @@ export default function BrandProfile() {
           <div className="px-5 sm:px-6 py-5">
             {isEditing ? (
               <div className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Brand name</label>
+                  <input type="text" value={name} onChange={e => setName(e.target.value)}
+                    placeholder="Your brand name" className={fieldClass} />
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company name (if any)</label>
                   <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}

@@ -306,6 +306,7 @@ export default function InfluencerProfile() {
   };
   const closeModal = () => setModalOpen(false);
 
+  const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [niche, setNiche] = useState<string[]>([]);
   const [city, setCity] = useState('');
@@ -338,6 +339,7 @@ export default function InfluencerProfile() {
         setProfile((prev: typeof p | null) => prev ? { ...prev, portfolioItems: p.portfolioItems } : p);
       } else {
         setProfile(p);
+        setName(p.userId?.name || '');
         setBio(p.bio || '');
         setNiche(p.niche || []);
         setCity(p.city || '');
@@ -354,6 +356,7 @@ export default function InfluencerProfile() {
 
   const resetFormToProfile = () => {
     if (!profile) return;
+    setName(profile.userId?.name || '');
     setBio(profile.bio || '');
     setNiche(profile.niche || []);
     setCity(profile.city || '');
@@ -405,15 +408,27 @@ export default function InfluencerProfile() {
   };
 
   const handleSave = async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) { setError('Name cannot be empty.'); return; }
     setSaving(true);
     setError('');
     try {
       await api.put('/api/influencer/profile', {
+        name: trimmedName,
         bio, niche, city,
         priceRangeMin: parseInt(priceRangeMin) || 0,
         priceRangeMax: parseInt(priceRangeMax) || 0,
         platforms,
       });
+      // Keep the cached user (top nav, avatar) in sync with the new name. The
+      // public profile slug is unaffected — it never changes after creation.
+      try {
+        const stored = localStorage.getItem('user');
+        if (stored) {
+          const u = JSON.parse(stored);
+          localStorage.setItem('user', JSON.stringify({ ...u, name: trimmedName }));
+        }
+      } catch { /* ignore */ }
       // Now persist any buffered portfolio uploads
       for (const item of pendingUploads) {
         await api.post('/api/upload/portfolio', item);
@@ -1244,10 +1259,20 @@ export default function InfluencerProfile() {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight leading-tight">
-                      {profile?.userId?.name || 'Influencer'}
-                    </h2>
+                  <div className="min-w-0">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        placeholder="Your name"
+                        className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight leading-tight w-full max-w-xs bg-transparent border-b border-gray-300 focus:border-[#5D8A8F] outline-none pb-0.5"
+                      />
+                    ) : (
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight leading-tight">
+                        {profile?.userId?.name || 'Influencer'}
+                      </h2>
+                    )}
                     <p className="text-xs text-gray-400 mt-0.5">{profile?.userId?.email}</p>
                   </div>
                   <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
