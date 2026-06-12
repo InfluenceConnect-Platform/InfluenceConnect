@@ -47,7 +47,6 @@ export default function BrandProfile() {
   const [gstinInput, setGstinInput]   = useState('');
   const [savingGstin, setSavingGstin] = useState(false);
   const [gstinError, setGstinError]   = useState('');
-  const [gstinSaved, setGstinSaved]   = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -106,9 +105,10 @@ export default function BrandProfile() {
     setSavingGstin(true); setGstinError('');
     try {
       await api.put('/api/brand/profile', { gstin: normalized });
-      setGstinSaved(true);
-      setTimeout(() => setGstinSaved(false), 3000);
       setGstinInput('');
+      // Immediately flip to the "in review" state so the input form closes and
+      // only the pending status shows; fetchProfile then syncs authoritative data.
+      setProfile((prev: any) => prev ? { ...prev, gstin: normalized, gstinStatus: 'pending', gstinVerified: false } : prev);
       await fetchProfile();
     } catch (err: any) {
       setGstinError(err.response?.data?.error || 'Failed to submit GST number.');
@@ -513,7 +513,7 @@ export default function BrandProfile() {
                   <p className="text-xs text-gray-500 font-mono mt-0.5 tracking-wider">{profile.gstin}</p>
                 )}
                 {profile?.gstinStatus === 'pending' && (
-                  <p className="text-xs text-amber-700/80 mt-0.5">Our team verifies new GSTINs within 72 hours.</p>
+                  <p className="text-xs text-amber-700/80 mt-0.5">Your GSTIN has been sent for review — our team verifies it within 72 hours.</p>
                 )}
                 {profile?.gstinStatus === 'rejected' && (
                   <p className="text-xs text-red-600/90 mt-0.5">Your account was suspended. Re-enter the correct GSTIN below to request another review.</p>
@@ -543,7 +543,6 @@ export default function BrandProfile() {
                   <span>Your GST number will be verified by our team within <strong>72 hours</strong>. Make sure you enter it correctly — an incorrect GSTIN may trigger cancellation of your account.</span>
                 </div>
                 {gstinError && <p className="text-xs font-medium text-red-500">{gstinError}</p>}
-                {gstinSaved && <p className="text-xs font-medium text-emerald-600">GSTIN submitted — verification in progress.</p>}
                 <button
                   onClick={handleSubmitGstin}
                   disabled={savingGstin}

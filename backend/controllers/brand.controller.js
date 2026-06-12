@@ -103,11 +103,20 @@ exports.updateProfile = async (req, res) => {
     if (website !== undefined)     profile.website = website;
 
     // GSTIN (re)submission — validate, queue for manual admin review, and
-    // acknowledge by email. Only acts when the value actually changes.
+    // acknowledge by email. We re-queue when a value is provided AND either it
+    // changed, or the GSTIN is not currently approved/queued. The latter lets a
+    // brand resubmit after a rejection — even the SAME number (the rejection may
+    // have been a mistake) — and reliably moves it back into the admin queue.
+    // A no-op is only when it's already pending/verified with an unchanged value.
     let gstinResubmitted = false;
     if (gstin !== undefined) {
       const normalized = normalizeGstin(gstin);
-      if (normalized && normalized !== profile.gstin) {
+      const needsReview = !!normalized && (
+        normalized !== profile.gstin ||
+        profile.gstinStatus === 'rejected' ||
+        profile.gstinStatus === 'not_submitted'
+      );
+      if (needsReview) {
         if (!isValidGstin(normalized)) {
           return res.status(400).json({ error: 'Please enter a valid 15-character GST number.' });
         }
