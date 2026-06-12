@@ -789,6 +789,20 @@ exports.discoverInfluencers = async (req, res) => {
 
     const query = {};
 
+    // A profile is only discoverable if it belongs to an *active influencer*
+    // account. This guards against stray profiles (e.g. one accidentally created
+    // for an admin/brand) and hides suspended creators. The excluded set is small
+    // in practice (admins + suspended users), so a $nin stays cheap.
+    const excludedUsers = await User.find({
+      $or: [
+        { role: { $ne: 'influencer' } },
+        { status: { $ne: 'active' } },
+      ],
+    }).select('_id');
+    if (excludedUsers.length) {
+      query.userId = { $nin: excludedUsers.map(u => u._id) };
+    }
+
     // Free-text search across name (on User), slug, bio, city and niche.
     if (search && search.trim()) {
       const safe = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

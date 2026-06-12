@@ -33,9 +33,18 @@ async function getUniqueSlug(name) {
 // ─────────────────────────────────────────
 exports.createProfile = async (req, res) => {
   try {
+    // Only influencer accounts may own an influencer profile. Without this guard
+    // an admin or brand hitting this endpoint would get a profile and then leak
+    // into brand Discover results.
+    if (req.user.role !== 'influencer') {
+      return res.status(403).json({
+        error: 'Only influencer accounts can create an influencer profile.'
+      });
+    }
+
     // Check profile does not already exist
-    const existing = await InfluencerProfile.findOne({ 
-      userId: req.userId 
+    const existing = await InfluencerProfile.findOne({
+      userId: req.userId
     });
     if (existing) {
       return res.status(400).json({ 
