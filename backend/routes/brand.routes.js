@@ -7,6 +7,7 @@ const {
   updateProfile,
   createCampaign,
   getMyCampaigns,
+  getNewApplicantsCount,
   getCampaignApplications,
   updateApplicationStatus,
   discoverInfluencers,
@@ -24,6 +25,7 @@ router.put('/profile', authenticate, updateProfile);
 router.get('/dashboard/stats', authenticate, getDashboardStats);
 router.post('/campaigns', authenticate, createCampaign);
 router.get('/campaigns', authenticate, getMyCampaigns);
+router.get('/new-applicants-count', authenticate, getNewApplicantsCount);
 router.put('/campaigns/:campaignId', authenticate, updateCampaign);
 router.delete('/campaigns/:campaignId', authenticate, deleteCampaign);
 router.get('/campaigns/:campaignId/applications', authenticate, getCampaignApplications);

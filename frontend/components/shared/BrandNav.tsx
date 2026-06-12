@@ -97,6 +97,9 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
   const [inviteResponseCount, setInviteResponseCount] = useState(0);
+  // Unseen new applicants across the brand's campaigns — drives a dot on the
+  // Campaigns nav tab, like unread messages.
+  const [newApplicantCount, setNewApplicantCount] = useState(0);
   // True when the brand's GSTIN needs their attention — rejected (e.g. their
   // account was restored so they can submit the correct number) or never
   // submitted. Drives a dot on the Profile nav item, like unread messages.
@@ -155,6 +158,12 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
       setUnreadCount(msgRes.data.count ?? 0);
       setPendingOfferCount(offerRes.data.count ?? 0);
       setInviteResponseCount(inviteRes.data.count ?? 0);
+    } catch {}
+
+    // New applicants — separate try so one endpoint never wipes the others.
+    try {
+      const applRes = await api.get('/api/brand/new-applicants-count');
+      setNewApplicantCount(applRes.data.applicants ?? 0);
     } catch {}
 
     // GSTIN status — separate try so a profile hiccup never wipes the counts.
@@ -230,11 +239,12 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           {/* Desktop nav */}
           <div className="hidden lg:flex items-center gap-0.5">
             {NAV_ITEMS.map(item => {
-              const isMessages = item.href === '/brand/messages';
-              const isInvites  = item.href === '/brand/invitations';
-              const isProfile  = item.href === '/brand/profile';
-              const isActive   = pathname === item.href;
-              const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction);
+              const isMessages  = item.href === '/brand/messages';
+              const isInvites   = item.href === '/brand/invitations';
+              const isProfile   = item.href === '/brand/profile';
+              const isCampaigns = item.href === '/brand/campaigns';
+              const isActive    = pathname === item.href;
+              const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
               const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
               return (
                 <Link
@@ -346,11 +356,12 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
             ${isDark ? 'bg-[#0B1725] border-slate-700' : 'bg-white border-gray-200'}`}>
             <div className="px-4 py-3 flex flex-col gap-1">
               {NAV_ITEMS.map(item => {
-                const isMessages = item.href === '/brand/messages';
-                const isInvites  = item.href === '/brand/invitations';
-                const isProfile  = item.href === '/brand/profile';
-                const isActive   = pathname === item.href;
-                const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction);
+                const isMessages  = item.href === '/brand/messages';
+                const isInvites   = item.href === '/brand/invitations';
+                const isProfile   = item.href === '/brand/profile';
+                const isCampaigns = item.href === '/brand/campaigns';
+                const isActive    = pathname === item.href;
+                const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
                 const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
                 return (
                   <Link
@@ -410,11 +421,12 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
         }`}>
         <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden px-3 gap-0.5 py-2">
           {NAV_ITEMS.map(item => {
-            const isMessages = item.href === '/brand/messages';
-            const isInvites  = item.href === '/brand/invitations';
-            const isProfile  = item.href === '/brand/profile';
-            const isActive   = pathname === item.href;
-            const hasDot     = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction);
+            const isMessages  = item.href === '/brand/messages';
+            const isInvites   = item.href === '/brand/invitations';
+            const isProfile   = item.href === '/brand/profile';
+            const isCampaigns = item.href === '/brand/campaigns';
+            const isActive    = pathname === item.href;
+            const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
             const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
             return (
               <Link

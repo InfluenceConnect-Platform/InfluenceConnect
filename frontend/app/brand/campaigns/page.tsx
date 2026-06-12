@@ -223,8 +223,12 @@ export default function BrandCampaigns() {
 
   const handleSelectCampaign = (campaign: any) => {
     setSelectedCampaign(campaign);
-    fetchApplications(campaign._id);
+    fetchApplications(campaign._id);   // backend marks this campaign's applicants seen
     setShowPanel(true);
+    // Opening the applicants clears the card's "new" badge right away.
+    if (campaign.newApplicants > 0) {
+      setCampaigns(prev => prev.map(c => c._id === campaign._id ? { ...c, newApplicants: 0 } : c));
+    }
   };
 
   useLiveData(() => {
@@ -972,6 +976,18 @@ export default function BrandCampaigns() {
                       {campaign.customId && <IdChip id={campaign.customId} size="xs" tone="subtle" />}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {campaign.newApplicants > 0 && (
+                        <span
+                          title={`${campaign.newApplicants} new applicant${campaign.newApplicants > 1 ? 's' : ''} since you last checked`}
+                          className="flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200"
+                        >
+                          <span className="relative flex w-1.5 h-1.5">
+                            <span className="absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75 animate-ping" />
+                            <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-violet-500" />
+                          </span>
+                          {campaign.newApplicants} new
+                        </span>
+                      )}
                       <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
                         {CAMPAIGN_STATUS_LABELS[campaign.status] ?? campaign.status}
                       </span>
@@ -1034,7 +1050,10 @@ export default function BrandCampaigns() {
 
                   {/* Stat cards row */}
                   <div className="grid grid-cols-4 gap-2">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-center">
+                    <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-center">
+                      {campaign.newApplicants > 0 && (
+                        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500 ring-2 ring-white" />
+                      )}
                       <p className="text-base font-black text-blue-900 leading-none mb-1">{campaign.applicantCount ?? 0}</p>
                       <p className="text-[10px] font-semibold text-blue-500">Applicants</p>
                     </div>

@@ -88,6 +88,13 @@ const campaignSchema = new mongoose.Schema({
     default: 0
   },
 
+  // When the brand last opened this campaign's applicant list. Used to surface
+  // a "new applicants" indicator: applications created after this are unseen.
+  applicantsLastSeenAt: {
+    type: Date,
+    default: null
+  },
+
   // Admin moderation flag — marks a campaign for review without removing it.
   // Reversible; does not change the campaign's lifecycle status.
   flagged: {

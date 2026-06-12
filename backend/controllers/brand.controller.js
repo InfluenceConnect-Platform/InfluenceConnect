@@ -220,6 +220,32 @@ exports.createCampaign = async (req, res) => {
   }
 };
 
+// Count unseen new applicants per campaign. "New" = an organic application
+// (status 'applied') created after the brand last opened that campaign's
+// applicant list. Invitation-accepted applications ('accepted') are excluded —
+// the brand initiated those, so they aren't a surprise. Returns a Map of
+// campaignId(string) -> count.
+async function newApplicantCounts(campaigns) {
+  if (!campaigns.length) return new Map();
+  const ids = campaigns.map(c => c._id);
+  const applied = await Application.find({
+    campaignId: { $in: ids },
+    status: 'applied',
+  }).select('campaignId createdAt');
+
+  const lastSeen = new Map(
+    campaigns.map(c => [c._id.toString(), c.applicantsLastSeenAt ? new Date(c.applicantsLastSeenAt).getTime() : 0])
+  );
+  const counts = new Map();
+  for (const a of applied) {
+    const cid = a.campaignId.toString();
+    if (a.createdAt.getTime() > (lastSeen.get(cid) || 0)) {
+      counts.set(cid, (counts.get(cid) || 0) + 1);
+    }
+  }
+  return counts;
+}
+
 // ─────────────────────────────────────────
 // GET MY CAMPAIGNS
 // ─────────────────────────────────────────
@@ -242,15 +268,36 @@ exports.getMyCampaigns = async (req, res) => {
     }).select('campaignId');
     const activeDealSet = new Set(activeDeals.map(d => d.campaignId.toString()));
 
+    // Unseen new-applicant counts so the UI can badge specific campaign cards.
+    const newCounts = await newApplicantCounts(campaigns);
+
     const enriched = campaigns.map(c => ({
       ...c.toObject(),
       hasActiveDeal: activeDealSet.has(c._id.toString()),
+      newApplicants: newCounts.get(c._id.toString()) || 0,
     }));
 
     res.json({ campaigns: enriched });
 
   } catch (error) {
     console.error('Get my campaigns error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// GET NEW APPLICANTS COUNT (for the Campaigns nav dot)
+// ─────────────────────────────────────────
+exports.getNewApplicantsCount = async (req, res) => {
+  try {
+    const campaigns = await Campaign.find({ brandId: req.userId })
+      .select('_id applicantsLastSeenAt');
+    const counts = await newApplicantCounts(campaigns);
+    let applicants = 0;
+    counts.forEach(v => { applicants += v; });
+    res.json({ campaigns: counts.size, applicants });
+  } catch (error) {
+    console.error('Get new applicants count error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };
@@ -415,6 +462,10 @@ exports.getCampaignApplications = async (req, res) => {
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found' });
     }
+
+    // Opening the applicant list marks this campaign's applicants as seen, so
+    // its "new applicants" badge clears until the next influencer applies.
+    await Campaign.findByIdAndUpdate(req.params.campaignId, { applicantsLastSeenAt: new Date() });
 
     const applications = await Application.find({
       campaignId: req.params.campaignId
