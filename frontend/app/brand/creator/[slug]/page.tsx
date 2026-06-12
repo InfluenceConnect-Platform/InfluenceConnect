@@ -603,7 +603,7 @@ export default function CreatorProfilePage() {
                 </div>
               </div>
               {profile.priceRangeMin > 0 && (
-                <span className="text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">per post</span>
+                <span className="text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">per deliverable</span>
               )}
             </div>
           </div>
