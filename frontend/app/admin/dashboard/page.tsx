@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import AdminNav from '@/components/shared/AdminNav';
 import { useToast } from '@/components/shared/Toast';
+import UserDetailDrawer from '@/components/shared/UserDetailDrawer';
 import AdminGrowthChart from '@/components/charts/AdminGrowthChart';
 import AdminRevenueChart from '@/components/charts/AdminRevenueChart';
 import AdminDonut from '@/components/charts/AdminDonut';
@@ -62,6 +63,7 @@ export default function AdminDashboard() {
   const [topNiches, setTopNiches]         = useState<any[]>([]);
   const [pendingGSTIN, setPendingGSTIN]   = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const token  = localStorage.getItem('token');
@@ -290,7 +292,7 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {recentSignups.map((u, i) => (
-                    <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={i} onClick={() => setSelectedUserId(u._id)} className="hover:bg-gray-50/50 transition-colors cursor-pointer">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
                           {u.avatarUrl ? (
@@ -337,7 +339,7 @@ export default function AdminDashboard() {
             {/* Mobile list */}
             <div className="md:hidden divide-y divide-gray-50">
               {recentSignups.map((u, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3.5">
+                <div key={i} onClick={() => setSelectedUserId(u._id)} className="flex items-center gap-3 px-4 py-3.5 cursor-pointer active:bg-gray-50">
                   {u.avatarUrl ? (
                     <img src={u.avatarUrl} alt={u.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm" />
                   ) : (
@@ -512,6 +514,12 @@ export default function AdminDashboard() {
         </div>
 
       </main>
+
+      <UserDetailDrawer
+        userId={selectedUserId}
+        onClose={() => setSelectedUserId(null)}
+        onChanged={fetchData}
+      />
     </div>
   );
 }
