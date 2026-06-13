@@ -240,6 +240,7 @@ export default function CreatorProfilePage() {
   const [profile,   setProfile]   = useState<any>(null);
   const [loading,   setLoading]   = useState(true);
   const [notFound,  setNotFound]  = useState(false);
+  const [limitReached, setLimitReached] = useState<string>('');
   const [activeTab, setActiveTab] = useState<Tab>('all');
 
   // Media modal state
@@ -266,6 +267,9 @@ export default function CreatorProfilePage() {
       setProfile(res.data.profile);
     } catch (err: any) {
       if (err.response?.status === 404) setNotFound(true);
+      else if (err.response?.data?.error === 'freemium_limit') {
+        setLimitReached(err.response.data.message || 'Daily profile view limit reached.');
+      }
     } finally {
       setLoading(false);
     }
@@ -276,6 +280,28 @@ export default function CreatorProfilePage() {
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-[#3D5087] border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-gray-400 font-medium">Loading profile…</p>
+      </div>
+    </div>
+  );
+
+  if (limitReached) return (
+    <div className="min-h-screen bg-[#F4F6FB] flex flex-col items-center justify-center gap-4 px-6">
+      <div className="w-16 h-16 rounded-2xl bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+        <svg className="w-7 h-7 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <p className="text-lg font-bold text-gray-800">Daily view limit reached</p>
+      <p className="text-sm text-gray-500 text-center max-w-sm">{limitReached}</p>
+      <div className="flex items-center gap-3 mt-1">
+        <button onClick={() => router.back()}
+          className="px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl transition-all cursor-pointer">
+          ← Back to Discover
+        </button>
+        <button onClick={() => router.push('/brand/billing')}
+          className="px-5 py-2.5 bg-[#3D5087] hover:bg-[#2B3B68] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer">
+          Upgrade to Premium
+        </button>
       </div>
     </div>
   );

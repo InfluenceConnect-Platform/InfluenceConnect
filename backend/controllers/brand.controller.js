@@ -4,7 +4,12 @@ const Application = require('../models/Application');
 const Deal = require('../models/Deal');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
+const ProfileView = require('../models/ProfileView');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
+
+// Freemium brands can open this many distinct influencer profiles per day.
+// Re-opening one already seen today is free (deduped). Premium = unlimited.
+const FREE_DAILY_PROFILE_VIEWS = 10;
 const notify = require('../services/email');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 
@@ -767,23 +772,16 @@ exports.updateDealStatus = async (req, res) => {
 // ─────────────────────────────────────────
 exports.discoverInfluencers = async (req, res) => {
   try {
-    const isPremium = req.user.plan === 'premium';
-
-    // Freemium — 10 profile views per day
-    if (!isPremium) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const viewsToday = await require('../models/User').countDocuments({
-        // Simple view tracking — in production use a separate collection
-      });
-    }
+    // Note: the freemium "10 profiles/day" cap is enforced when a brand opens a
+    // full profile (getInfluencerBySlug), not on this listing — browsing the
+    // grid stays unlimited for everyone.
 
     const {
       search,
       niche, platform, city,
       minFollowers, maxFollowers,
       minPrice, maxPrice,
+      sort = 'relevance',
       page = 1, limit = 12
     } = req.query;
 
@@ -851,11 +849,21 @@ exports.discoverInfluencers = async (req, res) => {
       if (minPrice) query.priceRangeMax = { $gte: parseInt(minPrice) };
     }
 
+    // Sort options. `relevance` (default) preserves the original ordering.
+    // A credibilityScore tiebreaker keeps results stable and sensible when the
+    // primary key ties (e.g. creators who haven't set a price).
+    const SORTS = {
+      relevance: { credibilityScore: -1 },
+      followers: { 'platforms.followers': -1, credibilityScore: -1 },
+      price:     { priceRangeMin: 1, credibilityScore: -1 },
+    };
+    const sortBy = SORTS[sort] || SORTS.relevance;
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const [profiles, total] = await Promise.all([
       InfluencerProfile.find(query)
-        .sort({ credibilityScore: -1 })
+        .sort(sortBy)
         .skip(skip)
         .limit(parseInt(limit))
         .populate('userId', 'name plan'),
@@ -888,6 +896,38 @@ exports.getInfluencerBySlug = async (req, res) => {
 
     if (!profile) {
       return res.status(404).json({ error: 'Influencer not found.' });
+    }
+
+    // Freemium "10 profiles/day" cap — enforced only for freemium *brands*.
+    // Premium brands and non-brand callers (e.g. admins previewing) are exempt.
+    if (req.user.role === 'brand' && req.user.plan !== 'premium') {
+      const day = new Date();
+      day.setHours(0, 0, 0, 0);
+
+      // Already opened this profile today? Re-views are free (deduped).
+      const alreadyViewed = await ProfileView.findOne({
+        brandId: req.userId,
+        profileId: profile._id,
+        day,
+      });
+
+      if (!alreadyViewed) {
+        const viewsToday = await ProfileView.countDocuments({ brandId: req.userId, day });
+        if (viewsToday >= FREE_DAILY_PROFILE_VIEWS) {
+          return res.status(403).json({
+            error: 'freemium_limit',
+            message: `You've reached your ${FREE_DAILY_PROFILE_VIEWS} profile views for today. Upgrade to Premium to view unlimited profiles.`,
+          });
+        }
+
+        // Record this new view. Upsert so a rapid double-open can't trip the
+        // unique index (and never double-counts toward the daily limit).
+        await ProfileView.findOneAndUpdate(
+          { brandId: req.userId, profileId: profile._id, day },
+          { $setOnInsert: { brandId: req.userId, profileId: profile._id, day } },
+          { upsert: true, new: true }
+        );
+      }
     }
 
     const visiblePortfolio = profile.getVisiblePortfolio(profile.userId?.plan === 'premium');

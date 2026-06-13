@@ -613,6 +613,7 @@ export default function BrandDiscover() {
   const [maxPriceInput, setMaxPriceInput] = useState(initialMaxPrice);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sortBy, setSortBy] = useState('relevance');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -628,7 +629,7 @@ export default function BrandDiscover() {
 
   useEffect(() => {
     fetchInfluencers();
-  }, [selectedNiches, selectedCities, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch]);
+  }, [selectedNiches, selectedCities, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch, sortBy]);
 
   const fetchInfluencers = async () => {
     setLoading(true);
@@ -642,6 +643,7 @@ export default function BrandDiscover() {
       if (maxFollowers) params.maxFollowers = maxFollowers;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
+      if (sortBy && sortBy !== 'relevance') params.sort = sortBy;
 
       const response = await api.get('/api/brand/discover', { params });
       setInfluencers(response.data.influencers);
@@ -1058,17 +1060,32 @@ export default function BrandDiscover() {
                   {activeFilterCount > 0 && <span className="text-[#3D5087] font-semibold ml-1">· {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active</span>}
                 </p>
               </div>
-              {activeFilterCount > 0 && (
-                <button
-                  onClick={clearFilters}
-                  className="hidden lg:flex text-xs text-red-500 font-semibold items-center gap-1.5 hover:text-red-700 transition-colors cursor-pointer bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-xl"
-                >
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                  Clear filters
-                </button>
-              )}
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5">
+                  <label htmlFor="sort-by" className="text-xs font-semibold text-gray-400 hidden sm:block">Sort by</label>
+                  <select
+                    id="sort-by"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-1.5 cursor-pointer hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] transition-all"
+                  >
+                    <option value="relevance">Relevance</option>
+                    <option value="followers">Followers</option>
+                    <option value="price">Price: Low to High</option>
+                  </select>
+                </div>
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={clearFilters}
+                    className="hidden lg:flex text-xs text-red-500 font-semibold items-center gap-1.5 hover:text-red-700 transition-colors cursor-pointer bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-xl"
+                  >
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    Clear filters
+                  </button>
+                )}
+              </div>
             </div>
 
             {loading ? (
