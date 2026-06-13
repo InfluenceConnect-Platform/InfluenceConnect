@@ -20,10 +20,15 @@ export default function AdminUsers() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
+  // Seed role/plan filters from the URL so deep links like
+  // /admin/users?plan=premium (e.g. from the subscriptions breakdown) land
+  // pre-filtered. Guarded for SSR, matching the discover page pattern.
+  const initialParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const [users, setUsers]           = useState<any[]>([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
+  const [roleFilter, setRoleFilter] = useState(initialParams?.get('role') || '');
+  const [planFilter, setPlanFilter] = useState(initialParams?.get('plan') || '');
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
   const [pages, setPages]           = useState(1);
@@ -41,13 +46,14 @@ export default function AdminUsers() {
   useEffect(() => {
     fetchUsers();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roleFilter, page]);
+  }, [roleFilter, planFilter, page]);
 
   const fetchUsers = async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
     try {
       const params: Record<string, string | number> = { limit: 20, page };
       if (roleFilter) params.role = roleFilter;
+      if (planFilter) params.plan = planFilter;
       if (search)     params.search = search;
       const response = await api.get('/api/admin/users', { params });
       setUsers(response.data.users);
@@ -64,6 +70,7 @@ export default function AdminUsers() {
 
   const handleSearch = () => { setPage(1); fetchUsers(); };
   const handleRoleFilter = (role: string) => { setRoleFilter(role); setPage(1); };
+  const handlePlanFilter = (plan: string) => { setPlanFilter(plan); setPage(1); };
 
   const showToast = (msg: string) => {
     toast.show(msg, /fail|error|cannot|unable|wrong/.test(msg.toLowerCase()) ? 'error' : 'success');
@@ -135,6 +142,27 @@ export default function AdminUsers() {
                 className={`flex-shrink-0 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   roleFilter === f.value
                     ? 'bg-[#3E4751] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto shadow-sm">
+            {[
+              { value: '',         label: 'All plans' },
+              { value: 'premium',  label: 'Premium' },
+              { value: 'freemium', label: 'Freemium' },
+            ].map(f => (
+              <button
+                key={f.value}
+                onClick={() => handlePlanFilter(f.value)}
+                className={`flex-shrink-0 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  planFilter === f.value
+                    ? f.value === 'premium'
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'bg-[#3E4751] text-white shadow-sm'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
               >

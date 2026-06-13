@@ -183,11 +183,12 @@ exports.getOverviewStats = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getAllUsers = async (req, res) => {
   try {
-    const { role, status, page = 1, limit = 20, search } = req.query;
+    const { role, status, plan, page = 1, limit = 20, search } = req.query;
 
     const query = {};
     if (role) query.role = role;
     if (status) query.status = status;
+    if (plan) query.plan = plan;
     if (search) {
       // Escape regex metacharacters so a raw user ID (with its hyphens) and any
       // pasted value are matched literally, not parsed as a pattern.
