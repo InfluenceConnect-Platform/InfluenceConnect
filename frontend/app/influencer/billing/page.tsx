@@ -17,7 +17,6 @@ const FREEMIUM_FEATURES = [
   { text: '10 messages per day', included: true },
   { text: 'All portfolio items visible', included: false },
   { text: 'Unlimited campaign applications', included: false },
-  { text: 'Priority in brand discovery', included: false },
   { text: 'Detailed earnings analytics', included: false },
   { text: 'CSV earnings export', included: false },
 ];
@@ -27,9 +26,7 @@ const PREMIUM_FEATURES = [
   { text: 'Unlimited portfolio uploads' },
   { text: 'All portfolio items visible to brands' },
   { text: 'Unlimited campaign applications' },
-  { text: 'Full credibility score breakdown' },
   { text: 'Unlimited daily messages' },
-  { text: 'Priority in brand discovery searches' },
   { text: 'Detailed monthly earnings chart' },
   { text: 'Earnings by category breakdown' },
   { text: 'CSV export for earnings' },
@@ -51,7 +48,7 @@ const FAQS = [
   },
   {
     q: 'Does Influence Connect take a cut of my earnings?',
-    a: 'No. In Phase 1, deals are agreed directly between you and brands. Platform commission is only introduced in Phase 2.',
+    a: 'No. Deals are agreed directly between you and brands, and we never take a cut of your earnings.',
   },
 ];
 

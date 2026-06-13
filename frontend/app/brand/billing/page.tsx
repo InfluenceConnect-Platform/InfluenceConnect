@@ -10,28 +10,24 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 
 const FREEMIUM_FEATURES = [
-  { text: 'Up to 2 active campaigns',           included: true  },
-  { text: 'Basic creator discovery',            included: true  },
-  { text: 'Application management',             included: true  },
-  { text: '10 messages per day',                included: true  },
-  { text: 'Standard campaign visibility',       included: true  },
-  { text: 'Unlimited active campaigns',         included: false },
-  { text: 'Priority placement in creator feed', included: false },
-  { text: 'Advanced creator filters',           included: false },
-  { text: 'Campaign performance analytics',     included: false },
-  { text: 'Export campaign reports (CSV)',       included: false },
-  { text: 'Dedicated support',                  included: false },
+  { text: 'Up to 2 active campaigns',                      included: true  },
+  { text: 'Creator discovery — up to 10 profiles/day',     included: true  },
+  { text: 'Search & filter creators (niche, platform, location, followers, budget)', included: true },
+  { text: 'Application management (shortlist, accept, reject)', included: true },
+  { text: 'Campaign performance dashboard',                included: true  },
+  { text: 'Up to 10 messages per day',                     included: true  },
+  { text: 'Email notifications',                           included: true  },
+  { text: 'Unlimited active campaigns',                    included: false },
+  { text: 'Unlimited creator profile views',               included: false },
+  { text: 'Unlimited daily messages',                      included: false },
+  { text: 'Priority support',                              included: false },
 ];
 
 const PREMIUM_FEATURES = [
   'Unlimited active campaigns',
-  'Priority placement in creator discovery',
-  'Advanced creator filters (engagement, tier)',
-  'Campaign performance analytics',
-  'Export campaign reports (CSV)',
+  'Unlimited creator profile views in Discover',
   'Unlimited daily messages',
-  'Early access to new features',
-  'Dedicated brand support',
+  'Priority support',
   'All Freemium features included',
 ];
 
@@ -46,7 +42,7 @@ const FAQS = [
   },
   {
     q: 'Do you take a commission on deals?',
-    a: 'No. In Phase 1, deals are agreed directly between you and creators. Platform commission is only introduced in a future paid tier.',
+    a: 'No. Deals are agreed directly between you and creators, and we never take a commission on them.',
   },
   {
     q: 'Is my billing information secure?',
@@ -464,13 +460,13 @@ export default function BrandBillingPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {[
-                { feature: 'Active campaigns',         free: '2',          premium: 'Unlimited' },
-                { feature: 'Creator discovery',        free: 'Basic',      premium: 'Advanced filters' },
-                { feature: 'Daily messages',           free: '10/day',     premium: 'Unlimited' },
-                { feature: 'Campaign analytics',       free: false,        premium: true },
-                { feature: 'Priority in creator feed', free: false,        premium: true },
-                { feature: 'CSV report export',        free: false,        premium: true },
-                { feature: 'Dedicated support',        free: false,        premium: true },
+                { feature: 'Active campaigns',          free: '2',          premium: 'Unlimited' },
+                { feature: 'Creator profile views',     free: '10/day',     premium: 'Unlimited' },
+                { feature: 'Daily messages',            free: '10/day',     premium: 'Unlimited' },
+                { feature: 'Search & filter creators',  free: true,         premium: true },
+                { feature: 'Application management',     free: true,         premium: true },
+                { feature: 'Campaign dashboard',        free: true,         premium: true },
+                { feature: 'Priority support',          free: false,        premium: true },
               ].map((row, i) => (
                 <tr key={i} className="hover:bg-blue-50/20 transition-colors">
                   <td className="px-6 py-3.5 font-medium text-gray-700">{row.feature}</td>

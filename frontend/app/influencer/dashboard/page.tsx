@@ -556,10 +556,10 @@ export default function InfluencerDashboard() {
                     </svg>
                     Upgrade to Premium
                   </div>
-                  <h4 className="font-extrabold text-white text-[15px] mb-1">Get discovered faster</h4>
-                  <p className="text-teal-200/70 text-xs mb-4 leading-relaxed">Show all your work and unlock every feature.</p>
+                  <h4 className="font-extrabold text-white text-[15px] mb-1">Unlock every feature</h4>
+                  <p className="text-teal-200/70 text-xs mb-4 leading-relaxed">Show all your work and remove every limit.</p>
                   <ul className="space-y-2 mb-5">
-                    {['All portfolio items visible to brands', 'Unlimited campaign applications', 'Priority placement in search'].map(f => (
+                    {['All portfolio items visible to brands', 'Unlimited campaign applications', 'Unlimited daily messages'].map(f => (
                       <li key={f} className="flex items-center gap-2 text-xs text-teal-100/90">
                         <svg className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>

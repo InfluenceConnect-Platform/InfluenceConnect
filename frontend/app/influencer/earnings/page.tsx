@@ -403,13 +403,12 @@ export default function EarningsPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-extrabold text-white text-[15px] mb-1">Unlock earnings analytics with Premium</h3>
                     <p className="text-sm text-teal-100/80 leading-relaxed mb-3">
-                      See your full monthly trend, earnings by category, top brand insights, and export your data as CSV.
+                      See your full monthly trend, earnings by category, and export your data as CSV.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {[
                         { label: 'Monthly chart',       color: 'bg-teal-400/20 border-teal-300/30 text-teal-100' },
                         { label: 'Category breakdown',  color: 'bg-violet-400/20 border-violet-300/30 text-violet-100' },
-                        { label: 'Brand insights',      color: 'bg-amber-400/20 border-amber-300/30 text-amber-100' },
                         { label: 'CSV export',          color: 'bg-emerald-400/20 border-emerald-300/30 text-emerald-100' },
                       ].map(f => (
                         <span key={f.label} className={`inline-flex items-center gap-1 text-xs border px-2.5 py-1 rounded-full font-semibold ${f.color}`}>
