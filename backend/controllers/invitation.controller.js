@@ -119,14 +119,17 @@ exports.getBrandInvitations = async (req, res) => {
     if (req.query.campaignId) query.campaignId = req.query.campaignId;
 
     const invitations = await Invitation.find(query)
-      .populate('campaignId', 'title status budgetMin budgetMax niche')
+      .populate('campaignId', 'title status budgetMin budgetMax niche deadline deliverables description targetPlatforms targetCity customId')
       .sort({ createdAt: -1 });
 
-    // Attach the influencer's public profile (name, slug, avatar) for display.
+    // Attach the influencer's public profile (name, slug, avatar + headline
+    // stats) so the brand-side detail drawer can show a full picture without
+    // a second request.
     const influencerIds = invitations.map(i => i.influencerId);
     const [users, profiles] = await Promise.all([
       User.find({ _id: { $in: influencerIds } }).select('name'),
-      InfluencerProfile.find({ userId: { $in: influencerIds } }).select('userId slug profilePicUrl'),
+      InfluencerProfile.find({ userId: { $in: influencerIds } })
+        .select('userId slug profilePicUrl city niche bio platforms credibilityScore level priceRangeMin priceRangeMax customId'),
     ]);
     const nameByUser = new Map(users.map(u => [u._id.toString(), u.name]));
     const profByUser = new Map(profiles.map(p => [p.userId.toString(), p]));
@@ -134,11 +137,27 @@ exports.getBrandInvitations = async (req, res) => {
     const result = invitations.map(inv => {
       const obj = inv.toObject();
       const prof = profByUser.get(inv.influencerId.toString());
+      const name = nameByUser.get(inv.influencerId.toString()) || 'Influencer';
       return {
         ...obj,
-        influencerName: nameByUser.get(inv.influencerId.toString()) || 'Influencer',
+        influencerName: name,
         influencerSlug: prof?.slug || '',
         influencerProfilePicUrl: prof?.profilePicUrl || '',
+        // Full influencer snapshot for the detail drawer.
+        influencer: {
+          name,
+          slug: prof?.slug || '',
+          profilePicUrl: prof?.profilePicUrl || '',
+          customId: prof?.customId || '',
+          city: prof?.city || '',
+          niche: prof?.niche || [],
+          bio: prof?.bio || '',
+          platforms: prof?.platforms || [],
+          credibilityScore: prof?.credibilityScore || 0,
+          level: prof?.level || 'starter',
+          priceRangeMin: prof?.priceRangeMin || 0,
+          priceRangeMax: prof?.priceRangeMax || 0,
+        },
       };
     });
 

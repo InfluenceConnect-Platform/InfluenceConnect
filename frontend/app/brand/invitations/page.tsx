@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
+import InvitationDetailDrawer from '@/components/shared/InvitationDetailDrawer';
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   pending:  { cls: 'bg-amber-50 text-amber-700 border border-amber-200', dot: 'bg-amber-400', label: 'Pending' },
@@ -49,6 +50,7 @@ export default function BrandInvitations() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('all');
+  const [selectedInv, setSelectedInv] = useState<Invitation | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -152,7 +154,11 @@ export default function BrandInvitations() {
               const name = inv.influencerName || 'Influencer';
               const grad = AVATAR_GRADS[(name.charCodeAt(0) || 0) % AVATAR_GRADS.length];
               return (
-                <div key={inv._id} className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div
+                  key={inv._id}
+                  onClick={() => setSelectedInv(inv)}
+                  className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[#C7D2EC] transition-all cursor-pointer"
+                >
                   <div className="flex items-center gap-3.5">
                     {/* Influencer avatar */}
                     <div className={`w-11 h-11 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${grad} shadow-sm`}>
@@ -167,7 +173,7 @@ export default function BrandInvitations() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         {inv.influencerSlug ? (
-                          <Link href={`/brand/creator/${inv.influencerSlug}`} target="_blank" rel="noopener noreferrer" className="font-bold text-gray-900 truncate hover:text-[#3D5087] hover:underline">
+                          <Link href={`/brand/creator/${inv.influencerSlug}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-bold text-gray-900 truncate hover:text-[#3D5087] hover:underline">
                             {name}
                           </Link>
                         ) : (
@@ -189,7 +195,7 @@ export default function BrandInvitations() {
                     {/* Accepted → jump into the conversation */}
                     {inv.status === 'accepted' && (
                       <button
-                        onClick={() => router.push(inv.dealId ? `/brand/messages?deal=${inv.dealId}` : '/brand/messages')}
+                        onClick={(e) => { e.stopPropagation(); router.push(inv.dealId ? `/brand/messages?deal=${inv.dealId}` : '/brand/messages'); }}
                         className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer"
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -203,6 +209,11 @@ export default function BrandInvitations() {
           </div>
         )}
       </main>
+
+      <InvitationDetailDrawer
+        invitation={selectedInv}
+        onClose={() => setSelectedInv(null)}
+      />
     </div>
   );
 }
