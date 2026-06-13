@@ -9,6 +9,7 @@ import InfluencerNav from '@/components/shared/InfluencerNav';
 import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import ApplicationDetailDrawer from '@/components/shared/ApplicationDetailDrawer';
 
 const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const PLATFORMS = ['any', 'instagram', 'youtube', 'facebook'];
@@ -817,6 +818,7 @@ function MyApplications() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  const [selectedApp, setSelectedApp] = useState<any | null>(null);
 
   const loadApplications = () => {
     api.get('/api/campaigns/my-applications')
@@ -840,6 +842,7 @@ function MyApplications() {
     try {
       await api.delete(`/api/influencer/applications/${applicationId}`);
       setApplications(prev => prev.filter(a => a._id !== applicationId));
+      setSelectedApp((prev: any) => (prev?._id === applicationId ? null : prev));
       toast.success('Application withdrawn.');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
@@ -873,6 +876,7 @@ function MyApplications() {
   }
 
   return (
+    <>
     <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
       {/* Desktop table */}
       <div className="hidden md:block overflow-x-auto">
@@ -890,7 +894,11 @@ function MyApplications() {
             {applications.map((app, i) => {
               const cfg = STATUS_CONFIG[app.status] || { cls: 'bg-gray-100 text-gray-600 border border-gray-200', dot: 'bg-gray-400', label: app.status };
               return (
-                <tr key={i} className="border-b border-gray-50 hover:bg-[#EEF4F5]/30 transition-colors">
+                <tr
+                  key={i}
+                  onClick={() => setSelectedApp(app)}
+                  className="border-b border-gray-50 hover:bg-[#EEF4F5]/30 transition-colors cursor-pointer"
+                >
                   <td className="px-5 py-4 text-sm font-bold text-gray-900 max-w-[200px] truncate">
                     {app.campaignId?.title || 'Campaign'}
                   </td>
@@ -915,7 +923,7 @@ function MyApplications() {
                   <td className="px-5 py-4">
                     {app.status === 'applied' && (
                       <button
-                        onClick={() => handleWithdraw(app._id)}
+                        onClick={(e) => { e.stopPropagation(); handleWithdraw(app._id); }}
                         disabled={withdrawingId === app._id}
                         className="text-xs text-red-500 hover:text-red-700 font-bold border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-all cursor-pointer disabled:opacity-50"
                       >
@@ -935,7 +943,11 @@ function MyApplications() {
         {applications.map((app, i) => {
           const cfg = STATUS_CONFIG[app.status] || { cls: 'bg-gray-100 text-gray-600 border border-gray-200', dot: 'bg-gray-400', label: app.status };
           return (
-            <div key={i} className="px-4 py-4 hover:bg-gray-50/60 transition-colors">
+            <div
+              key={i}
+              onClick={() => setSelectedApp(app)}
+              className="px-4 py-4 hover:bg-gray-50/60 transition-colors cursor-pointer"
+            >
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-gray-900 truncate">{app.campaignId?.title || 'Campaign'}</p>
@@ -957,7 +969,7 @@ function MyApplications() {
               {app.status === 'applied' && (
                 <div className="mt-2.5">
                   <button
-                    onClick={() => handleWithdraw(app._id)}
+                    onClick={(e) => { e.stopPropagation(); handleWithdraw(app._id); }}
                     disabled={withdrawingId === app._id}
                     className="text-xs text-red-500 hover:text-red-700 font-bold border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-all cursor-pointer disabled:opacity-50"
                   >
@@ -970,5 +982,13 @@ function MyApplications() {
         })}
       </div>
     </div>
+
+    <ApplicationDetailDrawer
+      application={selectedApp}
+      onClose={() => setSelectedApp(null)}
+      onWithdraw={handleWithdraw}
+      withdrawing={!!selectedApp && withdrawingId === selectedApp._id}
+    />
+    </>
   );
 }

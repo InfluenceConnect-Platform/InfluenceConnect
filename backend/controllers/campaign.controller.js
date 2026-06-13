@@ -424,7 +424,7 @@ exports.getMyApplications = async (req, res) => {
     const applications = await Application.find({
       influencerId: req.userId
     })
-      .populate('campaignId', 'title niche budgetMin budgetMax deadline status')
+      .populate('campaignId', 'title niche budgetMin budgetMax deadline status description deliverables targetPlatforms targetCity customId')
       .populate('brandId', 'name')
       .sort({ createdAt: -1 });
 
