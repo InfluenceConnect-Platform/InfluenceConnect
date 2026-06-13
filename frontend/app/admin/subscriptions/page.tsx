@@ -180,16 +180,25 @@ export default function AdminSubscriptions() {
                 <h3 className="font-semibold text-gray-900 mb-5">User breakdown</h3>
                 <div className="flex flex-col gap-1">
                   {[
-                    { label: 'Total users',        value: overview?.totalUsers ?? 0,        bold: true },
-                    { label: 'Premium users',       value: overview?.totalPremium ?? 0,       bold: false },
-                    { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false },
-                    { label: 'Premium creators',    value: overview?.premiumInfluencers ?? 0, bold: false },
-                    { label: 'Premium brands',      value: overview?.premiumBrands ?? 0,      bold: false },
+                    { label: 'Total users',        value: overview?.totalUsers ?? 0,        bold: true,  href: '/admin/users' },
+                    { label: 'Premium users',       value: overview?.totalPremium ?? 0,       bold: false, href: '/admin/users?plan=premium' },
+                    { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false, href: '/admin/users?plan=freemium' },
+                    { label: 'Premium creators',    value: overview?.premiumInfluencers ?? 0, bold: false, href: '/admin/users?plan=premium&role=influencer' },
+                    { label: 'Premium brands',      value: overview?.premiumBrands ?? 0,      bold: false, href: '/admin/users?plan=premium&role=brand' },
                   ].map((item, i) => (
-                    <div key={i} className={`flex items-center justify-between py-3 ${i < 4 ? 'border-b border-gray-50' : ''}`}>
-                      <p className={`text-sm ${item.bold ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>{item.label}</p>
-                      <p className={`text-sm tabular-nums ${item.bold ? 'font-bold text-gray-900' : 'font-semibold text-gray-700'}`}>{item.value}</p>
-                    </div>
+                    <button
+                      key={i}
+                      onClick={() => router.push(item.href)}
+                      className={`group flex items-center justify-between py-3 -mx-2 px-2 rounded-lg text-left hover:bg-gray-50 transition-colors cursor-pointer ${i < 4 ? 'border-b border-gray-50' : ''}`}
+                    >
+                      <span className={`text-sm inline-flex items-center gap-1.5 ${item.bold ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                        {item.label}
+                        <svg className="w-3.5 h-3.5 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-gray-400 transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m9 18 6-6-6-6" />
+                        </svg>
+                      </span>
+                      <span className={`text-sm tabular-nums ${item.bold ? 'font-bold text-gray-900' : 'font-semibold text-gray-700'}`}>{item.value}</span>
+                    </button>
                   ))}
                 </div>
 
