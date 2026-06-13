@@ -144,6 +144,7 @@ export default function SignupPage() {
       localStorage.setItem('pendingUserId', response.data.userId);
       localStorage.setItem('pendingEmail', email);
       localStorage.setItem('pendingMobile', mobile);
+      localStorage.setItem('pendingRole', role);
       router.push('/auth/verify-otp');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
