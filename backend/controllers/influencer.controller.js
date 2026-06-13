@@ -1,5 +1,6 @@
 const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
+const StatsSnapshot = require('../models/StatsSnapshot');
 const Deal = require('../models/Deal');
 const Message = require('../models/Message');
 const Campaign = require('../models/Campaign');
@@ -101,6 +102,34 @@ exports.getMyProfile = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// GET STATS HISTORY (real recorded snapshots for dashboard charts)
+// ─────────────────────────────────────────
+exports.getStatsHistory = async (req, res) => {
+  try {
+    const profile = await InfluencerProfile.findOne({ userId: req.userId });
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Ensure today's point exists so the charts always reflect the creator's
+    // current real stats (and the series grows by one honest point each day).
+    await StatsSnapshot.record(profile);
+
+    const snapshots = await StatsSnapshot
+      .find({ userId: req.userId })
+      .sort({ day: 1 })
+      .select('day totalFollowers totalEngagement avgEngagementRate -_id')
+      .lean();
+
+    res.json({ snapshots });
+
+  } catch (error) {
+    console.error('Get stats history error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // UPDATE PROFILE
 // ─────────────────────────────────────────
 exports.updateProfile = async (req, res) => {
@@ -141,6 +170,12 @@ exports.updateProfile = async (req, res) => {
     profile.level = profile.calculateLevel();
 
     await profile.save();
+
+    // Capture today's stats so the dashboard trend charts plot real history.
+    // Never let a snapshot hiccup fail the profile update.
+    StatsSnapshot.record(profile).catch(err =>
+      console.error('Stats snapshot (update) error:', err)
+    );
 
     res.json({
       message: 'Profile updated successfully',

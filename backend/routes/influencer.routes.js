@@ -9,6 +9,7 @@ const {
   getEarnings,
   getMyDeals,
   updateDealStatus,
+  getStatsHistory,
 } = require('../controllers/influencer.controller');
 const { withdrawApplication } = require('../controllers/campaign.controller');
 
@@ -19,6 +20,7 @@ router.put('/profile', authenticate, updateProfile);
 router.get('/deals', authenticate, getMyDeals);
 router.put('/deals/:dealId/status', authenticate, updateDealStatus);
 router.get('/earnings', authenticate, getEarnings);
+router.get('/stats-history', authenticate, getStatsHistory);
 router.delete('/applications/:applicationId', authenticate, withdrawApplication);
 
 // Public route — no auth needed

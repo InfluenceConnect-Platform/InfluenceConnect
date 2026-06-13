@@ -24,6 +24,14 @@ interface Platform {
   engagementRate: number;
 }
 
+// One real recorded data point from /api/influencer/stats-history.
+interface StatsSnapshot {
+  day: string;
+  totalFollowers: number;
+  totalEngagement: number;
+  avgEngagementRate: number;
+}
+
 interface Profile {
   slug: string;
   bio: string;
@@ -100,6 +108,7 @@ export default function InfluencerDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [primaryPlatform, setPrimaryPlatform] = useState<Platform | null>(null);
+  const [statsHistory, setStatsHistory] = useState<StatsSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -127,6 +136,14 @@ export default function InfluencerDashboard() {
       }
     } finally {
       setLoading(false);
+    }
+    // Real recorded stat history for the trend charts. Non-blocking and
+    // best-effort — the dashboard still renders if this fails.
+    try {
+      const res = await api.get('/api/influencer/stats-history');
+      setStatsHistory(res.data.snapshots ?? []);
+    } catch {
+      setStatsHistory([]);
     }
   };
 
@@ -346,14 +363,11 @@ export default function InfluencerDashboard() {
         {/* ── Analytics charts ── */}
         <section className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-4 sm:gap-5 mb-6">
           <EngagementTrendChart
-            platforms={(profile?.platforms ?? []) as any}
+            history={statsHistory}
             totalFollowers={totalFollowers}
-            dealsCompleted={profile?.dealsCompleted ?? 0}
           />
           <MonthlyReachChart
-            platforms={(profile?.platforms ?? []) as any}
-            dealsCompleted={profile?.dealsCompleted ?? 0}
-            credibilityScore={profile?.credibilityScore ?? 0}
+            history={statsHistory}
           />
         </section>
 
