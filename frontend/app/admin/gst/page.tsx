@@ -50,6 +50,7 @@ export default function AdminGst() {
   const [rows, setRows] = useState<Verification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'' | 'pending' | 'verified' | 'rejected'>('pending');
+  const [search, setSearch] = useState('');
   const [actingId, setActingId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
@@ -151,6 +152,16 @@ export default function AdminGst() {
     slate: { card: 'bg-white border-gray-200/70',     value: 'text-gray-900',  dot: 'bg-gray-400' },
   };
 
+  // Search by brand/company name or Brand ID — filters the loaded rows client-side.
+  const q = search.trim().toLowerCase();
+  const visibleRows = q
+    ? rows.filter(v =>
+        v.name.toLowerCase().includes(q) ||
+        v.companyName.toLowerCase().includes(q) ||
+        v.customId.toLowerCase().includes(q)
+      )
+    : rows;
+
   const TABS = [
     { value: 'pending'  as const, label: 'Pending',  count: counts.pending },
     { value: 'verified' as const, label: 'Verified', count: counts.verified },
@@ -213,24 +224,49 @@ export default function AdminGst() {
           </button>
         )}
 
-        {/* Filter tabs */}
-        <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto shadow-sm mb-5 w-fit">
-          {TABS.map(t => (
-            <button
-              key={t.value || 'all'}
-              onClick={() => setFilter(t.value)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                filter === t.value ? 'bg-[#3E4751] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {t.label}
-              <span className={`min-w-[18px] px-1 inline-flex items-center justify-center rounded-full text-[10px] font-bold tabular-nums ${
-                filter === t.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
-              }`}>
-                {t.count}
-              </span>
-            </button>
-          ))}
+        {/* Search + filter tabs */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
+          <div className="relative flex-1 lg:max-w-sm">
+            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by brand name or Brand ID…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-10 pr-9 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 focus:border-[#3E4751] hover:border-gray-300 transition-all placeholder:text-gray-400 bg-white shadow-sm"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto shadow-sm w-fit">
+            {TABS.map(t => (
+              <button
+                key={t.value || 'all'}
+                onClick={() => setFilter(t.value)}
+                className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  filter === t.value ? 'bg-[#3E4751] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {t.label}
+                <span className={`min-w-[18px] px-1 inline-flex items-center justify-center rounded-full text-[10px] font-bold tabular-nums ${
+                  filter === t.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {t.count}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
@@ -253,15 +289,15 @@ export default function AdminGst() {
                       <p className="text-sm text-gray-400 font-medium">Loading verifications…</p>
                     </div>
                   </td></tr>
-                ) : rows.length === 0 ? (
+                ) : visibleRows.length === 0 ? (
                   <tr><td colSpan={6} className="px-5 py-16 text-center">
                     <p className="text-sm font-medium text-gray-500">Nothing here</p>
                     <p className="text-xs text-gray-400 mt-1">
-                      {filter === 'pending' ? 'No GSTINs are waiting for review. ' : 'No records for this filter.'}
+                      {q ? 'No brands match your search.' : filter === 'pending' ? 'No GSTINs are waiting for review. ' : 'No records for this filter.'}
                     </p>
                   </td></tr>
                 ) : (
-                  rows.map(v => (
+                  visibleRows.map(v => (
                     <tr
                       key={v.brandProfileId}
                       onClick={() => v.userId && setSelectedUserId(v.userId)}
@@ -343,14 +379,14 @@ export default function AdminGst() {
                 <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm text-gray-400 font-medium">Loading verifications…</p>
               </div>
-            ) : rows.length === 0 ? (
+            ) : visibleRows.length === 0 ? (
               <div className="py-16 text-center">
                 <p className="text-sm font-medium text-gray-500">Nothing here</p>
-                <p className="text-xs text-gray-400 mt-1">{filter === 'pending' ? 'No GSTINs waiting for review.' : 'No records for this filter.'}</p>
+                <p className="text-xs text-gray-400 mt-1">{q ? 'No brands match your search.' : filter === 'pending' ? 'No GSTINs waiting for review.' : 'No records for this filter.'}</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-50">
-                {rows.map(v => (
+                {visibleRows.map(v => (
                   <div
                     key={v.brandProfileId}
                     onClick={() => v.userId && setSelectedUserId(v.userId)}
