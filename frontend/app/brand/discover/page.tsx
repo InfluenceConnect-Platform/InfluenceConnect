@@ -403,6 +403,8 @@ export default function BrandDiscover() {
   });
   const [influencers, setInfluencers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [limit, setLimit] = useState(12);
+  const [total, setTotal] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
 
   // ── Invite mode (entered from a campaign's "Invite Influencers" button) ──
@@ -629,7 +631,7 @@ export default function BrandDiscover() {
 
   useEffect(() => {
     fetchInfluencers();
-  }, [selectedNiches, selectedCities, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch, sortBy]);
+  }, [selectedNiches, selectedCities, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch, sortBy, limit]);
 
   const fetchInfluencers = async () => {
     setLoading(true);
@@ -644,9 +646,11 @@ export default function BrandDiscover() {
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
       if (sortBy && sortBy !== 'relevance') params.sort = sortBy;
+      params.limit = String(limit);
 
       const response = await api.get('/api/brand/discover', { params });
       setInfluencers(response.data.influencers);
+      setTotal(response.data.pagination?.total ?? response.data.influencers.length);
     } catch (error) {
       console.error('Fetch influencers error:', error);
     } finally {
@@ -1346,6 +1350,20 @@ export default function BrandDiscover() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {!loading && influencers.length < total && (
+              <div className="flex flex-col items-center gap-2 mt-6">
+                <button
+                  onClick={() => setLimit(l => l + 12)}
+                  className="px-5 py-2.5 text-sm font-semibold text-[#3D5087] bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer"
+                >
+                  Load more creators
+                </button>
+                <p className="text-xs text-gray-400">
+                  Showing {influencers.length} of {total}
+                </p>
               </div>
             )}
           </div>

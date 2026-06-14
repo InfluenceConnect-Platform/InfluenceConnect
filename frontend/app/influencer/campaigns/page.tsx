@@ -178,11 +178,22 @@ export default function InfluencerCampaigns() {
 
   const fetchCampaigns = async () => {
     try {
-      const params: Record<string, string> = {};
-      if (selectedNiches.length > 0) params.niche = selectedNiches.join(',');
-      if (selectedPlatform !== 'any') params.platform = selectedPlatform;
-      const response = await api.get('/api/campaigns', { params });
-      setCampaigns(response.data.campaigns);
+      const base: Record<string, string> = {};
+      if (selectedNiches.length > 0) base.niche = selectedNiches.join(',');
+      if (selectedPlatform !== 'any') base.platform = selectedPlatform;
+      // Search & sort run client-side over the full list, so pull every page
+      // instead of just the server's default first page (otherwise creators
+      // would only ever see — and search within — the first batch).
+      const all: Campaign[] = [];
+      let pageNum = 1;
+      let totalPages = 1;
+      do {
+        const response = await api.get('/api/campaigns', { params: { ...base, page: pageNum, limit: 50 } });
+        all.push(...response.data.campaigns);
+        totalPages = response.data.pagination?.pages || 1;
+        pageNum += 1;
+      } while (pageNum <= totalPages);
+      setCampaigns(all);
     } catch (error) {
       console.error('Fetch campaigns error:', error);
     } finally {

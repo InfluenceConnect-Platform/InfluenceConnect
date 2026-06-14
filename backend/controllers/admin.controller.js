@@ -476,9 +476,22 @@ exports.getAllCampaigns = async (req, res) => {
     // brand view (which runs the same sweep before listing).
     await expireOverdueCampaigns();
 
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, search, page = 1, limit = 20 } = req.query;
     const query = {};
     if (status) query.status = status;
+
+    // Search by campaign name, campaign ID, or brand name. Brand name lives on
+    // the referenced User doc, so resolve matching brand IDs first.
+    const term = (search || '').trim();
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const matchingBrands = await User.find({ role: 'brand', name: rx }).select('_id');
+      query.$or = [
+        { title: rx },
+        { customId: rx },
+        { brandId: { $in: matchingBrands.map(b => b._id) } },
+      ];
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
