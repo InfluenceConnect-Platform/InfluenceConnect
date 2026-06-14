@@ -256,7 +256,7 @@ export default function BillingPage() {
                   onClick={() => setBilling('monthly')}
                   className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                     billing === 'monthly'
-                      ? 'bg-white dark:!bg-teal-100 text-[#1C4A52] shadow-sm'
+                      ? 'bg-white dark:!bg-teal-100 text-[#1C4A52] dark:!text-[#0d2d33] shadow-sm'
                       : 'text-white/70 hover:text-white'
                   }`}
                 >
@@ -266,19 +266,19 @@ export default function BillingPage() {
                   onClick={() => setBilling('yearly')}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                     billing === 'yearly'
-                      ? 'bg-white dark:!bg-teal-100 text-[#1C4A52] shadow-sm'
+                      ? 'bg-white dark:!bg-teal-100 text-[#1C4A52] dark:!text-[#0d2d33] shadow-sm'
                       : 'text-white/70 hover:text-white'
                   }`}
                 >
                   Yearly
-                  <span className="text-[11px] font-bold text-emerald-700 dark:!text-white bg-emerald-100 dark:!bg-emerald-500 px-1.5 py-0.5 rounded-full">
+                  <span className="text-[11px] font-bold text-white bg-[#1C4A52] px-1.5 py-0.5 rounded-full">
                     −20%
                   </span>
                 </button>
               </div>
             </div>
             {billing === 'yearly' && (
-              <p className="text-xs text-emerald-300 font-semibold mt-2">
+              <p className="text-xs text-teal-100 font-semibold mt-2">
                 You save ₹{YEARLY_SAVINGS.toLocaleString()} per year — 2 months free
               </p>
             )}
@@ -289,14 +289,14 @@ export default function BillingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
 
           {/* Freemium */}
-          <div className="relative rounded-2xl overflow-hidden shadow-sm flex flex-col border border-teal-200/60 bg-gradient-to-br from-slate-50 via-teal-50/60 to-[#e8f4f5]">
+          <div className="relative rounded-2xl overflow-hidden shadow-sm flex flex-col border border-teal-200/60 dark:border-white/10 bg-gradient-to-br from-slate-50 via-teal-50/60 to-[#e8f4f5] dark:from-[#0E1B2E] dark:via-[#0d1a2c] dark:to-[#0E1B2E]">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#7FA8AD]/8 rounded-full pointer-events-none" />
             <div className="absolute -bottom-8 -left-6 w-28 h-28 bg-[#5D8A8F]/5 rounded-full pointer-events-none" />
 
-            <div className="relative px-6 pt-6 pb-5 border-b border-teal-200/50">
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#5D8A8F] bg-[#7FA8AD]/12 border border-[#7FA8AD]/20 px-2.5 py-0.5 rounded-full uppercase tracking-widest mb-2">Freemium</span>
+            <div className="relative px-6 pt-6 pb-5 border-b border-teal-200/50 dark:border-white/10">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-gray-500/10 border border-gray-400/30 px-2.5 py-0.5 rounded-full uppercase tracking-widest mb-2">Freemium</span>
               <div className="flex items-baseline gap-1.5 mb-1 mt-1">
-                <span className="text-4xl font-bold text-[#2d5558] tracking-tight">₹0</span>
+                <span className="text-4xl font-bold text-gray-900 tracking-tight">₹0</span>
                 <span className="text-slate-400 text-sm font-medium">/ forever</span>
               </div>
               <p className="text-sm text-slate-500 leading-relaxed">
@@ -309,12 +309,12 @@ export default function BillingPage() {
                 <button
                   onClick={handleDowngrade}
                   disabled={downgrading}
-                  className="w-full py-2.5 border border-[#7FA8AD]/30 rounded-xl text-sm font-semibold text-[#5D8A8F] hover:bg-[#7FA8AD]/10 transition-all mb-5 cursor-pointer disabled:opacity-50 bg-white/60"
+                  className="w-full py-2.5 border border-gray-300 dark:border-white/15 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-500/10 transition-all mb-5 cursor-pointer disabled:opacity-50 bg-gray-50"
                 >
                   {downgrading ? 'Downgrading…' : 'Downgrade to Freemium'}
                 </button>
               ) : (
-                <div className="w-full py-2.5 border border-[#7FA8AD]/25 rounded-xl text-sm font-semibold text-[#7FA8AD]/70 text-center mb-5 bg-white/50 select-none">
+                <div className="w-full py-2.5 border border-gray-300 dark:border-white/15 rounded-xl text-sm font-semibold text-gray-700 text-center mb-5 bg-gray-50 select-none">
                   Current plan
                 </div>
               )}
@@ -329,7 +329,7 @@ export default function BillingPage() {
                     }`}>
                       {f.included ? <CheckIcon /> : <XIcon />}
                     </span>
-                    <span className={`text-sm leading-snug ${f.included ? 'text-slate-700' : 'text-slate-500'}`}>
+                    <span className={`text-sm leading-snug ${f.included ? 'text-gray-700' : 'text-gray-500'}`}>
                       {f.text}
                     </span>
                   </div>

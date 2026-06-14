@@ -315,7 +315,7 @@ export default function InfluencerDashboard() {
               </div>
               <Link
                 href="/influencer/campaigns"
-                className="inline-flex items-center gap-2 bg-white/95 hover:bg-white text-[#1C4A52] px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm self-start sm:self-auto"
+                className="inline-flex items-center gap-2 bg-white/95 hover:bg-white text-[#0d2d33] px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm self-start sm:self-auto"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -570,7 +570,7 @@ export default function InfluencerDashboard() {
                   </ul>
                   <Link
                     href="/influencer/billing"
-                    className="block text-center bg-white/95 hover:bg-white text-[#1C4A52] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
+                    className="block text-center bg-white/95 hover:bg-white text-[#0d2d33] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
                   >
                     ₹299 / month — Upgrade now →
                   </Link>
