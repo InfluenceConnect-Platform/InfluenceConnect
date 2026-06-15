@@ -96,6 +96,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingOfferCount, setPendingOfferCount] = useState(0);
   const [newCampaignCount, setNewCampaignCount] = useState(0);
+  const [appUpdateCount, setAppUpdateCount] = useState(0);
   const [pendingInviteCount, setPendingInviteCount] = useState(0);
   const [fetchedPic, setFetchedPic] = useState(cachedInfluencerPicUrl ?? '');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -153,8 +154,12 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   const fetchNewCampaigns = async () => {
     try {
       const since = localStorage.getItem('lastSeenCampaignsAt') ?? '0';
-      const res = await api.get(`/api/campaigns/new-since?since=${since}`);
-      setNewCampaignCount(res.data.count ?? 0);
+      const [campRes, appRes] = await Promise.all([
+        api.get(`/api/campaigns/new-since?since=${since}`),
+        api.get(`/api/campaigns/application-updates-since?since=${since}`),
+      ]);
+      setNewCampaignCount(campRes.data.count ?? 0);
+      setAppUpdateCount(appRes.data.count ?? 0);
     } catch {}
   };
 
@@ -176,6 +181,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
     if (pathname === '/influencer/campaigns') {
       localStorage.setItem('lastSeenCampaignsAt', Date.now().toString());
       setNewCampaignCount(0);
+      setAppUpdateCount(0);
     }
     if (pathname === '/influencer/invitations') {
       setPendingInviteCount(0);
@@ -233,7 +239,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
               const isCampaigns = item.href === '/influencer/campaigns';
               const isInvites   = item.href === '/influencer/invitations';
               const isActive    = pathname === item.href;
-              const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && newCampaignCount > 0) || (isInvites && pendingInviteCount > 0);
+              const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && (newCampaignCount > 0 || appUpdateCount > 0)) || (isInvites && pendingInviteCount > 0);
               return (
                 <Link
                   key={item.href}
@@ -348,7 +354,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                 const isCampaigns = item.href === '/influencer/campaigns';
               const isInvites   = item.href === '/influencer/invitations';
                 const isActive    = pathname === item.href;
-                const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && newCampaignCount > 0) || (isInvites && pendingInviteCount > 0);
+                const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && (newCampaignCount > 0 || appUpdateCount > 0)) || (isInvites && pendingInviteCount > 0);
                 return (
                   <Link
                     key={item.href}
@@ -410,7 +416,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
             const isMessages  = item.href === '/influencer/messages';
             const isCampaigns = item.href === '/influencer/campaigns';
             const isActive    = pathname === item.href;
-            const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && newCampaignCount > 0);
+            const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && (newCampaignCount > 0 || appUpdateCount > 0));
             return (
               <Link
                 key={item.href}

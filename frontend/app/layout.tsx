@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/useTheme";
 import { ToastProvider } from "@/components/shared/Toast";
@@ -32,12 +31,17 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Anti-flash: apply stored theme before React hydrates. A native inline
+            script runs synchronously during HTML parse, so the `dark` class is
+            set before first paint with no flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('ic-theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {/* Anti-flash: apply stored theme before React hydrates. Injected into
-            <head> by next/script's beforeInteractive strategy. */}
-        <Script id="theme-init" strategy="beforeInteractive">
-          {`try{var t=localStorage.getItem('ic-theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}`}
-        </Script>
         <ThemeProvider>
           <ToastProvider>
             <ConfirmProvider>{children}</ConfirmProvider>

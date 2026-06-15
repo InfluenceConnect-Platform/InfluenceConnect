@@ -43,6 +43,12 @@ const applicationSchema = new mongoose.Schema({
     type: String,
     enum: ['applied', 'shortlisted', 'accepted', 'rejected', 'on-hold'],
     default: 'applied'
+  },
+
+  // When the brand last changed this application's status. Drives the "unseen
+  // application update" dot on the influencer's Campaigns tab.
+  statusUpdatedAt: {
+    type: Date
   }
 
 }, { timestamps: true });

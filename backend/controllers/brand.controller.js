@@ -6,6 +6,7 @@ const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
 const ProfileView = require('../models/ProfileView');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
+const { postDealNotice } = require('../utils/dealNotice');
 
 // Freemium brands can open this many distinct influencer profiles per day.
 // Re-opening one already seen today is free (deduped). Premium = unlimited.
@@ -552,6 +553,9 @@ exports.updateApplicationStatus = async (req, res) => {
     }
 
     application.status = status;
+    // Timestamp the change so the influencer's Campaigns tab can flag it as an
+    // unseen update (shortlisted / accepted / rejected).
+    application.statusUpdatedAt = new Date();
     await application.save();
 
     // If accepted — create a deal automatically
@@ -561,14 +565,23 @@ exports.updateApplicationStatus = async (req, res) => {
       });
 
       if (!existingDeal) {
-        await Deal.create({
+        const amount = application.proposedRate || application.campaignId.budgetMin;
+        const newDeal = await Deal.create({
           campaignId: application.campaignId._id,
           applicationId: application._id,
           influencerId: application.influencerId,
           brandId: req.userId,
-          agreedAmount: application.proposedRate ||
-            application.campaignId.budgetMin,
+          agreedAmount: amount,
           status: 'in-progress'
+        });
+
+        // Open the chat with a system notice so the influencer's Messages dot
+        // lights up the moment they're accepted.
+        await postDealNotice({
+          dealId: newDeal._id,
+          senderId: req.userId,
+          receiverId: application.influencerId,
+          content: `🎉 ${req.user.name} accepted your application for "${application.campaignId.title}" — the collaboration is now in progress at ₹${(Number(amount) || 0).toLocaleString('en-IN')}. Say hi to get started!`,
         });
       }
 
@@ -643,7 +656,7 @@ exports.getMyDeals = async (req, res) => {
 
     const [profiles, lastMessages, unreadCounts] = await Promise.all([
       InfluencerProfile.find({ userId: { $in: influencerIds } })
-        .select('userId niche city platforms profilePicUrl'),
+        .select('userId niche city platforms profilePicUrl slug'),
       Message.aggregate([
         { $match: { dealId: { $in: dealIds } } },
         { $sort: { createdAt: -1 } },
@@ -741,10 +754,26 @@ exports.updateDealStatus = async (req, res) => {
           totalEarnings,
         });
       }
+
+      // In-chat notice so the influencer's Messages dot lights up.
+      await postDealNotice({
+        dealId: deal._id,
+        senderId: req.userId,
+        receiverId: deal.influencerId,
+        content: `🎉 ${req.user.name} approved your content and marked the collaboration complete. Payment will follow per your agreement — great work!`,
+      });
     } else {
       // cancelled
       deal.status = 'cancelled';
       await deal.save();
+
+      // In-chat notice so the influencer's Messages dot lights up.
+      await postDealNotice({
+        dealId: deal._id,
+        senderId: req.userId,
+        receiverId: deal.influencerId,
+        content: `⚠️ ${req.user.name} cancelled this collaboration. No further action is needed.`,
+      });
 
       // Reopen the campaign
       await Campaign.findByIdAndUpdate(deal.campaignId, { status: 'active' });

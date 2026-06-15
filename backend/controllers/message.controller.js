@@ -94,6 +94,7 @@ exports.sendMessage = async (req, res) => {
 
       const messagesToday = await Message.countDocuments({
         senderId: req.userId,
+        system: { $ne: true },
         createdAt: { $gte: today }
       });
 

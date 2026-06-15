@@ -7,12 +7,14 @@ const {
   applyToCampaign,
   getMyApplications,
   seedCampaigns,
-  getNewSinceCount
+  getNewSinceCount,
+  getApplicationUpdatesSince
 } = require('../controllers/campaign.controller');
 
 // Protected — campaigns are filtered by the influencer's own niches
 router.get('/', authenticate, getCampaigns);
 router.get('/new-since', getNewSinceCount);
+router.get('/application-updates-since', authenticate, getApplicationUpdatesSince);
 
 // Protected — apply and view applications
 router.get('/my-applications', authenticate, getMyApplications);

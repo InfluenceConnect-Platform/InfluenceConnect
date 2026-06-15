@@ -1,4 +1,7 @@
 const Deal = require('../models/Deal');
+const { postDealNotice } = require('../utils/dealNotice');
+
+const inr = (n) => '₹' + (Number(n) || 0).toLocaleString('en-IN');
 
 // Stringify all ObjectIds in the offers array so frontend === comparisons work
 function normalizeOffers(offers = []) {
@@ -114,6 +117,15 @@ exports.makeOffer = async (req, res) => {
 
     await deal.save();
 
+    // Notify the other party in-chat so their Messages dot lights up.
+    const receiverId = isBrand ? deal.influencerId : deal.brandId;
+    await postDealNotice({
+      dealId: deal._id,
+      senderId: req.userId,
+      receiverId,
+      content: `💰 ${req.user.name} proposed ${inr(parsed)}. Open the price panel to respond.`,
+    });
+
     res.json({
       negotiationStatus: deal.negotiationStatus,
       agreedAmount: deal.agreedAmount,
@@ -161,6 +173,14 @@ exports.acceptOffer = async (req, res) => {
     deal.negotiationStatus = 'agreed';
 
     await deal.save();
+
+    // Notify the party whose offer was accepted so their Messages dot lights up.
+    await postDealNotice({
+      dealId: deal._id,
+      senderId: req.userId,
+      receiverId: latest.proposedBy,
+      content: `✅ ${req.user.name} accepted the offer — price agreed at ${inr(latest.amount)}. The deal is on!`,
+    });
 
     res.json({
       negotiationStatus: deal.negotiationStatus,

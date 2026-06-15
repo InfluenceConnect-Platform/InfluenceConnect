@@ -26,7 +26,7 @@ interface Deal {
   customId?: string;
   campaignId: { _id: string; title: string; niche: string[]; deliverables: string; budgetMin: number; budgetMax: number };
   influencerId: { _id: string; name: string };
-  influencerProfile?: { niche: string[]; city: string; platforms: { name: string; followers: number }[]; profilePicUrl?: string };
+  influencerProfile?: { niche: string[]; city: string; platforms: { name: string; followers: number }[]; profilePicUrl?: string; slug?: string };
   agreedAmount: number;
   status: string;
   negotiationStatus: 'open' | 'agreed';
@@ -128,10 +128,9 @@ const RupeeIcon = () => (
 export default function BrandMessages() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
-  });
+  // Initialize to null so server and first client render match (avoids hydration
+  // mismatch); the effect below hydrates it from localStorage after mount.
+  const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -157,6 +156,22 @@ export default function BrandMessages() {
   const limitHit = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
   const chatLocked = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
+
+  // The brand can open the influencer's profile only while the deal is active —
+  // once it's completed or cancelled the name/avatar stop being clickable.
+  const canVisitProfile = !dealClosed && !!selectedDeal?.influencerProfile?.slug;
+
+  const handleVisitProfile = async () => {
+    const slug = selectedDeal?.influencerProfile?.slug;
+    if (!canVisitProfile || !slug) return;
+    if (!(await confirm({
+      title: `Visit ${selectedDeal?.influencerId?.name || 'this creator'}'s profile?`,
+      description: 'Their full creator profile will open in a new tab.',
+      confirmLabel: 'Visit profile',
+      variant: 'info',
+    }))) return;
+    window.open(`/brand/creator/${slug}`, '_blank', 'noopener,noreferrer');
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -569,11 +584,17 @@ export default function BrandMessages() {
                   <ArrowLeftIcon />
                 </button>
 
-                <div className={`w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${
+                <div
+                  onClick={canVisitProfile ? handleVisitProfile : undefined}
+                  role={canVisitProfile ? 'button' : undefined}
+                  tabIndex={canVisitProfile ? 0 : undefined}
+                  onKeyDown={canVisitProfile ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleVisitProfile(); } } : undefined}
+                  title={canVisitProfile ? `Visit ${selectedDeal.influencerId?.name}'s profile` : undefined}
+                  className={`w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${
                   !selectedDeal.influencerProfile?.profilePicUrl
                     ? `bg-gradient-to-br ${getAvatarColor(selectedDeal.influencerId?.name || '')}`
                     : 'bg-gray-100'
-                }`}>
+                } ${canVisitProfile ? 'cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-indigo-400/60 hover:brightness-95 active:scale-95' : ''}`}>
                   {selectedDeal.influencerProfile?.profilePicUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={selectedDeal.influencerProfile.profilePicUrl} alt={selectedDeal.influencerId?.name} className="w-full h-full object-cover" />
@@ -583,7 +604,18 @@ export default function BrandMessages() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className={`text-[14px] font-bold leading-tight ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{selectedDeal.influencerId?.name}</p>
+                  {canVisitProfile ? (
+                    <button
+                      type="button"
+                      onClick={handleVisitProfile}
+                      title={`Visit ${selectedDeal.influencerId?.name}'s profile`}
+                      className={`text-[15px] font-bold leading-tight text-left cursor-pointer hover:underline decoration-2 underline-offset-2 transition-colors ${isDark ? 'text-white hover:text-indigo-300' : 'text-gray-900 hover:text-indigo-600'}`}
+                    >
+                      {selectedDeal.influencerId?.name}
+                    </button>
+                  ) : (
+                    <p className={`text-[15px] font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedDeal.influencerId?.name}</p>
+                  )}
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className={`text-[11px] truncate ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
                     {selectedDeal.customId && <IdChip id={selectedDeal.customId} size="xs" tone={isDark ? 'dark' : 'subtle'} />}
@@ -634,22 +666,18 @@ export default function BrandMessages() {
                       Cancelled
                     </span>
                   )}
-                  <div className="flex items-center gap-1.5 pl-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className={`text-[11px] hidden sm:block ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Live</span>
-                  </div>
                 </div>
               </div>
 
               {/* Campaign brief strip */}
               <div className={`flex items-center gap-2.5 px-4 sm:px-5 py-2 border-b flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDark ? 'bg-indigo-900/20 border-indigo-800/30' : 'bg-indigo-50/70 border-indigo-100/70'}`}>
-                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-400'}`}><CampaignIcon /></span>
-                <span className={`text-[11px] font-semibold flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>Deliverables:</span>
-                <span className={`text-[11px] flex-shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
-                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-indigo-700' : 'text-indigo-300'}`}>·</span>
-                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-400'}`}><RupeeIcon /></span>
-                <span className={`text-[11px] font-semibold flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>Price:</span>
-                <span className={`text-[11px] flex-shrink-0 font-medium ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`}><CampaignIcon /></span>
+                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-indigo-200' : 'text-indigo-900'}`}>Deliverables:</span>
+                <span className={`text-[11.5px] font-medium flex-shrink-0 ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
+                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-indigo-600' : 'text-indigo-400'}`}>·</span>
+                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`}><RupeeIcon /></span>
+                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-indigo-200' : 'text-indigo-900'}`}>Price:</span>
+                <span className={`text-[11.5px] flex-shrink-0 font-semibold ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>
                   {selectedDeal.negotiationStatus === 'agreed'
                     ? `₹${selectedDeal.agreedAmount?.toLocaleString()} (agreed)`
                     : 'Negotiating…'}
@@ -676,8 +704,8 @@ export default function BrandMessages() {
 
               {/* Moderation notice */}
               <div className={`flex items-center gap-2 px-4 sm:px-5 py-1.5 border-b flex-shrink-0 ${isDark ? 'bg-indigo-900/15 border-indigo-800/20' : 'bg-indigo-50/50 border-indigo-100/40'}`}>
-                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-400'}`}><ShieldIcon /></span>
-                <p className={`text-[10.5px] font-medium ${isDark ? 'text-indigo-400/70' : 'text-indigo-600/80'}`}>
+                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`}><ShieldIcon /></span>
+                <p className={`text-[11px] font-medium ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>
                   Contact info, social handles & external links are automatically blocked to protect both parties.
                 </p>
               </div>
@@ -705,7 +733,7 @@ export default function BrandMessages() {
                       <p className={`text-[15px] font-bold mb-1.5 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Start the conversation</p>
                       <p className={`text-[12px] max-w-[220px] leading-relaxed ${isDark ? 'text-slate-500' : 'text-gray-400/90'}`}>
                         Kick things off by sharing campaign details or a welcome message with{' '}
-                        <span className={`font-semibold ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{selectedDeal.influencerId?.name}</span>.
+                        <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>{selectedDeal.influencerId?.name}</span>.
                       </p>
                     </div>
                   </div>

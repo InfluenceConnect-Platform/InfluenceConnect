@@ -5,6 +5,7 @@ const Deal = require('../models/Deal');
 const Message = require('../models/Message');
 const Campaign = require('../models/Campaign');
 const notify = require('../services/email');
+const { postDealNotice } = require('../utils/dealNotice');
 
 // ─────────────────────────────────────────
 // Generate slug from name
@@ -320,6 +321,14 @@ exports.updateDealStatus = async (req, res) => {
         campaignTitle: campaign?.title,
       });
     }
+
+    // In-chat notice so the brand's Messages dot lights up.
+    await postDealNotice({
+      dealId: deal._id,
+      senderId: req.userId,
+      receiverId: deal.brandId,
+      content: `📦 ${req.user.name} marked the content as done. Please review and approve to complete the deal.`,
+    });
 
     res.json({ message: 'Content submitted successfully', deal });
 

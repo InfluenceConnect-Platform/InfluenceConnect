@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
+import CampaignBriefDrawer from '@/components/shared/CampaignBriefDrawer';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
@@ -23,7 +24,7 @@ interface Message {
 
 interface Deal {
   _id: string;
-  campaignId: { title: string; niche: string[]; deliverables?: string; budgetMin: number; budgetMax: number };
+  campaignId: { _id: string; title: string; niche: string[]; deliverables?: string; budgetMin: number; budgetMax: number };
   brandId: { _id: string; name: string };
   brandLogoUrl?: string;
   agreedAmount: number;
@@ -127,6 +128,7 @@ export default function MessagesPage() {
   const [search, setSearch] = useState('');
   const [showChat, setShowChat] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [campaignDrawerOpen, setCampaignDrawerOpen] = useState(false);
 
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -288,6 +290,11 @@ export default function MessagesPage() {
   const limitReached = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
   const chatLocked = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
+
+  // The brand's name/avatar opens the campaign brief only while the deal is
+  // active — once it's completed or cancelled they stop being clickable.
+  const canViewCampaign = !dealClosed && !!selectedDeal?.campaignId?._id;
+  const openCampaignDrawer = () => { if (canViewCampaign) setCampaignDrawerOpen(true); };
 
   return (
     <div className={`h-[100dvh] flex flex-col overflow-hidden ${isDark ? 'bg-[#060D1A]' : 'bg-[#EDF3F4]'}`}>
@@ -507,11 +514,17 @@ export default function MessagesPage() {
                   <ArrowLeftIcon />
                 </button>
 
-                <div className={`w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${
+                <div
+                  onClick={canViewCampaign ? openCampaignDrawer : undefined}
+                  role={canViewCampaign ? 'button' : undefined}
+                  tabIndex={canViewCampaign ? 0 : undefined}
+                  onKeyDown={canViewCampaign ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCampaignDrawer(); } } : undefined}
+                  title={canViewCampaign ? 'View campaign brief' : undefined}
+                  className={`w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${
                   !selectedDeal.brandLogoUrl
                     ? `bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')}`
                     : 'bg-gray-100'
-                }`}>
+                } ${canViewCampaign ? 'cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-teal-400/60 hover:brightness-95 active:scale-95' : ''}`}>
                   {selectedDeal.brandLogoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={selectedDeal.brandLogoUrl} alt={selectedDeal.brandId?.name} className="w-full h-full object-cover" />
@@ -521,7 +534,18 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className={`text-[14px] font-bold leading-tight ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{selectedDeal.brandId?.name}</p>
+                  {canViewCampaign ? (
+                    <button
+                      type="button"
+                      onClick={openCampaignDrawer}
+                      title="View campaign brief"
+                      className={`text-[15px] font-bold leading-tight text-left cursor-pointer hover:underline decoration-2 underline-offset-2 transition-colors ${isDark ? 'text-white hover:text-teal-300' : 'text-gray-900 hover:text-teal-600'}`}
+                    >
+                      {selectedDeal.brandId?.name}
+                    </button>
+                  ) : (
+                    <p className={`text-[15px] font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedDeal.brandId?.name}</p>
+                  )}
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className={`text-[11px] truncate ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
                     {selectedDeal.negotiationStatus === 'agreed' ? (
@@ -561,23 +585,19 @@ export default function MessagesPage() {
                       Cancelled
                     </span>
                   )}
-                  <div className="flex items-center gap-1.5 pl-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className={`text-[11px] hidden sm:block ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Live</span>
-                  </div>
                 </div>
               </div>
 
               {/* Campaign brief strip */}
               <div className={`flex items-center gap-2.5 px-4 sm:px-5 py-2 border-b flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDark ? 'bg-teal-900/20 border-teal-800/30' : 'bg-teal-50/70 border-teal-100/70'}`}>
-                <svg className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-teal-400' : 'text-teal-500'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-teal-300' : 'text-teal-600'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                 </svg>
-                <span className={`text-[11px] font-semibold flex-shrink-0 ${isDark ? 'text-teal-300' : 'text-teal-700'}`}>Deliverables:</span>
-                <span className={`text-[11px] flex-shrink-0 ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
-                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-teal-700' : 'text-teal-300'}`}>·</span>
-                <span className={`text-[11px] font-semibold flex-shrink-0 ${isDark ? 'text-teal-300' : 'text-teal-700'}`}>Budget:</span>
-                <span className={`text-[11px] flex-shrink-0 font-medium ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
+                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-teal-200' : 'text-teal-900'}`}>Deliverables:</span>
+                <span className={`text-[11.5px] font-medium flex-shrink-0 ${isDark ? 'text-teal-200' : 'text-teal-800'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
+                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-teal-600' : 'text-teal-400'}`}>·</span>
+                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-teal-200' : 'text-teal-900'}`}>Budget:</span>
+                <span className={`text-[11.5px] flex-shrink-0 font-semibold ${isDark ? 'text-teal-200' : 'text-teal-800'}`}>
                   {selectedDeal.negotiationStatus === 'agreed'
                     ? `₹${selectedDeal.agreedAmount?.toLocaleString('en-IN')} (agreed)`
                     : `₹${selectedDeal.campaignId?.budgetMin?.toLocaleString('en-IN')} – ₹${selectedDeal.campaignId?.budgetMax?.toLocaleString('en-IN')}`}
@@ -604,8 +624,8 @@ export default function MessagesPage() {
 
               {/* Moderation notice */}
               <div className={`flex items-center gap-2 px-4 sm:px-5 py-1.5 border-b flex-shrink-0 ${isDark ? 'bg-teal-900/15 border-teal-800/20' : 'bg-teal-50/50 border-teal-100/40'}`}>
-                <span className={`flex-shrink-0 ${isDark ? 'text-teal-400' : 'text-teal-500'}`}><ShieldIcon /></span>
-                <p className={`text-[10.5px] font-medium ${isDark ? 'text-teal-400/70' : 'text-teal-600/80'}`}>
+                <span className={`flex-shrink-0 ${isDark ? 'text-teal-300' : 'text-teal-600'}`}><ShieldIcon /></span>
+                <p className={`text-[11px] font-medium ${isDark ? 'text-teal-200' : 'text-teal-800'}`}>
                   Contact info, social handles & external links are automatically blocked to protect both parties.
                 </p>
               </div>
@@ -633,7 +653,7 @@ export default function MessagesPage() {
                       <p className={`text-[15px] font-bold mb-1.5 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Start the conversation</p>
                       <p className={`text-[12px] max-w-[220px] leading-relaxed ${isDark ? 'text-slate-500' : 'text-gray-400/90'}`}>
                         Introduce yourself and discuss campaign details with{' '}
-                        <span className="font-semibold text-gray-500">{selectedDeal.brandId?.name}</span>.
+                        <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>{selectedDeal.brandId?.name}</span>.
                       </p>
                     </div>
                   </div>
@@ -886,6 +906,17 @@ export default function MessagesPage() {
           )}
         </section>
       </div>
+
+      <CampaignBriefDrawer
+        open={campaignDrawerOpen}
+        campaign={selectedDeal?.campaignId ?? null}
+        brandName={selectedDeal?.brandId?.name}
+        brandLogoUrl={selectedDeal?.brandLogoUrl}
+        agreedAmount={selectedDeal?.agreedAmount}
+        negotiationStatus={selectedDeal?.negotiationStatus}
+        isDark={isDark}
+        onClose={() => setCampaignDrawerOpen(false)}
+      />
     </div>
   );
 }

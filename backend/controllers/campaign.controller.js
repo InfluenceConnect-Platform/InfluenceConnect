@@ -512,6 +512,30 @@ exports.getNewSinceCount = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// UNSEEN APPLICATION STATUS UPDATES (influencer Campaigns dot)
+// Counts the influencer's applications whose status the brand changed
+// (shortlisted / accepted / rejected) since they last opened the Campaigns tab.
+// ─────────────────────────────────────────
+exports.getApplicationUpdatesSince = async (req, res) => {
+  try {
+    const { since } = req.query;
+    if (!since) return res.json({ count: 0 });
+    const sinceDate = new Date(parseInt(since));
+    if (isNaN(sinceDate.getTime())) return res.json({ count: 0 });
+
+    const count = await Application.countDocuments({
+      influencerId: req.userId,
+      status: { $in: ['shortlisted', 'accepted', 'rejected'] },
+      statusUpdatedAt: { $gt: sinceDate },
+    });
+
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // SEED SAMPLE CAMPAIGNS (for demo/testing)
 // ─────────────────────────────────────────
 exports.seedCampaigns = async (req, res) => {
