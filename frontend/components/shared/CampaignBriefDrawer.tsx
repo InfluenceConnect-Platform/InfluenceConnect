@@ -28,6 +28,7 @@ interface FullCampaign extends CampaignSummary {
   maxFollowers?: number;
   status?: string;
   brandId?: { name?: string };
+  brandWebsite?: string;
 }
 
 interface Props {
@@ -55,6 +56,16 @@ const fmtDate = (d?: string) => {
   return Number.isNaN(date.getTime())
     ? null
     : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+// Brands may store a website with or without a scheme. Build a safe href and a
+// clean display label (host without protocol or trailing slash).
+const normalizeWebsite = (raw?: string) => {
+  const v = (raw ?? '').trim();
+  if (!v) return null;
+  const href = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+  let label = v.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+  try { label = new URL(href).host.replace(/^www\./, ''); } catch { /* keep fallback */ }
+  return { href, label };
 };
 
 export default function CampaignBriefDrawer({
@@ -107,6 +118,7 @@ export default function CampaignBriefDrawer({
   // Merge: prefer freshly fetched fields, fall back to the deal summary.
   const c: FullCampaign = { ...(campaign ?? { _id: '', title: '' }), ...(full ?? {}) };
   const resolvedBrand = full?.brandId?.name || brandName;
+  const website = normalizeWebsite(c.brandWebsite);
 
   const surface = isDark ? 'bg-[#0B1725]' : 'bg-[#F7F8FA]';
   const card = isDark ? 'bg-[#0F1C2E] border-slate-700/50' : 'bg-white border-gray-100';
@@ -176,6 +188,19 @@ export default function CampaignBriefDrawer({
               <div className="min-w-0">
                 <p className={`text-[11px] font-medium ${labelClr}`}>{resolvedBrand || 'Brand'}</p>
                 <h2 className={`text-[16px] font-bold leading-snug ${headingClr}`}>{c.title}</h2>
+                {website && (
+                  <a
+                    href={website.href}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className={`inline-flex items-center gap-1 mt-1 text-[11.5px] font-medium hover:underline ${isDark ? 'text-teal-300' : 'text-teal-700'}`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                    {website.label}
+                  </a>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap">

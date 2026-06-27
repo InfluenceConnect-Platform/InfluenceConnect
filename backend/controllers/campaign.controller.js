@@ -309,7 +309,19 @@ exports.getCampaignById = async (req, res) => {
       hasApplied = !!existing;
     }
 
-    res.json({ campaign, hasApplied });
+    // Enrich with the brand's public profile fields (website, logo) so the
+    // campaign brief can link out to the brand. brandId is populated with the
+    // User; the website/logo live on the BrandProfile keyed by that userId.
+    const brandProfile = await BrandProfile.findOne(
+      { userId: campaign.brandId?._id },
+      { logoUrl: 1, website: 1, companyName: 1 }
+    );
+    const campaignObj = campaign.toObject();
+    campaignObj.brandWebsite = brandProfile?.website || '';
+    campaignObj.brandLogoUrl = brandProfile?.logoUrl || '';
+    campaignObj.brandCompanyName = brandProfile?.companyName || '';
+
+    res.json({ campaign: campaignObj, hasApplied });
 
   } catch (error) {
     console.error('Get campaign error:', error);
