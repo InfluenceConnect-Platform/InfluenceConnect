@@ -979,15 +979,31 @@ export default function BrandCampaigns() {
                   }`} />
                   <div className="p-5">
                   <div className="flex items-start justify-between mb-3 gap-2">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-gray-900 mb-0.5 truncate">{campaign.title}</h3>
                       {campaign.customId && <IdChip id={campaign.customId} size="xs" tone="subtle" />}
+                      {/* Badges below title on mobile */}
+                      <div className="flex items-center gap-1.5 mt-1.5 sm:hidden flex-wrap">
+                        {campaign.newApplicants > 0 && (
+                          <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 border border-violet-200">
+                            <span className="relative flex w-1.5 h-1.5">
+                              <span className="absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75 animate-ping" />
+                              <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-violet-500" />
+                            </span>
+                            {campaign.newApplicants} new
+                          </span>
+                        )}
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
+                          {CAMPAIGN_STATUS_LABELS[campaign.status] ?? campaign.status}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {/* Badges inline on desktop only */}
                       {campaign.newApplicants > 0 && (
                         <span
                           title={`${campaign.newApplicants} new applicant${campaign.newApplicants > 1 ? 's' : ''} since you last checked`}
-                          className="flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200"
+                          className="hidden sm:flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200"
                         >
                           <span className="relative flex w-1.5 h-1.5">
                             <span className="absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75 animate-ping" />
@@ -996,7 +1012,7 @@ export default function BrandCampaigns() {
                           {campaign.newApplicants} new
                         </span>
                       )}
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`hidden sm:inline text-xs px-2.5 py-1 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
                         {CAMPAIGN_STATUS_LABELS[campaign.status] ?? campaign.status}
                       </span>
                       {/* Edit button — locked when a deal is active */}
@@ -1057,7 +1073,7 @@ export default function BrandCampaigns() {
                   </div>
 
                   {/* Stat cards row */}
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-center">
                       {campaign.newApplicants > 0 && (
                         <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500 ring-2 ring-white" />
@@ -1121,7 +1137,7 @@ export default function BrandCampaigns() {
                   {/* Invite strip — published campaigns (Premium feature) */}
                   {(campaign.status === 'active' || campaign.status === 'in-progress') && (
                     <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex items-center justify-between gap-2">
-                      <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1">
+                      <p className="hidden sm:flex text-[10px] text-gray-400 font-medium items-center gap-1">
                         Proactively reach out to creators
                       </p>
                       <button
@@ -1145,7 +1161,7 @@ export default function BrandCampaigns() {
                   {/* Republish strip — expired campaigns only */}
                   {campaign.status === 'expired' && (
                     <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex items-center justify-between gap-2">
-                      <p className="text-[10px] text-gray-400 font-medium">Expired — push the deadline forward to relaunch</p>
+                      <p className="hidden sm:block text-[10px] text-gray-400 font-medium">Expired — push the deadline forward to relaunch</p>
                       <button
                         onClick={e => { e.stopPropagation(); openEdit(campaign); }}
                         className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-sm"
@@ -1159,7 +1175,7 @@ export default function BrandCampaigns() {
                   {/* Publish strip — drafts only */}
                   {campaign.status === 'draft' && (
                     <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex items-center justify-between gap-2">
-                      <p className="text-[10px] text-gray-400 font-medium">Not visible to creators yet</p>
+                      <p className="hidden sm:block text-[10px] text-gray-400 font-medium">Not visible to creators yet</p>
                       <button
                         onClick={e => { e.stopPropagation(); handlePublishDraft(campaign); }}
                         disabled={publishingId === campaign._id}
