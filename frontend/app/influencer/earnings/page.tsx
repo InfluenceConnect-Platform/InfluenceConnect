@@ -24,12 +24,37 @@ interface MonthlyTrend {
 
 interface DealHistory {
   brandName: string;
+  brandLogoUrl?: string;
   campaignTitle: string;
   category: string;
   completedAt: string;
   status: string;
   amount: number;
 }
+
+// Turn a raw ISO timestamp into a clear, readable date, e.g. "15 Jun 2026".
+const fmtDealDate = (iso?: string) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? '—'
+    : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+// Human-friendly category label; campaigns without a niche show "General".
+const fmtCategory = (cat?: string) => {
+  if (!cat) return 'General';
+  return cat.charAt(0).toUpperCase() + cat.slice(1);
+};
+
+// Map raw deal status enums to clear words shown to the influencer.
+const STATUS_LABELS: Record<string, string> = {
+  completed: 'Completed',
+  'content-submitted': 'Awaiting payment',
+  'in-progress': 'In progress',
+  cancelled: 'Cancelled',
+};
+const fmtStatus = (status?: string) => STATUS_LABELS[status ?? ''] || 'Completed';
 
 const CAT_COLORS: Record<string, string> = {
   beauty:    'bg-pink-50 text-pink-700 border border-pink-200',
@@ -104,9 +129,9 @@ export default function EarningsPage() {
     const dealRows = dealHistory.map(d => [
       escape(d.brandName || ''),
       escape(d.campaignTitle || ''),
-      escape(d.category || ''),
-      escape(d.completedAt || ''),
-      escape(d.status || ''),
+      escape(fmtCategory(d.category)),
+      escape(fmtDealDate(d.completedAt)),
+      escape(fmtStatus(d.status)),
       d.amount,
     ]);
 
@@ -466,27 +491,32 @@ export default function EarningsPage() {
                         <tr key={index} className="border-b border-gray-50 hover:bg-[#EEF4F5]/40 transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-2.5">
-                              <div className={`w-8 h-8 rounded-lg text-[11px] font-bold text-white flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${grad}`}>
-                                {deal.brandName?.charAt(0).toUpperCase() || '?'}
-                              </div>
+                              {deal.brandLogoUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={deal.brandLogoUrl} alt={deal.brandName} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+                              ) : (
+                                <div className={`w-8 h-8 rounded-lg text-[11px] font-bold text-white flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${grad}`}>
+                                  {deal.brandName?.charAt(0).toUpperCase() || '?'}
+                                </div>
+                              )}
                               <span className="text-sm font-bold text-gray-900">{deal.brandName}</span>
                             </div>
                           </td>
                           <td className="px-5 py-4 text-sm text-gray-500 max-w-[200px] truncate font-medium">{deal.campaignTitle}</td>
                           <td className="px-5 py-4">
-                            <span className={`text-xs px-2.5 py-1 rounded-full capitalize font-bold ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
-                              {deal.category}
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
+                              {fmtCategory(deal.category)}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-xs text-gray-400 font-medium whitespace-nowrap">{deal.completedAt}</td>
+                          <td className="px-5 py-4 text-xs text-gray-500 font-medium whitespace-nowrap">{fmtDealDate(deal.completedAt)}</td>
                           <td className="px-5 py-4">
-                            <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-bold capitalize ${
+                            <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-bold ${
                               deal.status === 'completed'
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}>
                               <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${deal.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                              {deal.status}
+                              {fmtStatus(deal.status)}
                             </span>
                           </td>
                           <td className="px-5 py-4 text-sm font-black text-emerald-700 text-right tabular-nums">
@@ -507,9 +537,14 @@ export default function EarningsPage() {
                     <div key={index} className="px-4 py-4 hover:bg-gray-50/60 transition-colors">
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <div className={`w-8 h-8 rounded-lg text-[11px] font-bold text-white flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${grad}`}>
-                            {deal.brandName?.charAt(0).toUpperCase() || '?'}
-                          </div>
+                          {deal.brandLogoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={deal.brandLogoUrl} alt={deal.brandName} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+                          ) : (
+                            <div className={`w-8 h-8 rounded-lg text-[11px] font-bold text-white flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${grad}`}>
+                              {deal.brandName?.charAt(0).toUpperCase() || '?'}
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <p className="text-sm font-bold text-gray-900 truncate">{deal.brandName}</p>
                             <p className="text-xs text-gray-400 mt-0.5 truncate font-medium">{deal.campaignTitle}</p>
@@ -520,18 +555,18 @@ export default function EarningsPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap mt-1.5">
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full capitalize font-bold ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
-                          {deal.category}
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
+                          {fmtCategory(deal.category)}
                         </span>
-                        <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold capitalize ${
+                        <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold ${
                           deal.status === 'completed'
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${deal.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                          {deal.status}
+                          {fmtStatus(deal.status)}
                         </span>
-                        <span className="text-[11px] text-gray-400 ml-auto font-medium">{deal.completedAt}</span>
+                        <span className="text-[11px] text-gray-400 ml-auto font-medium">{fmtDealDate(deal.completedAt)}</span>
                       </div>
                     </div>
                   );
@@ -558,9 +593,9 @@ export default function EarningsPage() {
           )}
         </section>
 
-        <p className="text-xs text-gray-400 text-center mt-6 pb-2">
+        {/* <p className="text-xs text-gray-400 text-center mt-6 pb-2">
           Audience analytics — follower demographics, engagement deep-dives, age &amp; gender splits — coming in Phase 2.
-        </p>
+        </p> */}
 
       </main>
     </div>

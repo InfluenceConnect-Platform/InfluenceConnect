@@ -2,6 +2,7 @@ const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
 const StatsSnapshot = require('../models/StatsSnapshot');
 const Deal = require('../models/Deal');
+const BrandProfile = require('../models/BrandProfile');
 const Message = require('../models/Message');
 const Campaign = require('../models/Campaign');
 const notify = require('../services/email');
@@ -234,8 +235,6 @@ exports.getMyDeals = async (req, res) => {
       .populate('brandId', 'name')
       .sort({ updatedAt: -1 });
 
-    const BrandProfile = require('../models/BrandProfile');
-
     // Batch the per-deal lookups (brand logo, last message, unread count) so the
     // inbox costs a fixed number of queries instead of three per deal.
     const dealIds = deals.map(d => d._id);
@@ -354,6 +353,12 @@ exports.getEarnings = async (req, res) => {
       .populate('campaignId', 'title niche')
       .populate('brandId', 'name');
 
+    // Brand logos live on BrandProfile, keyed by the brand's userId. Batch-fetch
+    // them once so the deal history can show real logos (with a letter fallback).
+    const brandIds = [...new Set(allDeals.map(d => (d.brandId?._id || d.brandId)?.toString()).filter(Boolean))];
+    const brandProfiles = await BrandProfile.find({ userId: { $in: brandIds } }).select('logoUrl userId');
+    const logoByBrand = new Map(brandProfiles.map(b => [b.userId.toString(), b.logoUrl || '']));
+
     const completedDeals = allDeals.filter(d => d.status === 'completed');
     const activeDeals = allDeals.filter(d => ['in-progress', 'content-submitted'].includes(d.status));
     const pendingPayoutDeals = allDeals.filter(d => d.status === 'content-submitted');
@@ -390,6 +395,9 @@ exports.getEarnings = async (req, res) => {
       _id: d._id,
       campaignTitle: d.campaignId?.title || 'Campaign',
       brandName: d.brandId?.name || 'Brand',
+      brandLogoUrl: logoByBrand.get((d.brandId?._id || d.brandId)?.toString()) || '',
+      category: d.campaignId?.niche?.[0] || '',
+      status: d.status,
       amount: d.agreedAmount || 0,
       completedAt: d.completedAt
     }));
