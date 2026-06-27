@@ -287,10 +287,18 @@ exports.getMyCampaigns = async (req, res) => {
     // Unseen new-applicant counts so the UI can badge specific campaign cards.
     const newCounts = await newApplicantCounts(campaigns);
 
+    // Most-recent application timestamp per campaign so the UI can sort by activity.
+    const latestApps = await Application.aggregate([
+      { $match: { campaignId: { $in: campaignIds } } },
+      { $group: { _id: '$campaignId', lastApplicantAt: { $max: '$createdAt' } } },
+    ]);
+    const lastApplicantMap = new Map(latestApps.map(a => [a._id.toString(), a.lastApplicantAt]));
+
     const enriched = campaigns.map(c => ({
       ...c.toObject(),
       hasActiveDeal: activeDealSet.has(c._id.toString()),
       newApplicants: newCounts.get(c._id.toString()) || 0,
+      lastApplicantAt: lastApplicantMap.get(c._id.toString()) || null,
     }));
 
     res.json({ campaigns: enriched });

@@ -487,9 +487,15 @@ export default function BrandCampaigns() {
     }
   };
 
-  const filteredCampaigns = campaigns.filter(c =>
-    activeTab === 'all' ? true : c.status === activeTab
-  );
+  const filteredCampaigns = campaigns
+    .filter(c => activeTab === 'all' ? true : c.status === activeTab)
+    .slice()
+    .sort((a, b) => {
+      const tA = a.lastApplicantAt ? new Date(a.lastApplicantAt).getTime() : 0;
+      const tB = b.lastApplicantAt ? new Date(b.lastApplicantAt).getTime() : 0;
+      if (tA !== tB) return tB - tA;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   const fieldClass = 'w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] hover:border-gray-300 transition-all placeholder:text-gray-400';
   const labelClass = 'text-xs font-semibold text-gray-600 block mb-1.5';
@@ -954,10 +960,12 @@ export default function BrandCampaigns() {
                   tabIndex={0}
                   onClick={() => handleSelectCampaign(campaign)}
                   onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); handleSelectCampaign(campaign); } }}
-                  className={`w-full text-left bg-white border rounded-2xl overflow-hidden transition-all shadow-sm cursor-pointer ${
+                  className={`w-full text-left border rounded-2xl overflow-hidden transition-all shadow-sm cursor-pointer ${
                     selectedCampaign?._id === campaign._id
-                      ? 'border-[#3D5087] shadow-md ring-2 ring-[#3D5087]/15'
-                      : 'border-gray-200/80 hover:border-[#3D5087]/50 hover:shadow-md'
+                      ? 'bg-white border-[#3D5087] shadow-md ring-2 ring-[#3D5087]/15'
+                      : campaign.newApplicants > 0
+                        ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 border-amber-300 shadow-amber-100'
+                        : 'bg-white border-gray-200/80 hover:border-[#3D5087]/50 hover:shadow-md'
                   }`}
                 >
                   {/* Top accent strip by status */}

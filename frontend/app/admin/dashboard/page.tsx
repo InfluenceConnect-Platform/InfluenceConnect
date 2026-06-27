@@ -198,7 +198,7 @@ export default function AdminDashboard() {
             <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Platform overview</p>
             <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">Dashboard</h1>
           </div>
-          <button
+          {/* <button
             onClick={fetchData}
             className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-gray-600 px-3.5 py-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer shadow-sm"
           >
@@ -207,7 +207,7 @@ export default function AdminDashboard() {
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
             </svg>
             Refresh
-          </button>
+          </button> */}
         </div>
 
         {/* Stat cards */}
