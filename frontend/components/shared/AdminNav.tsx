@@ -91,8 +91,8 @@ export default function AdminNav({ user }: AdminNavProps) {
 
   useEffect(() => {
     let active = true;
-    api.get('/api/admin/gstin', { params: { status: 'pending' } })
-      .then(res => { if (active) setPendingGstin(res.data?.counts?.pending || 0); })
+    api.get('/api/admin/gstin/count')
+      .then(res => { if (active) setPendingGstin(res.data?.pending || 0); })
       .catch(() => {});
     return () => { active = false; };
   }, [pathname]);

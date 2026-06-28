@@ -50,6 +50,8 @@ export default function AdminGst() {
   const [rows, setRows] = useState<Verification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'' | 'pending' | 'verified' | 'rejected'>('pending');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [actingId, setActingId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -64,18 +66,23 @@ export default function AdminGst() {
   }, []);
 
   useEffect(() => {
+    setPage(1);
+  }, [filter]);
+
+  useEffect(() => {
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  }, [filter, page]);
 
   const fetchData = async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
     try {
-      const params: Record<string, string> = {};
+      const params: Record<string, string | number> = { page, limit: 20 };
       if (filter) params.status = filter;
       const res = await api.get('/api/admin/gstin', { params });
       setCounts(res.data.counts);
       setRows(res.data.verifications);
+      setTotalPages(res.data.pagination?.pages || 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -445,6 +452,27 @@ export default function AdminGst() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Next
+                </button>
               </div>
             )}
           </div>

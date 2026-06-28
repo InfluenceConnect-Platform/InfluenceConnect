@@ -3,16 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import ForgotPasswordModal from '@/components/shared/ForgotPasswordModal';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail]               = useState('');
   const [password, setPassword]         = useState('');
   const [showPw, setShowPw]             = useState(false);
-  const [loading, setLoading]           = useState(false);
-  const [error, setError]               = useState('');
-  const [showForgotPw, setShowForgotPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
 
   useEffect(() => {
     const token  = localStorage.getItem('token');
@@ -201,13 +199,6 @@ export default function AdminLoginPage() {
                   <label className="text-[0.7rem] font-bold uppercase tracking-widest text-amber-700/60 dark:text-amber-300/80">
                     Password
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPw(true)}
-                    className="text-xs text-amber-600 hover:text-amber-700 font-semibold cursor-pointer transition-colors"
-                  >
-                    Forgot password?
-                  </button>
                 </div>
                 <div className="relative">
                   <input
@@ -278,12 +269,6 @@ export default function AdminLoginPage() {
         </div>
       </div>
 
-      {showForgotPw && (
-        <ForgotPasswordModal
-          onClose={() => setShowForgotPw(false)}
-          onSuccess={() => setShowForgotPw(false)}
-        />
-      )}
     </div>
   );
 }

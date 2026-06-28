@@ -23,7 +23,9 @@ const adminLogSchema = new mongoose.Schema({
       'USER_VIEWED',
       'GSTIN_APPROVED',
       'GSTIN_REJECTED',
+      'GSTIN_REOPENED',
       'CAMPAIGN_REMOVED',
+      'CAMPAIGN_FLAGGED',
       'CAMPAIGN_VIEWED',
       'ADMIN_LOGIN',
       'SYSTEM_NOTE'

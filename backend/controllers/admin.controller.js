@@ -10,12 +10,16 @@ const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
 const logAdminAction = require('../utils/logAdminAction');
 
-// Best-effort client IP for the audit trail (honours a proxy's X-Forwarded-For).
-const getIp = (req) =>
-  (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
-  req.ip ||
-  req.socket?.remoteAddress ||
-  '';
+// Plan prices — single source of truth for MRR calculations.
+const PLAN_PRICE = { influencer: 299, brand: 1499 };
+
+// Best-effort client IP for the audit trail. Validates the X-Forwarded-For value
+// to basic IPv4/IPv6 format so forged headers don't pollute the log.
+const getIp = (req) => {
+  const forwarded = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  if (forwarded && /^[\d.]+$|^[0-9a-fA-F:]+$/.test(forwarded)) return forwarded;
+  return req.ip || req.socket?.remoteAddress || '';
+};
 
 
 // ─────────────────────────────────────────
@@ -36,7 +40,7 @@ exports.getOverviewStats = async (req, res) => {
       User.countDocuments(),
       User.countDocuments({ role: 'influencer' }),
       User.countDocuments({ role: 'brand' }),
-      Campaign.countDocuments({ status: 'active' }),
+      Campaign.countDocuments({ status: { $in: ['active', 'in-progress'] } }),
       Deal.countDocuments(),
       Deal.countDocuments({ status: 'completed' }),
       User.countDocuments({ plan: 'premium' }),
@@ -71,8 +75,8 @@ exports.getOverviewStats = async (req, res) => {
       role: 'brand', plan: 'premium'
     });
 
-    const influencerMRR = influencerPremium * 299;
-    const brandMRR = brandPremium * 1499;
+    const influencerMRR = influencerPremium * PLAN_PRICE.influencer;
+    const brandMRR = brandPremium * PLAN_PRICE.brand;
     const mrr = influencerMRR + brandMRR;
 
     // ── Monthly signup trend (last 6 months, split by role) ──
@@ -162,7 +166,7 @@ exports.getOverviewStats = async (req, res) => {
         mrr,
         influencerMRR,
         brandMRR,
-        freemiumUsers: totalUsers - premiumUsers
+        freemiumUsers: await User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } })
       },
       recentSignups,
       signupTrend,
@@ -305,6 +309,17 @@ exports.getUserDetails = async (req, res) => {
       const portfolioItems = profile?.portfolioItems || [];
       const portfolioVisible = portfolioItems.filter(i => i.isVisible).length;
 
+      await logAdminAction({
+        adminId: req.userId,
+        adminName: req.user?.name,
+        action: 'USER_VIEWED',
+        targetType: 'user',
+        targetId: user.customId || '',
+        targetName: user.name,
+        details: `Viewed influencer account "${user.name}" (${user.email}).`,
+        ipAddress: getIp(req),
+      });
+
       return res.json({
         user,
         accountAgeDays,
@@ -349,10 +364,11 @@ exports.getUserDetails = async (req, res) => {
           .sort({ updatedAt: -1 })
       ]);
 
-      const campaignsByStatus = { active: 0, draft: 0, closed: 0, completed: 0 };
+      const campaignsByStatus = { active: 0, draft: 0, expired: 0, closed: 0, completed: 0 };
       campaigns.forEach(c => {
         if (c.status === 'active' || c.status === 'in-progress') campaignsByStatus.active++;
-        else if (c.status === 'draft' || c.status === 'expired') campaignsByStatus.draft++;
+        else if (c.status === 'draft') campaignsByStatus.draft++;
+        else if (c.status === 'expired') campaignsByStatus.expired++;
         else if (c.status === 'closed') campaignsByStatus.closed++;
         else if (c.status === 'completed') campaignsByStatus.completed++;
       });
@@ -380,6 +396,17 @@ exports.getUserDetails = async (req, res) => {
           workingWithMap.set(String(d.influencerId._id), d.influencerId.name || '—');
         });
       const workingWith = Array.from(workingWithMap.values());
+
+      await logAdminAction({
+        adminId: req.userId,
+        adminName: req.user?.name,
+        action: 'USER_VIEWED',
+        targetType: 'user',
+        targetId: user.customId || '',
+        targetName: user.name,
+        details: `Viewed brand account "${user.name}" (${user.email}).`,
+        ipAddress: getIp(req),
+      });
 
       return res.json({
         user,
@@ -424,6 +451,12 @@ exports.updateUserStatus = async (req, res) => {
 
     if (!['active', 'suspended'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const targetUser = await User.findById(userId).select('role');
+    if (!targetUser) return res.status(404).json({ error: 'User not found' });
+    if (targetUser.role === 'admin') {
+      return res.status(403).json({ error: 'Admin accounts cannot be suspended.' });
     }
 
     const user = await User.findByIdAndUpdate(
@@ -598,6 +631,17 @@ exports.getCampaignDetails = async (req, res) => {
       ? Math.ceil((new Date(campaign.deadline) - Date.now()) / (1000 * 60 * 60 * 24))
       : null;
 
+    await logAdminAction({
+      adminId: req.userId,
+      adminName: req.user?.name,
+      action: 'CAMPAIGN_VIEWED',
+      targetType: 'campaign',
+      targetId: campaign.customId || '',
+      targetName: campaign.title,
+      details: `Viewed campaign "${campaign.title}".`,
+      ipAddress: getIp(req),
+    });
+
     res.json({
       campaign: {
         _id: campaign._id,
@@ -695,7 +739,7 @@ exports.removeCampaign = async (req, res) => {
 
       await Message.create({
         dealId: deal._id,
-        senderId: deal.brandId,
+        senderId: null,
         receiverId: deal.influencerId,
         content: notice,
         system: true
@@ -785,6 +829,20 @@ exports.flagCampaign = async (req, res) => {
     campaign.flaggedAt  = next ? new Date() : null;
     await campaign.save();
 
+    await logAdminAction({
+      adminId: req.userId,
+      adminName: req.user?.name,
+      action: 'CAMPAIGN_FLAGGED',
+      targetType: 'campaign',
+      targetId: campaign.customId || '',
+      targetName: campaign.title,
+      details: next
+        ? `Flagged campaign "${campaign.title}" for review.${reason ? ` Reason: ${reason}` : ''}`
+        : `Cleared flag on campaign "${campaign.title}".`,
+      metadata: { flagged: next, reason: reason || '' },
+      ipAddress: getIp(req),
+    });
+
     res.json({
       message: next ? 'Campaign flagged for review.' : 'Campaign flag cleared.',
       flagged: campaign.flagged,
@@ -806,6 +864,10 @@ exports.flagCampaign = async (req, res) => {
 exports.getGstinVerifications = async (req, res) => {
   try {
     const { status } = req.query;
+    let page  = parseInt(req.query.page,  10) || 1;
+    let limit = parseInt(req.query.limit, 10) || 20;
+    if (page < 1) page = 1;
+    if (limit < 1 || limit > 100) limit = 20;
 
     // Only brands that have actually submitted a GSTIN are relevant here.
     const submittedFilter = { gstinStatus: { $in: ['pending', 'verified', 'rejected'] } };
@@ -814,15 +876,20 @@ exports.getGstinVerifications = async (req, res) => {
       ? { gstinStatus: status }
       : submittedFilter;
 
-    const [countsAgg, list] = await Promise.all([
+    const skip = (page - 1) * limit;
+
+    const [countsAgg, list, total] = await Promise.all([
       BrandProfile.aggregate([
         { $match: submittedFilter },
         { $group: { _id: '$gstinStatus', count: { $sum: 1 } } },
       ]),
       BrandProfile.find(listFilter)
         .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit)
         .populate('userId', 'name email customId status createdAt')
         .select('companyName gstin gstinStatus gstinVerified updatedAt userId'),
+      BrandProfile.countDocuments(listFilter),
     ]);
 
     const countMap = new Map(countsAgg.map(c => [c._id, c.count]));
@@ -848,10 +915,23 @@ exports.getGstinVerifications = async (req, res) => {
       updatedAt:      p.updatedAt,
     }));
 
-    res.json({ counts, verifications });
+    res.json({ counts, verifications, pagination: { total, page, pages: Math.ceil(total / limit) || 1 } });
 
   } catch (error) {
     console.error('Get GSTIN verifications error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// GSTIN PENDING COUNT  (lightweight — used by AdminNav badge)
+// ─────────────────────────────────────────
+exports.getGstinPendingCount = async (req, res) => {
+  try {
+    const count = await BrandProfile.countDocuments({ gstinStatus: 'pending' });
+    res.json({ pending: count });
+  } catch (error) {
+    console.error('Get GSTIN count error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };
@@ -954,12 +1034,12 @@ exports.reopenGstinRejection = async (req, res) => {
     await logAdminAction({
       adminId: req.userId,
       adminName: req.user?.name,
-      action: 'USER_RESTORED',
-      targetType: 'user',
+      action: 'GSTIN_REOPENED',
+      targetType: 'gstin',
       targetId: profile.userId?.customId || '',
       targetName: brandName,
-      details: `Restored "${brandName}" and requested a GSTIN resubmission.`,
-      metadata: { reason: 'gstin_resubmission', gstin: profile.gstin || '' },
+      details: `Reopened GSTIN for "${brandName}" — account restored for resubmission.`,
+      metadata: { gstin: profile.gstin || '' },
       ipAddress: getIp(req),
     });
 
@@ -986,8 +1066,8 @@ exports.getSubscriptionOverview = async (req, res) => {
       User.countDocuments({ role: 'brand', plan: 'premium' })
     ]);
 
-    const mrr = (premiumInfluencers * 299) + (premiumBrands * 1499);
-    const freemiumUsers = totalUsers - premiumInfluencers - premiumBrands;
+    const mrr = (premiumInfluencers * PLAN_PRICE.influencer) + (premiumBrands * PLAN_PRICE.brand);
+    const freemiumUsers = await User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } });
 
     // ── Cumulative MRR over the last 6 months ──
     // Derived from currently-premium users' start dates: MRR at each month-end
@@ -1006,7 +1086,7 @@ exports.getSubscriptionOverview = async (req, res) => {
       let monthMrr = 0;
       premiumMembers.forEach(u => {
         if (new Date(u.premiumStartedAt) <= monthEnd) {
-          monthMrr += u.role === 'brand' ? 1499 : 299;
+          monthMrr += PLAN_PRICE[u.role] || 0;
         }
       });
       mrrTrend.push({ month: MONTHS[(now.getMonth() - i + 12) % 12], value: monthMrr });
@@ -1020,8 +1100,8 @@ exports.getSubscriptionOverview = async (req, res) => {
         totalPremium: premiumInfluencers + premiumBrands,
         freemiumUsers,
         mrr,
-        influencerMRR: premiumInfluencers * 299,
-        brandMRR: premiumBrands * 1499
+        influencerMRR: premiumInfluencers * PLAN_PRICE.influencer,
+        brandMRR: premiumBrands * PLAN_PRICE.brand
       },
       mrrTrend
     });
@@ -1049,6 +1129,12 @@ exports.getAdminLogs = async (req, res) => {
     if (action)     query.action = action;
     if (targetType) query.targetType = targetType;
     if (startDate || endDate) {
+      if (startDate && isNaN(new Date(startDate).getTime())) {
+        return res.status(400).json({ error: 'Invalid startDate.' });
+      }
+      if (endDate && isNaN(new Date(endDate).getTime())) {
+        return res.status(400).json({ error: 'Invalid endDate.' });
+      }
       query.createdAt = {};
       if (startDate) query.createdAt.$gte = new Date(startDate);
       if (endDate) {
