@@ -14,7 +14,8 @@ export default function CompleteProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [userId, setUserId] = useState('');
+  const [setupToken, setSetupToken] = useState('');
+  const [userId, setUserId] = useState(''); // decoded from setupToken for verify-otp
   const [role, setRole] = useState('');
   const [gstin, setGstin] = useState('');
   const [mobile, setMobile] = useState('');
@@ -28,9 +29,18 @@ export default function CompleteProfilePage() {
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    const id = searchParams.get('userId');
-    if (!id) { router.replace('/auth/login'); return; }
-    setUserId(id);
+    const token = searchParams.get('setupToken');
+    if (!token) { router.replace('/auth/login'); return; }
+    setSetupToken(token);
+    // Decode the userId from the JWT payload (client-side, no signature check needed —
+    // the server validates the signature when the token is submitted).
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUserId(payload.userId ?? '');
+    } catch {
+      router.replace('/auth/login');
+      return;
+    }
     setRole(searchParams.get('role') || '');
   }, [searchParams, router]);
 
@@ -60,7 +70,7 @@ export default function CompleteProfilePage() {
     setLoading(true);
     try {
       await api.post('/api/auth/send-mobile-otp', {
-        userId, mobile: digits,
+        setupToken, mobile: digits,
         ...(isBrand ? { gstin: normalizedGstin } : {}),
       });
       setStep('otp');

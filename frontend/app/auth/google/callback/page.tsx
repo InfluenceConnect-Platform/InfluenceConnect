@@ -8,20 +8,21 @@ export default function GoogleCallbackPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const token    = searchParams.get('token');
-    const userRaw  = searchParams.get('user');
-    const userId   = searchParams.get('userId');
-    const step     = searchParams.get('step');
-    const error    = searchParams.get('error');
+    const token      = searchParams.get('token');
+    const userRaw    = searchParams.get('user');
+    const setupToken = searchParams.get('setupToken');
+    const step       = searchParams.get('step');
+    const error      = searchParams.get('error');
 
     if (error) {
       router.replace('/auth/login?error=google_failed');
       return;
     }
 
-    // New Google user — needs to add mobile
-    if (step === 'mobile' && userId) {
-      router.replace(`/auth/complete-profile?userId=${userId}&step=mobile`);
+    // New Google user — needs to add mobile. Forward the signed setupToken
+    // (never a raw userId) so the completion page can call send-mobile-otp securely.
+    if (step === 'mobile' && setupToken) {
+      router.replace(`/auth/complete-profile?setupToken=${setupToken}&step=mobile`);
       return;
     }
 

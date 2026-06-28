@@ -33,6 +33,14 @@ const userSchema = new mongoose.Schema({
     trim: true
   },
 
+  // Holds a mobile number that has been submitted but not yet OTP-verified.
+  // Committed to `mobile` only when the OTP is confirmed in verifyOTP.
+  pendingMobile: {
+    type: String,
+    default: null,
+    trim: true
+  },
+
   password: {
     type: String,
     required: [true, 'Password is required'],

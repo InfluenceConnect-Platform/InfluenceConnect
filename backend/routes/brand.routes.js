@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authenticate = require('../middleware/auth.middleware');
+const brandOnly = authenticate.brandOnly;
 const {
   createProfile,
   getMyProfile,
@@ -19,20 +20,20 @@ const {
   getInfluencerBySlug,
 } = require('../controllers/brand.controller');
 
-router.post('/profile', authenticate, createProfile);
-router.get('/profile/me', authenticate, getMyProfile);
-router.put('/profile', authenticate, updateProfile);
-router.get('/dashboard/stats', authenticate, getDashboardStats);
-router.post('/campaigns', authenticate, createCampaign);
-router.get('/campaigns', authenticate, getMyCampaigns);
-router.get('/new-applicants-count', authenticate, getNewApplicantsCount);
-router.put('/campaigns/:campaignId', authenticate, updateCampaign);
-router.delete('/campaigns/:campaignId', authenticate, deleteCampaign);
-router.get('/campaigns/:campaignId/applications', authenticate, getCampaignApplications);
-router.put('/applications/:applicationId/status', authenticate, updateApplicationStatus);
-router.get('/deals', authenticate, getMyDeals);
-router.put('/deals/:dealId/status', authenticate, updateDealStatus);
-router.get('/discover', authenticate, discoverInfluencers);
-router.get('/influencer/:slug', authenticate, getInfluencerBySlug);
+router.post('/profile', authenticate, brandOnly, createProfile);
+router.get('/profile/me', authenticate, brandOnly, getMyProfile);
+router.put('/profile', authenticate, brandOnly, updateProfile);
+router.get('/dashboard/stats', authenticate, brandOnly, getDashboardStats);
+router.post('/campaigns', authenticate, brandOnly, createCampaign);
+router.get('/campaigns', authenticate, brandOnly, getMyCampaigns);
+router.get('/new-applicants-count', authenticate, brandOnly, getNewApplicantsCount);
+router.put('/campaigns/:campaignId', authenticate, brandOnly, updateCampaign);
+router.delete('/campaigns/:campaignId', authenticate, brandOnly, deleteCampaign);
+router.get('/campaigns/:campaignId/applications', authenticate, brandOnly, getCampaignApplications);
+router.put('/applications/:applicationId/status', authenticate, brandOnly, updateApplicationStatus);
+router.get('/deals', authenticate, brandOnly, getMyDeals);
+router.put('/deals/:dealId/status', authenticate, brandOnly, updateDealStatus);
+router.get('/discover', authenticate, brandOnly, discoverInfluencers);
+router.get('/influencer/:slug', authenticate, brandOnly, getInfluencerBySlug);
 
 module.exports = router;

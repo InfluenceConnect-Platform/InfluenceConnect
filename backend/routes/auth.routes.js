@@ -96,9 +96,16 @@ router.get('/google/callback', (req, res, next) => {
       return res.redirect(`${frontendUrl}/auth/login?error=google_failed`);
     }
 
-    // New Google user — mobile not yet collected
+    // New Google user — mobile not yet collected.
+    // Issue a short-lived signed token so the registration completion endpoint
+    // cannot be called with an arbitrary userId from the URL.
     if (!user.mobileVerified) {
-      return res.redirect(`${frontendUrl}/auth/complete-profile?userId=${user._id}&step=mobile&role=${user.role}`);
+      const setupToken = jwt.sign(
+        { userId: user._id, purpose: 'mobile-setup' },
+        process.env.JWT_SECRET,
+        { expiresIn: '15m' }
+      );
+      return res.redirect(`${frontendUrl}/auth/complete-profile?setupToken=${setupToken}&step=mobile&role=${user.role}`);
     }
 
     // Fully verified user — issue JWT and go to dashboard

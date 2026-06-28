@@ -265,7 +265,11 @@ exports.verifyOTP = async (req, res) => {
     if (type === 'email') {
       await User.findByIdAndUpdate(userId, { emailVerified: true });
     } else {
-      await User.findByIdAndUpdate(userId, { mobileVerified: true });
+      // Commit the staged mobile to the live field now that the OTP proves ownership.
+      const pendingUser = await User.findById(userId).select('pendingMobile');
+      const mobileUpdate = { mobileVerified: true, pendingMobile: null };
+      if (pendingUser?.pendingMobile) mobileUpdate.mobile = pendingUser.pendingMobile;
+      await User.findByIdAndUpdate(userId, mobileUpdate);
     }
 
     // Check if both are now verified
@@ -629,11 +633,26 @@ exports.resetPassword = async (req, res) => {
 // ─────────────────────────────────────────
 exports.sendMobileOtp = async (req, res) => {
   try {
-    const { userId, mobile, gstin } = req.body;
+    const { setupToken, mobile, gstin } = req.body;
 
-    if (!userId || !mobile) {
-      return res.status(400).json({ error: 'User ID and mobile number are required.' });
+    if (!setupToken || !mobile) {
+      return res.status(400).json({ error: 'Setup token and mobile number are required.' });
     }
+
+    // Validate the short-lived registration token issued during Google OAuth.
+    // This prevents unauthenticated callers from overwriting any user's mobile.
+    let decoded;
+    try {
+      decoded = jwt.verify(setupToken, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ error: 'Invalid or expired setup token. Please sign in with Google again.' });
+    }
+
+    if (decoded.purpose !== 'mobile-setup') {
+      return res.status(401).json({ error: 'Invalid token.' });
+    }
+
+    const userId = decoded.userId;
 
     const cleanMobile = mobile.startsWith('+91') ? mobile : `+91${mobile}`;
 
@@ -663,8 +682,8 @@ exports.sendMobileOtp = async (req, res) => {
       }
     }
 
-    // Save mobile to user record
-    await User.findByIdAndUpdate(userId, { mobile: cleanMobile });
+    // Stage the mobile — committed to the live `mobile` field only after OTP verification.
+    await User.findByIdAndUpdate(userId, { pendingMobile: cleanMobile });
 
     // Ensure the brand profile carries the submitted GSTIN, queued for admin
     // review. The "GSTIN is being verified" acknowledgement is NOT sent here —

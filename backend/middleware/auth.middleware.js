@@ -53,4 +53,21 @@ const authenticate = async (req, res, next) => {
   }
 };
 
+const brandOnly = (req, res, next) => {
+  if (req.user?.role !== 'brand') {
+    return res.status(403).json({ error: 'Access denied. Brand accounts only.' });
+  }
+  next();
+};
+
+const influencerOnly = (req, res, next) => {
+  if (req.user?.role !== 'influencer') {
+    return res.status(403).json({ error: 'Access denied. Influencer accounts only.' });
+  }
+  next();
+};
+
+authenticate.brandOnly = brandOnly;
+authenticate.influencerOnly = influencerOnly;
+
 module.exports = authenticate;

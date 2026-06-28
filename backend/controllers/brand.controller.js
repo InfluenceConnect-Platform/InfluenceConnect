@@ -935,9 +935,9 @@ exports.getInfluencerBySlug = async (req, res) => {
       return res.status(404).json({ error: 'Influencer not found.' });
     }
 
-    // Freemium "10 profiles/day" cap — enforced only for freemium *brands*.
-    // Premium brands and non-brand callers (e.g. admins previewing) are exempt.
-    if (req.user.role === 'brand' && req.user.plan !== 'premium') {
+    // Freemium "10 profiles/day" cap — enforced for all non-premium brand callers.
+    // (brandOnly middleware guarantees only brand-role users reach this point.)
+    if (req.user.plan !== 'premium') {
       const day = new Date();
       day.setHours(0, 0, 0, 0);
 
