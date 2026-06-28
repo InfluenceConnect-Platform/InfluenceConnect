@@ -54,7 +54,9 @@ export default function BrandInvitations() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token || !localStorage.getItem('user')) { router.push('/auth/login'); return; }
+    const stored = localStorage.getItem('user');
+    if (!token || !stored) { router.push('/auth/login'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     fetchInvitations();
     // Clear the brand-side "new response" badge once they view this page.
     api.put('/api/invitations/brand/seen').catch(() => {});

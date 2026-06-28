@@ -320,7 +320,9 @@ export default function InfluencerProfile() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) { router.push('/auth/login'); return; }
+    const stored = localStorage.getItem('user');
+    if (!token || !stored) { router.push('/auth/login'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
     fetchProfile();
   }, []);
 

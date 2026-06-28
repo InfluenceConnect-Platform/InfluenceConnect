@@ -177,6 +177,7 @@ export default function BrandMessages() {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     if (!user) setUser(JSON.parse(stored));
     fetchDeals();
     return () => { if (pollRef.current) clearInterval(pollRef.current); };

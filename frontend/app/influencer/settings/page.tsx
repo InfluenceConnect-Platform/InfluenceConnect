@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import AccountInfoSection from '@/components/shared/AccountInfoSection';
 import LegalSection from '@/components/shared/LegalSection';
@@ -58,6 +59,7 @@ const FAQ_ITEMS = [
 ];
 
 export default function InfluencerSettings() {
+  const router = useRouter();
   const { isDark } = useTheme();
   const [activeSection, setActiveSection] = useState<Section>('account');
 
@@ -80,9 +82,12 @@ export default function InfluencerSettings() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!stored || !localStorage.getItem('token')) { router.push('/auth/login'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
     api.get('/api/auth/account').then(r => setAccount(r.data)).catch(() => {}).finally(() => setLoading(false));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data.profile?.profilePicUrl || '')).catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();

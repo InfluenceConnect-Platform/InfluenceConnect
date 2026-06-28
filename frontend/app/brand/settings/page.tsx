@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import BrandNav from '@/components/shared/BrandNav';
 import AccountInfoSection from '@/components/shared/AccountInfoSection';
 import LegalSection from '@/components/shared/LegalSection';
@@ -58,6 +59,7 @@ const FAQ_ITEMS = [
 ];
 
 export default function BrandSettings() {
+  const router = useRouter();
   const { isDark } = useTheme();
   const [activeSection, setActiveSection] = useState<Section>('account');
 
@@ -82,8 +84,11 @@ export default function BrandSettings() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!stored || !localStorage.getItem('token')) { router.push('/auth/login'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     api.get('/api/auth/account').then(r => setAccount(r.data)).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();

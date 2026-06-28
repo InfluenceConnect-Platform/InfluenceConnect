@@ -53,6 +53,7 @@ export default function BrandProfile() {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     if (!user) setUser(JSON.parse(stored));
     fetchProfile();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

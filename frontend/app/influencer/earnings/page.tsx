@@ -90,6 +90,7 @@ export default function EarningsPage() {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
     setUser(JSON.parse(stored));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchEarnings();
