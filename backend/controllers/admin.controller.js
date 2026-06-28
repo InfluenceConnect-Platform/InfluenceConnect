@@ -731,7 +731,7 @@ exports.removeCampaign = async (req, res) => {
     // Cancel every in-progress deal and drop a system notice into its chat so
     // the influencer (and brand) understand why the collaboration ended.
     const activeDeals = await Deal.find({ campaignId, status: 'in-progress' });
-    const notice = '⚠️ This campaign was removed by an admin, so this collaboration has been cancelled. No further action is needed.';
+    const notice = '⚠️ This campaign was removed by an admin, so this collaboration has been cancelled. If you have any further queries, please contact our support.';
 
     for (const deal of activeDeals) {
       deal.status = 'cancelled';
