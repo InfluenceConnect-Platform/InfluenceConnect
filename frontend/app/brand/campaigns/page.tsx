@@ -964,7 +964,7 @@ export default function BrandCampaigns() {
                     selectedCampaign?._id === campaign._id
                       ? 'bg-white border-[#3D5087] shadow-md ring-2 ring-[#3D5087]/15'
                       : campaign.newApplicants > 0
-                        ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 border-amber-300 shadow-amber-100'
+                        ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-amber-950/50 dark:via-orange-950/40 dark:to-amber-900/50 border-amber-300 dark:border-amber-800/40 shadow-amber-100 dark:shadow-none'
                         : 'bg-white border-gray-200/80 hover:border-[#3D5087]/50 hover:shadow-md'
                   }`}
                 >
