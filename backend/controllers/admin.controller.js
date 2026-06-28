@@ -739,7 +739,7 @@ exports.removeCampaign = async (req, res) => {
 
       await Message.create({
         dealId: deal._id,
-        senderId: null,
+        senderId: deal.brandId,
         receiverId: deal.influencerId,
         content: notice,
         system: true
