@@ -125,6 +125,7 @@ export default function CompleteProfilePage() {
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        document.cookie = `ic_role=${response.data.user?.role}; path=/; max-age=604800; SameSite=Lax`;
         const role = response.data.user?.role;
         if (role === 'brand') router.replace('/brand/dashboard');
         else router.replace('/influencer/dashboard');

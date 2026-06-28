@@ -201,6 +201,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
     });
     if (!ok) return;
     localStorage.clear();
+    document.cookie = 'ic_role=; path=/; max-age=0; SameSite=Lax';
     router.push('/auth/login');
   };
 

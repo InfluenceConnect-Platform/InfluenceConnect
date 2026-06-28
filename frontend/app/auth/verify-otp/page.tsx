@@ -167,6 +167,7 @@ export default function VerifyOTPPage() {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         localStorage.removeItem('pendingUserId');
+        document.cookie = `ic_role=${response.data.user.role}; path=/; max-age=604800; SameSite=Lax`;
 
         const user = response.data.user;
         if (user.role === 'influencer') router.push('/influencer/dashboard');

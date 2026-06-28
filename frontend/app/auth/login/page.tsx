@@ -53,6 +53,7 @@ export default function LoginPage() {
       const response = await api.post('/api/auth/login', { email, password });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      document.cookie = `ic_role=${response.data.user.role}; path=/; max-age=604800; SameSite=Lax`;
       const user = response.data.user;
       if (user.role === 'influencer') router.push('/influencer/dashboard');
       else if (user.role === 'brand') router.push('/brand/dashboard');

@@ -32,6 +32,7 @@ export default function GoogleCallbackPage() {
         const user = JSON.parse(decodeURIComponent(userRaw));
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
+        document.cookie = `ic_role=${user.role}; path=/; max-age=604800; SameSite=Lax`;
 
         if (user.role === 'brand') router.replace('/brand/dashboard');
         else router.replace('/influencer/dashboard');
