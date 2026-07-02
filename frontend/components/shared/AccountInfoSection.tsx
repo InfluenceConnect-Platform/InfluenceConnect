@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useTheme } from '@/lib/useTheme';
 
@@ -52,6 +52,23 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
   const [mobileState, setMobileState] = useState<FieldState>('idle');
   const [mobileOtp, setMobileOtp] = useState('');
   const [mobileMsg, setMobileMsg] = useState<FieldMsg | null>(null);
+
+  const [emailExpiryTimer, setEmailExpiryTimer] = useState(-1);
+  const [mobileExpiryTimer, setMobileExpiryTimer] = useState(-1);
+
+  useEffect(() => {
+    if (emailExpiryTimer <= 0 || (emailState !== 'otp' && emailState !== 'verifying')) return;
+    const interval = setInterval(() => setEmailExpiryTimer(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [emailExpiryTimer, emailState]);
+
+  useEffect(() => {
+    if (mobileExpiryTimer <= 0 || (mobileState !== 'otp' && mobileState !== 'verifying')) return;
+    const interval = setInterval(() => setMobileExpiryTimer(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [mobileExpiryTimer, mobileState]);
+
+  const formatExpiry = (t: number) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 
   const inputCls = `flex-1 min-w-0 px-3.5 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 ${
     isDark
@@ -108,6 +125,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
       setEmailMsg({ type: 'success', text: res.data.message });
       setEmailState('otp');
       setEmailOtp('');
+      setEmailExpiryTimer(600);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to send verification code.';
       setEmailMsg({ type: 'error', text: msg });
@@ -141,6 +159,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
       setMobileMsg({ type: 'success', text: res.data.message });
       setMobileState('otp');
       setMobileOtp('');
+      setMobileExpiryTimer(600);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to send verification code.';
       setMobileMsg({ type: 'error', text: msg });
@@ -231,8 +250,19 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
                 Verify
               </button>
             </div>
+            {emailExpiryTimer >= 0 && (
+              <p className={`text-xs transition-colors ${
+                emailExpiryTimer === 0 ? 'text-red-400' :
+                emailExpiryTimer < 60 ? 'text-amber-400' :
+                isDark ? 'text-slate-500' : 'text-gray-400'
+              }`}>
+                {emailExpiryTimer === 0
+                  ? 'Code expired — go back and request a new one'
+                  : `Expires in ${formatExpiry(emailExpiryTimer)}`}
+              </p>
+            )}
             <button
-              onClick={() => { setEmailState('idle'); setEmailMsg(null); }}
+              onClick={() => { setEmailState('idle'); setEmailMsg(null); setEmailExpiryTimer(-1); }}
               className={`text-xs ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'} transition-colors`}
             >
               ← Change email
@@ -297,8 +327,19 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
                 Verify
               </button>
             </div>
+            {mobileExpiryTimer >= 0 && (
+              <p className={`text-xs transition-colors ${
+                mobileExpiryTimer === 0 ? 'text-red-400' :
+                mobileExpiryTimer < 60 ? 'text-amber-400' :
+                isDark ? 'text-slate-500' : 'text-gray-400'
+              }`}>
+                {mobileExpiryTimer === 0
+                  ? 'Code expired — go back and request a new one'
+                  : `Expires in ${formatExpiry(mobileExpiryTimer)}`}
+              </p>
+            )}
             <button
-              onClick={() => { setMobileState('idle'); setMobileMsg(null); }}
+              onClick={() => { setMobileState('idle'); setMobileMsg(null); setMobileExpiryTimer(-1); }}
               className={`text-xs ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'} transition-colors`}
             >
               ← Change number

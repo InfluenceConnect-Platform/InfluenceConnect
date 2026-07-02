@@ -22,6 +22,8 @@ export default function VerifyOTPPage() {
   const [mobileTimer, setMobileTimer] = useState(42);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [resendingMobile, setResendingMobile] = useState(false);
+  const [emailExpiryTimer, setEmailExpiryTimer] = useState(600);
+  const [mobileExpiryTimer, setMobileExpiryTimer] = useState(600);
 
   const emailRefs = useRef<(HTMLInputElement | null)[]>([]);
   const mobileRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -71,6 +73,18 @@ export default function VerifyOTPPage() {
     const interval = setInterval(() => setMobileTimer(t => t - 1), 1000);
     return () => clearInterval(interval);
   }, [mobileTimer]);
+
+  useEffect(() => {
+    if (emailExpiryTimer <= 0 || emailVerified) return;
+    const interval = setInterval(() => setEmailExpiryTimer(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [emailExpiryTimer, emailVerified]);
+
+  useEffect(() => {
+    if (mobileExpiryTimer <= 0 || mobileVerified) return;
+    const interval = setInterval(() => setMobileExpiryTimer(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [mobileExpiryTimer, mobileVerified]);
 
   const handleInput = (
     index: number,
@@ -131,10 +145,12 @@ export default function VerifyOTPPage() {
       if (type === 'email') {
         setEmailOTP(['', '', '', '', '', '']);
         setEmailTimer(42);
+        setEmailExpiryTimer(600);
         emailRefs.current[0]?.focus();
       } else {
         setMobileOTP(['', '', '', '', '', '']);
         setMobileTimer(42);
+        setMobileExpiryTimer(600);
         mobileRefs.current[0]?.focus();
       }
       setSuccess(`New ${type} code sent!`);
@@ -190,6 +206,8 @@ export default function VerifyOTPPage() {
     if (!emailVerified) await verifyOTP('email', emailOTP);
     if (!mobileVerified) await verifyOTP('mobile', mobileOTP);
   };
+
+  const formatExpiry = (t: number) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 
   const otpInputClass = (digit: string, verified: boolean) => {
     if (verified) {
@@ -296,9 +314,20 @@ export default function VerifyOTPPage() {
               ))}
             </div>
 
+            {!emailVerified && (
+              <p className={`text-xs mb-2 transition-colors ${
+                emailExpiryTimer === 0 ? 'text-red-400' :
+                emailExpiryTimer < 60 ? 'text-amber-400' :
+                isDark ? 'text-slate-500' : 'text-gray-400'
+              }`}>
+                {emailExpiryTimer === 0
+                  ? 'Code expired — request a new one'
+                  : `Expires in ${formatExpiry(emailExpiryTimer)}`}
+              </p>
+            )}
             <div className="flex items-center justify-between text-xs">
               <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
-                {emailTimer > 0 ? `Resend in 0:${String(emailTimer).padStart(2, '0')}` : 'Code expired'}
+                {emailTimer > 0 ? `Resend in 0:${String(emailTimer).padStart(2, '0')}` : ''}
               </span>
               <button
                 disabled={emailTimer > 0 || resendingEmail || emailVerified}
@@ -362,9 +391,20 @@ export default function VerifyOTPPage() {
               ))}
             </div>
 
+            {!mobileVerified && (
+              <p className={`text-xs mb-2 transition-colors ${
+                mobileExpiryTimer === 0 ? 'text-red-400' :
+                mobileExpiryTimer < 60 ? 'text-amber-400' :
+                isDark ? 'text-slate-500' : 'text-gray-400'
+              }`}>
+                {mobileExpiryTimer === 0
+                  ? 'Code expired — request a new one'
+                  : `Expires in ${formatExpiry(mobileExpiryTimer)}`}
+              </p>
+            )}
             <div className="flex items-center justify-between text-xs">
               <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
-                {mobileTimer > 0 ? `Resend in 0:${String(mobileTimer).padStart(2, '0')}` : 'Code expired'}
+                {mobileTimer > 0 ? `Resend in 0:${String(mobileTimer).padStart(2, '0')}` : ''}
               </span>
               <button
                 disabled={mobileTimer > 0 || resendingMobile || mobileVerified}

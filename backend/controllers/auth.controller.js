@@ -19,6 +19,9 @@ function generateOTP() {
 // the password-reset flow) within the 10-minute window.
 const MAX_OTP_ATTEMPTS = 5;
 
+const MAX_LOGIN_ATTEMPTS = 10;
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
 // Record a failed OTP guess and invalidate the code once the limit is reached.
 // Returns true if the code is now locked, so the caller can adjust its message.
 async function registerFailedOtpAttempt(otpRecord) {
@@ -439,10 +442,50 @@ exports.login = async (req, res) => {
       return res.status(403).json({ error: 'Please verify your email and mobile before logging in.' });
     }
 
+    // Check account lockout
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const secondsLeft = Math.ceil((user.lockUntil - Date.now()) / 1000);
+      return res.status(403).json({
+        error: `Account locked due to too many failed attempts. Try again in ${Math.ceil(secondsLeft / 60)} minute(s).`,
+        code: 'ACCOUNT_LOCKED',
+        lockedUntil: user.lockUntil,
+      });
+    }
+
+    // Expired lock — reset counter so the user gets a fresh set of attempts
+    if (user.lockUntil && user.lockUntil <= Date.now()) {
+      user.loginAttempts = 0;
+      user.lockUntil = null;
+    }
+
     // Compare password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid email or password' });
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+
+      if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
+        user.loginAttempts = 0;
+        await user.save();
+        return res.status(403).json({
+          error: 'Account locked for 15 minutes due to too many failed attempts.',
+          code: 'ACCOUNT_LOCKED',
+          lockedUntil: user.lockUntil,
+        });
+      }
+
+      await user.save();
+      const attemptsLeft = MAX_LOGIN_ATTEMPTS - user.loginAttempts;
+      return res.status(400).json({
+        error: `Invalid email or password. ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before lockout.`,
+      });
+    }
+
+    // Correct password — clear any lingering lockout state
+    if (user.loginAttempts > 0 || user.lockUntil) {
+      user.loginAttempts = 0;
+      user.lockUntil = null;
+      await user.save();
     }
 
     // Generate token

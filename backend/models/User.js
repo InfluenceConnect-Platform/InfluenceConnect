@@ -101,6 +101,17 @@ const userSchema = new mongoose.Schema({
     default: null
   },
 
+  // Login brute-force protection
+  loginAttempts: {
+    type: Number,
+    default: 0
+  },
+
+  lockUntil: {
+    type: Date,
+    default: null
+  },
+
   // Soft-delete: set when user requests deletion; actual purge after 30 days
   deleteScheduledAt: {
     type: Date,

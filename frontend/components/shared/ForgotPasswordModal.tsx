@@ -32,6 +32,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   const [resending, setResending] = useState(false);
+  const [expiryTimer, setExpiryTimer] = useState(-1);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -54,6 +55,14 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
   }, []);
 
   useEffect(() => {
+    if (expiryTimer <= 0 || step !== 'reset') return;
+    const interval = setInterval(() => setExpiryTimer(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [expiryTimer, step]);
+
+  const formatExpiry = (t: number) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -72,6 +81,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
         setUserId(res.data.userId);
         setStep('reset');
         startResendTimer();
+        setExpiryTimer(600);
         setTimeout(() => otpRefs.current[0]?.focus(), 100);
       } else {
         setError('If an account with that email exists, a reset code has been sent.');
@@ -118,6 +128,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
       if (res.data.userId) {
         setOtp(['', '', '', '', '', '']);
         startResendTimer();
+        setExpiryTimer(600);
         setTimeout(() => otpRefs.current[0]?.focus(), 100);
       }
     } catch {
@@ -302,6 +313,17 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
                     </button>
                   )}
                 </div>
+                {expiryTimer >= 0 && (
+                  <p className={`text-xs mt-1.5 transition-colors ${
+                    expiryTimer === 0 ? 'text-red-400' :
+                    expiryTimer < 60 ? 'text-amber-400' :
+                    isDark ? 'text-slate-600' : 'text-gray-400'
+                  }`}>
+                    {expiryTimer === 0
+                      ? 'Code expired — request a new one above'
+                      : `Code expires in ${formatExpiry(expiryTimer)}`}
+                  </p>
+                )}
               </div>
 
               {/* New password */}

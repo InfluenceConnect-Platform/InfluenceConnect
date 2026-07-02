@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [authConflict, setAuthConflict] = useState<'use_google' | 'use_password' | null>(null);
   const [showForgotPw, setShowForgotPw] = useState(false);
+  const [lockTimer, setLockTimer] = useState(0);
 
   useEffect(() => {
     const errorCode = searchParams.get('error');
@@ -32,6 +33,12 @@ export default function LoginPage() {
       setError('Your account has been suspended. Please contact support.');
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (lockTimer <= 0) return;
+    const interval = setInterval(() => setLockTimer(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [lockTimer]);
 
   useEffect(() => {
     const onPageShow = (e: PageTransitionEvent) => {
@@ -59,9 +66,15 @@ export default function LoginPage() {
       else if (user.role === 'brand') router.push('/brand/dashboard');
       else router.push('/admin/dashboard');
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { error?: string; code?: string } } };
+      const e = err as { response?: { data?: { error?: string; code?: string; lockedUntil?: string } } };
       if (!e.response) setError('Cannot reach the server. Make sure the backend is running.');
       else if (e.response.data?.code === 'USE_GOOGLE') setAuthConflict('use_google');
+      else if (e.response.data?.code === 'ACCOUNT_LOCKED') {
+        const lockedUntil = e.response.data.lockedUntil ? new Date(e.response.data.lockedUntil) : null;
+        const remaining = lockedUntil ? Math.ceil((lockedUntil.getTime() - Date.now()) / 1000) : 0;
+        setLockTimer(Math.max(0, remaining));
+        setError('');
+      }
       else setError(e.response?.data?.error || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -305,6 +318,25 @@ export default function LoginPage() {
               </div>
             )}
 
+            {lockTimer > 0 && (
+              <div className={`mb-4 p-3.5 border rounded-xl flex items-start gap-2.5 ${
+                isDark ? 'bg-red-900/30 border-red-700/40' : 'bg-red-50 border-red-200'
+              }`}>
+                <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isDark ? 'text-red-400' : 'text-red-500'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <div>
+                  <p className={`text-sm font-semibold ${isDark ? 'text-red-300' : 'text-red-700'}`}>Account temporarily locked</p>
+                  <p className={`text-xs mt-0.5 ${isDark ? 'text-red-400/80' : 'text-red-500'}`}>
+                    Too many failed attempts. Try again in{' '}
+                    <span className="font-mono font-bold">
+                      {Math.floor(lockTimer / 60)}:{String(lockTimer % 60).padStart(2, '0')}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+
             {error && !authConflict && (
               <div className={`mb-4 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
                 isDark ? 'bg-red-900/30 border-red-700/40 text-red-300' : 'bg-red-50 border-red-200 text-red-600'
@@ -316,7 +348,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <Button fullWidth loading={loading} onClick={handleLogin}>
+            <Button fullWidth loading={loading} onClick={handleLogin} disabled={lockTimer > 0}>
               Sign in →
             </Button>
 
