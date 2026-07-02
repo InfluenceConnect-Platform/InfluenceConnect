@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -393,7 +393,7 @@ function FilterPanel({
   );
 }
 
-export default function BrandDiscover() {
+function BrandDiscover() {
   const router = useRouter();
   const toast = useToast();
   const searchParams = useSearchParams();
@@ -1372,5 +1372,14 @@ export default function BrandDiscover() {
         </div>
       </main>
     </div>
+  );
+}
+
+// useSearchParams() must be wrapped in Suspense for production builds
+export default function BrandDiscoverWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <BrandDiscover />
+    </Suspense>
   );
 }

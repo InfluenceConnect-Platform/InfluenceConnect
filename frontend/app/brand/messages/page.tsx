@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -125,7 +125,7 @@ const RupeeIcon = () => (
   </svg>
 );
 
-export default function BrandMessages() {
+function BrandMessages() {
   const router = useRouter();
   const searchParams = useSearchParams();
   // Initialize to null so server and first client render match (avoids hydration
@@ -974,5 +974,14 @@ export default function BrandMessages() {
         </section>
       </div>
     </div>
+  );
+}
+
+// useSearchParams() must be wrapped in Suspense for production builds
+export default function BrandMessagesWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <BrandMessages />
+    </Suspense>
   );
 }

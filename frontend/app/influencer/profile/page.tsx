@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -272,7 +272,7 @@ const SectionHeader = ({ icon, title, desc }: SectionHeaderProps) => (
   </div>
 );
 
-export default function InfluencerProfile() {
+function InfluencerProfile() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isDark } = useTheme();
@@ -1919,5 +1919,14 @@ export default function InfluencerProfile() {
         </>)}
       </main>
     </div>
+  );
+}
+
+// useSearchParams() must be wrapped in Suspense for production builds
+export default function InfluencerProfileWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <InfluencerProfile />
+    </Suspense>
   );
 }

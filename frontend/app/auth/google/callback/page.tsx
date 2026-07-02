@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function GoogleCallbackPage() {
+function GoogleCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -52,5 +52,14 @@ export default function GoogleCallbackPage() {
         <p className="text-sm text-gray-500">Signing you in with Google…</p>
       </div>
     </div>
+  );
+}
+
+// useSearchParams() must be wrapped in Suspense for production builds
+export default function GoogleCallbackPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <GoogleCallbackPage />
+    </Suspense>
   );
 }

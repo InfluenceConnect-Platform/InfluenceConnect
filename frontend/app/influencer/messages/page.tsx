@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -109,7 +109,7 @@ const getAvatarColor = (name: string) =>
   AVATAR_COLORS[(name?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function MessagesPage() {
+function MessagesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isDark } = useTheme();
@@ -919,5 +919,14 @@ export default function MessagesPage() {
         onClose={() => setCampaignDrawerOpen(false)}
       />
     </div>
+  );
+}
+
+// useSearchParams() must be wrapped in Suspense for production builds
+export default function MessagesPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <MessagesPage />
+    </Suspense>
   );
 }

@@ -39,6 +39,153 @@ body {
   to   { opacity: 1; transform: scale(1); }
 }
 
+/* ── Marketing site animations ─────────────────────────────────────── */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+@keyframes gradientX {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+@keyframes marqueeX {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes blobPulse {
+  0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+  50%      { transform: scale(1.15) translate(2%, -3%); opacity: 1; }
+}
+
+/* Entrance animation with stagger helpers (hero content) */
+.anim-fade-up { animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-delay-1 { animation-delay: 90ms; }
+.anim-delay-2 { animation-delay: 180ms; }
+.anim-delay-3 { animation-delay: 270ms; }
+.anim-delay-4 { animation-delay: 360ms; }
+.anim-delay-5 { animation-delay: 450ms; }
+
+/* Gentle floating for hero mock cards */
+.anim-float        { animation: floatY 6s ease-in-out infinite; }
+.anim-float-slow   { animation: floatY 8s ease-in-out 1s infinite; }
+
+/* Animated gradient text — set bg-size manually since Tailwind bg-clip is on the span */
+.anim-gradient-text {
+  background-size: 200% 200%;
+  animation: gradientX 5s ease infinite;
+}
+
+/* Pulsing decorative blobs */
+.anim-blob { animation: blobPulse 12s ease-in-out infinite; }
+
+/* Infinite niche marquee — content must be duplicated once for a seamless loop */
+.anim-marquee { animation: marqueeX 30s linear infinite; }
+@keyframes marqueeXRev {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+.anim-marquee-rev { animation: marqueeXRev 36s linear infinite; }
+.marquee-paused:hover .anim-marquee,
+.marquee-paused:hover .anim-marquee-rev { animation-play-state: paused; }
+.marquee-mask {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+/* Dot-grid backdrop for hero depth (fades out radially from the center) */
+.bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(93, 138, 143, 0.22) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, black 30%, transparent 75%);
+}
+.dark .bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(127, 168, 173, 0.14) 1px, transparent 1px);
+}
+
+/* Rotating conic gradient border on hover (falls back to static glow without @property) */
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes glowSpin { to { --glow-angle: 360deg; } }
+.card-glow { position: relative; }
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--glow-angle), #7FA8AD, #3D5087, #7C9ED9, #5D8A8F, #7FA8AD);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.card-glow:hover::before {
+  opacity: 1;
+  animation: glowSpin 3.5s linear infinite;
+}
+
+/* Animated gradient surface (final CTA panel) */
+.anim-gradient-bg {
+  background-size: 200% 200%;
+  animation: gradientX 10s ease infinite;
+}
+
+/* Rotating word (hero headline) — stacked in one grid cell, cross-fade + slide */
+.rotating-word-stack { display: inline-grid; vertical-align: bottom; }
+.rotating-word-stack > span {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rotating-word-stack > span[data-state='out'] { opacity: 0; transform: translateY(-55%); }
+.rotating-word-stack > span[data-state='in']  { opacity: 1; transform: translateY(0); }
+.rotating-word-stack > span[data-state='next'] { opacity: 0; transform: translateY(55%); }
+
+/* Scroll-reveal (toggled by the Reveal component via IntersectionObserver) */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-property: opacity, transform; /* override the global color-only transition list */
+}
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+/* Shine sweep across primary CTAs on hover */
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+}
+.btn-shine:hover::after { transform: translateX(120%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-up, .anim-float, .anim-float-slow, .anim-gradient-text, .anim-blob,
+  .anim-marquee, .anim-marquee-rev, .anim-gradient-bg, .card-glow:hover::before {
+    animation: none;
+  }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .btn-shine::after { display: none; }
+  .rotating-word-stack > span { transition: none; }
+}
+
 /* ── Dark-mode cascade overrides ──────────────────────────────────────
    Specificity: (0,2,0) — beats Tailwind utilities at (0,1,0).
    Used for page-level content that doesn't have explicit dark: classes.

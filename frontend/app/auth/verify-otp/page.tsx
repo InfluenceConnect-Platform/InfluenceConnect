@@ -31,6 +31,8 @@ export default function VerifyOTPPage() {
   const userId = typeof window !== 'undefined'
     ? localStorage.getItem('pendingUserId')
     : null;
+  const pendingEmail = typeof window !== 'undefined' ? localStorage.getItem('pendingEmail') : null;
+  const pendingMobile = typeof window !== 'undefined' ? localStorage.getItem('pendingMobile') : null;
 
   // Theme the verification screen to match the account being created: brands
   // get the deep indigo-navy (#3D5087), creators keep the teal. Both class
@@ -283,7 +285,7 @@ export default function VerifyOTPPage() {
                 <div>
                   <div className={`text-[0.65rem] uppercase tracking-wider font-bold transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>Email code</div>
                   <div className={`text-sm font-semibold font-mono transition-colors ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
-                    {localStorage.getItem('pendingEmail')?.replace(/(.{2}).*(@.*)/, '$1***$2') || 'your email'}
+                    {pendingEmail?.replace(/(.{2}).*(@.*)/, '$1***$2') || 'your email'}
                   </div>
                 </div>
               </div>
@@ -360,7 +362,7 @@ export default function VerifyOTPPage() {
                 <div>
                   <div className={`text-[0.65rem] uppercase tracking-wider font-bold transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>Mobile code</div>
                   <div className={`text-sm font-semibold font-mono transition-colors ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
-                    +91 {localStorage.getItem('pendingMobile')?.replace(/(\d{2})\d+(\d{2})/, '$1***$2') || 'your mobile'}
+                    +91 {pendingMobile?.replace(/(\d{2})\d+(\d{2})/, '$1***$2') || 'your mobile'}
                   </div>
                 </div>
               </div>

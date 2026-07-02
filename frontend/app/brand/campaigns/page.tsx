@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
@@ -148,7 +148,7 @@ const CAMPAIGN_STATUS_LABELS: Record<string, string> = {
 
 const TABS = ['active', 'draft', 'in-progress', 'completed', 'expired', 'closed', 'all'] as const;
 
-export default function BrandCampaigns() {
+function BrandCampaigns() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
@@ -1472,5 +1472,14 @@ function ApplicationsList({
       );
       })}
     </div>
+  );
+}
+
+// useSearchParams() must be wrapped in Suspense for production builds
+export default function BrandCampaignsWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <BrandCampaigns />
+    </Suspense>
   );
 }
