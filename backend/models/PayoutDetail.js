@@ -62,6 +62,23 @@ const payoutDetailSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     default: null
+  },
+
+  // Proof of payment — a transaction/UTR reference plus a receipt file,
+  // required from the brand at the moment they mark a deal paid. Not
+  // sensitive the way bank details are (comparable to an invoice number), so
+  // left unencrypted for easy admin dispute-resolution lookup.
+  transactionRef: {
+    type: String,
+    default: ''
+  },
+  receiptUrl: {
+    type: String,
+    default: ''
+  },
+  receiptFileName: {
+    type: String,
+    default: ''
   }
 
 }, { timestamps: true });

@@ -124,6 +124,7 @@ exports.makeOffer = async (req, res) => {
       senderId: req.userId,
       receiverId,
       content: `💰 ${req.user.name} proposed ${inr(parsed)}. Open the price panel to respond.`,
+      actorContent: `💰 You proposed ${inr(parsed)}. Waiting for a response.`,
     });
 
     res.json({
@@ -180,6 +181,7 @@ exports.acceptOffer = async (req, res) => {
       senderId: req.userId,
       receiverId: latest.proposedBy,
       content: `✅ ${req.user.name} accepted the offer — price agreed at ${inr(latest.amount)}. The deal is on!`,
+      actorContent: `✅ You accepted the offer — price agreed at ${inr(latest.amount)}. The deal is on!`,
     });
 
     res.json({

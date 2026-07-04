@@ -16,6 +16,9 @@ function decryptForResponse(doc) {
     upiId: doc.upiIdEnc ? decrypt(doc.upiIdEnc) : '',
     paid: doc.paid,
     paidAt: doc.paidAt,
+    transactionRef: doc.transactionRef || '',
+    receiptUrl: doc.receiptUrl || '',
+    receiptFileName: doc.receiptFileName || '',
     submittedAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -101,6 +104,9 @@ exports.submitPayoutDetails = async (req, res) => {
       content: existing
         ? `💳 ${req.user.name} updated their payout details.`
         : `💳 ${req.user.name} submitted payout details — ready for payment.`,
+      actorContent: existing
+        ? `💳 You updated your payout details.`
+        : `💳 You submitted your payout details — ready for payment.`,
     });
 
     res.status(existing ? 200 : 201).json({ payout: decryptForResponse(saved) });
@@ -135,6 +141,7 @@ exports.getPayoutDetails = async (req, res) => {
 exports.markAsPaid = async (req, res) => {
   try {
     const { dealId } = req.params;
+    const { transactionRef, receiptUrl, receiptFileName } = req.body;
     const { deal, isBrand, error } = await loadDealForParticipant(dealId, req.userId);
     if (error) return res.status(error.status).json({ error: error.message });
     if (!isBrand) return res.status(403).json({ error: 'Only the brand on this deal can mark it as paid.' });
@@ -142,10 +149,23 @@ exports.markAsPaid = async (req, res) => {
     const payout = await PayoutDetail.findOne({ dealId });
     if (!payout) return res.status(400).json({ error: 'No payout details have been submitted for this deal yet.' });
     if (payout.paid) return res.status(400).json({ error: 'Already marked as paid.' });
+    if (deal.status !== 'content-submitted') {
+      return res.status(400).json({ error: 'The creator must mark the content as submitted before you can mark this deal as paid.' });
+    }
+
+    if (!transactionRef || !transactionRef.trim()) {
+      return res.status(400).json({ error: 'Enter the transaction ID / UTR number for this payment.' });
+    }
+    if (!receiptUrl) {
+      return res.status(400).json({ error: 'Attach a payment receipt.' });
+    }
 
     payout.paid = true;
     payout.paidAt = new Date();
     payout.paidBy = req.userId;
+    payout.transactionRef = transactionRef.trim().slice(0, 100);
+    payout.receiptUrl = receiptUrl;
+    payout.receiptFileName = (receiptFileName || '').slice(0, 200);
     await payout.save();
 
     await postDealNotice({
@@ -153,6 +173,7 @@ exports.markAsPaid = async (req, res) => {
       senderId: req.userId,
       receiverId: deal.influencerId,
       content: `✅ ${req.user.name} marked this deal as paid.`,
+      actorContent: `✅ You marked this deal as paid.`,
     });
 
     res.json({ payout: decryptForResponse(payout) });

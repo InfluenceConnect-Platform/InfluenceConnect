@@ -63,6 +63,15 @@ const messageSchema = new mongoose.Schema({
   system: {
     type: Boolean,
     default: false
+  },
+
+  // For system notices only — the text shown to the acting party themselves
+  // ("You marked..."), vs `content` which is written for the other party
+  // ("X marked..."). Empty when there's no distinct actor's-eye-view (e.g.
+  // neutral admin notices), in which case `content` is shown to everyone.
+  actorContent: {
+    type: String,
+    default: ''
   }
 
 }, { timestamps: true });

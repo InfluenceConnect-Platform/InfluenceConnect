@@ -6,6 +6,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
 import { NICHE_LABELS } from '@/lib/niches';
+import { downloadUrlFor } from '@/lib/chatAttachments';
 
 const TEAL = '#7FA8AD';
 
@@ -653,6 +654,11 @@ interface RevealedPayout {
   accountNumber: string;
   ifscCode: string;
   upiId: string;
+  paid: boolean;
+  paidAt: string | null;
+  transactionRef: string;
+  receiptUrl: string;
+  receiptFileName: string;
 }
 
 function DealList({ deals, nameKey, nameLabel }: { deals: any[]; nameKey: string; nameLabel: string }) {
@@ -706,10 +712,29 @@ function DealList({ deals, nameKey, nameLabel }: { deals: any[]; nameKey: string
             </div>
           )}
           {d.dealId && revealed[d.dealId] && (
-            <div className="mt-1.5 p-2 bg-gray-50 rounded-lg text-[11px] text-gray-700 break-words">
-              {revealed[d.dealId].method === 'bank'
-                ? `${revealed[d.dealId].accountHolderName} · ${revealed[d.dealId].accountNumber} · ${revealed[d.dealId].ifscCode}`
-                : `${revealed[d.dealId].accountHolderName} · UPI: ${revealed[d.dealId].upiId}`}
+            <div className="mt-1.5 p-2 bg-gray-50 rounded-lg text-[11px] text-gray-700 break-words space-y-1">
+              <p>
+                {revealed[d.dealId].method === 'bank'
+                  ? `${revealed[d.dealId].accountHolderName} · ${revealed[d.dealId].accountNumber} · ${revealed[d.dealId].ifscCode}`
+                  : `${revealed[d.dealId].accountHolderName} · UPI: ${revealed[d.dealId].upiId}`}
+              </p>
+              {revealed[d.dealId].paid && (
+                <p>
+                  Txn ID: <span className="font-semibold">{revealed[d.dealId].transactionRef}</span>
+                  {revealed[d.dealId].receiptUrl && (
+                    <>
+                      {' · '}
+                      <a
+                        href={downloadUrlFor({ url: revealed[d.dealId].receiptUrl, fileName: revealed[d.dealId].receiptFileName, type: 'raw', fileSize: 0, mimeType: '' })}
+                        download={revealed[d.dealId].receiptFileName || true}
+                        className="font-semibold text-teal-700 underline underline-offset-2 cursor-pointer"
+                      >
+                        View receipt
+                      </a>
+                    </>
+                  )}
+                </p>
+              )}
             </div>
           )}
         </div>

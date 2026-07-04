@@ -8,7 +8,7 @@ import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
-import PayoutPanel from '@/components/shared/PayoutPanel';
+import PayoutPanel, { Payout } from '@/components/shared/PayoutPanel';
 import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
@@ -18,6 +18,7 @@ interface Message {
   _id: string;
   senderId: string;
   content: string;
+  actorContent?: string;
   attachments?: ChatAttachment[];
   createdAt: string;
   blocked?: boolean;
@@ -179,6 +180,17 @@ function BrandMessages() {
   const [uploadingAttachments, setUploadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState('');
   const [lightbox, setLightbox] = useState<ChatAttachment | null>(null);
+  const [payout, setPayout] = useState<Payout | null>(null);
+  // Distinguishes "haven't checked yet" from "confirmed no payout submitted" —
+  // without this the composer would flash "locked" for a beat on every deal
+  // switch while the payout status is still being fetched.
+  const [payoutLoaded, setPayoutLoaded] = useState(false);
+  const [payoutModalOpen, setPayoutModalOpen] = useState(false);
+
+  const handlePayoutStatusChange = (next: Payout | null) => {
+    setPayout(next);
+    setPayoutLoaded(true);
+  };
 
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -192,7 +204,9 @@ function BrandMessages() {
   const isPremium = user?.plan === 'premium';
   const limitHit = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
-  const chatLocked = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
+  const negotiationPending = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
+  const payoutMissing = !dealClosed && selectedDeal?.negotiationStatus === 'agreed' && payoutLoaded && !payout;
+  const chatLocked = negotiationPending || payoutMissing;
 
   // The brand can open the influencer's profile only while the deal is active —
   // once it's completed or cancelled the name/avatar stop being clickable.
@@ -291,6 +305,9 @@ function BrandMessages() {
     setBlocked(false);
     setPendingAttachments([]);
     setAttachmentError('');
+    setPayout(null);
+    setPayoutLoaded(false);
+    setPayoutModalOpen(false);
     setSelectedDeal(deal);
     setShowChat(true);
     setDeals(prev => prev.map(d => d._id === deal._id ? { ...d, unreadCount: 0 } : d));
@@ -713,13 +730,22 @@ function BrandMessages() {
                     </span>
                   )}
                   {selectedDeal.status === 'content-submitted' && (
-                    <button
-                      onClick={handleMarkComplete}
-                      disabled={actionLoading}
-                      className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all duration-150 cursor-pointer disabled:opacity-60 shadow-sm active:scale-95"
-                    >
-                      {actionLoading ? 'Updating…' : 'Mark Complete'}
-                    </button>
+                    payout?.paid ? (
+                      <button
+                        onClick={handleMarkComplete}
+                        disabled={actionLoading}
+                        className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all duration-150 cursor-pointer disabled:opacity-60 shadow-sm active:scale-95"
+                      >
+                        {actionLoading ? 'Updating…' : 'Mark Complete'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setPayoutModalOpen(true)}
+                        className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-[#3D5087] hover:bg-[#2B3B68] text-white transition-all duration-150 cursor-pointer shadow-sm active:scale-95"
+                      >
+                        Pay to complete
+                      </button>
+                    )
                   )}
                   {selectedDeal.status === 'in-progress' && (
                     <button
@@ -776,10 +802,34 @@ function BrandMessages() {
                 />
               )}
 
-              {/* Payout panel — once a price is agreed, stays visible through
-                  completion so payout can still be tracked after content is approved. */}
+              {/* Payout status strip — a single compact line instead of a
+                  persistent panel, so the chat itself keeps most of the space.
+                  Stays visible through completion so payout can still be tracked. */}
               {selectedDeal.negotiationStatus === 'agreed' && selectedDeal.status !== 'cancelled' && (
-                <PayoutPanel dealId={selectedDeal._id} role="brand" accentColor="#3D5087" />
+                <>
+                  <div className={`flex items-center justify-between gap-3 px-4 sm:px-5 py-1.5 border-b flex-shrink-0 ${isDark ? 'bg-slate-900/40 border-slate-700/60' : 'bg-gray-50/70 border-gray-200/70'}`}>
+                    <span className={`text-[11.5px] font-medium ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
+                      {!payoutLoaded ? '💳 Checking payout status…' : !payout ? '💳 Waiting for creator to submit payout details' : payout.paid ? '✅ Payout marked paid' : '💳 Payout details submitted'}
+                    </span>
+                    {payoutLoaded && payout && (
+                      <button
+                        onClick={() => setPayoutModalOpen(true)}
+                        className={`flex-shrink-0 text-[11.5px] font-bold px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer ${isDark ? 'text-indigo-300 hover:bg-slate-800' : 'text-[#3D5087] hover:bg-indigo-50'}`}
+                      >
+                        View
+                      </button>
+                    )}
+                  </div>
+                  <PayoutPanel
+                    dealId={selectedDeal._id}
+                    role="brand"
+                    accentColor="#3D5087"
+                    open={payoutModalOpen}
+                    onClose={() => setPayoutModalOpen(false)}
+                    onStatusChange={handlePayoutStatusChange}
+                    canMarkPaid={selectedDeal.status === 'content-submitted'}
+                  />
+                </>
               )}
 
               {/* Moderation notice */}
@@ -829,7 +879,10 @@ function BrandMessages() {
                     </div>
 
                     {messages.map((msg, idx) => {
+                      const isMine = msg.senderId?.toString() === user?.id?.toString();
                       // System notices (e.g. admin removed the campaign) sit centered.
+                      // The acting party sees actorContent ("You did X") instead of
+                      // the other party's phrasing ("X did Y"), when one is set.
                       if (msg.system) {
                         return (
                           <div key={msg._id} className="flex justify-center my-3">
@@ -838,12 +891,11 @@ function BrandMessages() {
                                 ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
                                 : 'bg-amber-50 text-amber-700 border-amber-200/70'
                             }`}>
-                              {msg.content}
+                              {isMine && msg.actorContent ? msg.actorContent : msg.content}
                             </div>
                           </div>
                         );
                       }
-                      const isMine = msg.senderId?.toString() === user?.id?.toString();
                       const prevMsg = idx > 0 ? messages[idx - 1] : null;
                       const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
                       const isFirst = !prevMsg || prevMsg.senderId !== msg.senderId;
@@ -1031,7 +1083,9 @@ function BrandMessages() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-[12.5px] font-semibold ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Chat locked</p>
-                      <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Agree on a price above to unlock messaging.</p>
+                      <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                        {payoutMissing ? 'Waiting for the creator to submit payout details.' : 'Agree on a price above to unlock messaging.'}
+                      </p>
                     </div>
                     <div className={`px-3 py-2 border rounded-xl opacity-40 cursor-not-allowed w-[140px] ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
                       <span className={`text-[12px] truncate block ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Type a message…</span>

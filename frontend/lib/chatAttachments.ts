@@ -37,11 +37,12 @@ export function validateChatFile(file: File): string | null {
 
 // Uploads directly to Cloudinary using the same signed, unsigned-from-browser
 // pattern as profile pictures / portfolio items, then returns attachment
-// metadata to attach to a chat message.
-export async function uploadChatAttachment(file: File, dealId: string): Promise<ChatAttachment> {
+// metadata to attach to a chat message (or, via `context`, a payout receipt —
+// same upload plumbing, different Cloudinary folder).
+export async function uploadChatAttachment(file: File, dealId: string, context: string = 'chat-attachment'): Promise<ChatAttachment> {
   const type = resourceTypeFor(file);
 
-  const sigRes = await api.get(`/api/upload/signature?context=chat-attachment&dealId=${dealId}`);
+  const sigRes = await api.get(`/api/upload/signature?context=${context}&dealId=${dealId}`);
   const { signature, timestamp, apiKey, cloudName, folder } = sigRes.data;
 
   const formData = new FormData();

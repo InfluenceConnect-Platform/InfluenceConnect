@@ -28,6 +28,9 @@ exports.getSignature = async (req, res) => {
     } else if (context === 'chat-attachment') {
       const dealId = req.query.dealId;
       folder = dealId ? `influence-connect/chat/${dealId}` : `influence-connect/chat/${req.userId}`;
+    } else if (context === 'payout-receipt') {
+      const dealId = req.query.dealId;
+      folder = dealId ? `influence-connect/payout-receipts/${dealId}` : `influence-connect/payout-receipts/${req.userId}`;
     } else {
       folder = `influence-connect/portfolio/${req.userId}`;
     }

@@ -2,6 +2,7 @@ const BrandProfile = require('../models/BrandProfile');
 const Campaign = require('../models/Campaign');
 const Application = require('../models/Application');
 const Deal = require('../models/Deal');
+const PayoutDetail = require('../models/PayoutDetail');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const User = require('../models/User');
 const ProfileView = require('../models/ProfileView');
@@ -590,6 +591,7 @@ exports.updateApplicationStatus = async (req, res) => {
           senderId: req.userId,
           receiverId: application.influencerId,
           content: `🎉 ${req.user.name} accepted your application for "${application.campaignId.title}" — the collaboration is now in progress at ₹${(Number(amount) || 0).toLocaleString('en-IN')}. Say hi to get started!`,
+          actorContent: `🎉 You accepted this application for "${application.campaignId.title}" — the collaboration is now in progress at ₹${(Number(amount) || 0).toLocaleString('en-IN')}. Say hi to get started!`,
         });
       }
 
@@ -696,6 +698,14 @@ exports.getMyDeals = async (req, res) => {
       };
     });
 
+    // Most recent activity first — a new message should bump the conversation
+    // to the top even though it doesn't touch the Deal document itself.
+    dealsWithPreview.sort((a, b) => {
+      const aTime = Math.max(new Date(a.updatedAt).getTime(), a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0);
+      const bTime = Math.max(new Date(b.updatedAt).getTime(), b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0);
+      return bTime - aTime;
+    });
+
     res.json({ deals: dealsWithPreview });
   } catch (error) {
     console.error('Get brand deals error:', error);
@@ -727,6 +737,10 @@ exports.updateDealStatus = async (req, res) => {
     if (status === 'completed') {
       if (deal.status !== 'content-submitted') {
         return res.status(400).json({ error: 'Deal must be in content-submitted state to mark complete.' });
+      }
+      const payout = await PayoutDetail.findOne({ dealId });
+      if (!payout?.paid) {
+        return res.status(400).json({ error: 'Mark this deal as paid before marking it complete.' });
       }
       deal.status = 'completed';
       deal.completedAt = new Date();
@@ -768,7 +782,8 @@ exports.updateDealStatus = async (req, res) => {
         dealId: deal._id,
         senderId: req.userId,
         receiverId: deal.influencerId,
-        content: `🎉 ${req.user.name} approved your content and marked the collaboration complete. Payment will follow per your agreement — great work!`,
+        content: `🎉 ${req.user.name} approved your content and marked the collaboration complete — great work!`,
+        actorContent: `🎉 You approved the content and marked the collaboration complete — great work!`,
       });
     } else {
       // cancelled
@@ -781,6 +796,7 @@ exports.updateDealStatus = async (req, res) => {
         senderId: req.userId,
         receiverId: deal.influencerId,
         content: `⚠️ ${req.user.name} cancelled this collaboration. No further action is needed.`,
+        actorContent: `⚠️ You cancelled this collaboration.`,
       });
 
       // Reopen the campaign

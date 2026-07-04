@@ -274,6 +274,14 @@ exports.getMyDeals = async (req, res) => {
       };
     });
 
+    // Most recent activity first — a new message should bump the conversation
+    // to the top even though it doesn't touch the Deal document itself.
+    dealsWithPreview.sort((a, b) => {
+      const aTime = Math.max(new Date(a.updatedAt).getTime(), a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0);
+      const bTime = Math.max(new Date(b.updatedAt).getTime(), b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0);
+      return bTime - aTime;
+    });
+
     res.json({ deals: dealsWithPreview });
   } catch (error) {
     console.error('Get influencer deals error:', error);
@@ -327,6 +335,7 @@ exports.updateDealStatus = async (req, res) => {
       senderId: req.userId,
       receiverId: deal.brandId,
       content: `📦 ${req.user.name} marked the content as done. Please review and approve to complete the deal.`,
+      actorContent: `📦 You marked the content as done. The brand will review it.`,
     });
 
     res.json({ message: 'Content submitted successfully', deal });
