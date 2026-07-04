@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { NICHE_LABELS } from '@/lib/niches';
 
 // Slide-in drawer that shows the full brief for the campaign behind a deal.
 // It opens immediately with the summary already known from the deal, then
@@ -265,7 +266,7 @@ export default function CampaignBriefDrawer({
             <Section label="Niche">
               <div className="flex flex-wrap gap-1.5">
                 {c.niche.map((n) => (
-                  <span key={n} className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${isDark ? 'bg-teal-900/30 text-teal-300' : 'bg-teal-50 text-teal-700'}`}>{n}</span>
+                  <span key={n} className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${isDark ? 'bg-teal-900/30 text-teal-300' : 'bg-teal-50 text-teal-700'}`}>{NICHE_LABELS[n] ?? n}</span>
                 ))}
               </div>
             </Section>

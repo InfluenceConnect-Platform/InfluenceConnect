@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const generateId = require('../utils/generateId');
+const { NICHES } = require('../utils/niches');
 
 const campaignSchema = new mongoose.Schema({
   // Human-readable public ID (IC-CAM-000001). Auto-generated on first save.
@@ -31,7 +32,7 @@ const campaignSchema = new mongoose.Schema({
 
   niche: [{
     type: String,
-    enum: ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books']
+    enum: NICHES
   }],
 
   deliverables: {

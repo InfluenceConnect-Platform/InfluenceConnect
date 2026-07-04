@@ -5,23 +5,10 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
-
-const INDUSTRIES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books', 'other'];
+import { INDUSTRIES, NICHE_STYLES as INDUSTRY_COLORS, NICHE_LABELS } from '@/lib/niches';
 
 // Structural check for an Indian GSTIN (mirrors the backend validator).
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-
-const INDUSTRY_COLORS: Record<string, string> = {
-  beauty:    'bg-pink-50   dark:bg-pink-900/30   text-pink-700   dark:text-pink-300   border-pink-200   dark:border-pink-800/40',
-  fashion:   'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/40',
-  food:      'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800/40',
-  fitness:   'bg-amber-50  dark:bg-amber-900/30  text-amber-700  dark:text-amber-300  border-amber-200  dark:border-amber-800/40',
-  lifestyle: 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800/40',
-  travel:    'bg-teal-50   dark:bg-teal-900/30   text-teal-700   dark:text-teal-300   border-teal-200   dark:border-teal-800/40',
-  tech:      'bg-blue-50   dark:bg-blue-900/30   text-blue-700   dark:text-blue-300   border-blue-200   dark:border-blue-800/40',
-  books:     'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40',
-  other:     'bg-gray-100  dark:bg-gray-700/40   text-gray-600   dark:text-gray-300   border-gray-200   dark:border-gray-600/40',
-};
 
 export default function BrandProfile() {
   const router = useRouter();
@@ -307,8 +294,8 @@ export default function BrandProfile() {
 
             <div className="flex flex-wrap items-center gap-2.5 text-sm">
               {industryChip && (
-                <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize border ${industryChip}`}>
-                  {profile.industry}
+                <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${industryChip}`}>
+                  {NICHE_LABELS[profile.industry] ?? profile.industry}
                 </span>
               )}
               {profile?.website && (
@@ -408,7 +395,7 @@ export default function BrandProfile() {
                         className={`${fieldClass} appearance-none cursor-pointer pr-9 ${!industry ? 'text-gray-400' : 'text-gray-900'}`}>
                         <option value="">Select industry</option>
                         {INDUSTRIES.map(i => (
-                          <option key={i} value={i} className="capitalize">{i.charAt(0).toUpperCase() + i.slice(1)}</option>
+                          <option key={i} value={i}>{NICHE_LABELS[i] ?? i}</option>
                         ))}
                       </select>
                       <svg className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -444,8 +431,8 @@ export default function BrandProfile() {
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Industry</p>
                     {profile?.industry ? (
-                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize border ${INDUSTRY_COLORS[profile.industry] ?? INDUSTRY_COLORS.other}`}>
-                        {profile.industry}
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${INDUSTRY_COLORS[profile.industry] ?? INDUSTRY_COLORS.other}`}>
+                        {NICHE_LABELS[profile.industry] ?? profile.industry}
                       </span>
                     ) : (
                       <p className="text-sm italic text-gray-400">Not set</p>

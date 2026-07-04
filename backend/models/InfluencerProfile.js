@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { NICHES } = require('../utils/niches');
 
 const platformSchema = new mongoose.Schema({
   name: {
@@ -57,10 +58,7 @@ const influencerProfileSchema = new mongoose.Schema({
 
   niche: [{
     type: String,
-    enum: [
-      'beauty', 'fashion', 'food', 'fitness',
-      'lifestyle', 'travel', 'tech', 'books'
-    ]
+    enum: NICHES
   }],
 
   city: {

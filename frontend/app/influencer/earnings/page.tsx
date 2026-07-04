@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
+import { NICHE_STYLES, NICHE_LABELS } from '@/lib/niches';
 
 interface EarningsSummary {
   totalEarnings: number;
@@ -44,7 +45,7 @@ const fmtDealDate = (iso?: string) => {
 // Human-friendly category label; campaigns without a niche show "General".
 const fmtCategory = (cat?: string) => {
   if (!cat) return 'General';
-  return cat.charAt(0).toUpperCase() + cat.slice(1);
+  return NICHE_LABELS[cat] ?? (cat.charAt(0).toUpperCase() + cat.slice(1));
 };
 
 // Map raw deal status enums to clear words shown to the influencer.
@@ -56,16 +57,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 const fmtStatus = (status?: string) => STATUS_LABELS[status ?? ''] || 'Completed';
 
-const CAT_COLORS: Record<string, string> = {
-  beauty:    'bg-pink-50 text-pink-700 border border-pink-200',
-  fashion:   'bg-rose-50 text-rose-700 border border-rose-200',
-  food:      'bg-orange-50 text-orange-700 border border-orange-200',
-  fitness:   'bg-amber-50 text-amber-700 border border-amber-200',
-  lifestyle: 'bg-purple-50 text-purple-700 border border-purple-200',
-  travel:    'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  tech:      'bg-blue-50 text-blue-700 border border-blue-200',
-  books:     'bg-violet-50 text-violet-700 border border-violet-200',
-};
+const CAT_COLORS = NICHE_STYLES;
 
 const BRAND_GRADS = [
   'from-violet-500 to-purple-600',
@@ -505,7 +497,7 @@ export default function EarningsPage() {
                           </td>
                           <td className="px-5 py-4 text-sm text-gray-500 max-w-[200px] truncate font-medium">{deal.campaignTitle}</td>
                           <td className="px-5 py-4">
-                            <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border-teal-200'}`}>
                               {fmtCategory(deal.category)}
                             </span>
                           </td>
@@ -556,7 +548,7 @@ export default function EarningsPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap mt-1.5">
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border-teal-200'}`}>
                           {fmtCategory(deal.category)}
                         </span>
                         <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold ${

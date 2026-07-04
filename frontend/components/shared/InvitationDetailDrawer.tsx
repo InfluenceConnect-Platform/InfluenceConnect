@@ -3,6 +3,7 @@
 import { useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import IdChip from '@/components/shared/IdChip';
+import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 
 const NAVY = '#3D5087';
 
@@ -16,17 +17,6 @@ const STATUS_HINT: Record<string, { text: string; box: string; icon: string }> =
   pending:  { text: 'Invitation sent — waiting for the creator to respond.', box: 'bg-amber-50 border-amber-100 text-amber-800', icon: 'text-amber-500' },
   accepted: { text: 'The creator accepted! A deal is open — head to Messages to coordinate.', box: 'bg-green-50 border-green-100 text-green-800', icon: 'text-green-500' },
   rejected: { text: 'The creator declined this invitation.', box: 'bg-red-50 border-red-100 text-red-700', icon: 'text-red-500' },
-};
-
-const NICHE_COLORS: Record<string, string> = {
-  beauty:    'bg-pink-50 text-pink-700 border-pink-200',
-  fashion:   'bg-[#FDE5DC] text-[#9C4A33] border-[#f5c4b0]',
-  food:      'bg-orange-50 text-orange-700 border-orange-200',
-  fitness:   'bg-[#FDF3DD] text-[#854F0B] border-amber-200',
-  lifestyle: 'bg-purple-50 text-purple-700 border-purple-200',
-  travel:    'bg-[#E8F5E0] text-[#3B6D11] border-green-200',
-  tech:      'bg-[#E6F1FB] text-[#0C447C] border-blue-200',
-  books:     'bg-[#F0ECFA] text-[#3C3489] border-violet-200',
 };
 
 const LEVEL_BADGE: Record<string, string> = {
@@ -167,8 +157,8 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                 {creator.niche?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {creator.niche.map((n: string) => (
-                      <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border capitalize ${NICHE_COLORS[n] || 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
-                        {n}
+                      <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                        {NICHE_LABELS[n] ?? n}
                       </span>
                     ))}
                   </div>
@@ -219,8 +209,8 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                     {campaign.niche?.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-3.5">
                         {campaign.niche.map((n: string) => (
-                          <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border capitalize ${NICHE_COLORS[n] || 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
-                            {n}
+                          <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                            {NICHE_LABELS[n] ?? n}
                           </span>
                         ))}
                       </div>

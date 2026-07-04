@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { NICHES } = require('../utils/niches');
 
 const brandProfileSchema = new mongoose.Schema({
   userId: {
@@ -21,8 +22,7 @@ const brandProfileSchema = new mongoose.Schema({
 
   industry: {
     type: String,
-    enum: ['beauty', 'fashion', 'food', 'fitness', 'lifestyle',
-           'travel', 'tech', 'books', 'other'],
+    enum: [...NICHES, 'other'],
     default: 'other'
   },
 

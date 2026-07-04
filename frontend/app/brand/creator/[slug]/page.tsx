@@ -3,19 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import api from '@/lib/api';
+import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS } from '@/lib/niches';
 
 /* ─── constants ────────────────────────────────────── */
-
-const NICHE_CHIPS: Record<string, string> = {
-  beauty:    'bg-pink-50 text-pink-700 border-pink-200',
-  fashion:   'bg-purple-50 text-purple-700 border-purple-200',
-  food:      'bg-orange-50 text-orange-700 border-orange-200',
-  fitness:   'bg-amber-50 text-amber-700 border-amber-200',
-  lifestyle: 'bg-violet-50 text-violet-700 border-violet-200',
-  travel:    'bg-teal-50 text-teal-700 border-teal-200',
-  tech:      'bg-blue-50 text-blue-700 border-blue-200',
-  books:     'bg-indigo-50 text-indigo-700 border-indigo-200',
-};
 
 const LEVEL_BADGE: Record<string, string> = {
   elite:        'bg-amber-50 text-amber-700 border border-amber-200',
@@ -452,8 +442,8 @@ export default function CreatorProfilePage() {
             {(profile.niche ?? []).length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-4">
                 {profile.niche.map((n: string) => (
-                  <span key={n} className={`text-[12px] font-semibold px-2.5 py-0.5 rounded-full capitalize border ${NICHE_CHIPS[n] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
-                    {n}
+                  <span key={n} className={`text-[12px] font-semibold px-2.5 py-0.5 rounded-full border ${NICHE_CHIPS[n] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                    {NICHE_LABELS[n] ?? n}
                   </span>
                 ))}
               </div>

@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
+import { NICHE_LABELS } from '@/lib/niches';
 
 const TEAL = '#7FA8AD';
 
@@ -336,8 +337,8 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                       {inf.niche?.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
                           {inf.niche.map((n: string) => (
-                            <span key={n} className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-teal-50 text-teal-700 border border-teal-100 capitalize">
-                              {n}
+                            <span key={n} className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-teal-50 text-teal-700 border border-teal-100">
+                              {NICHE_LABELS[n] ?? n}
                             </span>
                           ))}
                         </div>
@@ -417,7 +418,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                     <Section title="Company">
                       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                         <Field label="Company name" value={brand.companyName} />
-                        <Field label="Industry" value={cap(brand.industry)} />
+                        <Field label="Industry" value={brand.industry ? (NICHE_LABELS[brand.industry] ?? cap(brand.industry)) : '—'} />
                         <Field label="City" value={brand.city} />
                         <Field label="Website" value={
                           brand.website

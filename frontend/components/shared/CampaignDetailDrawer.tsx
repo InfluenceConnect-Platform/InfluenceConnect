@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
+import { NICHE_LABELS } from '@/lib/niches';
 
 const TEAL = '#7FA8AD';
 
@@ -233,8 +234,8 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                   {c.niche?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {c.niche.map((n: string) => (
-                        <span key={n} className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-teal-50 text-teal-700 border border-teal-100 capitalize">
-                          {n}
+                        <span key={n} className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-teal-50 text-teal-700 border border-teal-100">
+                          {NICHE_LABELS[n] ?? n}
                         </span>
                       ))}
                     </div>
@@ -316,7 +317,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-3.5">
                       <Field label="Company" value={brand.companyName || '—'} />
-                      <Field label="Industry" value={cap(brand.industry)} />
+                      <Field label="Industry" value={brand.industry ? (NICHE_LABELS[brand.industry] ?? cap(brand.industry)) : '—'} />
                       <Field label="GSTIN" value={brand.gstinStatus === 'not_submitted' ? 'Not submitted' : cap(brand.gstinStatus)} />
                       <Field label="Website" value={
                         brand.website

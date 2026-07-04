@@ -7,22 +7,10 @@ import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import IdChip from '@/components/shared/IdChip';
 import { useTheme } from '@/lib/useTheme';
+import { NICHES, NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS } from '@/lib/niches';
 
-const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
-
-/* ─── brand-view style constants ───────────────────── */
-const NICHE_CHIPS: Record<string, string> = {
-  beauty:    'bg-pink-50 text-pink-700 border-pink-200',
-  fashion:   'bg-purple-50 text-purple-700 border-purple-200',
-  food:      'bg-orange-50 text-orange-700 border-orange-200',
-  fitness:   'bg-amber-50 text-amber-700 border-amber-200',
-  lifestyle: 'bg-violet-50 text-violet-700 border-violet-200',
-  travel:    'bg-teal-50 text-teal-700 border-teal-200',
-  tech:      'bg-blue-50 text-blue-700 border-blue-200',
-  books:     'bg-indigo-50 text-indigo-700 border-indigo-200',
-};
 const LEVEL_BADGE: Record<string, string> = {
   elite:        'bg-amber-50 text-amber-700 border border-amber-200',
   professional: 'bg-violet-50 text-violet-700 border border-violet-200',
@@ -834,8 +822,8 @@ function InfluencerProfile() {
                     {(profile.niche ?? []).length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-4">
                         {profile.niche.map((n: string) => (
-                          <span key={n} className={`text-[12px] font-semibold px-2.5 py-0.5 rounded-full capitalize border ${NICHE_CHIPS[n] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
-                            {n}
+                          <span key={n} className={`text-[12px] font-semibold px-2.5 py-0.5 rounded-full border ${NICHE_CHIPS[n] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                            {NICHE_LABELS[n] ?? n}
                           </span>
                         ))}
                       </div>
@@ -1299,7 +1287,7 @@ function InfluencerProfile() {
                   {(profile?.niche || []).slice(0, 3).map((n: string, idx: number) => {
                     const chipColors = ['bg-teal-100 text-teal-700','bg-violet-100 text-violet-700','bg-amber-100 text-amber-700'];
                     return (
-                      <span key={n} className={`text-xs px-2.5 py-1 rounded-full font-semibold capitalize ${chipColors[idx % chipColors.length]}`}>{n}</span>
+                      <span key={n} className={`text-xs px-2.5 py-1 rounded-full font-semibold ${chipColors[idx % chipColors.length]}`}>{NICHE_LABELS[n] ?? n}</span>
                     );
                   })}
                   {(profile?.niche?.length || 0) > 3 && (
@@ -1395,12 +1383,12 @@ function InfluencerProfile() {
                     <div className="flex flex-wrap gap-2">
                       {NICHES.map(n => (
                         <button key={n} type="button" onClick={() => toggleNiche(n)}
-                          className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-all duration-150 border cursor-pointer ${
+                          className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 border cursor-pointer ${
                             niche.includes(n)
                               ? 'bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] border-transparent text-white shadow-sm'
                               : 'bg-white border-gray-200 text-gray-500 hover:border-[#7FA8AD]/50 hover:bg-teal-50/50 hover:text-[#2A3E42]'
                           }`}>
-                          {n}
+                          {NICHE_LABELS[n] ?? n}
                         </button>
                       ))}
                     </div>
@@ -1469,8 +1457,8 @@ function InfluencerProfile() {
                           {profile.niche.map((n: string, idx: number) => {
                             const colors = ['bg-teal-100 text-teal-800 border-teal-200','bg-violet-100 text-violet-800 border-violet-200','bg-amber-100 text-amber-800 border-amber-200','bg-pink-100 text-pink-800 border-pink-200','bg-emerald-100 text-emerald-800 border-emerald-200','bg-indigo-100 text-indigo-800 border-indigo-200','bg-orange-100 text-orange-800 border-orange-200','bg-cyan-100 text-cyan-800 border-cyan-200'];
                             return (
-                            <span key={n} className={`border px-3 py-1 rounded-full text-xs font-semibold capitalize ${colors[idx % colors.length]}`}>
-                              {n}
+                            <span key={n} className={`border px-3 py-1 rounded-full text-xs font-semibold ${colors[idx % colors.length]}`}>
+                              {NICHE_LABELS[n] ?? n}
                             </span>
                             );
                           })}

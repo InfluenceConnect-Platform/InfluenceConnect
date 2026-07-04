@@ -9,6 +9,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
 import CampaignDetailDrawer from '@/components/shared/CampaignDetailDrawer';
+import { NICHE_LABELS } from '@/lib/niches';
 
 const STATUS_STYLES: Record<string, string> = {
   active:        'bg-green-50 text-green-700 border border-green-100',
@@ -230,7 +231,7 @@ export default function AdminCampaigns() {
                     <tr key={i} onClick={() => setSelectedId(c._id)} className="hover:bg-gray-50/60 transition-colors cursor-pointer">
                       <td className="px-5 py-4 max-w-[200px]">
                         <p className="text-sm font-semibold text-gray-900 truncate">{c.title}</p>
-                        <p className="text-[11px] text-gray-400 capitalize truncate mt-0.5">{c.niche?.join(', ') || '—'}</p>
+                        <p className="text-[11px] text-gray-400 truncate mt-0.5">{c.niche?.map((n: string) => NICHE_LABELS[n] ?? n).join(', ') || '—'}</p>
                       </td>
                       <td className="px-5 py-4">
                         {c.customId ? <IdChip id={c.customId} size="xs" tone="subtle" /> : <span className="text-gray-300">—</span>}
@@ -314,8 +315,8 @@ export default function AdminCampaigns() {
                     <div className="flex items-start justify-between gap-2 mb-2.5">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">{c.title}</p>
-                        <p className="text-xs text-gray-400 capitalize truncate mt-0.5">
-                          {c.niche?.join(', ') || 'No niche'}
+                        <p className="text-xs text-gray-400 truncate mt-0.5">
+                          {c.niche?.map((n: string) => NICHE_LABELS[n] ?? n).join(', ') || 'No niche'}
                         </p>
                         {c.customId && <div className="mt-1.5"><IdChip id={c.customId} size="xs" tone="subtle" /></div>}
                       </div>

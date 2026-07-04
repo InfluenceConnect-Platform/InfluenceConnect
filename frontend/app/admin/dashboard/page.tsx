@@ -12,11 +12,7 @@ import AdminGrowthChart from '@/components/charts/AdminGrowthChart';
 import AdminRevenueChart from '@/components/charts/AdminRevenueChart';
 import AdminDonut from '@/components/charts/AdminDonut';
 import AdminCategoryBars from '@/components/charts/AdminCategoryBars';
-
-const NICHE_LABELS: Record<string, string> = {
-  beauty: 'Beauty', fashion: 'Fashion', food: 'Food', fitness: 'Fitness',
-  lifestyle: 'Lifestyle', travel: 'Travel', tech: 'Tech', books: 'Books',
-};
+import { NICHE_LABELS } from '@/lib/niches';
 
 const CAMPAIGN_STATUS_META: { key: string; label: string; color: string }[] = [
   { key: 'active',      label: 'Active',      color: '#22c55e' },

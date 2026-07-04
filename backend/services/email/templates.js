@@ -7,6 +7,8 @@
 // influencer emails use the teal creator colour — matching the in-app palette.
 // ─────────────────────────────────────────────────────────────
 
+const { NICHE_LABELS } = require('../../utils/niches');
+
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
 // Role palettes (top accent bar, logo chip, CTA button gradients).
@@ -272,7 +274,7 @@ module.exports = {
   // New campaign published (to a matching influencer)
   newCampaignToInfluencer({ campaignTitle, brandName, budgetMin, budgetMax, niche }) {
     const budget = budgetMin || budgetMax ? `${inr(budgetMin)} – ${inr(budgetMax)}` : 'Open';
-    const nicheList = Array.isArray(niche) && niche.length ? niche.join(', ') : null;
+    const nicheList = Array.isArray(niche) && niche.length ? niche.map(n => NICHE_LABELS[n] || n).join(', ') : null;
     return {
       subject: `New campaign you might like — ${campaignTitle}`,
       html: layout({

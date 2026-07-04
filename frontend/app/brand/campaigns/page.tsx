@@ -8,8 +8,8 @@ import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import { NICHES, NICHE_LABELS } from '@/lib/niches';
 
-const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
@@ -669,13 +669,13 @@ function BrandCampaigns() {
                           ...p,
                           niche: p.niche.includes(n) ? p.niche.filter(x => x !== n) : [...p.niche, n],
                         }))}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                           form.niche.includes(n)
                             ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm'
                             : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
                         }`}
                       >
-                        {n}
+                        {NICHE_LABELS[n] ?? n}
                       </button>
                     ))}
                   </div>
@@ -814,10 +814,10 @@ function BrandCampaigns() {
                     {NICHES.map(n => (
                       <button key={n} type="button"
                         onClick={() => setForm(p => ({ ...p, niche: p.niche.includes(n) ? p.niche.filter(x => x !== n) : [...p.niche, n] }))}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                           form.niche.includes(n) ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
                         }`}
-                      >{n}</button>
+                      >{NICHE_LABELS[n] ?? n}</button>
                     ))}
                   </div>
                 </div>
@@ -1060,7 +1060,7 @@ function BrandCampaigns() {
                       {campaign.niche?.length ? (
                         <div className="flex flex-wrap gap-1">
                           {campaign.niche.map((n: string) => (
-                            <span key={n} className="px-1.5 py-0.5 rounded-md bg-violet-100 text-[10px] font-bold text-violet-700 capitalize">{n}</span>
+                            <span key={n} className="px-1.5 py-0.5 rounded-md bg-violet-100 text-[10px] font-bold text-violet-700">{NICHE_LABELS[n] ?? n}</span>
                           ))}
                         </div>
                       ) : (
@@ -1355,7 +1355,7 @@ function ApplicationsList({
           {app.influencerProfile?.niche?.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
               {app.influencerProfile.niche.map((n: string) => (
-                <span key={n} className="px-1.5 py-0.5 rounded-full bg-violet-50 border border-violet-100 text-[10px] font-semibold text-violet-600 capitalize">{n}</span>
+                <span key={n} className="px-1.5 py-0.5 rounded-full bg-violet-50 border border-violet-100 text-[10px] font-semibold text-violet-600">{NICHE_LABELS[n] ?? n}</span>
               ))}
             </div>
           )}

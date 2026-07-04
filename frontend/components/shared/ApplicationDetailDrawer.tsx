@@ -4,6 +4,7 @@ import { useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/shared/Toast';
 import IdChip from '@/components/shared/IdChip';
+import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 
 const TEAL = '#1C4A52';
 
@@ -22,17 +23,6 @@ const STATUS_HINT: Record<string, { text: string; box: string; icon: string }> =
   accepted:    { text: "Congratulations, you're booked! Head to Messages to coordinate the deliverables.", box: 'bg-green-50 border-green-100 text-green-800', icon: 'text-green-500' },
   rejected:    { text: "This application wasn't selected this time. Plenty more campaigns to explore.", box: 'bg-red-50 border-red-100 text-red-700', icon: 'text-red-500' },
   'on-hold':   { text: 'The brand has placed this application under review for now.', box: 'bg-gray-50 border-gray-200 text-gray-700', icon: 'text-gray-500' },
-};
-
-const NICHE_COLORS: Record<string, string> = {
-  beauty:    'bg-pink-50 text-pink-700 border-pink-200',
-  fashion:   'bg-[#FDE5DC] text-[#9C4A33] border-[#f5c4b0]',
-  food:      'bg-orange-50 text-orange-700 border-orange-200',
-  fitness:   'bg-[#FDF3DD] text-[#854F0B] border-amber-200',
-  lifestyle: 'bg-purple-50 text-purple-700 border-purple-200',
-  travel:    'bg-[#E8F5E0] text-[#3B6D11] border-green-200',
-  tech:      'bg-[#E6F1FB] text-[#0C447C] border-blue-200',
-  books:     'bg-[#F0ECFA] text-[#3C3489] border-violet-200',
 };
 
 const inr = (n?: number) => '₹' + (Number.isFinite(n as number) ? (n as number) : 0).toLocaleString('en-IN');
@@ -150,8 +140,8 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
                 {campaign.niche?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {campaign.niche.map((n: string) => (
-                      <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border capitalize ${NICHE_COLORS[n] || 'bg-teal-50 text-teal-700 border-teal-100'}`}>
-                        {n}
+                      <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-teal-50 text-teal-700 border-teal-100'}`}>
+                        {NICHE_LABELS[n] ?? n}
                       </span>
                     ))}
                   </div>

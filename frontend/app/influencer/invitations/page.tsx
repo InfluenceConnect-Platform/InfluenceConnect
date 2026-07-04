@@ -7,17 +7,7 @@ import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
-
-const NICHE_COLORS: Record<string, string> = {
-  beauty:    'bg-pink-50 text-pink-700 border-pink-200',
-  fashion:   'bg-[#FDE5DC] text-[#9C4A33] border-[#f5c4b0]',
-  food:      'bg-orange-50 text-orange-700 border-orange-200',
-  fitness:   'bg-[#FDF3DD] text-[#854F0B] border-amber-200',
-  lifestyle: 'bg-purple-50 text-purple-700 border-purple-200',
-  travel:    'bg-[#E8F5E0] text-[#3B6D11] border-green-200',
-  tech:      'bg-[#E6F1FB] text-[#0C447C] border-blue-200',
-  books:     'bg-[#F0ECFA] text-[#3C3489] border-violet-200',
-};
+import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   pending:  { cls: 'bg-amber-50 text-amber-700 border border-amber-200', dot: 'bg-amber-400', label: 'Pending' },
@@ -66,12 +56,7 @@ const FacebookLogo = ({ size = 11 }: { size?: number }) => (
   </svg>
 );
 
-const INDUSTRY_COLORS: Record<string, string> = {
-  beauty: 'bg-pink-50 text-pink-700 border-pink-200', fashion: 'bg-purple-50 text-purple-700 border-purple-200',
-  food: 'bg-orange-50 text-orange-700 border-orange-200', fitness: 'bg-amber-50 text-amber-700 border-amber-200',
-  lifestyle: 'bg-violet-50 text-violet-700 border-violet-200', travel: 'bg-teal-50 text-teal-700 border-teal-200',
-  tech: 'bg-blue-50 text-blue-700 border-blue-200', books: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-};
+const INDUSTRY_COLORS = NICHE_COLORS;
 
 const formatFollowers = (n: number) => n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(1)}K` : `${n}`;
 
@@ -280,8 +265,8 @@ export default function InfluencerInvitations() {
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mt-1">
                           {inv.brandIndustry && (
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize border ${INDUSTRY_COLORS[inv.brandIndustry] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
-                              {inv.brandIndustry}
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${INDUSTRY_COLORS[inv.brandIndustry] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                              {NICHE_LABELS[inv.brandIndustry] ?? inv.brandIndustry}
                             </span>
                           )}
                           {(campaign?.targetPlatforms ?? []).map((plat: string) => (
@@ -394,7 +379,7 @@ export default function InfluencerInvitations() {
                     <div className="flex items-center justify-between gap-2 mb-4">
                       <div className="flex flex-wrap gap-1.5">
                         {campaign?.niche?.map((n: string) => (
-                          <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full capitalize font-semibold border ${NICHE_COLORS[n] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{n}</span>
+                          <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{NICHE_LABELS[n] ?? n}</span>
                         ))}
                       </div>
                       <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-slate-500">Received {formatDate(inv.createdAt)}</span>

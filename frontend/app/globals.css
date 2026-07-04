@@ -256,6 +256,15 @@ body {
 .dark [class~="bg-purple-50"] { background-color: rgba(88, 28, 135, 0.25); }
 .dark [class~="bg-teal-50"]   { background-color: rgba(19, 78, 74, 0.25); }
 .dark [class~="bg-indigo-50"] { background-color: rgba(49, 46, 129, 0.25); }
+.dark [class~="bg-green-50"]  { background-color: rgba(20, 83, 45, 0.25); }
+.dark [class~="bg-yellow-50"] { background-color: rgba(113, 63, 18, 0.25); }
+.dark [class~="bg-sky-50"]    { background-color: rgba(12, 74, 110, 0.25); }
+.dark [class~="bg-fuchsia-50"]{ background-color: rgba(112, 26, 117, 0.25); }
+.dark [class~="bg-lime-50"]   { background-color: rgba(54, 83, 20, 0.25); }
+.dark [class~="bg-cyan-50"]   { background-color: rgba(21, 94, 117, 0.25); }
+.dark [class~="bg-slate-50"]  { background-color: rgba(30, 41, 59, 0.35); }
+.dark [class~="bg-zinc-50"]   { background-color: rgba(39, 39, 42, 0.35); }
+.dark [class~="bg-stone-50"]  { background-color: rgba(41, 37, 36, 0.35); }
 
 /* ── Semi-transparent white overlays rendering as grey on dark bgs ── */
 .dark [class~="bg-white\/50"]  { background-color: rgba(255, 255, 255, 0.04); }

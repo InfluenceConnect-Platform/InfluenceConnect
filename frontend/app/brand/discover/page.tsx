@@ -6,20 +6,9 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 import { useToast } from '@/components/shared/Toast';
+import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 
-const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
-
-const NICHE_COLORS: Record<string, string> = {
-  beauty: 'bg-pink-100 text-pink-800',
-  fashion: 'bg-rose-100 text-rose-800',
-  food: 'bg-orange-100 text-orange-800',
-  fitness: 'bg-amber-100 text-amber-800',
-  lifestyle: 'bg-purple-100 text-purple-800',
-  travel: 'bg-emerald-100 text-emerald-800',
-  tech: 'bg-blue-100 text-blue-800',
-  books: 'bg-violet-100 text-violet-800',
-};
 
 const AVATAR_GRADIENTS = [
   'from-violet-500 to-purple-600',
@@ -168,7 +157,7 @@ function FilterPanel({
                     </svg>
                   )}
                 </div>
-                <span className={`text-sm capitalize transition-colors ${selectedNiches.includes(n) ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{n}</span>
+                <span className={`text-sm transition-colors ${selectedNiches.includes(n) ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{NICHE_LABELS[n] ?? n}</span>
               </div>
             ))}
           </div>
@@ -1210,8 +1199,8 @@ function BrandDiscover() {
                         {/* Niche pills */}
                         <div className="flex flex-wrap gap-1.5 mb-4 min-h-[24px]">
                           {influencer.niche?.slice(0, 3).map((n: string) => (
-                            <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full capitalize font-semibold ${NICHE_COLORS[n] || 'bg-blue-100 text-blue-800'}`}>
-                              {n}
+                            <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                              {NICHE_LABELS[n] ?? n}
                             </span>
                           ))}
                           {influencer.niche?.length > 3 && (

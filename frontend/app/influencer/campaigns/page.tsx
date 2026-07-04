@@ -10,8 +10,8 @@ import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import ApplicationDetailDrawer from '@/components/shared/ApplicationDetailDrawer';
+import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 
-const NICHES = ['beauty', 'fashion', 'food', 'fitness', 'lifestyle', 'travel', 'tech', 'books'];
 const PLATFORMS = ['any', 'instagram', 'youtube', 'facebook'];
 const SORT_OPTIONS = [
   { value: 'newest',      label: 'Newest first' },
@@ -52,16 +52,6 @@ interface Campaign {
   };
 }
 
-const NICHE_COLORS: Record<string, string> = {
-  beauty:    'bg-pink-50 text-pink-700 border-pink-200',
-  fashion:   'bg-[#FDE5DC] text-[#9C4A33] border-[#f5c4b0]',
-  food:      'bg-orange-50 text-orange-700 border-orange-200',
-  fitness:   'bg-[#FDF3DD] text-[#854F0B] border-amber-200',
-  lifestyle: 'bg-purple-50 text-purple-700 border-purple-200',
-  travel:    'bg-[#E8F5E0] text-[#3B6D11] border-green-200',
-  tech:      'bg-[#E6F1FB] text-[#0C447C] border-blue-200',
-  books:     'bg-[#F0ECFA] text-[#3C3489] border-violet-200',
-};
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   applied:     { cls: 'bg-blue-50 text-blue-700 border border-blue-200',   dot: 'bg-blue-400',   label: 'Applied' },
@@ -451,12 +441,12 @@ export default function InfluencerCampaigns() {
           <div className={`${showFilters ? 'flex' : 'hidden'} lg:flex flex-wrap items-center gap-2`}>
             {NICHES.map(niche => (
               <button key={niche} onClick={() => toggleNiche(niche)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all duration-150 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 cursor-pointer ${
                   selectedNiches.includes(niche)
                     ? 'bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] border-transparent text-white shadow-sm'
                     : 'bg-white border-gray-200 text-gray-500 hover:border-[#7FA8AD]/50 hover:bg-teal-50/50 hover:text-[#2A3E42]'
                 }`}>
-                {niche}
+                {NICHE_LABELS[niche] ?? niche}
               </button>
             ))}
             <div className="relative">
@@ -577,8 +567,8 @@ export default function InfluencerCampaigns() {
                         </div>
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           {campaign.brandIndustry && campaign.brandIndustry !== 'other' && (
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#EEF4F5] text-[#2A3E42] border border-[#7FA8AD]/30 capitalize">
-                              {campaign.brandIndustry}
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#EEF4F5] text-[#2A3E42] border border-[#7FA8AD]/30">
+                              {NICHE_LABELS[campaign.brandIndustry] ?? campaign.brandIndustry}
                             </span>
                           )}
                           {campaign.brandWebsite ? (
@@ -735,8 +725,8 @@ export default function InfluencerCampaigns() {
                     <div className="flex items-end justify-between gap-3 pt-3 border-t border-gray-100 dark:border-slate-700/50">
                       <div className="flex gap-1 flex-wrap">
                         {(expandedNiches.has(campaign._id) ? campaign.niche : campaign.niche.slice(0, 2)).map((n: string) => (
-                          <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize border ${NICHE_COLORS[n] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                            {n}
+                          <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                            {NICHE_LABELS[n] ?? n}
                           </span>
                         ))}
                         {campaign.niche.length > 2 && (
