@@ -17,7 +17,8 @@ const {
   reopenGstinRejection,
   getSubscriptionOverview,
   getAdminLogs,
-  getAdminLogStats
+  getAdminLogStats,
+  getPayoutDetailsAdmin
 } = require('../controllers/admin.controller');
 
 // All admin routes require auth + admin role
@@ -38,5 +39,6 @@ router.put('/gstin/:brandProfileId/reopen', reopenGstinRejection);
 router.get('/subscriptions/overview', getSubscriptionOverview);
 router.get('/logs/stats', getAdminLogStats);
 router.get('/logs', getAdminLogs);
+router.get('/deals/:dealId/payout', getPayoutDetailsAdmin);
 
 module.exports = router;

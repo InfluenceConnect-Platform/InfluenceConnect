@@ -642,7 +642,36 @@ function MiniStat({ label, value, tone = 'default' }: { label: string; value: nu
   );
 }
 
+const PAYOUT_STATUS_STYLES: Record<string, string> = {
+  paid:      'bg-green-50 text-green-700',
+  submitted: 'bg-amber-50 text-amber-700',
+};
+
+interface RevealedPayout {
+  method: 'bank' | 'upi';
+  accountHolderName: string;
+  accountNumber: string;
+  ifscCode: string;
+  upiId: string;
+}
+
 function DealList({ deals, nameKey, nameLabel }: { deals: any[]; nameKey: string; nameLabel: string }) {
+  const [revealed, setRevealed] = useState<Record<string, RevealedPayout>>({});
+  const [revealingId, setRevealingId] = useState<string | null>(null);
+
+  const handleReveal = async (dealId: string) => {
+    if (revealed[dealId]) {
+      setRevealed(prev => { const next = { ...prev }; delete next[dealId]; return next; });
+      return;
+    }
+    setRevealingId(dealId);
+    try {
+      const res = await api.get(`/api/admin/deals/${dealId}/payout`);
+      setRevealed(prev => ({ ...prev, [dealId]: res.data.payout }));
+    } catch { /* ignore */ }
+    finally { setRevealingId(null); }
+  };
+
   if (!deals || deals.length === 0) {
     return <p className="text-[13px] text-gray-400 bg-white border border-gray-100 rounded-xl px-3.5 py-3">No deals yet</p>;
   }
@@ -663,6 +692,26 @@ function DealList({ deals, nameKey, nameLabel }: { deals: any[]; nameKey: string
             <p className="text-[13px] font-bold text-gray-900">{inr(d.agreedAmount)}</p>
             {d.customId && <IdChip id={d.customId} size="xs" tone="subtle" />}
           </div>
+          {d.dealId && d.payoutStatus && d.payoutStatus !== 'not_submitted' && (
+            <div className="flex items-center justify-between gap-2 mt-1.5 pt-1.5 border-t border-gray-50">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${PAYOUT_STATUS_STYLES[d.payoutStatus] || PAYOUT_STATUS_STYLES.submitted}`}>
+                {d.payoutStatus === 'paid' ? 'Paid' : 'Payout submitted'}
+              </span>
+              <button
+                onClick={() => handleReveal(d.dealId)}
+                className="text-[11px] font-semibold text-teal-700 hover:underline cursor-pointer"
+              >
+                {revealingId === d.dealId ? 'Loading…' : revealed[d.dealId] ? 'Hide' : 'View'}
+              </button>
+            </div>
+          )}
+          {d.dealId && revealed[d.dealId] && (
+            <div className="mt-1.5 p-2 bg-gray-50 rounded-lg text-[11px] text-gray-700 break-words">
+              {revealed[d.dealId].method === 'bank'
+                ? `${revealed[d.dealId].accountHolderName} · ${revealed[d.dealId].accountNumber} · ${revealed[d.dealId].ifscCode}`
+                : `${revealed[d.dealId].accountHolderName} · UPI: ${revealed[d.dealId].upiId}`}
+            </div>
+          )}
         </div>
       ))}
     </div>

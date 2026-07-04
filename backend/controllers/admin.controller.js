@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Campaign = require('../models/Campaign');
 const Application = require('../models/Application');
 const Deal = require('../models/Deal');
+const PayoutDetail = require('../models/PayoutDetail');
 const Message = require('../models/Message');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
@@ -9,6 +10,7 @@ const AdminLog = require('../models/AdminLog');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
 const logAdminAction = require('../utils/logAdminAction');
+const { decryptForResponse: decryptPayoutForResponse } = require('./payout.controller');
 
 // Plan prices — single source of truth for MRR calculations.
 const PLAN_PRICE = { influencer: 299, brand: 1499 };
@@ -20,6 +22,15 @@ const getIp = (req) => {
   if (forwarded && /^[\d.]+$|^[0-9a-fA-F:]+$/.test(forwarded)) return forwarded;
   return req.ip || req.socket?.remoteAddress || '';
 };
+
+// Bulk-fetch payout status for a set of deal ids, for the admin deal-list
+// views (dispute resolution context — full details are a separate, audit-logged reveal).
+async function payoutStatusByDeal(dealIds) {
+  const payouts = await PayoutDetail.find({ dealId: { $in: dealIds } }).select('dealId paid');
+  const map = new Map();
+  payouts.forEach(p => map.set(p.dealId.toString(), p.paid ? 'paid' : 'submitted'));
+  return map;
+}
 
 
 // ─────────────────────────────────────────
@@ -282,14 +293,17 @@ exports.getUserDetails = async (req, res) => {
       ]);
 
       const activeStatuses = ['in-progress', 'content-submitted'];
-      const activeDeals = deals
-        .filter(d => activeStatuses.includes(d.status))
+      const activeDealDocs = deals.filter(d => activeStatuses.includes(d.status));
+      const payoutStatusMap = await payoutStatusByDeal(activeDealDocs.map(d => d._id));
+      const activeDeals = activeDealDocs
         .map(d => ({
+          dealId: d._id.toString(),
           customId: d.customId || '',
           brandName: d.brandId?.name || '—',
           campaignTitle: d.campaignId?.title || '—',
           agreedAmount: d.agreedAmount || 0,
-          status: d.status
+          status: d.status,
+          payoutStatus: payoutStatusMap.get(d._id.toString()) || 'not_submitted'
         }));
 
       const completedDeals = deals.filter(d => d.status === 'completed');
@@ -374,14 +388,17 @@ exports.getUserDetails = async (req, res) => {
       });
 
       const activeStatuses = ['in-progress', 'content-submitted'];
-      const activeDeals = deals
-        .filter(d => activeStatuses.includes(d.status))
+      const activeDealDocs = deals.filter(d => activeStatuses.includes(d.status));
+      const payoutStatusMap = await payoutStatusByDeal(activeDealDocs.map(d => d._id));
+      const activeDeals = activeDealDocs
         .map(d => ({
+          dealId: d._id.toString(),
           customId: d.customId || '',
           influencerName: d.influencerId?.name || '—',
           campaignTitle: d.campaignId?.title || '—',
           agreedAmount: d.agreedAmount || 0,
-          status: d.status
+          status: d.status,
+          payoutStatus: payoutStatusMap.get(d._id.toString()) || 'not_submitted'
         }));
 
       // Money committed across all non-cancelled deals (accepted applications).
@@ -1200,6 +1217,42 @@ exports.getAdminLogStats = async (req, res) => {
 
   } catch (error) {
     console.error('Get admin log stats error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// GET PAYOUT DETAILS (admin reveal — for dispute resolution)
+// Every reveal is written to the audit trail, since this decrypts a
+// creator's bank/UPI details.
+// ─────────────────────────────────────────
+exports.getPayoutDetailsAdmin = async (req, res) => {
+  try {
+    const { dealId } = req.params;
+
+    const deal = await Deal.findById(dealId)
+      .populate('campaignId', 'title')
+      .populate('brandId', 'name')
+      .populate('influencerId', 'name');
+    if (!deal) return res.status(404).json({ error: 'Deal not found.' });
+
+    const payout = await PayoutDetail.findOne({ dealId });
+    if (!payout) return res.json({ payout: null });
+
+    await logAdminAction({
+      adminId: req.userId,
+      adminName: req.user?.name,
+      action: 'PAYOUT_VIEWED',
+      targetType: 'deal',
+      targetId: deal.customId || '',
+      targetName: `${deal.influencerId?.name || '—'} × ${deal.brandId?.name || '—'}`,
+      details: `Viewed payout details for deal "${deal.campaignId?.title || '—'}".`,
+      ipAddress: getIp(req),
+    });
+
+    res.json({ payout: decryptPayoutForResponse(payout) });
+  } catch (error) {
+    console.error('Get admin payout details error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

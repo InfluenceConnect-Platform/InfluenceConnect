@@ -27,6 +27,7 @@ const adminLogSchema = new mongoose.Schema({
       'CAMPAIGN_REMOVED',
       'CAMPAIGN_FLAGGED',
       'CAMPAIGN_VIEWED',
+      'PAYOUT_VIEWED',
       'ADMIN_LOGIN',
       'SYSTEM_NOTE'
     ],
@@ -35,7 +36,7 @@ const adminLogSchema = new mongoose.Schema({
 
   targetType: {
     type: String,
-    enum: ['user', 'campaign', 'gstin', 'system'],
+    enum: ['user', 'campaign', 'gstin', 'deal', 'system'],
     required: true
   },
 

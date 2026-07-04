@@ -8,6 +8,7 @@ import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
+import PayoutPanel from '@/components/shared/PayoutPanel';
 import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
@@ -773,6 +774,12 @@ function BrandMessages() {
                     setDeals(prev => prev.map(d => d._id === selectedDeal._id ? { ...d, ...patch } : d));
                   }}
                 />
+              )}
+
+              {/* Payout panel — once a price is agreed, stays visible through
+                  completion so payout can still be tracked after content is approved. */}
+              {selectedDeal.negotiationStatus === 'agreed' && selectedDeal.status !== 'cancelled' && (
+                <PayoutPanel dealId={selectedDeal._id} role="brand" accentColor="#3D5087" />
               )}
 
               {/* Moderation notice */}
