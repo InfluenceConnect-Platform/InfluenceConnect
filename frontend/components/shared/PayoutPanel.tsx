@@ -190,7 +190,7 @@ export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid =
 
   if (!open) return null;
 
-  const cardClass = `w-full max-w-md rounded-2xl shadow-2xl p-5 ${isDark ? 'bg-[#0E1B2E] border border-slate-700/60' : 'bg-white border border-gray-200'}`;
+  const cardClass = `w-full max-w-md rounded-2xl shadow-2xl p-5 max-h-[85vh] overflow-y-auto ${isDark ? 'bg-[#0E1B2E] border border-slate-700/60' : 'bg-white border border-gray-200'}`;
   const inputClass = `w-full px-3 py-2 text-sm border rounded-xl focus:outline-none focus:ring-2 transition-all ${
     isDark ? 'bg-slate-800 text-slate-100 placeholder:text-slate-500 border-slate-600' : 'bg-white text-gray-900 placeholder:text-gray-400 border-gray-200'
   }`;

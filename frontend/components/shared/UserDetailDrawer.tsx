@@ -294,7 +294,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
               </div>
 
               {/* Activity summary chips */}
-              <div className="grid grid-cols-4 gap-2 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
                 {chips.map((c, i) => (
                   <div key={i} className="bg-[#F7F8FA] border border-gray-100 rounded-xl px-2.5 py-2 text-center">
                     <p className="text-sm font-bold text-gray-900 truncate" title={c.value}>{c.value}</p>
@@ -385,7 +385,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                     </Section>
 
                     <Section title="Applications">
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <MiniStat label="Total"    value={inf.applications.total} />
                         <MiniStat label="Accepted" value={inf.applications.accepted} tone="green" />
                         <MiniStat label="Rejected" value={inf.applications.rejected} tone="red" />
@@ -488,7 +488,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                       {brand.campaignsTotal === 0 ? (
                         <p className="text-[13px] text-gray-400 bg-white border border-gray-100 rounded-xl px-3.5 py-3">No campaigns created yet</p>
                       ) : (
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           <MiniStat label="Active"    value={brand.campaignsByStatus.active} tone="green" />
                           <MiniStat label="Draft"     value={brand.campaignsByStatus.draft} />
                           <MiniStat label="Closed"    value={brand.campaignsByStatus.closed} tone="red" />

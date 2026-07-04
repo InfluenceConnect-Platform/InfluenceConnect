@@ -476,7 +476,7 @@ export default function CreatorProfilePage() {
             </div>
 
             {/* Stats row — 4 tinted cells */}
-            <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-gray-100">
               {[
                 {
                   value: String(allItems.length), label: 'Posts',

@@ -165,7 +165,7 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                 )}
 
                 {/* Influencer stat tiles */}
-                <div className="grid grid-cols-3 gap-2 mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4">
                   <StatTile label="Followers" value={totalFollowers > 0 ? fmtNum(totalFollowers) : '—'} />
                   <StatTile label="Engagement" value={avgEng !== '0' ? `${avgEng}%` : '—'} />
                   <StatTile label="Credibility" value={creator.credibilityScore ? String(creator.credibilityScore) : '—'} />

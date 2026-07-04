@@ -1087,7 +1087,7 @@ function BrandMessages() {
                         {payoutMissing ? 'Waiting for the creator to submit payout details.' : 'Agree on a price above to unlock messaging.'}
                       </p>
                     </div>
-                    <div className={`px-3 py-2 border rounded-xl opacity-40 cursor-not-allowed w-[140px] ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+                    <div className={`hidden sm:block px-3 py-2 border rounded-xl opacity-40 cursor-not-allowed w-[140px] flex-shrink-0 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
                       <span className={`text-[12px] truncate block ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Type a message…</span>
                     </div>
                   </div>

@@ -148,7 +148,7 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
                 )}
 
                 {/* Highlighted stat tiles */}
-                <div className="grid grid-cols-3 gap-2 mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4">
                   <StatTile label="Budget" value={budgetLabel} />
                   <StatTile label="Applied" value={fmtDate(app.createdAt)} />
                   <StatTile label="Deadline" value={fmtDate(campaign.deadline)} />

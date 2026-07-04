@@ -853,7 +853,7 @@ function InfluencerProfile() {
                       ))}
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-gray-100">
                       {[
                         { value: String(visible.length), label: 'Posts',
                           bg: 'bg-[#EEF4F5]', darkBg: 'dark:bg-[#0d2d33]', text: 'text-[#5D8A8F]',

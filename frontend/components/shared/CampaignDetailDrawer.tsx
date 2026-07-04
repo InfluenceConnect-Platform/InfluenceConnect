@@ -257,7 +257,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
               </div>
 
               {/* Activity summary chips */}
-              <div className="grid grid-cols-4 gap-2 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
                 {chips.map((chip, i) => (
                   <div key={i} className="bg-[#F7F8FA] border border-gray-100 rounded-xl px-2.5 py-2 text-center">
                     <p className="text-sm font-bold text-gray-900 truncate" title={chip.value}>{chip.value}</p>
@@ -337,7 +337,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                   <p className="text-[13px] text-gray-400 bg-white border border-gray-100 rounded-xl px-3.5 py-3">No applications yet</p>
                 ) : (
                   <>
-                    <div className="grid grid-cols-5 gap-1.5 mb-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mb-3">
                       <MiniStat label="Total"     value={apps.total} />
                       <MiniStat label="Shortlist" value={apps.breakdown.shortlisted} tone="violet" />
                       <MiniStat label="Accepted"  value={apps.breakdown.accepted} tone="green" />
