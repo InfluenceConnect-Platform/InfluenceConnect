@@ -36,7 +36,7 @@ export default function Footer() {
           {/* Brand blurb */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2.5 mb-4 w-fit">
-              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#7C3AED] flex items-center justify-center text-white font-bold text-sm shadow-md">
                 IC
               </span>
               <span className="text-sm font-bold tracking-tight text-gray-900">Influence Connect</span>

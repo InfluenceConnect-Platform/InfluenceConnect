@@ -44,9 +44,9 @@ const PLANS: Plan[] = [
   },
   {
     audience: 'Brands',
-    accent: 'text-[#3D5087]',
-    gradient: 'from-[#3D5087] to-[#2B3B68] hover:from-[#34457A] hover:to-[#232F55]',
-    border: 'border-[#3D5087]/25',
+    accent: 'text-[#7C3AED]',
+    gradient: 'from-[#7C3AED] to-[#5B21B6] hover:from-[#6D28D9] hover:to-[#4C1D95]',
+    border: 'border-[#7C3AED]/25',
     monthly: BRAND_MONTHLY,
     free: [
       'Up to 2 active campaigns',

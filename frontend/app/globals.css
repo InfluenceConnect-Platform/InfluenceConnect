@@ -102,12 +102,12 @@ body {
 
 /* Dot-grid backdrop for hero depth (fades out radially from the center) */
 .bg-dot-grid {
-  background-image: radial-gradient(circle, rgba(93, 138, 143, 0.22) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(139, 92, 246, 0.25) 1px, transparent 1px);
   background-size: 26px 26px;
   mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, black 30%, transparent 75%);
 }
 .dark .bg-dot-grid {
-  background-image: radial-gradient(circle, rgba(127, 168, 173, 0.14) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(196, 181, 253, 0.16) 1px, transparent 1px);
 }
 
 /* Rotating conic gradient border on hover (falls back to static glow without @property) */
@@ -124,7 +124,7 @@ body {
   inset: -1px;
   border-radius: inherit;
   padding: 1.5px;
-  background: conic-gradient(from var(--glow-angle), #7FA8AD, #3D5087, #7C9ED9, #5D8A8F, #7FA8AD);
+  background: conic-gradient(from var(--glow-angle), #7FA8AD, #7C3AED, #FB923C, #5BA8B5, #7FA8AD);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -261,3 +261,16 @@ body {
 .dark [class~="bg-white\/50"]  { background-color: rgba(255, 255, 255, 0.04); }
 .dark [class~="bg-white\/60"]  { background-color: rgba(255, 255, 255, 0.05); }
 .dark [class~="bg-gray-50\/60"]{ background-color: rgba(255, 255, 255, 0.03); }
+
+/* ── Marketing-site palette (teal/violet/orange) dark overrides ──────
+   The marketing pages share the platform teal but add violet/orange
+   accents. Teal hexes are already covered by the rules above; these
+   handle the marketing-only hexes.                                   */
+.dark [class*="text-[#4A7A7F]"] { color: #5eead4; }
+.dark [class*="text-[#3D6B70]"] { color: #5eead4; }
+.dark [class*="text-[#7C3AED]"] { color: #C4B5FD; }
+.dark [class*="text-[#6D28D9]"] { color: #C4B5FD; }
+.dark [class*="text-[#5B21B6]"] { color: #C4B5FD; }
+.dark [class*="bg-[#F5F3FF]"] { background-color: rgba(76, 29, 149, 0.35); }
+.dark [class*="border-[#C9DCDE]"] { border-color: rgba(93, 138, 143, 0.45); }
+.dark [class*="border-[#DDD6FE]"] { border-color: rgba(139, 92, 246, 0.35); }

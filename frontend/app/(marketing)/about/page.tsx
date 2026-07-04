@@ -35,14 +35,14 @@ export default function AboutPage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div aria-hidden className="anim-blob absolute -top-24 -right-24 w-[26rem] h-[26rem] rounded-full bg-[#3D5087]/10 blur-3xl" />
+        <div aria-hidden className="anim-blob absolute -top-24 -right-24 w-[26rem] h-[26rem] rounded-full bg-[#7C3AED]/10 blur-3xl" />
         <div className="anim-fade-up relative max-w-3xl mx-auto px-5 sm:px-8 pt-16 pb-16 lg:pt-24 text-center">
           <span className="inline-block text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#5D8A8F] mb-4">
             About us
           </span>
           <h1 className="text-4xl sm:text-5xl font-bold leading-[1.12] tracking-tight text-gray-900 mb-6">
             Making influencer marketing{' '}
-            <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#7C9ED9] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#A78BFA] bg-clip-text text-transparent">
               work for everyone
             </span>
           </h1>
@@ -86,7 +86,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-4xl mx-auto">
             {VALUES.map(v => (
               <div key={v.title} className="bg-white border border-gray-200 rounded-2xl p-7">
-                <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#7FA8AD]/15 to-[#3D5087]/15 text-[#5D8A8F] flex items-center justify-center mb-5">
+                <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#7FA8AD]/15 to-[#7C3AED]/15 text-[#5D8A8F] flex items-center justify-center mb-5">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {v.icon}
                   </svg>
@@ -110,7 +110,7 @@ export default function AboutPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
           <Link
             href="/auth/signup"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#3D5087] shadow-lg active:scale-[0.98] transition-all"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] shadow-lg active:scale-[0.98] transition-all"
           >
             Create free account
           </Link>

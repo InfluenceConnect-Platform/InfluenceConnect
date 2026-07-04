@@ -20,7 +20,7 @@ const CHANNELS = [
     body: 'Formal complaints about content, conduct, or data — handled by our grievance officer as required under Indian law.',
     email: 'grievance@influenceconnect.in',
     icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
-    tint: 'bg-[#EEF1F8] text-[#3D5087]',
+    tint: 'bg-[#F5F3FF] text-[#7C3AED]',
   },
   {
     title: 'Partnerships & press',

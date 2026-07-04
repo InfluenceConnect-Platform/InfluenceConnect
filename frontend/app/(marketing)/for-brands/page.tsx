@@ -66,14 +66,14 @@ export default function ForBrandsPage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div aria-hidden className="anim-blob absolute -top-32 left-0 w-[30rem] h-[30rem] rounded-full bg-[#3D5087]/15 blur-3xl" />
+        <div aria-hidden className="anim-blob absolute -top-32 left-0 w-[30rem] h-[30rem] rounded-full bg-[#7C3AED]/15 blur-3xl" />
         <div className="anim-fade-up relative max-w-4xl mx-auto px-5 sm:px-8 pt-16 pb-16 lg:pt-24 lg:pb-20 text-center">
-          <span className="inline-block text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#3D5087] mb-4">
+          <span className="inline-block text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#7C3AED] mb-4">
             For Brands
           </span>
           <h1 className="text-4xl sm:text-5xl font-bold leading-[1.12] tracking-tight text-gray-900 mb-5">
             Influencer marketing{' '}
-            <span className="bg-gradient-to-r from-[#5874B0] to-[#3D5087] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] bg-clip-text text-transparent">
               without the guesswork
             </span>
           </h1>
@@ -83,7 +83,7 @@ export default function ForBrandsPage() {
           </p>
           <Link
             href="/auth/signup"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#2B3B68] hover:from-[#34457A] hover:to-[#232F55] shadow-lg shadow-[#3D5087]/25 active:scale-[0.98] transition-all"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#7C3AED] to-[#5B21B6] hover:from-[#6D28D9] hover:to-[#4C1D95] shadow-lg shadow-[#7C3AED]/25 active:scale-[0.98] transition-all"
           >
             Start your first campaign — free
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -99,7 +99,7 @@ export default function ForBrandsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {BENEFITS.map((b, i) => (
               <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
-                <span className="w-11 h-11 rounded-xl bg-[#EEF1F8] text-[#3D5087] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                <span className="w-11 h-11 rounded-xl bg-[#F5F3FF] text-[#7C3AED] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {b.icon}
                   </svg>
@@ -121,7 +121,7 @@ export default function ForBrandsPage() {
         <div className="text-center mt-12">
           <Link
             href="/auth/signup"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#2B3B68] shadow-lg active:scale-[0.98] transition-all"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#7C3AED] to-[#5B21B6] shadow-lg active:scale-[0.98] transition-all"
           >
             Join as a brand
           </Link>

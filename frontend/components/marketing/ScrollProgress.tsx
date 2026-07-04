@@ -33,7 +33,7 @@ export default function ScrollProgress() {
     <div
       ref={ref}
       aria-hidden
-      className="absolute bottom-0 left-0 right-0 h-[2.5px] origin-left scale-x-0 bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#3D5087]"
+      className="absolute bottom-0 left-0 right-0 h-[2.5px] origin-left scale-x-0 bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#7C3AED]"
       style={{ willChange: 'transform' }}
     />
   );

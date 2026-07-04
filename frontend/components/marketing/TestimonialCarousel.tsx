@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     name: 'Rohan M.',
     role: 'Marketing lead, D2C skincare brand',
     initials: 'RM',
-    gradient: 'from-[#5874B0] to-[#3D5087]',
+    gradient: 'from-[#8B5CF6] to-[#7C3AED]',
   },
   {
     quote:
@@ -116,7 +116,7 @@ export default function TestimonialCarousel() {
               aria-label={`Go to testimonial ${i + 1}`}
               className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                 i === active
-                  ? 'w-7 bg-gradient-to-r from-[#5D8A8F] to-[#3D5087]'
+                  ? 'w-7 bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED]'
                   : 'w-2 bg-gray-300 hover:bg-gray-400'
               }`}
             />

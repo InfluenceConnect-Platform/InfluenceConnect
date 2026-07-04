@@ -45,7 +45,7 @@ export default function MarketingNav() {
       <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between" aria-label="Main">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#7C3AED] flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow">
             IC
           </div>
           <div>
@@ -91,7 +91,7 @@ export default function MarketingNav() {
           </Link>
           <Link
             href="/auth/signup"
-            className="px-4.5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#3D5087] hover:from-[#4A7A7F] hover:to-[#2B3B68] shadow-md hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+            className="px-4.5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] hover:from-[#4A7A7F] hover:to-[#5B21B6] shadow-md hover:shadow-lg active:scale-[0.97] transition-all duration-200"
           >
             Get started free
           </Link>
@@ -150,7 +150,7 @@ export default function MarketingNav() {
             <Link
               href="/auth/signup"
               onClick={closeMenu}
-              className="px-4 py-3 rounded-xl text-sm font-semibold text-center text-white bg-gradient-to-r from-[#5D8A8F] to-[#3D5087] shadow-md active:scale-[0.98] transition-all"
+              className="px-4 py-3 rounded-xl text-sm font-semibold text-center text-white bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] shadow-md active:scale-[0.98] transition-all"
             >
               Get started free
             </Link>

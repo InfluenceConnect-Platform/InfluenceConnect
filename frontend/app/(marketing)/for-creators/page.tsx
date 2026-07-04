@@ -121,7 +121,7 @@ export default function ForCreatorsPage() {
         <div className="text-center mt-12">
           <Link
             href="/auth/signup"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#3D5087] shadow-lg active:scale-[0.98] transition-all"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] shadow-lg active:scale-[0.98] transition-all"
           >
             Join as a creator
           </Link>
