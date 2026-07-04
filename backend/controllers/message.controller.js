@@ -6,6 +6,47 @@ const notify = require('../services/email');
 const BLOCKED_PATTERN = /(\+?\d[\d\s\-()\u200c]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|instagram|insta\.me|facebook|fb\.com|whatsapp|wa\.me|telegram|t\.me|snapchat)/i;
 
 // ─────────────────────────────────────────
+// DOWNLOAD ATTACHMENT
+// Chat attachments live on Cloudinary as public "upload" resources, so this
+// isn't gating access to anything private — it exists only to force a real
+// download (Content-Disposition: attachment) instead of the browser's PDF
+// viewer opening the file inline, which Cloudinary's own fl_attachment flag
+// doesn't reliably do for raw files. The host/path check keeps this from
+// becoming an open URL-fetching proxy.
+// ─────────────────────────────────────────
+exports.downloadAttachment = async (req, res) => {
+  try {
+    const { url, filename } = req.query;
+    if (!url || typeof url !== 'string') return res.status(400).json({ error: 'url is required' });
+
+    let parsed;
+    try { parsed = new URL(url); } catch { return res.status(400).json({ error: 'Invalid url' }); }
+
+    const expectedPrefix = `/${process.env.CLOUDINARY_CLOUD_NAME}/`;
+    if (parsed.hostname !== 'res.cloudinary.com' || !parsed.pathname.startsWith(expectedPrefix)) {
+      return res.status(400).json({ error: 'Invalid attachment url' });
+    }
+
+    const upstream = await fetch(parsed.toString());
+    if (!upstream.ok) return res.status(502).json({ error: 'Failed to fetch attachment' });
+
+    // HTTP header values can't contain anything outside Latin-1 — Node throws
+    // ERR_INVALID_CHAR (and Express turns that into a bare 500) for a filename
+    // with e.g. emoji or non-Latin characters, which real uploaded photos and
+    // videos commonly have. Strip to safe ASCII for the header.
+    const safeName = String(filename || 'file')
+      .replace(/[\r\n"]/g, '')
+      .replace(/[^\x20-\x7E]/g, '_');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeName || 'file'}"`);
+    res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
+    res.send(Buffer.from(await upstream.arrayBuffer()));
+  } catch (error) {
+    console.error('Download attachment error:', error.message, error.stack);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET MESSAGES FOR A DEAL
 // ─────────────────────────────────────────
 exports.getMessages = async (req, res) => {
@@ -66,13 +107,29 @@ exports.getUnreadCount = async (req, res) => {
 // ─────────────────────────────────────────
 // SEND MESSAGE
 // ─────────────────────────────────────────
+const ATTACHMENT_TYPES = ['image', 'video', 'raw'];
+const MAX_ATTACHMENTS_PER_MESSAGE = 10;
+
 exports.sendMessage = async (req, res) => {
   try {
     const { dealId } = req.params;
-    const { content } = req.body;
+    const { content, attachments } = req.body;
 
-    if (!content || !content.trim()) {
+    const trimmedContent = (content || '').trim();
+    const validAttachments = Array.isArray(attachments) ? attachments : [];
+
+    if (!trimmedContent && validAttachments.length === 0) {
       return res.status(400).json({ error: 'Message cannot be empty' });
+    }
+
+    if (validAttachments.length > MAX_ATTACHMENTS_PER_MESSAGE) {
+      return res.status(400).json({ error: `You can attach up to ${MAX_ATTACHMENTS_PER_MESSAGE} files per message.` });
+    }
+
+    for (const att of validAttachments) {
+      if (!att || typeof att.url !== 'string' || !att.url || !ATTACHMENT_TYPES.includes(att.type)) {
+        return res.status(400).json({ error: 'Invalid attachment.' });
+      }
     }
 
     // Verify deal exists and user is participant
@@ -107,7 +164,7 @@ exports.sendMessage = async (req, res) => {
     }
 
     // Server-side moderation — runs even if client bypasses
-    if (BLOCKED_PATTERN.test(content)) {
+    if (trimmedContent && BLOCKED_PATTERN.test(trimmedContent)) {
       // Log the violation
       console.log(`Message blocked — user ${req.userId} attempted to share contact info`);
 
@@ -124,13 +181,24 @@ exports.sendMessage = async (req, res) => {
       dealId,
       senderId: req.userId,
       receiverId,
-      content: content.trim()
+      content: trimmedContent,
+      attachments: validAttachments.map(att => ({
+        url: att.url,
+        type: att.type,
+        thumbnailUrl: att.thumbnailUrl || '',
+        fileName: att.fileName || '',
+        fileSize: att.fileSize || 0,
+        mimeType: att.mimeType || ''
+      }))
     });
 
     // Notify the recipient of the new message (#7 influencer / #10 brand)
     const receiver = await User.findById(receiverId).select('email role');
     if (receiver?.email) {
-      const payload = { fromName: req.user.name, preview: content.trim().slice(0, 140) };
+      const attachmentPreview = validAttachments.length
+        ? `📎 Sent ${validAttachments.length > 1 ? `${validAttachments.length} files` : validAttachments[0].type === 'image' ? 'a photo' : validAttachments[0].type === 'video' ? 'a video' : 'a file'}`
+        : '';
+      const payload = { fromName: req.user.name, preview: trimmedContent ? trimmedContent.slice(0, 140) : attachmentPreview };
       if (receiver.role === 'influencer') notify.newMessageToInfluencer(receiver.email, payload);
       else notify.newMessageToBrand(receiver.email, payload);
     }

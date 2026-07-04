@@ -11,11 +11,13 @@ import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import { ChatAttachment, validateChatFile, uploadChatAttachment, formatFileSize, downloadUrlFor, MAX_ATTACHMENTS_PER_MESSAGE } from '@/lib/chatAttachments';
 
 interface Message {
   _id: string;
   senderId: string;
   content: string;
+  attachments?: ChatAttachment[];
   createdAt: string;
   blocked?: boolean;
   blockReason?: string;
@@ -31,7 +33,7 @@ interface Deal {
   status: string;
   negotiationStatus: 'open' | 'agreed';
   offers: Offer[];
-  lastMessage?: { content: string; senderId: string; createdAt: string } | null;
+  lastMessage?: { content: string; attachments?: ChatAttachment[]; senderId: string; createdAt: string } | null;
   unreadCount?: number;
 }
 
@@ -80,6 +82,26 @@ const CheckDoubleIcon = () => (
     <polyline points="20 6 9 17 4 12"/><polyline points="17 3 10 10"/>
   </svg>
 );
+const PaperclipIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+  </svg>
+);
+const FileIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+  </svg>
+);
+const DownloadIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+);
+const PlayIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <polygon points="6 3 20 12 6 21 6 3"/>
+  </svg>
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const formatTime = (d: string) =>
@@ -97,6 +119,16 @@ const formatRelativeTime = (d: string) => {
 
 const getInitials = (name: string) =>
   name?.slice(0, 2).toUpperCase() || 'BR';
+
+const previewText = (msg?: { content: string; attachments?: ChatAttachment[] } | null) => {
+  if (!msg) return '';
+  if (msg.content) return msg.content;
+  const atts = msg.attachments || [];
+  if (!atts.length) return '';
+  if (atts.length > 1) return `📎 ${atts.length} files`;
+  const t = atts[0].type;
+  return t === 'image' ? '📷 Photo' : t === 'video' ? '🎥 Video' : `📎 ${atts[0].fileName || 'File'}`;
+};
 
 const AVATAR_COLORS = [
   'from-[#7FA8AD] to-[#5D8A8F]',
@@ -129,9 +161,14 @@ function MessagesPage() {
   const [showChat, setShowChat] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [campaignDrawerOpen, setCampaignDrawerOpen] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
+  const [attachmentError, setAttachmentError] = useState('');
+  const [lightbox, setLightbox] = useState<ChatAttachment | null>(null);
 
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
   const activeIdRef = useRef<string | null>(null);
   const FREEMIUM_MSG_LIMIT = 10;
@@ -207,7 +244,7 @@ function MessagesPage() {
   };
 
   const handleSend = async () => {
-    if (!newMessage.trim() || !selectedDeal) return;
+    if ((!newMessage.trim() && pendingAttachments.length === 0) || !selectedDeal) return;
     if (BLOCKED_PATTERN.test(newMessage)) {
       setBlocked(true);
       setTimeout(() => setBlocked(false), 4000);
@@ -215,11 +252,16 @@ function MessagesPage() {
     }
     if (!isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT) return;
     if (dealClosed || chatLocked) return;
+    if (uploadingAttachments) return;
 
     setSending(true);
     try {
-      await api.post(`/api/messages/${selectedDeal._id}`, { content: newMessage.trim() });
+      await api.post(`/api/messages/${selectedDeal._id}`, {
+        content: newMessage.trim(),
+        attachments: pendingAttachments,
+      });
       setNewMessage('');
+      setPendingAttachments([]);
       setMessagesUsed(prev => prev + 1);
       fetchMessages(selectedDeal._id);
     } catch (error) {
@@ -227,6 +269,36 @@ function MessagesPage() {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleFilesSelected = async (files: FileList | null) => {
+    if (!files || files.length === 0 || !selectedDeal) return;
+    if (pendingAttachments.length + files.length > MAX_ATTACHMENTS_PER_MESSAGE) {
+      setAttachmentError(`You can attach up to ${MAX_ATTACHMENTS_PER_MESSAGE} files per message.`);
+      return;
+    }
+    setAttachmentError('');
+    setUploadingAttachments(true);
+    try {
+      for (const file of Array.from(files)) {
+        const validationError = validateChatFile(file);
+        if (validationError) { setAttachmentError(validationError); continue; }
+        try {
+          const uploaded = await uploadChatAttachment(file, selectedDeal._id);
+          setPendingAttachments(prev => [...prev, uploaded]);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : `Failed to upload "${file.name}".`;
+          setAttachmentError(message);
+        }
+      }
+    } finally {
+      setUploadingAttachments(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removePendingAttachment = (index: number) => {
+    setPendingAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -241,6 +313,8 @@ function MessagesPage() {
     setMessages([]);
     setNewMessage('');
     setBlocked(false);
+    setPendingAttachments([]);
+    setAttachmentError('');
     setSelectedDeal(deal);
     setShowChat(true);
     setDeals(prev => prev.map(d => d._id === deal._id ? { ...d, unreadCount: 0 } : d));
@@ -448,7 +522,7 @@ function MessagesPage() {
                             <p className="text-[11px] text-amber-600 font-semibold truncate">New offer — tap to respond</p>
                           ) : lastMsg ? (
                             <p className={`text-[11px] truncate ${hasUnread && !isActive ? isDark ? 'text-slate-200 font-semibold' : 'text-gray-700 font-semibold' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>
-                              {lastMsg.content}
+                              {previewText(lastMsg)}
                             </p>
                           ) : (
                             <p className={`text-[11px] italic ${isDark ? 'text-slate-600' : 'text-gray-300'}`}>No messages yet</p>
@@ -726,16 +800,74 @@ function MessagesPage() {
                             </div>
                           )}
 
-                          <div className={`flex flex-col gap-0.5 max-w-[72%] sm:max-w-[62%] ${isMine ? 'items-end' : 'items-start'}`}>
-                            <div className={`px-4 py-2.5 text-[13.5px] leading-relaxed select-text ${bubbleShape} ${
-                              isMine
-                                ? 'bg-[#27717E] text-white shadow-md shadow-teal-900/10'
-                                : isDark
-                                ? 'bg-[#1a2e45] text-slate-200 border border-slate-700/50 shadow-sm'
-                                : 'bg-white text-gray-800 border border-gray-200/50 shadow-sm'
-                            }`}>
-                              {msg.content}
-                            </div>
+                          <div className={`flex flex-col gap-1 max-w-[72%] sm:max-w-[62%] ${isMine ? 'items-end' : 'items-start'}`}>
+                            {!!msg.attachments?.length && (
+                              <div className="flex flex-col gap-1.5">
+                                {msg.attachments.map((att, i) => (
+                                  att.type === 'image' ? (
+                                    <button
+                                      key={i}
+                                      type="button"
+                                      onClick={() => setLightbox(att)}
+                                      className={`block overflow-hidden ${bubbleShape} border cursor-pointer ${isDark ? 'border-slate-700/50' : 'border-gray-200/50'}`}
+                                    >
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img src={att.url} alt={att.fileName || 'Photo'} className="max-w-[240px] max-h-[320px] object-cover" />
+                                    </button>
+                                  ) : att.type === 'video' ? (
+                                    <button
+                                      key={i}
+                                      type="button"
+                                      onClick={() => setLightbox(att)}
+                                      className={`relative block overflow-hidden ${bubbleShape} border cursor-pointer ${isDark ? 'border-slate-700/50' : 'border-gray-200/50'}`}
+                                    >
+                                      {att.thumbnailUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={att.thumbnailUrl} alt="" className="max-w-[240px] max-h-[320px] object-cover" />
+                                      ) : (
+                                        <div className="w-[200px] h-[140px] bg-black/70" />
+                                      )}
+                                      <span className="absolute inset-0 flex items-center justify-center text-white bg-black/25">
+                                        <PlayIcon />
+                                      </span>
+                                    </button>
+                                  ) : (
+                                    <a
+                                      key={i}
+                                      href={downloadUrlFor(att)}
+                                      download={att.fileName || true}
+                                      className={`flex items-center gap-2.5 px-3.5 py-2.5 min-w-[180px] cursor-pointer ${bubbleShape} ${
+                                        isMine
+                                          ? 'bg-[#27717E] text-white'
+                                          : isDark
+                                          ? 'bg-[#1a2e45] text-slate-200 border border-slate-700/50'
+                                          : 'bg-white text-gray-800 border border-gray-200/50'
+                                      }`}
+                                    >
+                                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isMine ? 'bg-white/15' : isDark ? 'bg-slate-700/50' : 'bg-gray-100'}`}>
+                                        <FileIcon />
+                                      </span>
+                                      <span className="min-w-0 flex-1 text-left">
+                                        <span className="block text-[12.5px] font-semibold truncate">{att.fileName || 'File'}</span>
+                                        <span className={`block text-[10.5px] ${isMine ? 'text-white/70' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>{formatFileSize(att.fileSize)}</span>
+                                      </span>
+                                      <span className={isMine ? 'text-white/80' : isDark ? 'text-slate-400' : 'text-gray-400'}><DownloadIcon /></span>
+                                    </a>
+                                  )
+                                ))}
+                              </div>
+                            )}
+                            {!!msg.content && (
+                              <div className={`px-4 py-2.5 text-[13.5px] leading-relaxed select-text ${bubbleShape} ${
+                                isMine
+                                  ? 'bg-[#27717E] text-white shadow-md shadow-teal-900/10'
+                                  : isDark
+                                  ? 'bg-[#1a2e45] text-slate-200 border border-slate-700/50 shadow-sm'
+                                  : 'bg-white text-gray-800 border border-gray-200/50 shadow-sm'
+                              }`}>
+                                {msg.content}
+                              </div>
+                            )}
                             {isLast && (
                               <div className={`flex items-center gap-1 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
                                 <span className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-gray-400/70'}`}>{formatTime(msg.createdAt)}</span>
@@ -835,6 +967,41 @@ function MessagesPage() {
                 </div>
               ) : (
                 <div className={`px-4 sm:px-5 py-3.5 border-t flex-shrink-0 ${isDark ? 'bg-[#0B1725] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
+                  {attachmentError && (
+                    <div className="mb-2 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-200/70">
+                      <span className="text-[11.5px] text-red-600 font-medium">{attachmentError}</span>
+                      <button onClick={() => setAttachmentError('')} className="text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0"><XIcon /></button>
+                    </div>
+                  )}
+                  {(pendingAttachments.length > 0 || uploadingAttachments) && (
+                    <div className="mb-2 flex items-center gap-2 flex-wrap">
+                      {pendingAttachments.map((att, i) => (
+                        <div key={i} className={`relative flex items-center gap-1.5 pl-1.5 pr-2 py-1.5 rounded-xl border ${isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-gray-50 border-gray-200'}`}>
+                          {att.type === 'image' ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={att.url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                          ) : att.type === 'video' ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={att.thumbnailUrl || att.url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                          ) : (
+                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-slate-700/60 text-slate-300' : 'bg-white text-gray-500'}`}><FileIcon /></span>
+                          )}
+                          <span className={`text-[11px] max-w-[100px] truncate ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>{att.fileName}</span>
+                          <button
+                            onClick={() => removePendingAttachment(i)}
+                            className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer ${isDark ? 'bg-slate-700 text-slate-400 hover:text-white' : 'bg-gray-200 text-gray-500 hover:text-gray-800'}`}
+                          >
+                            <XIcon />
+                          </button>
+                        </div>
+                      ))}
+                      {uploadingAttachments && (
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-gray-50 border-gray-200'}`}>
+                          <span className="w-3.5 h-3.5 border-2 border-gray-400/40 border-t-gray-500 rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className={`flex items-center gap-2.5 px-2 py-2 rounded-2xl border transition-all duration-200 ${
                     limitReached
                       ? isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-gray-50 border-gray-200'
@@ -842,6 +1009,21 @@ function MessagesPage() {
                       ? 'bg-slate-800/40 border-slate-700 focus-within:border-[#27717E] focus-within:shadow-lg focus-within:shadow-teal-900/30 focus-within:ring-2 focus-within:ring-[#27717E]/20'
                       : 'bg-white border-gray-200 focus-within:border-[#27717E] focus-within:shadow-lg focus-within:shadow-teal-100/40 focus-within:ring-2 focus-within:ring-[#27717E]/10'
                   }`}>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      hidden
+                      onChange={e => handleFilesSelected(e.target.files)}
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={limitReached || uploadingAttachments}
+                      title="Attach files"
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${isDark ? 'text-slate-400 hover:bg-slate-700/60 hover:text-slate-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
+                    >
+                      <PaperclipIcon />
+                    </button>
                     <input
                       ref={inputRef}
                       type="text"
@@ -859,9 +1041,9 @@ function MessagesPage() {
                     )}
                     <button
                       onClick={handleSend}
-                      disabled={sending || !newMessage.trim() || limitReached}
+                      disabled={sending || uploadingAttachments || (!newMessage.trim() && pendingAttachments.length === 0) || limitReached}
                       className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
-                        newMessage.trim() && !limitReached
+                        (newMessage.trim() || pendingAttachments.length > 0) && !limitReached && !uploadingAttachments
                           ? 'bg-[#27717E] hover:bg-[#1C5A65] text-white shadow-sm hover:shadow-md active:scale-95 cursor-pointer'
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       }`}
@@ -918,6 +1100,35 @@ function MessagesPage() {
         isDark={isDark}
         onClose={() => setCampaignDrawerOpen(false)}
       />
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6 cursor-zoom-out"
+          onClick={() => setLightbox(null)}
+        >
+          <a
+            href={downloadUrlFor(lightbox)}
+            download={lightbox.fileName || true}
+            onClick={e => e.stopPropagation()}
+            title="Download"
+            className="absolute top-4 right-16 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+          >
+            <DownloadIcon />
+          </a>
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+          >
+            <XIcon />
+          </button>
+          {lightbox.type === 'image' ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={lightbox.url} alt="" className="max-w-full max-h-full rounded-lg object-contain" onClick={e => e.stopPropagation()} />
+          ) : (
+            <video src={lightbox.url} controls autoPlay className="max-w-full max-h-full rounded-lg" onClick={e => e.stopPropagation()} />
+          )}
+        </div>
+      )}
     </div>
   );
 }

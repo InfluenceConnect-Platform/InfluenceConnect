@@ -668,7 +668,7 @@ exports.getMyDeals = async (req, res) => {
       Message.aggregate([
         { $match: { dealId: { $in: dealIds } } },
         { $sort: { createdAt: -1 } },
-        { $group: { _id: '$dealId', content: { $first: '$content' }, senderId: { $first: '$senderId' }, createdAt: { $first: '$createdAt' } } },
+        { $group: { _id: '$dealId', content: { $first: '$content' }, attachments: { $first: '$attachments' }, senderId: { $first: '$senderId' }, createdAt: { $first: '$createdAt' } } },
       ]),
       Message.aggregate([
         { $match: { dealId: { $in: dealIds }, receiverId: req.userId, read: false } },
@@ -677,7 +677,7 @@ exports.getMyDeals = async (req, res) => {
     ]);
 
     const profileByUser = new Map(profiles.map(p => [p.userId.toString(), p]));
-    const lastMsgByDeal = new Map(lastMessages.map(m => [m._id.toString(), { content: m.content, senderId: m.senderId, createdAt: m.createdAt }]));
+    const lastMsgByDeal = new Map(lastMessages.map(m => [m._id.toString(), { content: m.content, attachments: m.attachments || [], senderId: m.senderId, createdAt: m.createdAt }]));
     const unreadByDeal = new Map(unreadCounts.map(u => [u._id.toString(), u.count]));
 
     const dealsWithPreview = deals.map(deal => {

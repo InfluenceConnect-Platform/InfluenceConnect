@@ -1,5 +1,17 @@
 const mongoose = require('mongoose');
 
+// A single shared/sent file — brief, photo, video, or reference document.
+// Uploaded directly to Cloudinary by the client; only the resulting metadata
+// is stored here (mirrors how portfolio items are persisted).
+const attachmentSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  type: { type: String, enum: ['image', 'video', 'raw'], required: true },
+  thumbnailUrl: { type: String, default: '' },
+  fileName: { type: String, default: '' },
+  fileSize: { type: Number, default: 0 },
+  mimeType: { type: String, default: '' }
+}, { _id: false });
+
 const messageSchema = new mongoose.Schema({
   dealId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -19,10 +31,16 @@ const messageSchema = new mongoose.Schema({
     required: true
   },
 
+  // Not required — a message can be attachments-only (no caption).
   content: {
     type: String,
-    required: true,
+    default: '',
     maxlength: [1000, 'Message cannot exceed 1000 characters']
+  },
+
+  attachments: {
+    type: [attachmentSchema],
+    default: []
   },
 
   blocked: {
