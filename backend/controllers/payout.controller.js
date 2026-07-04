@@ -1,7 +1,10 @@
 const Deal = require('../models/Deal');
 const PayoutDetail = require('../models/PayoutDetail');
+const User = require('../models/User');
+const Campaign = require('../models/Campaign');
 const { encrypt, decrypt } = require('../utils/payoutCrypto');
 const { postDealNotice } = require('../utils/dealNotice');
+const notify = require('../services/email');
 
 const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const ACCOUNT_NUMBER_PATTERN = /^\d{9,18}$/;
@@ -109,6 +112,20 @@ exports.submitPayoutDetails = async (req, res) => {
         : `💳 You submitted your payout details — ready for payment.`,
     });
 
+    // Email the brand on first submission (not on later edits — avoid noise).
+    if (!existing) {
+      const [brand, campaign] = await Promise.all([
+        User.findById(deal.brandId).select('email'),
+        Campaign.findById(deal.campaignId).select('title'),
+      ]);
+      if (brand?.email) {
+        notify.payoutDetailsSubmittedBrand(brand.email, {
+          influencerName: req.user.name,
+          campaignTitle: campaign?.title,
+        });
+      }
+    }
+
     res.status(existing ? 200 : 201).json({ payout: decryptForResponse(saved) });
   } catch (error) {
     console.error('Submit payout details error:', error);
@@ -175,6 +192,19 @@ exports.markAsPaid = async (req, res) => {
       content: `✅ ${req.user.name} marked this deal as paid.`,
       actorContent: `✅ You marked this deal as paid.`,
     });
+
+    const [influencer, campaign] = await Promise.all([
+      User.findById(deal.influencerId).select('email'),
+      Campaign.findById(deal.campaignId).select('title'),
+    ]);
+    if (influencer?.email) {
+      notify.paymentCompletedInfluencer(influencer.email, {
+        campaignTitle: campaign?.title,
+        brandName: req.user.name,
+        amount: deal.agreedAmount,
+        transactionRef: payout.transactionRef,
+      });
+    }
 
     res.json({ payout: decryptForResponse(payout) });
   } catch (error) {

@@ -271,6 +271,43 @@ module.exports = {
     };
   },
 
+  // Payout details submitted by influencer (to brand)
+  payoutDetailsSubmittedBrand({ influencerName, campaignTitle }) {
+    return {
+      subject: `Payout details ready — ${campaignTitle}`,
+      html: layout({
+        theme: BRAND,
+        heading: 'Ready for payment 💳',
+        bodyHtml:
+          para(`${esc(influencerName || 'The creator')} submitted their payout details for <strong>${esc(campaignTitle)}</strong>.`) +
+          details([['Creator', influencerName], ['Campaign', campaignTitle]]) +
+          para('Once the content is reviewed and approved, you can pay the creator and mark this deal complete.') +
+          button('Open messages', `${APP_URL}/brand/messages`, BRAND),
+      }),
+    };
+  },
+
+  // Payment completed by brand (to influencer)
+  paymentCompletedInfluencer({ campaignTitle, brandName, amount, transactionRef }) {
+    return {
+      subject: `Payment sent — ${campaignTitle}`,
+      html: layout({
+        theme: CREATOR,
+        heading: "You've been paid 💸",
+        bodyHtml:
+          para(`${esc(brandName || 'The brand')} marked your payment as complete for <strong>${esc(campaignTitle)}</strong>.`) +
+          details([
+            ['Campaign', campaignTitle],
+            ['Brand', brandName],
+            ['Amount', inr(amount)],
+            ['Transaction ID', transactionRef],
+          ]) +
+          para('You can view the receipt and full payout details in your messages with the brand.') +
+          button('View details', `${APP_URL}/influencer/messages`, CREATOR),
+      }),
+    };
+  },
+
   // New campaign published (to a matching influencer)
   newCampaignToInfluencer({ campaignTitle, brandName, budgetMin, budgetMax, niche }) {
     const budget = budgetMin || budgetMax ? `${inr(budgetMin)} – ${inr(budgetMax)}` : 'Open';

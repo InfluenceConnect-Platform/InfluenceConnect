@@ -48,6 +48,10 @@ module.exports = {
   dealInProgressBrand:    make('dealInProgressBrand'),
   // 12 — brand: content submitted
   contentSubmittedBrand:  make('contentSubmittedBrand'),
+  // brand: payout details submitted by creator
+  payoutDetailsSubmittedBrand: make('payoutDetailsSubmittedBrand'),
+  // influencer: payment marked complete by brand
+  paymentCompletedInfluencer:  make('paymentCompletedInfluencer'),
 
   // Campaign + invitations
   newCampaignToInfluencer:   make('newCampaignToInfluencer'),
