@@ -232,7 +232,7 @@ export default function HomePage() {
             </Tilt>
 
             {/* Floating: application accepted */}
-            <div className="anim-float absolute -left-4 -bottom-10 w-64 bg-white border border-gray-200 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-4">
+            <div className="anim-float absolute -left-8 -bottom-16 z-10 w-64 bg-white border border-gray-200 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center">
                   <CheckIcon className="w-4.5 h-4.5 text-emerald-500" />
@@ -245,7 +245,7 @@ export default function HomePage() {
             </div>
 
             {/* Floating: earnings */}
-            <div className="anim-float-slow absolute -right-2 -top-9 w-52 bg-white border border-gray-200 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-4">
+            <div className="anim-float-slow absolute -right-6 -top-16 z-10 w-52 bg-white border border-gray-200 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-4">
               <p className="text-[0.65rem] text-gray-500 uppercase tracking-wider font-bold mb-1">This month</p>
               <p className="text-xl font-bold text-gray-900 mb-2">₹42,500</p>
               <div className="flex items-end gap-1 h-9">
@@ -400,7 +400,7 @@ export default function HomePage() {
               <Reveal
                 key={f.title}
                 delay={(i % 3) * 90}
-                className="card-glow group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
+                className="card-glow group bg-gradient-to-br from-white to-[#7FA8AD]/[0.06] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
               >
                 <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${f.tint}`}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -450,7 +450,7 @@ export default function HomePage() {
           {/* Shield visual */}
           <Reveal delay={150} className="relative flex items-center justify-center" >
             <div aria-hidden className="anim-blob absolute w-72 h-72 rounded-full bg-[#7C3AED]/10 blur-3xl" />
-            <div aria-hidden className="relative w-full max-w-sm bg-white border border-gray-200 rounded-3xl shadow-[0_12px_48px_rgba(0,0,0,0.08)] p-8 hover:shadow-[0_20px_64px_rgba(0,0,0,0.12)] transition-shadow duration-300">
+            <div aria-hidden className="relative w-full max-w-sm bg-gradient-to-br from-white to-[#7C3AED]/[0.05] border border-gray-200 rounded-3xl shadow-[0_12px_48px_rgba(0,0,0,0.08)] p-8 hover:shadow-[0_20px_64px_rgba(0,0,0,0.12)] transition-shadow duration-300">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#7C3AED] flex items-center justify-center shadow-lg mb-6">
                 <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>

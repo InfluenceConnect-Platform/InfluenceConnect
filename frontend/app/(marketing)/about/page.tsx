@@ -12,21 +12,29 @@ const VALUES = [
     title: 'Trust is engineered, not promised',
     body: 'GST verification, OTP-secured accounts, moderated chat, and earned credibility scores — safety here is built into the product, not written in a policy nobody reads.',
     icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></>,
+    tint: 'bg-[#EEF4F5] text-[#5D8A8F]',
+    wash: 'to-[#5D8A8F]/[0.07]',
   },
   {
     title: 'Small creators matter',
     body: 'India\'s creator economy is not just celebrities. Nano and micro creators with engaged audiences deserve the same access to real, paying brand campaigns.',
     icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+    tint: 'bg-[#F5F3FF] text-[#7C3AED]',
+    wash: 'to-[#7C3AED]/[0.06]',
   },
   {
     title: 'Fair economics',
     body: 'We charge a transparent subscription — not a cut of your deals. What you negotiate with each other is yours.',
     icon: <><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="18"/></>,
+    tint: 'bg-amber-50 text-amber-600',
+    wash: 'to-amber-500/[0.06]',
   },
   {
     title: 'Built in India, for India',
     body: 'Rupee pricing, GST verification, Razorpay payments, and campaigns designed around how Indian brands and creators actually work together.',
     icon: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
+    tint: 'bg-[#EEF4F5] text-[#5D8A8F]',
+    wash: 'to-[#5D8A8F]/[0.07]',
   },
 ];
 
@@ -56,7 +64,7 @@ export default function AboutPage() {
 
       {/* Story */}
       <section className="max-w-3xl mx-auto px-5 sm:px-8 pb-16">
-        <div className="bg-white border border-gray-200 rounded-3xl p-8 sm:p-10 shadow-sm">
+        <div className="bg-gradient-to-br from-white via-white to-[#7FA8AD]/[0.05] border border-gray-200 rounded-3xl p-8 sm:p-10 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Why we built this</h2>
           <div className="flex flex-col gap-4 text-sm sm:text-[0.95rem] text-gray-600 leading-relaxed">
             <p>
@@ -85,8 +93,8 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-4xl mx-auto">
             {VALUES.map(v => (
-              <div key={v.title} className="bg-white border border-gray-200 rounded-2xl p-7">
-                <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#7FA8AD]/15 to-[#7C3AED]/15 text-[#5D8A8F] flex items-center justify-center mb-5">
+              <div key={v.title} className={`bg-gradient-to-br from-white ${v.wash} border border-gray-200 rounded-2xl p-7 shadow-sm hover:shadow-md transition-shadow duration-300`}>
+                <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 ${v.tint}`}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {v.icon}
                   </svg>

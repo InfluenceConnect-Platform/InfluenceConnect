@@ -98,7 +98,7 @@ export default function ForBrandsPage() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {BENEFITS.map((b, i) => (
-              <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
+              <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group bg-gradient-to-br from-white to-[#7C3AED]/[0.06] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
                 <span className="w-11 h-11 rounded-xl bg-[#F5F3FF] text-[#7C3AED] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {b.icon}

@@ -14,6 +14,7 @@ const CHANNELS = [
     email: 'support@influenceconnect.in',
     icon: <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></>,
     tint: 'bg-[#EEF4F5] text-[#5D8A8F]',
+    wash: 'to-[#5D8A8F]/[0.07]',
   },
   {
     title: 'Grievance redressal',
@@ -21,13 +22,15 @@ const CHANNELS = [
     email: 'grievance@influenceconnect.in',
     icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
     tint: 'bg-[#F5F3FF] text-[#7C3AED]',
+    wash: 'to-[#7C3AED]/[0.06]',
   },
   {
     title: 'Partnerships & press',
     body: 'Agencies, platforms, and media — if you want to work with us or write about us, we\'d love to talk.',
     email: 'support@influenceconnect.in',
     icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
-    tint: 'bg-violet-50 text-violet-600',
+    tint: 'bg-amber-50 text-amber-600',
+    wash: 'to-amber-500/[0.06]',
   },
 ];
 
@@ -53,7 +56,7 @@ export default function ContactPage() {
       <section className="max-w-5xl mx-auto px-5 sm:px-8 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {CHANNELS.map(c => (
-            <div key={c.title} className="bg-white border border-gray-200 rounded-2xl p-7 flex flex-col hover:shadow-lg transition-shadow duration-300">
+            <div key={c.title} className={`bg-gradient-to-br from-white ${c.wash} border border-gray-200 rounded-2xl p-7 flex flex-col shadow-sm hover:shadow-lg transition-shadow duration-300`}>
               <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 ${c.tint}`}>
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   {c.icon}
