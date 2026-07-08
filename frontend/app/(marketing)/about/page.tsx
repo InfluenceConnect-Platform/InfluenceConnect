@@ -12,29 +12,29 @@ const VALUES = [
     title: 'Trust is engineered, not promised',
     body: 'GST verification, OTP-secured accounts, moderated chat, and earned credibility scores — safety here is built into the product, not written in a policy nobody reads.',
     icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></>,
-    tint: 'bg-[#EEF4F5] text-[#5D8A8F]',
+    tint: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-md shadow-[#5D8A8F]/25',
     wash: 'to-[#5D8A8F]/[0.07]',
   },
   {
     title: 'Small creators matter',
     body: 'India\'s creator economy is not just celebrities. Nano and micro creators with engaged audiences deserve the same access to real, paying brand campaigns.',
     icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
-    tint: 'bg-[#F5F3FF] text-[#7C3AED]',
+    tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
     wash: 'to-[#7C3AED]/[0.06]',
   },
   {
     title: 'Fair economics',
     body: 'We charge a transparent subscription — not a cut of your deals. What you negotiate with each other is yours.',
     icon: <><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="18"/></>,
-    tint: 'bg-amber-50 text-amber-600',
+    tint: 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-orange-500/25',
     wash: 'to-amber-500/[0.06]',
   },
   {
     title: 'Built in India, for India',
     body: 'Rupee pricing, GST verification, Razorpay payments, and campaigns designed around how Indian brands and creators actually work together.',
     icon: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
-    tint: 'bg-[#EEF4F5] text-[#5D8A8F]',
-    wash: 'to-[#5D8A8F]/[0.07]',
+    tint: 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md shadow-emerald-500/25',
+    wash: 'to-emerald-500/[0.06]',
   },
 ];
 
@@ -42,8 +42,9 @@ export default function AboutPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div aria-hidden className="anim-blob absolute -top-24 -right-24 w-[26rem] h-[26rem] rounded-full bg-[#7C3AED]/10 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#EEF4F5]/50 via-white to-[#F5F3FF]/40 dark:from-[#0d2d33]/35 dark:via-[#0E1B2E] dark:to-[#2c1f4d]/30">
+        <div aria-hidden className="anim-blob absolute -top-24 -right-24 w-[26rem] h-[26rem] rounded-full bg-[#7C3AED]/15 blur-3xl" />
+        <div aria-hidden className="anim-blob absolute bottom-0 -left-16 w-72 h-72 rounded-full bg-amber-400/15 blur-3xl" style={{ animationDelay: '4s' }} />
         <div className="anim-fade-up relative max-w-3xl mx-auto px-5 sm:px-8 pt-16 pb-16 lg:pt-24 text-center">
           <span className="inline-block text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#5D8A8F] mb-4">
             About us
@@ -63,8 +64,8 @@ export default function AboutPage() {
       </section>
 
       {/* Story */}
-      <section className="max-w-3xl mx-auto px-5 sm:px-8 pb-16">
-        <div className="bg-gradient-to-br from-white via-white to-[#7FA8AD]/[0.05] border border-gray-200 rounded-3xl p-8 sm:p-10 shadow-sm">
+      <section className="max-w-3xl mx-auto px-5 sm:px-8 pt-12 pb-16 sm:pt-16">
+        <div className="bg-gradient-to-br from-white via-white to-[#7FA8AD]/[0.05] dark:from-[#0E1B2E] dark:via-[#0E1B2E] border border-gray-200 rounded-3xl p-8 sm:p-10 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Why we built this</h2>
           <div className="flex flex-col gap-4 text-sm sm:text-[0.95rem] text-gray-600 leading-relaxed">
             <p>
@@ -86,21 +87,25 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="bg-gray-50 border-y border-gray-200">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-12">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#2A3E42] to-[#4C1D95]">
+        <div aria-hidden className="anim-blob absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20">
+          <h2 className="text-3xl font-bold tracking-tight text-white text-center mb-2">
             What we stand for
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-4xl mx-auto">
+          <p className="text-base text-white/70 text-center max-w-xl mx-auto mb-14">
+            We&apos;re more than just a platform — we&apos;re building the trust layer for India&apos;s creator economy
+          </p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {VALUES.map(v => (
-              <div key={v.title} className={`bg-gradient-to-br from-white ${v.wash} border border-gray-200 rounded-2xl p-7 shadow-sm hover:shadow-md transition-shadow duration-300`}>
-                <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 ${v.tint}`}>
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div key={v.title} className="text-center">
+                <span className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 mx-auto ${v.tint}`}>
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {v.icon}
                   </svg>
                 </span>
-                <h3 className="text-base font-bold text-gray-900 mb-2">{v.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{v.body}</p>
+                <h3 className="text-base font-bold text-white mb-2">{v.title}</h3>
+                <p className="text-sm text-white/70 leading-relaxed">{v.body}</p>
               </div>
             ))}
           </div>

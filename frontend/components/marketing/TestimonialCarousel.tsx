@@ -11,6 +11,8 @@ const TESTIMONIALS = [
     role: 'Fashion creator · 48K followers',
     initials: 'PS',
     gradient: 'from-[#7FA8AD] to-[#5D8A8F]',
+    wash: 'to-[#5D8A8F]/[0.06]',
+    quoteColor: 'text-[#5D8A8F]/30',
   },
   {
     quote:
@@ -19,6 +21,8 @@ const TESTIMONIALS = [
     role: 'Marketing lead, D2C skincare brand',
     initials: 'RM',
     gradient: 'from-[#8B5CF6] to-[#7C3AED]',
+    wash: 'to-[#7C3AED]/[0.06]',
+    quoteColor: 'text-[#7C3AED]/25',
   },
   {
     quote:
@@ -26,7 +30,9 @@ const TESTIMONIALS = [
     name: 'Ananya K.',
     role: 'Food & travel creator · 22K followers',
     initials: 'AK',
-    gradient: 'from-violet-500 to-purple-600',
+    gradient: 'from-emerald-400 to-emerald-600',
+    wash: 'to-emerald-500/[0.06]',
+    quoteColor: 'text-emerald-500/25',
   },
   {
     quote:
@@ -34,7 +40,9 @@ const TESTIMONIALS = [
     name: 'Vikram T.',
     role: 'Founder, regional fitness brand',
     initials: 'VT',
-    gradient: 'from-emerald-500 to-teal-600',
+    gradient: 'from-amber-400 to-orange-500',
+    wash: 'to-orange-500/[0.06]',
+    quoteColor: 'text-orange-500/25',
   },
 ];
 
@@ -73,9 +81,9 @@ export default function TestimonialCarousel() {
               aria-hidden={i !== active}
               className="w-full flex-shrink-0 px-1"
             >
-              <div className="bg-gradient-to-br from-white via-white to-[#7C3AED]/[0.05] border border-gray-200 rounded-3xl p-8 sm:p-12 text-center shadow-sm mx-auto max-w-3xl">
+              <div className={`bg-gradient-to-br from-white via-white ${t.wash} dark:from-[#0E1B2E] dark:via-[#0E1B2E] border border-gray-200 rounded-3xl p-8 sm:p-12 text-center shadow-sm mx-auto max-w-3xl`}>
                 {/* Quote mark */}
-                <svg className="w-9 h-9 mx-auto mb-6 text-[#5D8A8F]/30" viewBox="0 0 24 24" fill="currentColor">
+                <svg className={`w-9 h-9 mx-auto mb-6 ${t.quoteColor}`} viewBox="0 0 24 24" fill="currentColor">
                   <path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"/>
                 </svg>
                 <blockquote className="text-lg sm:text-xl font-medium text-gray-800 leading-relaxed mb-8">

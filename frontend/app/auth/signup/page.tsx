@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AuthLayout from '@/components/shared/AuthLayout';
 import Input from '@/components/shared/Input';
 import Button from '@/components/shared/Button';
@@ -113,11 +113,12 @@ const STATS = [
   { value: '5K+', label: 'Collabs', tint: 'violet' },
 ];
 
-export default function SignupPage() {
+function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isDark } = useTheme();
 
-  const [role, setRole] = useState<Role>('influencer');
+  const [role, setRole] = useState<Role>(searchParams.get('role') === 'brand' ? 'brand' : 'influencer');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
@@ -393,5 +394,14 @@ export default function SignupPage() {
 
       </div>
     </AuthLayout>
+  );
+}
+
+// useSearchParams() must be wrapped in Suspense for production builds
+export default function SignupPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <SignupPage />
+    </Suspense>
   );
 }

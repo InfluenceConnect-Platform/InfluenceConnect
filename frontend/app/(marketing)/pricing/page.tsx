@@ -34,8 +34,8 @@ const FAQS = [
 export default function PricingPage() {
   return (
     <>
-      <section className="relative overflow-hidden">
-        <div aria-hidden className="anim-blob absolute -top-32 left-1/2 -translate-x-1/2 w-[36rem] h-[24rem] rounded-full bg-[#5D8A8F]/10 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#EEF4F5]/50 via-white to-white dark:from-[#0d2d33]/35 dark:via-[#0E1B2E] dark:to-[#0E1B2E]">
+        <div aria-hidden className="anim-blob absolute -top-32 left-1/2 -translate-x-1/2 w-[36rem] h-[24rem] rounded-full bg-[#5D8A8F]/15 blur-3xl" />
         <div className="anim-fade-up relative max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-20 lg:pt-20">
           <div className="text-center mb-12">
             <span className="inline-block text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#5D8A8F] mb-4">
@@ -53,7 +53,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="bg-gray-50 border-t border-gray-200">
+      <section className="bg-gradient-to-b from-[#F5F3FF]/50 via-white to-[#EEF4F5]/50 border-t border-gray-200 dark:from-[#2c1f4d]/40 dark:via-[#0E1B2E] dark:to-[#0d2d33]/40">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-20">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-10">
             Billing questions

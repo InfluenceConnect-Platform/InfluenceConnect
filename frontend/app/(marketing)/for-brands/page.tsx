@@ -14,31 +14,37 @@ const BENEFITS = [
     title: 'Discovery that actually filters',
     body: 'Search creators by niche, platform, location, follower range, and budget. See portfolios and credibility scores before you reach out.',
     icon: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
+    tint: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-md shadow-[#5D8A8F]/25',
   },
   {
     title: 'Campaigns, not chaos',
     body: 'Post a campaign with your goals, budget, and requirements. Qualified creators apply — you shortlist, accept, or reject from one dashboard.',
     icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+    tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
   },
   {
     title: 'Credibility scores you can trust',
     body: 'Creator scores are earned from real completed collaborations on the platform — not follower counts or self-reported stats.',
     icon: <><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>,
+    tint: 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-orange-500/25',
   },
   {
     title: 'Negotiate on the record',
     body: 'Agree on deliverables and terms in built-in chat with contact moderation — a clean record of every deal, start to finish.',
     icon: <><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></>,
+    tint: 'bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-md shadow-blue-500/25',
   },
   {
     title: 'Performance in one dashboard',
     body: 'Track your campaigns, applications, and collaboration outcomes from a live dashboard built for marketing teams.',
     icon: <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
+    tint: 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md shadow-emerald-500/25',
   },
   {
     title: 'Start free, scale when ready',
     body: 'Run up to 2 active campaigns free. Premium (₹1,499/month) unlocks unlimited campaigns, unlimited discovery, and priority support.',
     icon: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
+    tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
   },
 ];
 
@@ -65,25 +71,26 @@ export default function ForBrandsPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div aria-hidden className="anim-blob absolute -top-32 left-0 w-[30rem] h-[30rem] rounded-full bg-[#7C3AED]/15 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#7C3AED] via-[#6D28D9] to-blue-600">
+        <div aria-hidden className="anim-blob absolute -top-32 left-0 w-[30rem] h-[30rem] rounded-full bg-white/10 blur-3xl" />
+        <div aria-hidden className="anim-blob absolute bottom-0 right-0 w-80 h-80 rounded-full bg-white/10 blur-3xl" style={{ animationDelay: '3s' }} />
         <div className="anim-fade-up relative max-w-4xl mx-auto px-5 sm:px-8 pt-16 pb-16 lg:pt-24 lg:pb-20 text-center">
-          <span className="inline-block text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#7C3AED] mb-4">
+          <span className="inline-block text-[0.7rem] font-bold uppercase tracking-[0.18em] text-white/80 mb-4">
             For Brands
           </span>
-          <h1 className="text-4xl sm:text-5xl font-bold leading-[1.12] tracking-tight text-gray-900 mb-5">
+          <h1 className="text-4xl sm:text-5xl font-bold leading-[1.12] tracking-tight text-white mb-5">
             Influencer marketing{' '}
-            <span className="bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
               without the guesswork
             </span>
           </h1>
-          <p className="text-base sm:text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto mb-9">
+          <p className="text-base sm:text-lg text-white/85 leading-relaxed max-w-2xl mx-auto mb-9">
             Find creators whose audience actually matches your customers. Post campaigns,
             review applications, and manage every collaboration from a single dashboard.
           </p>
           <Link
-            href="/auth/signup"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#7C3AED] to-[#5B21B6] hover:from-[#6D28D9] hover:to-[#4C1D95] shadow-lg shadow-[#7C3AED]/25 active:scale-[0.98] transition-all"
+            href="/auth/signup?role=brand"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-[#3D2A6D] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg active:scale-[0.98] transition-all"
           >
             Start your first campaign — free
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -94,12 +101,12 @@ export default function ForBrandsPage() {
       </section>
 
       {/* Benefits grid */}
-      <section className="bg-gray-50 border-y border-gray-200">
+      <section className="bg-gradient-to-br from-[#F5F3FF] via-white to-blue-50/50 border-y border-gray-200 dark:from-[#2c1f4d] dark:via-[#0E1B2E] dark:to-[rgba(30,58,138,0.20)]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {BENEFITS.map((b, i) => (
-              <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group bg-gradient-to-br from-white to-[#7C3AED]/[0.06] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
-                <span className="w-11 h-11 rounded-xl bg-[#F5F3FF] text-[#7C3AED] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+              <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group bg-gradient-to-br from-white to-[#7C3AED]/[0.06] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
+                <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${b.tint}`}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {b.icon}
                   </svg>
@@ -120,7 +127,7 @@ export default function ForBrandsPage() {
         <FaqAccordion items={FAQS} />
         <div className="text-center mt-12">
           <Link
-            href="/auth/signup"
+            href="/auth/signup?role=brand"
             className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#7C3AED] to-[#5B21B6] shadow-lg active:scale-[0.98] transition-all"
           >
             Join as a brand

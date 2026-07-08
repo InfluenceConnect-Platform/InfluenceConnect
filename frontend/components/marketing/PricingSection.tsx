@@ -112,7 +112,7 @@ export default function PricingSection() {
       {/* Plan cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {PLANS.map(plan => (
-          <div key={plan.audience} className={`bg-gradient-to-br from-white ${plan.wash} border-2 ${plan.border} rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300`}>
+          <div key={plan.audience} className={`bg-gradient-to-br from-white ${plan.wash} dark:from-[#0E1B2E] border-2 ${plan.border} rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300`}>
             <div className="p-8 pb-6 border-b border-gray-100">
               <p className={`text-xs font-bold uppercase tracking-widest ${plan.accent} mb-3`}>
                 {plan.audience}
@@ -159,7 +159,7 @@ export default function PricingSection() {
 
             <div className="px-8 pb-8">
               <Link
-                href="/auth/signup"
+                href={`/auth/signup?role=${plan.audience === 'Creators' ? 'influencer' : 'brand'}`}
                 className={`w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r ${plan.gradient} shadow-md hover:shadow-lg active:scale-[0.98] transition-all`}
               >
                 Start free as a {plan.audience === 'Creators' ? 'creator' : 'brand'}
