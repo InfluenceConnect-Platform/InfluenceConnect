@@ -12,7 +12,7 @@ import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
-import { ChatAttachment, validateChatFile, uploadChatAttachment, formatFileSize, downloadUrlFor, MAX_ATTACHMENTS_PER_MESSAGE } from '@/lib/chatAttachments';
+import { ChatAttachment, formatFileSize, downloadUrlFor } from '@/lib/chatAttachments';
 
 interface Message {
   _id: string;
@@ -82,11 +82,6 @@ const XIcon = () => (
 const CheckDoubleIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12"/><polyline points="17 3 10 10"/>
-  </svg>
-);
-const PaperclipIcon = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
   </svg>
 );
 const FileIcon = () => (
@@ -163,9 +158,6 @@ function MessagesPage() {
   const [showChat, setShowChat] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [campaignDrawerOpen, setCampaignDrawerOpen] = useState(false);
-  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
-  const [uploadingAttachments, setUploadingAttachments] = useState(false);
-  const [attachmentError, setAttachmentError] = useState('');
   const [lightbox, setLightbox] = useState<ChatAttachment | null>(null);
   const [payout, setPayout] = useState<Payout | null>(null);
   // Distinguishes "haven't checked yet" from "confirmed no payout submitted" —
@@ -176,7 +168,6 @@ function MessagesPage() {
 
   const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
   const activeIdRef = useRef<string | null>(null);
   const autoPromptedRef = useRef<Set<string>>(new Set());
@@ -253,7 +244,7 @@ function MessagesPage() {
   };
 
   const handleSend = async () => {
-    if ((!newMessage.trim() && pendingAttachments.length === 0) || !selectedDeal) return;
+    if (!newMessage.trim() || !selectedDeal) return;
     if (BLOCKED_PATTERN.test(newMessage)) {
       setBlocked(true);
       setTimeout(() => setBlocked(false), 4000);
@@ -261,16 +252,13 @@ function MessagesPage() {
     }
     if (!isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT) return;
     if (dealClosed || chatLocked) return;
-    if (uploadingAttachments) return;
 
     setSending(true);
     try {
       await api.post(`/api/messages/${selectedDeal._id}`, {
         content: newMessage.trim(),
-        attachments: pendingAttachments,
       });
       setNewMessage('');
-      setPendingAttachments([]);
       setMessagesUsed(prev => prev + 1);
       fetchMessages(selectedDeal._id);
     } catch (error) {
@@ -278,36 +266,6 @@ function MessagesPage() {
     } finally {
       setSending(false);
     }
-  };
-
-  const handleFilesSelected = async (files: FileList | null) => {
-    if (!files || files.length === 0 || !selectedDeal) return;
-    if (pendingAttachments.length + files.length > MAX_ATTACHMENTS_PER_MESSAGE) {
-      setAttachmentError(`You can attach up to ${MAX_ATTACHMENTS_PER_MESSAGE} files per message.`);
-      return;
-    }
-    setAttachmentError('');
-    setUploadingAttachments(true);
-    try {
-      for (const file of Array.from(files)) {
-        const validationError = validateChatFile(file);
-        if (validationError) { setAttachmentError(validationError); continue; }
-        try {
-          const uploaded = await uploadChatAttachment(file, selectedDeal._id);
-          setPendingAttachments(prev => [...prev, uploaded]);
-        } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : `Failed to upload "${file.name}".`;
-          setAttachmentError(message);
-        }
-      }
-    } finally {
-      setUploadingAttachments(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const removePendingAttachment = (index: number) => {
-    setPendingAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -322,8 +280,6 @@ function MessagesPage() {
     setMessages([]);
     setNewMessage('');
     setBlocked(false);
-    setPendingAttachments([]);
-    setAttachmentError('');
     setPayout(null);
     setPayoutLoaded(false);
     setPayoutModalOpen(false);
@@ -1033,41 +989,6 @@ function MessagesPage() {
                 </div>
               ) : (
                 <div className={`px-4 sm:px-5 py-3.5 border-t flex-shrink-0 ${isDark ? 'bg-[#0B1725] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
-                  {attachmentError && (
-                    <div className="mb-2 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-200/70">
-                      <span className="text-[11.5px] text-red-600 font-medium">{attachmentError}</span>
-                      <button onClick={() => setAttachmentError('')} className="text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0"><XIcon /></button>
-                    </div>
-                  )}
-                  {(pendingAttachments.length > 0 || uploadingAttachments) && (
-                    <div className="mb-2 flex items-center gap-2 flex-wrap">
-                      {pendingAttachments.map((att, i) => (
-                        <div key={i} className={`relative flex items-center gap-1.5 pl-1.5 pr-2 py-1.5 rounded-xl border ${isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-gray-50 border-gray-200'}`}>
-                          {att.type === 'image' ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={att.url} alt="" className="w-8 h-8 rounded-lg object-cover" />
-                          ) : att.type === 'video' ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={att.thumbnailUrl || att.url} alt="" className="w-8 h-8 rounded-lg object-cover" />
-                          ) : (
-                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-slate-700/60 text-slate-300' : 'bg-white text-gray-500'}`}><FileIcon /></span>
-                          )}
-                          <span className={`text-[11px] max-w-[100px] truncate ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>{att.fileName}</span>
-                          <button
-                            onClick={() => removePendingAttachment(i)}
-                            className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer ${isDark ? 'bg-slate-700 text-slate-400 hover:text-white' : 'bg-gray-200 text-gray-500 hover:text-gray-800'}`}
-                          >
-                            <XIcon />
-                          </button>
-                        </div>
-                      ))}
-                      {uploadingAttachments && (
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-gray-50 border-gray-200'}`}>
-                          <span className="w-3.5 h-3.5 border-2 border-gray-400/40 border-t-gray-500 rounded-full animate-spin" />
-                        </div>
-                      )}
-                    </div>
-                  )}
                   <div className={`flex items-center gap-2.5 px-2 py-2 rounded-2xl border transition-all duration-200 ${
                     limitReached
                       ? isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-gray-50 border-gray-200'
@@ -1075,21 +996,6 @@ function MessagesPage() {
                       ? 'bg-slate-800/40 border-slate-700 focus-within:border-[#27717E] focus-within:shadow-lg focus-within:shadow-teal-900/30 focus-within:ring-2 focus-within:ring-[#27717E]/20'
                       : 'bg-white border-gray-200 focus-within:border-[#27717E] focus-within:shadow-lg focus-within:shadow-teal-100/40 focus-within:ring-2 focus-within:ring-[#27717E]/10'
                   }`}>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      hidden
-                      onChange={e => handleFilesSelected(e.target.files)}
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={limitReached || uploadingAttachments}
-                      title="Attach files"
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${isDark ? 'text-slate-400 hover:bg-slate-700/60 hover:text-slate-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
-                    >
-                      <PaperclipIcon />
-                    </button>
                     <input
                       ref={inputRef}
                       type="text"
@@ -1107,9 +1013,9 @@ function MessagesPage() {
                     )}
                     <button
                       onClick={handleSend}
-                      disabled={sending || uploadingAttachments || (!newMessage.trim() && pendingAttachments.length === 0) || limitReached}
+                      disabled={sending || !newMessage.trim() || limitReached}
                       className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
-                        (newMessage.trim() || pendingAttachments.length > 0) && !limitReached && !uploadingAttachments
+                        newMessage.trim() && !limitReached
                           ? 'bg-[#27717E] hover:bg-[#1C5A65] text-white shadow-sm hover:shadow-md active:scale-95 cursor-pointer'
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       }`}
