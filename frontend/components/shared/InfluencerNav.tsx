@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import { cdnImg } from '@/lib/img';
 
 // Cached across client-side navigations so the profile picture shows instantly
 // on re-mount instead of flashing the letter avatar while it re-fetches. It's
@@ -318,7 +319,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
           >
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              <img loading="lazy" decoding="async" src={cdnImg(avatarUrl)} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <span className="text-[#9C4A33] font-bold text-sm">{user?.name?.charAt(0).toUpperCase() ?? '?'}</span>
             )}

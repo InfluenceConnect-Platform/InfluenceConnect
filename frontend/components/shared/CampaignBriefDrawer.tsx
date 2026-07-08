@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 // Slide-in drawer that shows the full brief for the campaign behind a deal.
 // It opens immediately with the summary already known from the deal, then
@@ -181,7 +182,7 @@ export default function CampaignBriefDrawer({
               <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-white font-bold ${isDark ? 'bg-teal-700' : 'bg-teal-600'}`}>
                 {brandLogoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={brandLogoUrl} alt={resolvedBrand} className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={cdnImg(brandLogoUrl)} alt={resolvedBrand} className="w-full h-full object-cover" />
                 ) : (
                   (resolvedBrand || '?').charAt(0).toUpperCase()
                 )}

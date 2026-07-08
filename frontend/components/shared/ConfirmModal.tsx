@@ -88,7 +88,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           <div
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-700 shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200"
+            className="relative w-full max-w-sm max-h-[85dvh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-700 shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200"
           >
             <div className="flex items-start gap-4">
               <span className={`flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center ${variant.chip}`}>

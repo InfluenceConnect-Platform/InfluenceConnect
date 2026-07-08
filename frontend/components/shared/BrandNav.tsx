@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import { cdnImg } from '@/lib/img';
 
 // Cached across client-side navigations so the brand logo shows instantly on
 // re-mount instead of flashing the letter avatar while it re-fetches. It's null
@@ -324,7 +325,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           >
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt="Brand logo" className="w-full h-full object-cover" />
+              <img loading="lazy" decoding="async" src={cdnImg(logoUrl)} alt="Brand logo" className="w-full h-full object-cover" />
             ) : (
               <span className="text-[#3D5087] font-bold text-sm">{user?.name?.charAt(0).toUpperCase() ?? '?'}</span>
             )}

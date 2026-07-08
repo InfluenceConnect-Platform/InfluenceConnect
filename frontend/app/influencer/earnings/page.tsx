@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { NICHE_STYLES, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 interface EarningsSummary {
   totalEarnings: number;
@@ -486,7 +487,7 @@ export default function EarningsPage() {
                             <div className="flex items-center gap-2.5">
                               {deal.brandLogoUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={deal.brandLogoUrl} alt={deal.brandName} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+                                <img loading="lazy" decoding="async" src={cdnImg(deal.brandLogoUrl)} alt={deal.brandName} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
                               ) : (
                                 <div className={`w-8 h-8 rounded-lg text-[11px] font-bold text-white flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${grad}`}>
                                   {deal.brandName?.charAt(0).toUpperCase() || '?'}
@@ -532,7 +533,7 @@ export default function EarningsPage() {
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                           {deal.brandLogoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={deal.brandLogoUrl} alt={deal.brandName} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+                            <img loading="lazy" decoding="async" src={cdnImg(deal.brandLogoUrl)} alt={deal.brandName} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
                           ) : (
                             <div className={`w-8 h-8 rounded-lg text-[11px] font-bold text-white flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${grad}`}>
                               {deal.brandName?.charAt(0).toUpperCase() || '?'}

@@ -9,6 +9,7 @@ import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { NICHES, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
@@ -1298,7 +1299,7 @@ function ApplicationsList({
             }`}>
               {app.influencerProfile?.profilePicUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={app.influencerProfile.profilePicUrl} alt={app.influencerId?.name} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={cdnImg(app.influencerProfile.profilePicUrl)} alt={app.influencerId?.name} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-white font-bold text-sm">{app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'}</span>
               )}

@@ -8,6 +8,7 @@ import InfluencerNav from '@/components/shared/InfluencerNav';
 import IdChip from '@/components/shared/IdChip';
 import { useTheme } from '@/lib/useTheme';
 import { NICHES, NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
@@ -134,7 +135,7 @@ function MediaModal({ items, startIndex, onClose }: { items: MediaItem[]; startI
             style={{ maxWidth: 'min(680px, 90vw)' }} />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={current.src} src={current.src} alt={current.label ?? 'media'}
+          <img decoding="async" key={current.src} src={cdnImg(current.src, 1600)} alt={current.label ?? 'media'}
             className="max-w-full max-h-[88vh] w-auto h-auto rounded-xl shadow-2xl object-contain"
             style={{ maxWidth: 'min(680px, 90vw)' }} />
         )}
@@ -786,7 +787,7 @@ function InfluencerProfile() {
                       <div className="w-full h-full cursor-zoom-in"
                         onClick={() => openModal([{ type: 'image', src: profile.coverPhotoUrl, label: 'Cover Photo' }], 0)}
                         title="Click to view cover photo">
-                        <img src={profile.coverPhotoUrl} alt="cover" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
+                        <img loading="lazy" decoding="async" src={cdnImg(profile.coverPhotoUrl, 1600)} alt="cover" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
                       </div>
                     ) : null}
                     <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
@@ -801,7 +802,7 @@ function InfluencerProfile() {
                         }}
                         title={profile.profilePicUrl ? 'Click to view profile picture' : undefined}>
                         {profile.profilePicUrl
-                          ? <img src={profile.profilePicUrl} alt={name} className="w-full h-full object-cover" />
+                          ? <img loading="lazy" decoding="async" src={cdnImg(profile.profilePicUrl)} alt={name} className="w-full h-full object-cover" />
                           : <span className="text-white font-bold text-3xl select-none">{name.charAt(0).toUpperCase()}</span>}
                       </div>
                     </div>
@@ -1057,7 +1058,7 @@ function InfluencerProfile() {
                               {item.type === 'video' ? (
                                 <>
                                   {item.thumbnailUrl
-                                    ? <img src={item.thumbnailUrl} alt="reel thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                    ? <img loading="lazy" decoding="async" src={cdnImg(item.thumbnailUrl, 640)} alt="reel thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                     : (
                                       <div className="w-full h-full bg-gray-900 flex items-center justify-center">
                                         <svg className="w-8 h-8 text-white/30" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -1076,7 +1077,7 @@ function InfluencerProfile() {
                                 </>
                               ) : (
                                 <>
-                                  <img src={item.cloudinaryUrl} alt={`post-${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                  <img loading="lazy" decoding="async" src={cdnImg(item.cloudinaryUrl, 640)} alt={`post-${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
                                       <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1143,7 +1144,7 @@ function InfluencerProfile() {
             <div className="relative group">
               <div className="h-36 sm:h-44 w-full overflow-hidden bg-gradient-to-r from-[#e0eafc] to-[#cfdef3]">
                 {profile.coverPhotoUrl ? (
-                  <img src={profile.coverPhotoUrl} alt="Cover" className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={cdnImg(profile.coverPhotoUrl, 1600)} alt="Cover" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <p className="text-sm text-gray-400 font-medium">No cover photo</p>
@@ -1209,7 +1210,7 @@ function InfluencerProfile() {
                   title={isEditing ? (profile?.profilePicUrl ? 'Change profile picture' : 'Upload profile picture') : undefined}
                 >
                   {profile?.profilePicUrl ? (
-                    <img src={profile.profilePicUrl} alt={profile?.userId?.name || 'Profile'} className="w-full h-full object-cover" />
+                    <img loading="lazy" decoding="async" src={cdnImg(profile.profilePicUrl)} alt={profile?.userId?.name || 'Profile'} className="w-full h-full object-cover" />
                   ) : (
                     (profile?.userId?.name || 'I')[0].toUpperCase()
                   )}
@@ -1817,15 +1818,15 @@ function InfluencerProfile() {
                       }`}
                     >
                       {item.type === 'image' ? (
-                        <img
-                          src={item.cloudinaryUrl}
+                        <img loading="lazy" decoding="async"
+                          src={cdnImg(item.cloudinaryUrl, 640)}
                           alt={`Content ${index + 1}`}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden">
                           {item.thumbnailUrl ? (
-                            <img src={item.thumbnailUrl} alt={`Reel ${index + 1}`} className="w-full h-full object-cover opacity-75" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                            <img loading="lazy" decoding="async" src={cdnImg(item.thumbnailUrl, 640)} alt={`Reel ${index + 1}`} className="w-full h-full object-cover opacity-75" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
                           )}

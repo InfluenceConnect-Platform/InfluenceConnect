@@ -11,6 +11,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import ApplicationDetailDrawer from '@/components/shared/ApplicationDetailDrawer';
 import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 const PLATFORMS = ['any', 'instagram', 'youtube', 'facebook'];
 const SORT_OPTIONS = [
@@ -538,7 +539,7 @@ export default function InfluencerCampaigns() {
                       <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center ${!campaign.brandLogoUrl ? `bg-gradient-to-br ${brandGrad}` : 'bg-gray-100 dark:bg-slate-700'}`}>
                         {campaign.brandLogoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={campaign.brandLogoUrl} alt={brandName} className="w-full h-full object-cover" />
+                          <img loading="lazy" decoding="async" src={cdnImg(campaign.brandLogoUrl)} alt={brandName} className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-[11px] font-bold text-white">{brandName.slice(0, 2).toUpperCase()}</span>
                         )}

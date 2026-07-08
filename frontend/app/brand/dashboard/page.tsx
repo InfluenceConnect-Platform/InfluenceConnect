@@ -8,6 +8,7 @@ import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
 import BrandAnalytics, { BrandAnalyticsData } from '@/components/charts/BrandAnalytics';
+import { cdnImg } from '@/lib/img';
 
 const STATUS_CONFIG: Record<string, { cls: string; label: string }> = {
   applied:     { cls: 'bg-blue-50 text-blue-700 border border-blue-100',   label: 'Applied' },
@@ -320,7 +321,7 @@ export default function BrandDashboard() {
                     <Link key={i} href={`/brand/campaigns?campaign=${app.campaignId?._id}`} className="flex items-center gap-4 px-5 sm:px-6 py-4 hover:bg-gray-50/60 dark:hover:bg-slate-800/60 transition-colors group cursor-pointer">
                       <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm ${app.influencerProfile?.profilePicUrl ? 'bg-gray-100' : `bg-gradient-to-br ${grad} text-white`}`}>
                         {app.influencerProfile?.profilePicUrl ? (
-                          <img src={app.influencerProfile.profilePicUrl} alt={app.influencerId?.name} className="w-full h-full object-cover" />
+                          <img loading="lazy" decoding="async" src={cdnImg(app.influencerProfile.profilePicUrl)} alt={app.influencerId?.name} className="w-full h-full object-cover" />
                         ) : (
                           app.influencerId?.name?.charAt(0).toUpperCase() ?? '?'
                         )}

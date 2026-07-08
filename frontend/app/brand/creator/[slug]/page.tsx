@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import api from '@/lib/api';
 import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 /* ─── constants ────────────────────────────────────── */
 
@@ -178,9 +179,9 @@ function MediaModal({
           />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <img decoding="async"
             key={current.src}
-            src={current.src}
+            src={cdnImg(current.src, 1600)}
             alt={current.label ?? 'media'}
             className="max-w-full max-h-[88vh] w-auto h-auto rounded-xl shadow-2xl object-contain"
             style={{ maxWidth: 'min(680px, 90vw)' }}
@@ -401,7 +402,7 @@ export default function CreatorProfilePage() {
                 onClick={() => openModal([{ type: 'image', src: profile.coverPhotoUrl, label: 'Cover Photo' }], 0)}
                 title="Click to view cover photo"
               >
-                <img src={profile.coverPhotoUrl} alt="cover" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
+                <img loading="lazy" decoding="async" src={cdnImg(profile.coverPhotoUrl, 1600)} alt="cover" className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
               </div>
             ) : null}
             <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
@@ -421,7 +422,7 @@ export default function CreatorProfilePage() {
                 title={profile.profilePicUrl ? 'Click to view profile picture' : undefined}
               >
                 {profile.profilePicUrl
-                  ? <img src={profile.profilePicUrl} alt={name} className="w-full h-full object-cover" />
+                  ? <img loading="lazy" decoding="async" src={cdnImg(profile.profilePicUrl)} alt={name} className="w-full h-full object-cover" />
                   : <span className="text-white font-bold text-3xl select-none">{name.charAt(0).toUpperCase()}</span>
                 }
               </div>
@@ -751,8 +752,8 @@ export default function CreatorProfilePage() {
                         aria-label="Blurred post"
                       >
                         {blurSrc && (
-                          <img
-                            src={blurSrc}
+                          <img loading="lazy" decoding="async"
+                            src={cdnImg(blurSrc, 64)}
                             alt=""
                             className="w-full h-full object-cover"
                             style={{ filter: 'blur(12px)', transform: 'scale(1.1)' }}
@@ -777,7 +778,7 @@ export default function CreatorProfilePage() {
                       {item.type === 'video' ? (
                         <>
                           {item.thumbnailUrl
-                            ? <img src={item.thumbnailUrl} alt="reel thumbnail"
+                            ? <img loading="lazy" decoding="async" src={cdnImg(item.thumbnailUrl, 640)} alt="reel thumbnail"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             : (
                               <div className="w-full h-full bg-gray-900 flex items-center justify-center">
@@ -803,7 +804,7 @@ export default function CreatorProfilePage() {
                         </>
                       ) : (
                         <>
-                          <img src={item.cloudinaryUrl} alt={`post-${i}`}
+                          <img loading="lazy" decoding="async" src={cdnImg(item.cloudinaryUrl, 640)} alt={`post-${i}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">

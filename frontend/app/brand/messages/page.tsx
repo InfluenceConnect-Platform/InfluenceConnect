@@ -13,6 +13,7 @@ import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { ChatAttachment, validateChatFile, uploadChatAttachment, formatFileSize, downloadUrlFor, MAX_ATTACHMENTS_PER_MESSAGE } from '@/lib/chatAttachments';
+import { cdnImg } from '@/lib/img';
 
 interface Message {
   _id: string;
@@ -467,10 +468,10 @@ function BrandMessages() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${isDark ? 'bg-[#060D1A]' : 'bg-[#ECEEF6]'}`}>
+    <div className={`h-[100dvh] flex flex-col overflow-hidden ${isDark ? 'bg-[#060D1A]' : 'bg-[#ECEEF6]'}`}>
       <BrandNav user={user} />
 
-      <div className="flex flex-1 min-h-0 overflow-hidden" style={{ height: 'calc(100vh - 60px)' }}>
+      <div className="flex flex-1 min-h-0 overflow-hidden">
 
         {/* ── Sidebar ── */}
         <aside className={`
@@ -581,7 +582,7 @@ function BrandMessages() {
                           }`}>
                             {deal.influencerProfile?.profilePicUrl ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={deal.influencerProfile.profilePicUrl} alt={deal.influencerId?.name} className="w-full h-full object-cover" />
+                              <img loading="lazy" decoding="async" src={cdnImg(deal.influencerProfile.profilePicUrl)} alt={deal.influencerId?.name} className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-white font-bold text-[13px]">{initials}</span>
                             )}
@@ -688,7 +689,7 @@ function BrandMessages() {
                 } ${canVisitProfile ? 'cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-indigo-400/60 hover:brightness-95 active:scale-95' : ''}`}>
                   {selectedDeal.influencerProfile?.profilePicUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={selectedDeal.influencerProfile.profilePicUrl} alt={selectedDeal.influencerId?.name} className="w-full h-full object-cover" />
+                    <img loading="lazy" decoding="async" src={cdnImg(selectedDeal.influencerProfile.profilePicUrl)} alt={selectedDeal.influencerId?.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-white font-bold text-sm">{getInitials(selectedDeal.influencerId?.name)}</span>
                   )}
@@ -923,7 +924,7 @@ function BrandMessages() {
                             } ${!selectedDeal.influencerProfile?.profilePicUrl ? `bg-gradient-to-br ${getAvatarColor(selectedDeal.influencerId?.name || '')}` : 'bg-gray-100'}`}>
                               {selectedDeal.influencerProfile?.profilePicUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={selectedDeal.influencerProfile.profilePicUrl} alt="" className="w-full h-full object-cover" />
+                                <img loading="lazy" decoding="async" src={cdnImg(selectedDeal.influencerProfile.profilePicUrl)} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-white text-[9px] font-bold">{getInitials(selectedDeal.influencerId?.name)}</span>
                               )}
@@ -942,7 +943,7 @@ function BrandMessages() {
                                       className={`block overflow-hidden ${bubbleShape} border cursor-pointer ${isDark ? 'border-slate-700/50' : 'border-gray-200/50'}`}
                                     >
                                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img src={att.url} alt={att.fileName || 'Photo'} className="max-w-[240px] max-h-[320px] object-cover" />
+                                      <img loading="lazy" decoding="async" src={cdnImg(att.url, 480)} alt={att.fileName || 'Photo'} className="max-w-[240px] max-h-[320px] object-cover" />
                                     </button>
                                   ) : att.type === 'video' ? (
                                     <button
@@ -953,7 +954,7 @@ function BrandMessages() {
                                     >
                                       {att.thumbnailUrl ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={att.thumbnailUrl} alt="" className="max-w-[240px] max-h-[320px] object-cover" />
+                                        <img loading="lazy" decoding="async" src={cdnImg(att.thumbnailUrl, 480)} alt="" className="max-w-[240px] max-h-[320px] object-cover" />
                                       ) : (
                                         <div className="w-[200px] h-[140px] bg-black/70" />
                                       )}
@@ -1106,10 +1107,10 @@ function BrandMessages() {
                         <div key={i} className={`relative flex items-center gap-1.5 pl-1.5 pr-2 py-1.5 rounded-xl border ${isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-gray-50 border-gray-200'}`}>
                           {att.type === 'image' ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={att.url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                            <img loading="lazy" decoding="async" src={cdnImg(att.url)} alt="" className="w-8 h-8 rounded-lg object-cover" />
                           ) : att.type === 'video' ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={att.thumbnailUrl || att.url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                            <img loading="lazy" decoding="async" src={cdnImg(att.thumbnailUrl || att.url)} alt="" className="w-8 h-8 rounded-lg object-cover" />
                           ) : (
                             <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-slate-700/60 text-slate-300' : 'bg-white text-gray-500'}`}><FileIcon /></span>
                           )}
@@ -1237,7 +1238,7 @@ function BrandMessages() {
           </button>
           {lightbox.type === 'image' ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={lightbox.url} alt="" className="max-w-full max-h-full rounded-lg object-contain" onClick={e => e.stopPropagation()} />
+            <img decoding="async" src={cdnImg(lightbox.url, 1600)} alt="" className="max-w-full max-h-full rounded-lg object-contain" onClick={e => e.stopPropagation()} />
           ) : (
             <video src={lightbox.url} controls autoPlay className="max-w-full max-h-full rounded-lg" onClick={e => e.stopPropagation()} />
           )}

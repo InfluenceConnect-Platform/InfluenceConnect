@@ -31,6 +31,16 @@ const PREMIUM_FEATURES = [
   'All Freemium features included',
 ];
 
+const COMPARE_ROWS: { feature: string; free: string | boolean; premium: string | boolean }[] = [
+  { feature: 'Active campaigns',          free: '2',          premium: 'Unlimited' },
+  { feature: 'Creator profile views',     free: '10/day',     premium: 'Unlimited' },
+  { feature: 'Daily messages',            free: '10/day',     premium: 'Unlimited' },
+  { feature: 'Search & filter creators',  free: true,         premium: true },
+  { feature: 'Application management',    free: true,         premium: true },
+  { feature: 'Campaign dashboard',        free: true,         premium: true },
+  { feature: 'Priority support',          free: false,        premium: true },
+];
+
 const FAQS = [
   {
     q: 'Can I cancel anytime?',
@@ -60,6 +70,17 @@ const XIcon = () => (
     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
 );
+const CompareValue = ({ value, premium }: { value: string | boolean; premium: boolean }) => {
+  if (typeof value === 'boolean') {
+    return value
+      ? <span className="inline-flex w-5 h-5 rounded-full bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white items-center justify-center shadow-sm"><CheckIcon /></span>
+      : <span className="inline-flex w-5 h-5 rounded-full bg-gray-100 text-gray-300 items-center justify-center"><XIcon /></span>;
+  }
+  return premium
+    ? <span className="text-white font-semibold text-xs bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] px-2 py-0.5 rounded-full whitespace-nowrap">{value}</span>
+    : <span className="text-gray-600 font-medium text-xs bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">{value}</span>;
+};
+
 const StarIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -459,39 +480,37 @@ export default function BrandBillingPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {[
-                { feature: 'Active campaigns',          free: '2',          premium: 'Unlimited' },
-                { feature: 'Creator profile views',     free: '10/day',     premium: 'Unlimited' },
-                { feature: 'Daily messages',            free: '10/day',     premium: 'Unlimited' },
-                { feature: 'Search & filter creators',  free: true,         premium: true },
-                { feature: 'Application management',     free: true,         premium: true },
-                { feature: 'Campaign dashboard',        free: true,         premium: true },
-                { feature: 'Priority support',          free: false,        premium: true },
-              ].map((row, i) => (
+              {COMPARE_ROWS.map((row, i) => (
                 <tr key={i} className="hover:bg-blue-50/20 transition-colors">
                   <td className="px-6 py-3.5 font-medium text-gray-700">{row.feature}</td>
-                  <td className="px-6 py-3.5 text-center">
-                    {typeof row.free === 'boolean' ? (
-                      row.free
-                        ? <span className="inline-flex w-5 h-5 rounded-full bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white items-center justify-center mx-auto shadow-sm"><CheckIcon /></span>
-                        : <span className="inline-flex w-5 h-5 rounded-full bg-gray-100 text-gray-300 items-center justify-center mx-auto"><XIcon /></span>
-                    ) : (
-                      <span className="text-gray-600 font-medium text-xs bg-gray-100 px-2 py-0.5 rounded-full">{row.free}</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-3.5 text-center">
-                    {typeof row.premium === 'boolean' ? (
-                      row.premium
-                        ? <span className="inline-flex w-5 h-5 rounded-full bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white items-center justify-center mx-auto shadow-sm"><CheckIcon /></span>
-                        : <span className="inline-flex w-5 h-5 rounded-full bg-gray-100 text-gray-300 items-center justify-center mx-auto"><XIcon /></span>
-                    ) : (
-                      <span className="text-white font-semibold text-xs bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] px-2 py-0.5 rounded-full">{row.premium}</span>
-                    )}
-                  </td>
+                  <td className="px-6 py-3.5 text-center"><CompareValue value={row.free} premium={false} /></td>
+                  <td className="px-6 py-3.5 text-center"><CompareValue value={row.premium} premium /></td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Compare table — mobile */}
+        <div className="md:hidden bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-8">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50/60 to-white flex items-center gap-3">
+            <div className="w-1 h-7 rounded-full bg-gradient-to-b from-[#3D5087] to-[#2B3B68]" />
+            <h3 className="font-bold text-gray-900">Full feature comparison</h3>
+          </div>
+          <div className="grid grid-cols-[1fr_72px_84px] items-center gap-x-2 px-5 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-blue-50/30">
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Feature</span>
+            <span className="text-center text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Free</span>
+            <span className="text-center text-[11px] font-semibold text-[#3D5087] uppercase tracking-wider">Premium</span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {COMPARE_ROWS.map((row, i) => (
+              <div key={i} className="grid grid-cols-[1fr_72px_84px] items-center gap-x-2 px-5 py-3.5">
+                <span className="text-[13px] font-medium text-gray-700 leading-snug">{row.feature}</span>
+                <span className="flex justify-center"><CompareValue value={row.free} premium={false} /></span>
+                <span className="flex justify-center"><CompareValue value={row.premium} premium /></span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* FAQ */}

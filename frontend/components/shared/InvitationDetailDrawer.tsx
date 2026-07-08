@@ -4,6 +4,7 @@ import { useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import IdChip from '@/components/shared/IdChip';
 import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 const NAVY = '#3D5087';
 
@@ -130,7 +131,7 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                   <div className={`w-14 h-14 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${grad} shadow-sm`}>
                     {avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={avatar} alt={name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={cdnImg(avatar)} alt={name} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-white font-bold text-xl">{name.charAt(0).toUpperCase()}</span>
                     )}

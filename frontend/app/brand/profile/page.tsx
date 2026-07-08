@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
 import { INDUSTRIES, NICHE_STYLES as INDUSTRY_COLORS, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 // Structural check for an Indian GSTIN (mirrors the backend validator).
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -235,7 +236,7 @@ export default function BrandProfile() {
               >
                 {profile?.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={profile.logoUrl} alt="Brand logo" className="w-full h-full object-cover" />
+                  <img loading="lazy" decoding="async" src={cdnImg(profile.logoUrl)} alt="Brand logo" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-[#3D5087] font-black text-2xl select-none">
                     {displayName.charAt(0).toUpperCase()}

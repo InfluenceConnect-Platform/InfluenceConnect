@@ -8,6 +8,7 @@ import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   pending:  { cls: 'bg-amber-50 text-amber-700 border border-amber-200', dot: 'bg-amber-400', label: 'Pending' },
@@ -245,7 +246,7 @@ export default function InfluencerInvitations() {
                       <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${grad} shadow-sm`}>
                         {inv.brandLogoUrl
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={inv.brandLogoUrl} alt={brandName} className="w-full h-full object-cover" />
+                          ? <img loading="lazy" decoding="async" src={cdnImg(inv.brandLogoUrl)} alt={brandName} className="w-full h-full object-cover" />
                           : <span className="text-white font-bold text-sm">{brandName.charAt(0).toUpperCase()}</span>
                         }
                       </div>

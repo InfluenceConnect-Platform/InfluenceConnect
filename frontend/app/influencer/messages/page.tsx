@@ -13,6 +13,7 @@ import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { ChatAttachment, formatFileSize, downloadUrlFor } from '@/lib/chatAttachments';
+import { cdnImg } from '@/lib/img';
 
 interface Message {
   _id: string;
@@ -469,7 +470,7 @@ function MessagesPage() {
                           }`}>
                             {deal.brandLogoUrl ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={deal.brandLogoUrl} alt={deal.brandId?.name} className="w-full h-full object-cover" />
+                              <img loading="lazy" decoding="async" src={cdnImg(deal.brandLogoUrl)} alt={deal.brandId?.name} className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-white font-bold text-[13px]">{initials}</span>
                             )}
@@ -583,7 +584,7 @@ function MessagesPage() {
                 } ${canViewCampaign ? 'cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-teal-400/60 hover:brightness-95 active:scale-95' : ''}`}>
                   {selectedDeal.brandLogoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={selectedDeal.brandLogoUrl} alt={selectedDeal.brandId?.name} className="w-full h-full object-cover" />
+                    <img loading="lazy" decoding="async" src={cdnImg(selectedDeal.brandLogoUrl)} alt={selectedDeal.brandId?.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-white font-bold text-sm">{getInitials(selectedDeal.brandId?.name)}</span>
                   )}
@@ -804,7 +805,7 @@ function MessagesPage() {
                             } ${!selectedDeal.brandLogoUrl ? `bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')}` : 'bg-gray-100'}`}>
                               {selectedDeal.brandLogoUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={selectedDeal.brandLogoUrl} alt="" className="w-full h-full object-cover" />
+                                <img loading="lazy" decoding="async" src={cdnImg(selectedDeal.brandLogoUrl)} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-white text-[9px] font-bold">{getInitials(selectedDeal.brandId?.name)}</span>
                               )}
@@ -823,7 +824,7 @@ function MessagesPage() {
                                       className={`block overflow-hidden ${bubbleShape} border cursor-pointer ${isDark ? 'border-slate-700/50' : 'border-gray-200/50'}`}
                                     >
                                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img src={att.url} alt={att.fileName || 'Photo'} className="max-w-[240px] max-h-[320px] object-cover" />
+                                      <img loading="lazy" decoding="async" src={cdnImg(att.url, 480)} alt={att.fileName || 'Photo'} className="max-w-[240px] max-h-[320px] object-cover" />
                                     </button>
                                   ) : att.type === 'video' ? (
                                     <button
@@ -834,7 +835,7 @@ function MessagesPage() {
                                     >
                                       {att.thumbnailUrl ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={att.thumbnailUrl} alt="" className="max-w-[240px] max-h-[320px] object-cover" />
+                                        <img loading="lazy" decoding="async" src={cdnImg(att.thumbnailUrl, 480)} alt="" className="max-w-[240px] max-h-[320px] object-cover" />
                                       ) : (
                                         <div className="w-[200px] h-[140px] bg-black/70" />
                                       )}
@@ -894,7 +895,7 @@ function MessagesPage() {
                             } bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0]`}>
                               {profilePicUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={profilePicUrl} alt="" className="w-full h-full object-cover" />
+                                <img loading="lazy" decoding="async" src={cdnImg(profilePicUrl)} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-[#9C4A33] text-[9px] font-bold">{user?.name?.charAt(0).toUpperCase()}</span>
                               )}
@@ -1095,7 +1096,7 @@ function MessagesPage() {
           </button>
           {lightbox.type === 'image' ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={lightbox.url} alt="" className="max-w-full max-h-full rounded-lg object-contain" onClick={e => e.stopPropagation()} />
+            <img decoding="async" src={cdnImg(lightbox.url, 1600)} alt="" className="max-w-full max-h-full rounded-lg object-contain" onClick={e => e.stopPropagation()} />
           ) : (
             <video src={lightbox.url} controls autoPlay className="max-w-full max-h-full rounded-lg" onClick={e => e.stopPropagation()} />
           )}

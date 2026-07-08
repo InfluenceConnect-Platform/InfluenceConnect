@@ -188,7 +188,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
       <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
 
       {/* Modal panel */}
-      <div className={`relative w-full max-w-md rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.5),0_16px_48px_rgba(0,0,0,0.4)] animate-in fade-in zoom-in-95 duration-200 transition-colors ${
+      <div className={`relative w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.5),0_16px_48px_rgba(0,0,0,0.4)] animate-in fade-in zoom-in-95 duration-200 transition-colors ${
         isDark
           ? 'border border-slate-700/60 shadow-[0_0_0_1px_rgba(255,255,255,0.06)]'
           : 'border border-gray-200'

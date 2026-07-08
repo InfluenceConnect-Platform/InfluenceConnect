@@ -6,6 +6,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
 import { NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 const TEAL = '#7FA8AD';
 
@@ -301,7 +302,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                   <div className="bg-white border border-gray-100 rounded-xl p-3.5">
                     <div className="flex items-center gap-3">
                       {brand.logoUrl ? (
-                        <img src={brand.logoUrl} alt={brand.name} className="w-11 h-11 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                        <img loading="lazy" decoding="async" src={cdnImg(brand.logoUrl)} alt={brand.name} className="w-11 h-11 rounded-full object-cover flex-shrink-0 shadow-sm" />
                       ) : (
                         <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
                           {(brand.name || brand.companyName)?.charAt(0).toUpperCase()}
@@ -348,7 +349,7 @@ export default function CampaignDetailDrawer({ campaignId, onClose, onChanged }:
                       {apps.list.map((a: any, i: number) => (
                         <div key={i} className="bg-white border border-gray-100 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
                           {a.avatarUrl ? (
-                            <img src={a.avatarUrl} alt={a.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                            <img loading="lazy" decoding="async" src={cdnImg(a.avatarUrl)} alt={a.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0">
                               {a.name?.charAt(0).toUpperCase()}

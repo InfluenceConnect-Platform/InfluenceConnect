@@ -7,6 +7,7 @@ import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
 import { NICHE_LABELS } from '@/lib/niches';
 import { downloadUrlFor } from '@/lib/chatAttachments';
+import { cdnImg } from '@/lib/img';
 
 const TEAL = '#7FA8AD';
 
@@ -252,7 +253,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
             <div className="px-5 pt-5 pb-4 bg-white border-b border-gray-100">
               <div className="flex items-start gap-3.5">
                 {data.avatarUrl ? (
-                  <img src={data.avatarUrl} alt={user.name} className="w-14 h-14 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                  <img loading="lazy" decoding="async" src={cdnImg(data.avatarUrl)} alt={user.name} className="w-14 h-14 rounded-full object-cover flex-shrink-0 shadow-sm" />
                 ) : (
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-sm">
                     {user.name?.charAt(0).toUpperCase()}

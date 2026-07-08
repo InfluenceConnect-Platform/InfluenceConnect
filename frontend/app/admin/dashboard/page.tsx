@@ -13,6 +13,7 @@ import AdminRevenueChart from '@/components/charts/AdminRevenueChart';
 import AdminDonut from '@/components/charts/AdminDonut';
 import AdminCategoryBars from '@/components/charts/AdminCategoryBars';
 import { NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 const CAMPAIGN_STATUS_META: { key: string; label: string; color: string }[] = [
   { key: 'active',      label: 'Active',      color: '#22c55e' },
@@ -292,7 +293,7 @@ export default function AdminDashboard() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
                           {u.avatarUrl ? (
-                            <img src={u.avatarUrl} alt={u.name} className="w-7 h-7 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                            <img loading="lazy" decoding="async" src={cdnImg(u.avatarUrl)} alt={u.name} className="w-7 h-7 rounded-full object-cover flex-shrink-0 shadow-sm" />
                           ) : (
                             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0 shadow-sm">
                               {u.name?.charAt(0).toUpperCase()}
@@ -337,7 +338,7 @@ export default function AdminDashboard() {
               {recentSignups.map((u, i) => (
                 <div key={i} onClick={() => setSelectedUserId(u._id)} className="flex items-center gap-3 px-4 py-3.5 cursor-pointer active:bg-gray-50">
                   {u.avatarUrl ? (
-                    <img src={u.avatarUrl} alt={u.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                    <img loading="lazy" decoding="async" src={cdnImg(u.avatarUrl)} alt={u.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-sm" />
                   ) : (
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
                       {u.name?.charAt(0).toUpperCase()}

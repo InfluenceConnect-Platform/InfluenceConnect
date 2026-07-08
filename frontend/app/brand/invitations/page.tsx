@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import InvitationDetailDrawer from '@/components/shared/InvitationDetailDrawer';
+import { cdnImg } from '@/lib/img';
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   pending:  { cls: 'bg-amber-50 text-amber-700 border border-amber-200', dot: 'bg-amber-400', label: 'Pending' },
@@ -166,7 +167,7 @@ export default function BrandInvitations() {
                     <div className={`w-11 h-11 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${grad} shadow-sm`}>
                       {inv.influencerProfilePicUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={inv.influencerProfilePicUrl} alt={name} className="w-full h-full object-cover" />
+                        <img loading="lazy" decoding="async" src={cdnImg(inv.influencerProfilePicUrl)} alt={name} className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-white font-bold">{name.charAt(0).toUpperCase()}</span>
                       )}

@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 import { useToast } from '@/components/shared/Toast';
 import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
+import { cdnImg } from '@/lib/img';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
@@ -1165,7 +1166,7 @@ function BrandDiscover() {
                           <div className={`w-14 h-14 rounded-full border-[3px] border-white shadow-md overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center flex-shrink-0`}>
                             {influencer.profilePicUrl ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={influencer.profilePicUrl} alt={influencer.userId?.name} className="w-full h-full object-cover" />
+                              <img loading="lazy" decoding="async" src={cdnImg(influencer.profilePicUrl)} alt={influencer.userId?.name} className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-white font-bold text-xl">{influencer.userId?.name?.charAt(0).toUpperCase() ?? '?'}</span>
                             )}

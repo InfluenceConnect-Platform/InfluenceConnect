@@ -9,6 +9,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
 import UserDetailDrawer from '@/components/shared/UserDetailDrawer';
+import { cdnImg } from '@/lib/img';
 
 const ROLE_STYLES: Record<string, string> = {
   influencer: 'bg-teal-50 text-teal-700 border border-teal-100',
@@ -209,7 +210,7 @@ export default function AdminUsers() {
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           {u.avatarUrl ? (
-                            <img src={u.avatarUrl} alt={u.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                            <img loading="lazy" decoding="async" src={cdnImg(u.avatarUrl)} alt={u.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm" />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0 shadow-sm">
                               {u.name?.charAt(0).toUpperCase()}
@@ -294,7 +295,7 @@ export default function AdminUsers() {
                   <div key={i} onClick={() => setSelectedId(u._id)} className="px-4 py-4 cursor-pointer active:bg-gray-50">
                     <div className="flex items-start gap-3">
                       {u.avatarUrl ? (
-                        <img src={u.avatarUrl} alt={u.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0 shadow-sm" />
+                        <img loading="lazy" decoding="async" src={cdnImg(u.avatarUrl)} alt={u.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0 shadow-sm" />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3E4751] to-[#5A6472] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
                           {u.name?.charAt(0).toUpperCase()}
