@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Reveal from '@/components/marketing/Reveal';
 
 export const metadata: Metadata = {
   title: 'About Us | Influence Connect',
@@ -51,7 +52,7 @@ export default function AboutPage() {
           </span>
           <h1 className="text-4xl sm:text-5xl font-bold leading-[1.12] tracking-tight text-gray-900 mb-6">
             Making influencer marketing{' '}
-            <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#A78BFA] bg-clip-text text-transparent">
+            <span className="anim-gradient-text bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#A78BFA] bg-clip-text text-transparent">
               work for everyone
             </span>
           </h1>
@@ -67,7 +68,8 @@ export default function AboutPage() {
       <section className="relative overflow-hidden bg-gradient-to-b from-white to-amber-50/50 dark:from-[#0E1B2E] dark:to-[rgba(120,80,10,0.12)]">
       <div aria-hidden className="anim-blob absolute top-10 -right-24 w-64 h-64 rounded-full bg-amber-400/15 blur-3xl" />
       <div className="relative max-w-3xl mx-auto px-5 sm:px-8 pt-12 pb-16 sm:pt-16">
-        <div className="relative overflow-hidden bg-gradient-to-br from-white via-white to-[#7FA8AD]/[0.05] dark:from-[#0E1B2E] dark:via-[#0E1B2E] border border-gray-200 rounded-3xl p-8 sm:p-10 shadow-sm">
+        <Reveal>
+        <div className="relative overflow-hidden bg-gradient-to-br from-white via-white to-[#7FA8AD]/[0.05] dark:from-[#0E1B2E] dark:via-[#0E1B2E] border border-gray-200 rounded-3xl p-8 sm:p-10 shadow-sm hover:shadow-lg transition-shadow duration-300">
           <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#5D8A8F] via-[#7C3AED] to-[#EA580C]" />
           <h2 className="text-xl font-bold text-gray-900 mb-4">Why we built this</h2>
           <div className="flex flex-col gap-4 text-sm sm:text-[0.95rem] text-gray-600 leading-relaxed">
@@ -87,6 +89,7 @@ export default function AboutPage() {
             </p>
           </div>
         </div>
+        </Reveal>
       </div>
       </section>
 
@@ -102,16 +105,19 @@ export default function AboutPage() {
             We&apos;re more than just a platform — we&apos;re building the trust layer for India&apos;s creator economy
           </p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {VALUES.map(v => (
-              <div key={v.title} className="text-center">
-                <span className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 mx-auto ${v.tint}`}>
+            {VALUES.map((v, i) => (
+              <Reveal key={v.title} delay={i * 100} className="text-center">
+                <span
+                  className={`anim-float w-14 h-14 rounded-2xl flex items-center justify-center mb-5 mx-auto ${v.tint}`}
+                  style={{ animationDelay: `${i * 1.4}s` }}
+                >
                   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {v.icon}
                   </svg>
                 </span>
                 <h3 className="text-base font-bold text-white mb-2">{v.title}</h3>
                 <p className="text-sm text-white/70 leading-relaxed">{v.body}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -119,6 +125,7 @@ export default function AboutPage() {
 
       {/* CTA */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-20">
+        <Reveal>
         <div className="anim-gradient-bg relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#5D8A8F] via-[#7C3AED] to-[#5D8A8F] px-8 py-14 sm:px-14 text-center shadow-2xl">
           <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
           <div aria-hidden className="anim-blob absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
@@ -144,6 +151,7 @@ export default function AboutPage() {
             </Link>
           </div>
         </div>
+        </Reveal>
       </section>
     </>
   );

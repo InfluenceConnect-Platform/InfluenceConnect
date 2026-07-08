@@ -139,7 +139,7 @@ export default function AdminNav({ user }: AdminNavProps) {
                   className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
                     isActive
                       ? 'bg-[#3E4751] text-white shadow-[0_2px_8px_rgba(62,71,81,0.28)]'
-                      : 'text-gray-500 hover:text-gray-800 hover:bg-white'
+                      : 'text-gray-500 hover:text-gray-800 hover:bg-white dark:hover:bg-slate-800'
                   }`}
                 >
                   <span className={`transition-colors ${isActive ? 'text-white' : 'text-gray-400'}`}>
@@ -187,7 +187,7 @@ export default function AdminNav({ user }: AdminNavProps) {
           <button
             onClick={() => setOpen(v => !v)}
             aria-label="Toggle navigation"
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-all cursor-pointer"
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/60 text-gray-600 transition-all cursor-pointer"
           >
             {open ? (
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -218,7 +218,7 @@ export default function AdminNav({ user }: AdminNavProps) {
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                       isActive
                         ? 'bg-[#3E4751] text-white shadow-sm'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        : 'text-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800/60 hover:text-gray-900'
                     }`}
                   >
                     <span className={isActive ? 'text-white' : 'text-gray-400'}>

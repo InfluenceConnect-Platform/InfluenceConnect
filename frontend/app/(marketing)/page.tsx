@@ -160,7 +160,7 @@ export default function HomePage() {
           {/* Copy */}
           <div>
             <div className="anim-fade-up inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/15 border border-white/25 rounded-full text-xs font-semibold text-white mb-6 shadow-sm backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+              <span className="anim-pulse-dot w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
               Built for India&apos;s creator economy
             </div>
 
@@ -226,7 +226,8 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-                <span className="text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600">
+                <span className="inline-flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600">
+                  <span className="anim-pulse-dot w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Live
                 </span>
               </div>
@@ -272,7 +273,11 @@ export default function HomePage() {
               <p className="text-xl font-bold text-gray-900 mb-2">₹42,500</p>
               <div className="flex items-end gap-1 h-9">
                 {[35, 55, 40, 70, 60, 85, 100].map((h, i) => (
-                  <div key={i} className="flex-1 rounded-sm bg-gradient-to-t from-[#5D8A8F] to-[#7FA8AD]" style={{ height: `${h}%` }} />
+                  <div
+                    key={i}
+                    className="anim-bar flex-1 rounded-sm bg-gradient-to-t from-[#5D8A8F] to-[#7FA8AD]"
+                    style={{ height: `${h}%`, animationDelay: `${0.5 + i * 0.09}s` }}
+                  />
                 ))}
               </div>
             </div>

@@ -20,7 +20,7 @@ export default function Button({
   loading = false
 }: ButtonProps) {
 
-  const base = 'inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer active:scale-[0.985]';
+  const base = 'inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 select-none';
 
   const primaryColors: Record<string, string> = {
     default:    'bg-gradient-to-r from-[#5D8A8F] via-[#4E7A80] to-[#3D5087] hover:from-[#4A7A7F] hover:via-[#3D6B70] hover:to-[#2B3B68] text-white shadow-md hover:shadow-lg',
@@ -28,10 +28,13 @@ export default function Button({
     brand:      'bg-gradient-to-r from-[#4a5fa0] via-[#3D5087] to-[#2B3B68] hover:from-[#3D5087] hover:via-[#2d3d6a] hover:to-[#1e2a4a] text-white shadow-md hover:shadow-lg',
   };
 
+  // Dark-mode hover styling comes from the hover-state cascade overrides in
+  // globals.css (dark:hover:* utilities can't beat the unlayered bg-white /
+  // border-gray-200 overrides there, so don't add them here).
   const variants = {
     primary:   primaryColors[colorScheme] ?? primaryColors.default,
     secondary: 'bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 hover:border-gray-300 hover:shadow-sm',
-    ghost:     'bg-transparent hover:bg-gray-100 text-gray-600 border border-transparent'
+    ghost:     'bg-transparent hover:bg-gray-100 text-gray-600 border border-transparent dark:hover:bg-slate-800/60'
   };
 
   return (
@@ -43,7 +46,7 @@ export default function Button({
         ${base}
         ${variants[variant]}
         ${fullWidth ? 'w-full' : ''}
-        ${disabled || loading ? 'opacity-50 cursor-not-allowed' : ''}
+        ${disabled || loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-[0.985]'}
       `}
     >
       {loading ? (

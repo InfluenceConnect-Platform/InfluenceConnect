@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Reveal from '@/components/marketing/Reveal';
 
 /* Prices mirror the in-app billing pages (influencer/billing, brand/billing). */
 const CREATOR_MONTHLY = 299;
@@ -114,15 +115,16 @@ export default function PricingSection() {
 
       {/* Plan cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {PLANS.map(plan => (
-          <div key={plan.audience} className={`bg-gradient-to-br from-white ${plan.wash} dark:from-[#0E1B2E] border-2 ${plan.border} rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300`}>
+        {PLANS.map((plan, i) => (
+          <Reveal key={plan.audience} delay={i * 130} className={`bg-gradient-to-br from-white ${plan.wash} dark:from-[#0E1B2E] border-2 ${plan.border} rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300`}>
             <div aria-hidden className={`h-1.5 bg-gradient-to-r ${plan.topBar}`} />
             <div className="p-8 pb-6 border-b border-gray-100">
               <p className={`text-xs font-bold uppercase tracking-widest ${plan.accent} mb-3`}>
                 {plan.audience}
               </p>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-5xl font-bold text-gray-900 tracking-tight tabular-nums">
+                {/* key remounts the span so the price pops when the toggle flips */}
+                <span key={billing} className="anim-pop text-5xl font-bold text-gray-900 tracking-tight tabular-nums">
                   ₹{(billing === 'monthly' ? plan.monthly : yearlyPerMonth(plan.monthly)).toLocaleString('en-IN')}
                 </span>
                 <span className="text-sm text-gray-500 font-medium">/ month</span>
@@ -172,7 +174,7 @@ export default function PricingSection() {
                 No card required for the free plan · Premium billed via Razorpay
               </p>
             </div>
-          </div>
+          </Reveal>
         ))}
       </div>
     </div>

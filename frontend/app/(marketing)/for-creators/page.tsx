@@ -88,7 +88,7 @@ export default function ForCreatorsPage() {
           </span>
           <h1 className="text-4xl sm:text-5xl font-bold leading-[1.12] tracking-tight text-white mb-5">
             Turn your content into{' '}
-            <span className="bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
+            <span className="anim-gradient-text bg-gradient-to-r from-white via-emerald-200 to-white bg-clip-text text-transparent">
               consistent income
             </span>
           </h1>
@@ -133,11 +133,15 @@ export default function ForCreatorsPage() {
       <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#EEF4F5]/60 to-emerald-50/60 dark:from-[#0E1B2E] dark:via-[#0d2d33]/40 dark:to-[rgba(6,78,59,0.20)]">
       <div aria-hidden className="anim-blob absolute bottom-0 -right-24 w-72 h-72 rounded-full bg-emerald-400/15 blur-3xl" />
       <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-20">
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-10">
-          Creator{' '}
-          <span className="bg-gradient-to-r from-[#5D8A8F] to-emerald-600 bg-clip-text text-transparent">questions</span>
-        </h2>
-        <FaqAccordion items={FAQS} />
+        <Reveal>
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-10">
+            Creator{' '}
+            <span className="anim-gradient-text bg-gradient-to-r from-[#5D8A8F] to-emerald-600 bg-clip-text text-transparent">questions</span>
+          </h2>
+        </Reveal>
+        <Reveal delay={120}>
+          <FaqAccordion items={FAQS} />
+        </Reveal>
         <div className="text-center mt-12">
           <Link
             href="/auth/signup?role=influencer"

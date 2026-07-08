@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import PricingSection from '@/components/marketing/PricingSection';
 import FaqAccordion from '@/components/marketing/FaqAccordion';
 import SectionWave from '@/components/marketing/SectionWave';
+import Reveal from '@/components/marketing/Reveal';
 
 export const metadata: Metadata = {
   title: 'Pricing — Free & Premium Plans | Influence Connect',
@@ -63,10 +64,14 @@ export default function PricingPage() {
 
       <section className="bg-gradient-to-b from-[#F5F3FF] via-amber-50/30 to-[#EEF4F5] border-t border-gray-200 dark:from-[#2c1f4d]/60 dark:via-[rgba(120,80,10,0.10)] dark:to-[#0d2d33]/60">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-20">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-10">
-            Billing questions
-          </h2>
-          <FaqAccordion items={FAQS} />
+          <Reveal>
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-10">
+              Billing questions
+            </h2>
+          </Reveal>
+          <Reveal delay={120}>
+            <FaqAccordion items={FAQS} />
+          </Reveal>
         </div>
       </section>
     </>

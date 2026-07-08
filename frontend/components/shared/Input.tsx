@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 interface InputProps {
   label: string;
@@ -42,12 +42,13 @@ export default function Input({
   dark = false,
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const id = useId();
   const isPasswordField = type === 'password' && showPasswordToggle;
   const inputType = isPasswordField ? (showPassword ? 'text' : 'password') : type;
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className={`text-[0.7rem] font-bold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-gray-600'}`}>
+      <label htmlFor={id} className={`text-[0.7rem] font-bold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-gray-600'}`}>
         {label}
       </label>
       <div className="flex relative">
@@ -61,10 +62,13 @@ export default function Input({
           </span>
         )}
         <input
+          id={id}
           type={inputType}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : helper ? `${id}-helper` : undefined}
           className={`
             w-full px-4 py-3 text-sm border rounded-xl
             focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/25 focus:border-[#7FA8AD]
@@ -93,10 +97,10 @@ export default function Input({
         )}
       </div>
       {helper && !error && (
-        <p className={`text-[0.7rem] leading-relaxed ${dark ? 'text-slate-600' : 'text-gray-500'}`}>{helper}</p>
+        <p id={`${id}-helper`} className={`text-[0.7rem] leading-relaxed ${dark ? 'text-slate-600' : 'text-gray-500'}`}>{helper}</p>
       )}
       {error && (
-        <p className={`text-[0.7rem] font-medium ${dark ? 'text-red-400' : 'text-red-500'}`}>{error}</p>
+        <p id={`${id}-error`} role="alert" className={`text-[0.7rem] font-medium ${dark ? 'text-red-400' : 'text-red-500'}`}>{error}</p>
       )}
     </div>
   );

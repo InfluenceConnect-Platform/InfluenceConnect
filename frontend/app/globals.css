@@ -6,11 +6,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Native UI (scrollbars, form controls, pickers) follows the active theme */
+  color-scheme: light;
 }
 
 .dark {
   --background: #060D1A;
   --foreground: #e2e8f0;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -23,11 +26,69 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
   transition: background-color 0.2s ease, color 0.2s ease;
   /* Defensive safety net — no page should scroll horizontally on mobile even
      if a future fixed-width element sneaks in without a clipping parent. */
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kill the 300ms double-tap-zoom delay on everything tappable */
+a, button, input, select, textarea, label, summary {
+  touch-action: manipulation;
+}
+
+/* Brand-tinted text selection */
+::selection {
+  background: rgba(93, 138, 143, 0.30);
+}
+.dark ::selection {
+  background: rgba(127, 168, 173, 0.35);
+}
+
+/* Visible keyboard focus everywhere, in the platform teal. Inputs keep their
+   own focus ring (they style :focus directly), so skip them to avoid doubles. */
+:focus-visible {
+  outline: 2px solid #5D8A8F;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.dark :focus-visible {
+  outline-color: #7FA8AD;
+}
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: none;
+}
+
+/* Slim, theme-aware scrollbars (chat lists, drawers, tables) */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.55);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.dark *::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 /* iOS Safari auto-zooms the whole page when focusing an input/select/textarea
@@ -99,6 +160,42 @@ body {
 
 /* Pulsing decorative blobs */
 .anim-blob { animation: blobPulse 12s ease-in-out infinite; }
+
+/* Live status dot — a ring radiates out from the dot every couple of seconds.
+   The ::after picks up the dot's own background, so it works on any colour. */
+@keyframes pulseRing {
+  0%       { transform: scale(1); opacity: 0.65; }
+  70%, 100% { transform: scale(2.6); opacity: 0; }
+}
+.anim-pulse-dot { position: relative; }
+.anim-pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: pulseRing 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Scale-in pop for content that swaps in place (pricing toggle, counters) */
+.anim-pop { animation: fadeInScale 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Live section-wave layers — reuse the marquee keyframes (0 → -50%) on a
+   200%-wide periodic SVG so the drift loops seamlessly. Different speeds and
+   directions per layer give the liquid-surface effect. */
+.anim-wave-slow { animation: marqueeX 26s linear infinite; }
+.anim-wave-mid  { animation: marqueeXRev 18s linear infinite; }
+.anim-wave-fast { animation: marqueeX 12s linear infinite; }
+
+/* Chart bars that grow up from the baseline (stagger with animation-delay) */
+@keyframes barGrow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+.anim-bar {
+  transform-origin: bottom;
+  animation: barGrow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
 /* Infinite niche marquee — content must be duplicated once for a seamless loop */
 .anim-marquee { animation: marqueeX 30s linear infinite; }
@@ -198,7 +295,9 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .anim-fade-up, .anim-float, .anim-float-slow, .anim-gradient-text, .anim-blob,
-  .anim-marquee, .anim-marquee-rev, .anim-gradient-bg, .card-glow:hover::before {
+  .anim-marquee, .anim-marquee-rev, .anim-gradient-bg, .card-glow:hover::before,
+  .anim-pulse-dot::after, .anim-pop, .anim-bar,
+  .anim-wave-slow, .anim-wave-mid, .anim-wave-fast {
     animation: none;
   }
   .reveal { opacity: 1; transform: none; transition: none; }
@@ -244,9 +343,10 @@ body {
 .dark [class~="border-amber-200"]   { border-color: rgba(180, 130, 30, 0.40); }
 .dark [class~="border-emerald-200"] { border-color: rgba(16, 185, 129, 0.30); }
 
-/* Native date-picker calendar icon — dark by default, invisible on dark backgrounds */
+/* Native date-picker calendar icon — `color-scheme: dark` on .dark already
+   renders it light; just soften it and make it feel clickable. */
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) opacity(0.6);
+  opacity: 0.6;
   cursor: pointer;
 }
 
@@ -303,3 +403,30 @@ body {
 .dark [class*="bg-[#F5F3FF]"] { background-color: rgba(76, 29, 149, 0.35); }
 .dark [class*="border-[#C9DCDE]"] { border-color: rgba(93, 138, 143, 0.45); }
 .dark [class*="border-[#DDD6FE]"] { border-color: rgba(139, 92, 246, 0.35); }
+
+/* ── Hover-state cascade overrides ────────────────────────────────────
+   The rules above only match un-prefixed classes, so `hover:bg-gray-50`
+   etc. still paint their light value in dark mode (a bright flash on
+   every row/menu hover). Tailwind v4 flattens dark:hover:* utilities to
+   (0,2,0) via :where(), the same specificity as these rules — so the
+   :not() guards (zero-specificity inside :where) hand the element back
+   to its explicit dark:hover:* utility when one exists. Keep this block
+   last: at equal specificity, source order decides against the
+   un-prefixed colour overrides above.                                  */
+.dark :where([class~="hover:bg-white"]:not([class*="dark:hover:bg-"])):hover      { background-color: rgba(255, 255, 255, 0.06); }
+.dark :where([class~="hover:bg-gray-50"]:not([class*="dark:hover:bg-"])):hover    { background-color: rgba(255, 255, 255, 0.05); }
+.dark :where([class~="hover:bg-gray-50/60"]:not([class*="dark:hover:bg-"])):hover { background-color: rgba(255, 255, 255, 0.04); }
+.dark :where([class~="hover:bg-gray-100"]:not([class*="dark:hover:bg-"])):hover   { background-color: rgba(255, 255, 255, 0.07); }
+.dark :where([class~="hover:bg-gray-200"]:not([class*="dark:hover:bg-"])):hover   { background-color: rgba(255, 255, 255, 0.09); }
+.dark :where([class~="hover:border-gray-200"]:not([class*="dark:hover:border-"])):hover { border-color: rgba(51, 88, 135, 0.65); }
+.dark :where([class~="hover:border-gray-300"]:not([class*="dark:hover:border-"])):hover { border-color: rgba(71, 110, 160, 0.70); }
+.dark :where([class~="hover:text-gray-900"]:not([class*="dark:hover:text-"])):hover { color: #f1f5f9; }
+.dark :where([class~="hover:text-gray-800"]:not([class*="dark:hover:text-"])):hover { color: #e2e8f0; }
+.dark :where([class~="hover:text-gray-700"]:not([class*="dark:hover:text-"])):hover { color: #cbd5e1; }
+.dark :where([class~="hover:text-gray-600"]:not([class*="dark:hover:text-"])):hover { color: #cbd5e1; }
+
+/* Destructive (red) hovers — same problem, red-tinted resolution */
+.dark :where([class~="hover:bg-red-50"]:not([class*="dark:hover:bg-"])):hover { background-color: rgba(225, 29, 72, 0.12); }
+.dark :where([class~="hover:text-red-600"]:not([class*="dark:hover:text-"])):hover,
+.dark :where([class~="hover:text-red-500"]:not([class*="dark:hover:text-"])):hover { color: #f87171; }
+.dark :where([class~="hover:border-red-200"]:not([class*="dark:hover:border-"])):hover { border-color: rgba(225, 29, 72, 0.40); }
