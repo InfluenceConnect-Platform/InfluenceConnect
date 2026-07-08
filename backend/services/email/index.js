@@ -48,10 +48,19 @@ module.exports = {
   dealInProgressBrand:    make('dealInProgressBrand'),
   // 12 — brand: content submitted
   contentSubmittedBrand:  make('contentSubmittedBrand'),
+  // both parties: offer accepted, price agreed
+  priceAgreedInfluencer:       make('priceAgreedInfluencer'),
+  priceAgreedBrand:            make('priceAgreedBrand'),
   // brand: payout details submitted by creator
   payoutDetailsSubmittedBrand: make('payoutDetailsSubmittedBrand'),
+  // influencer: confirmation receipt of their own payout submission/update
+  payoutDetailsConfirmInfluencer: make('payoutDetailsConfirmInfluencer'),
+  // brand: creator changed payout details after first submission
+  payoutDetailsUpdatedBrand:   make('payoutDetailsUpdatedBrand'),
   // influencer: payment marked complete by brand
   paymentCompletedInfluencer:  make('paymentCompletedInfluencer'),
+  // brand: record/confirmation of the payment they just marked
+  paymentRecordedBrand:        make('paymentRecordedBrand'),
 
   // Campaign + invitations
   newCampaignToInfluencer:   make('newCampaignToInfluencer'),

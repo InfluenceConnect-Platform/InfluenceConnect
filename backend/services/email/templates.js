@@ -271,6 +271,112 @@ module.exports = {
     };
   },
 
+  // Price agreed (to influencer) — kicks off the payout flow
+  priceAgreedInfluencer({ campaignTitle, brandName, amount }) {
+    return {
+      subject: `Price agreed — ${campaignTitle}`,
+      html: layout({
+        theme: CREATOR,
+        heading: 'Your price is locked in 🤝',
+        bodyHtml:
+          para(`The price for <strong>${esc(campaignTitle)}</strong> has been agreed with ${esc(brandName || 'the brand')}.`) +
+          details([
+            ['Campaign', campaignTitle],
+            ['Brand', brandName],
+            ['Agreed amount', inr(amount)],
+          ]) +
+          para('Next step: submit your payout details from the deal chat so the brand can pay you once your content is approved.') +
+          button('Submit payout details', `${APP_URL}/influencer/messages`, CREATOR),
+      }),
+    };
+  },
+
+  // Price agreed (to brand)
+  priceAgreedBrand({ campaignTitle, influencerName, amount }) {
+    return {
+      subject: `Price agreed — ${campaignTitle}`,
+      html: layout({
+        theme: BRAND,
+        heading: 'Deal price agreed 🤝',
+        bodyHtml:
+          para(`The price for <strong>${esc(campaignTitle)}</strong> has been agreed with ${esc(influencerName || 'the creator')}.`) +
+          details([
+            ['Creator', influencerName],
+            ['Campaign', campaignTitle],
+            ['Agreed amount', inr(amount)],
+          ]) +
+          para('The creator will now share their payout details and work on the deliverables. We\'ll email you at each step of the deal.') +
+          button('Open messages', `${APP_URL}/brand/messages`, BRAND),
+      }),
+    };
+  },
+
+  // Payout details submitted/updated — confirmation receipt (to influencer)
+  payoutDetailsConfirmInfluencer({ campaignTitle, method, accountHolderName, isUpdate }) {
+    return {
+      subject: isUpdate
+        ? `Your payout details were updated — ${campaignTitle}`
+        : `Payout details submitted — ${campaignTitle}`,
+      html: layout({
+        theme: CREATOR,
+        heading: isUpdate ? 'Payout details updated 🔁' : 'Payout details received ✅',
+        bodyHtml:
+          para(
+            isUpdate
+              ? `Your payout details for <strong>${esc(campaignTitle)}</strong> were just updated. The brand has been notified and will use the latest details.`
+              : `Your payout details for <strong>${esc(campaignTitle)}</strong> were submitted and shared securely with the brand on this deal.`
+          ) +
+          details([
+            ['Campaign', campaignTitle],
+            ['Method', method === 'bank' ? 'Bank transfer' : 'UPI'],
+            ['Account holder', accountHolderName],
+          ]) +
+          para(
+            `For your security we never include the account number or UPI ID in emails. ` +
+            `<strong>If you didn't make this change</strong>, change your password immediately and contact us at support@influenceconnect.in.`
+          ) +
+          button('View deal', `${APP_URL}/influencer/messages`, CREATOR),
+      }),
+    };
+  },
+
+  // Payout details updated by influencer (to brand)
+  payoutDetailsUpdatedBrand({ influencerName, campaignTitle }) {
+    return {
+      subject: `Payout details updated — ${campaignTitle}`,
+      html: layout({
+        theme: BRAND,
+        heading: 'Payout details changed 🔁',
+        bodyHtml:
+          para(`${esc(influencerName || 'The creator')} updated their payout details for <strong>${esc(campaignTitle)}</strong>.`) +
+          details([['Creator', influencerName], ['Campaign', campaignTitle]]) +
+          para(`If you haven't paid yet, make sure you use the latest details shown in the deal before making the payment.`) +
+          button('Review payout details', `${APP_URL}/brand/messages`, BRAND),
+      }),
+    };
+  },
+
+  // Payment recorded confirmation (to brand, after mark-as-paid)
+  paymentRecordedBrand({ campaignTitle, influencerName, amount, transactionRef }) {
+    return {
+      subject: `Payment recorded — ${campaignTitle}`,
+      html: layout({
+        theme: BRAND,
+        heading: 'Payment recorded ✅',
+        bodyHtml:
+          para(`You marked the deal for <strong>${esc(campaignTitle)}</strong> as paid. Here's your record of the payment.`) +
+          details([
+            ['Creator', influencerName],
+            ['Campaign', campaignTitle],
+            ['Amount', inr(amount)],
+            ['Transaction ID', transactionRef],
+          ]) +
+          para('This confirmation and the receipt you attached are stored on the deal for your records. The creator has been notified by email.') +
+          button('View deal', `${APP_URL}/brand/messages`, BRAND),
+      }),
+    };
+  },
+
   // Payout details submitted by influencer (to brand)
   payoutDetailsSubmittedBrand({ influencerName, campaignTitle }) {
     return {

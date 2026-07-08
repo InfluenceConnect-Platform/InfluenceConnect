@@ -112,18 +112,34 @@ exports.submitPayoutDetails = async (req, res) => {
         : `💳 You submitted your payout details — ready for payment.`,
     });
 
-    // Email the brand on first submission (not on later edits — avoid noise).
-    if (!existing) {
-      const [brand, campaign] = await Promise.all([
-        User.findById(deal.brandId).select('email'),
-        Campaign.findById(deal.campaignId).select('title'),
-      ]);
-      if (brand?.email) {
+    // Email both sides on every submission: the brand needs to know details
+    // are ready (or have changed — it must pay to the latest ones), and the
+    // creator gets a written receipt of what was set, which doubles as a
+    // tamper alert if someone else changed their details.
+    const [brand, campaign] = await Promise.all([
+      User.findById(deal.brandId).select('email'),
+      Campaign.findById(deal.campaignId).select('title'),
+    ]);
+    if (brand?.email) {
+      if (existing) {
+        notify.payoutDetailsUpdatedBrand(brand.email, {
+          influencerName: req.user.name,
+          campaignTitle: campaign?.title,
+        });
+      } else {
         notify.payoutDetailsSubmittedBrand(brand.email, {
           influencerName: req.user.name,
           campaignTitle: campaign?.title,
         });
       }
+    }
+    if (req.user.email) {
+      notify.payoutDetailsConfirmInfluencer(req.user.email, {
+        campaignTitle: campaign?.title,
+        method,
+        accountHolderName: update.accountHolderName,
+        isUpdate: !!existing,
+      });
     }
 
     res.status(existing ? 200 : 201).json({ payout: decryptForResponse(saved) });
@@ -194,13 +210,23 @@ exports.markAsPaid = async (req, res) => {
     });
 
     const [influencer, campaign] = await Promise.all([
-      User.findById(deal.influencerId).select('email'),
+      User.findById(deal.influencerId).select('name email'),
       Campaign.findById(deal.campaignId).select('title'),
     ]);
     if (influencer?.email) {
       notify.paymentCompletedInfluencer(influencer.email, {
         campaignTitle: campaign?.title,
         brandName: req.user.name,
+        amount: deal.agreedAmount,
+        transactionRef: payout.transactionRef,
+      });
+    }
+    // The brand gets a written record of the payment it just marked — amount,
+    // reference, and receipt live on the deal; this email is the paper trail.
+    if (req.user.email) {
+      notify.paymentRecordedBrand(req.user.email, {
+        campaignTitle: campaign?.title,
+        influencerName: influencer?.name,
         amount: deal.agreedAmount,
         transactionRef: payout.transactionRef,
       });

@@ -22,7 +22,7 @@ export const LEGAL_ENTITY = {
   grievanceOfficer: '〔Grievance Officer name〕',
   grievanceEmail: 'grievance@influenceconnect.in',
   website: 'influenceconnect.in',
-  lastUpdated: '17 June 2026',
+  lastUpdated: '8 July 2026',
 };
 
 export type LegalSlug = 'terms' | 'privacy' | 'refund';
@@ -181,6 +181,14 @@ const TERMS: LegalDoc = {
           `on your Collaborations. We strongly recommend that Brands and Influencers record the agreed scope, deliverables, ` +
           `fees, and timelines in writing before commencing work.`
         ),
+        p(
+          `To make settlement easier, the Platform lets an Influencer submit payout details (such as a bank account or ` +
+          `UPI ID) for a specific agreed deal, and lets the Brand on that deal view those details, record a transaction ` +
+          `reference, and upload a payment receipt when it marks the deal as paid. This is a convenience facility only: ` +
+          `the payment itself still happens outside the Platform, directly between the parties. You are responsible for ` +
+          `the accuracy of any payout details or payment proof you submit, and we are not liable for payments sent to ` +
+          `incorrectly provided details or for any dispute about whether or how a Collaboration was paid.`
+        ),
       ],
     },
     {
@@ -196,7 +204,8 @@ const TERMS: LegalDoc = {
           `Premium subscriptions are billed in advance on a monthly or yearly basis through our payment partner, Razorpay. ` +
           `By purchasing a Subscription you authorise us (through Razorpay) to charge the applicable fee for the billing ` +
           `cycle you select. Subscriptions renew automatically at the end of each cycle unless cancelled beforehand. We do ` +
-          `not store your full card or bank details on our servers.`
+          `not store the card or bank details used for subscription billing on our servers. (Payout details an Influencer ` +
+          `chooses to share for a deal are handled separately, as described in Section 7 and our Privacy Policy.)`
         ),
         p(
           `We may change our prices or plan features with reasonable prior notice. Any price change will take effect from ` +
@@ -234,10 +243,11 @@ const TERMS: LegalDoc = {
       title: '11. Your Content & Licence to Us',
       blocks: [
         p(
-          `You retain ownership of the Content you submit to the Platform. By submitting Content, you grant us a ` +
-          `worldwide, non-exclusive, royalty-free licence to host, store, display, and distribute that Content solely to ` +
-          `the extent necessary to operate and provide the Platform — for example, showing your profile to relevant Brands ` +
-          `or your campaign brief to relevant Influencers.`
+          `You retain ownership of the Content you submit to the Platform, including files and media you attach to ` +
+          `messages. By submitting Content, you grant us a worldwide, non-exclusive, royalty-free licence to host, store, ` +
+          `display, and distribute that Content solely to the extent necessary to operate and provide the Platform — for ` +
+          `example, showing your profile to relevant Brands, your campaign brief to relevant Influencers, or delivering a ` +
+          `file you attach in chat to the other party on that deal.`
         ),
         p(
           `You represent that you own or have the necessary rights to the Content you submit and that it does not infringe ` +
@@ -412,8 +422,10 @@ const PRIVACY: LegalDoc = {
           `Account details: name, email address, mobile number, and password.`,
           `Brand profiles: company/brand name, logo, and business information including GST details where provided.`,
           `Influencer profiles: social-media handles, niche/categories, audience and follower statistics, and portfolio information.`,
-          `Communications: messages, campaign briefs, applications, offers, and support requests you send through the Platform.`,
-          `Billing information: subscription plan and payment confirmations. Card and bank details are collected and processed directly by Razorpay — we do not store your full payment-instrument details.`,
+          `Communications: messages, campaign briefs, applications, offers, and support requests you send through the Platform, including files and media you attach to messages.`,
+          `Billing information: subscription plan and payment confirmations. Card and bank details used to pay your subscription are collected and processed directly by Razorpay — we do not store the payment instruments used for subscription billing.`,
+          `Payout details (Influencers): if you choose to submit payout details for an agreed deal, we collect your account holder name and, depending on the method you select, your bank account number and IFSC code or UPI ID. These are stored encrypted and are visible only to the Brand on that specific deal and to authorised Platform administrators (see "How We Protect Your Information").`,
+          `Payment proof (Brands): when a Brand marks a deal as paid, we collect the transaction/UTR reference and payment receipt they upload.`,
         ]),
         { type: 'sub', text: 'Information we collect automatically' },
         list([
@@ -461,8 +473,8 @@ const PRIVACY: LegalDoc = {
       blocks: [
         p(`We share personal data only in the following circumstances:`),
         list([
-          `With other Users, as needed for the Platform to function — a Brand's campaign details are visible to relevant Influencers, and an Influencer's public profile is visible to Brands.`,
-          `With service providers who process data on our behalf under confidentiality obligations, including Razorpay (payments), our email and SMS/OTP delivery providers, Google (sign-in), and cloud hosting providers.`,
+          `With other Users, as needed for the Platform to function — a Brand's campaign details are visible to relevant Influencers, an Influencer's public profile is visible to Brands, files shared in a deal conversation are visible to the other party on that deal, and payout details an Influencer submits for a deal are visible to the Brand on that deal so it can make the payment.`,
+          `With service providers who process data on our behalf under confidentiality obligations, including Razorpay (payments), Cloudinary (storage and delivery of uploaded images, files, and receipts), our email and SMS/OTP delivery providers, Google (sign-in), and cloud hosting providers.`,
           `For legal reasons, where disclosure is required by law, regulation, legal process, or to protect the rights, property, or safety of Influence Connect, our Users, or the public.`,
           `In a business transfer, such as a merger, acquisition, or sale of assets, in which case personal data may be transferred subject to this Policy.`,
         ]),
@@ -498,7 +510,9 @@ const PRIVACY: LegalDoc = {
         p(
           `We implement reasonable security practices and procedures designed to protect your personal data, including ` +
           `encrypted data transmission (HTTPS/TLS), hashed password storage, and token-based authentication with limited ` +
-          `validity. However, no method of transmission or storage is completely secure, and we cannot guarantee absolute ` +
+          `validity. Payout details (bank account numbers, IFSC codes, and UPI IDs) are additionally encrypted at rest ` +
+          `using industry-standard encryption, and every access to them by a Platform administrator is recorded in an ` +
+          `audit log. However, no method of transmission or storage is completely secure, and we cannot guarantee absolute ` +
           `security. You are responsible for keeping your credentials confidential and for notifying us of any suspected ` +
           `compromise.`
         ),

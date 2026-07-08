@@ -1,5 +1,8 @@
 const Deal = require('../models/Deal');
+const User = require('../models/User');
+const Campaign = require('../models/Campaign');
 const { postDealNotice } = require('../utils/dealNotice');
+const notify = require('../services/email');
 
 const inr = (n) => '₹' + (Number(n) || 0).toLocaleString('en-IN');
 
@@ -183,6 +186,28 @@ exports.acceptOffer = async (req, res) => {
       content: `✅ ${req.user.name} accepted the offer — price agreed at ${inr(latest.amount)}. The deal is on!`,
       actorContent: `✅ You accepted the offer — price agreed at ${inr(latest.amount)}. The deal is on!`,
     });
+
+    // Email both sides — the agreed price kicks off the payout flow, so each
+    // party gets a written record and the creator is prompted for payout details.
+    const [brand, influencer, campaign] = await Promise.all([
+      User.findById(deal.brandId).select('name email'),
+      User.findById(deal.influencerId).select('name email'),
+      Campaign.findById(deal.campaignId).select('title'),
+    ]);
+    if (influencer?.email) {
+      notify.priceAgreedInfluencer(influencer.email, {
+        campaignTitle: campaign?.title,
+        brandName: brand?.name,
+        amount: deal.agreedAmount,
+      });
+    }
+    if (brand?.email) {
+      notify.priceAgreedBrand(brand.email, {
+        campaignTitle: campaign?.title,
+        influencerName: influencer?.name,
+        amount: deal.agreedAmount,
+      });
+    }
 
     res.json({
       negotiationStatus: deal.negotiationStatus,
