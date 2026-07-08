@@ -113,6 +113,13 @@ body {
   mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 
+/* White dot-grid texture for saturated gradient bands (heroes, CTA strips) */
+.bg-dot-grid-white {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 30%, black 20%, transparent 80%);
+}
+
 /* Dot-grid backdrop for hero depth (fades out radially from the center) */
 .bg-dot-grid {
   background-image: radial-gradient(circle, rgba(139, 92, 246, 0.25) 1px, transparent 1px);

@@ -7,6 +7,7 @@ import Tilt from '@/components/marketing/Tilt';
 import Parallax from '@/components/marketing/Parallax';
 import RotatingText from '@/components/marketing/RotatingText';
 import TestimonialCarousel from '@/components/marketing/TestimonialCarousel';
+import SectionWave from '@/components/marketing/SectionWave';
 
 export const metadata: Metadata = {
   title: 'Influence Connect — Where Indian Creators & Brands Collaborate',
@@ -32,14 +33,12 @@ function CheckIcon({ className = 'w-4 h-4 text-emerald-500' }: { className?: str
 
 function SectionLabel({ children, color = 'teal' }: { children: React.ReactNode; color?: 'teal' | 'indigo' }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-[0.18em] mb-3 px-3 py-1 rounded-full border ${
+    <span className={`inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-[0.18em] mb-3 px-3.5 py-1.5 rounded-full text-white shadow-md ${
       color === 'teal'
-        ? 'text-[#4A7A7F] bg-[#EEF4F5] border-[#C9DCDE]'
-        : 'text-[#6D28D9] bg-[#F5F3FF] border-[#DDD6FE]'
+        ? 'bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] shadow-[#5D8A8F]/30'
+        : 'bg-gradient-to-r from-[#7C3AED] to-[#EA580C] shadow-[#7C3AED]/30'
     }`}>
-      <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${
-        color === 'teal' ? 'from-[#5BA8B5] to-[#FB923C]' : 'from-[#8B5CF6] to-[#5BA8B5]'
-      }`} />
+      <span className="w-1.5 h-1.5 rounded-full bg-white/90" />
       {children}
     </span>
   );
@@ -55,42 +54,57 @@ const NICHE_DOT_COLORS = [
   'from-sky-400 to-blue-600',
 ];
 
+/* Soft tinted chip styles cycled in step with NICHE_DOT_COLORS. */
+const NICHE_CHIP_TINTS = [
+  'bg-[#EEF4F5] border-[#C9DCDE] text-[#4A7A7F]',
+  'bg-[#F5F3FF] border-[#DDD6FE] text-[#6D28D9]',
+  'bg-emerald-50 border-emerald-200 text-emerald-700 dark:text-emerald-300',
+  'bg-amber-50 border-amber-200 text-amber-700 dark:text-amber-300',
+  'bg-sky-50 border-sky-200 text-sky-700 dark:text-sky-300 dark:border-sky-900',
+];
+
 const FEATURES = [
   {
     title: 'Smart creator discovery',
     body: 'Brands filter creators by niche, platform, location, follower range, and budget — no more cold DMs into the void.',
     icon: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
     tint: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-md shadow-[#5D8A8F]/25',
+    bar: 'from-[#7FA8AD] to-[#5D8A8F]',
   },
   {
     title: 'Campaign applications',
     body: 'Creators browse live campaigns and apply with their profile and rates. Brands shortlist, accept, or reject in one dashboard.',
     icon: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="13" y2="11"/></>,
     tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
+    bar: 'from-[#8B5CF6] to-[#7C3AED]',
   },
   {
     title: 'Moderated in-platform chat',
     body: 'Negotiate deals in built-in messaging with automatic contact-detail moderation — your privacy stays protected until a deal is agreed.',
     icon: <><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></>,
     tint: 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md shadow-emerald-500/25',
+    bar: 'from-emerald-400 to-emerald-600',
   },
   {
     title: 'Credibility scores',
     body: 'Every creator builds a credibility score from completed collaborations, so brands know exactly who they\'re working with.',
     icon: <><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>,
     tint: 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-orange-500/25',
+    bar: 'from-amber-400 to-orange-500',
   },
   {
     title: 'Earnings & analytics',
     body: 'Creators track earnings by month and category. Brands measure campaign performance from a live dashboard.',
     icon: <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
     tint: 'bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-md shadow-blue-500/25',
+    bar: 'from-sky-400 to-blue-600',
   },
   {
     title: 'Secure payments',
     body: 'Premium subscriptions are billed safely through Razorpay. Cancel anytime — you keep access until your period ends.',
     icon: <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
     tint: 'bg-gradient-to-br from-indigo-400 to-indigo-600 text-white shadow-md shadow-indigo-500/25',
+    bar: 'from-indigo-400 to-indigo-600',
   },
 ];
 
@@ -135,8 +149,9 @@ export default function HomePage() {
   return (
     <>
       {/* ════ HERO ════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#5D8A8F] via-[#4A8A82] to-emerald-600">
-        {/* Depth layers: soft light glows over the saturated gradient */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#5D8A8F] via-emerald-600 to-[#6D28D9]">
+        {/* Depth layers: dot texture + soft light glows over the saturated gradient */}
+        <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="anim-blob absolute top-24 -right-40 w-[32rem] h-[32rem] rounded-full bg-white/10 blur-3xl" style={{ animationDelay: '4s' }} />
         <div aria-hidden className="anim-blob absolute bottom-0 left-1/3 w-[24rem] h-[24rem] rounded-full bg-[#FB923C]/25 blur-3xl" style={{ animationDelay: '8s' }} />
@@ -264,6 +279,7 @@ export default function HomePage() {
             </Parallax>
           </div>
         </div>
+        <SectionWave className="fill-white dark:fill-[#060D1A]" />
       </section>
 
       {/* ════ NICHE MARQUEE — two rows, opposite directions, pause on hover ════ */}
@@ -280,7 +296,7 @@ export default function HomePage() {
                   {row.niches.map((niche, i) => (
                     <span
                       key={niche}
-                      className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-sm font-semibold text-gray-600 shadow-sm whitespace-nowrap hover:border-[#5D8A8F]/50 hover:text-[#5D8A8F] hover:-translate-y-0.5 transition-all duration-200 cursor-default"
+                      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full border text-sm font-semibold shadow-sm whitespace-nowrap hover:-translate-y-0.5 transition-all duration-200 cursor-default ${NICHE_CHIP_TINTS[i % NICHE_CHIP_TINTS.length]}`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${NICHE_DOT_COLORS[i % NICHE_DOT_COLORS.length]}`} />
                       {niche}
@@ -294,7 +310,7 @@ export default function HomePage() {
       </section>
 
       {/* ════ VALUE STRIP ════ */}
-      <section className="bg-gradient-to-r from-emerald-600 via-[#4A8A82] to-[#5D8A8F]">
+      <section className="bg-gradient-to-r from-[#7C3AED] via-[#4A5F8F] to-emerald-600">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
           {[
             { end: 0, from: 99, prefix: '₹', suffix: '', label: 'to get started — free plans for both sides' },
@@ -313,11 +329,15 @@ export default function HomePage() {
       </section>
 
       {/* ════ HOW IT WORKS ════ */}
-      <section className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#EEF4F5]/70 to-[#F5F3FF]/70 dark:from-[#0E1B2E] dark:via-[#0d2d33]/50 dark:to-[#2c1f4d]/50">
+      <div aria-hidden className="anim-blob absolute -top-20 right-10 w-72 h-72 rounded-full bg-emerald-400/15 blur-3xl" />
+      <div aria-hidden className="anim-blob absolute bottom-0 -left-20 w-80 h-80 rounded-full bg-[#7C3AED]/15 blur-3xl" style={{ animationDelay: '5s' }} />
+      <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
         <Reveal className="text-center mb-14">
           <SectionLabel>How it works</SectionLabel>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-            Two sides. One simple flow.
+            Two sides.{' '}
+            <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] bg-clip-text text-transparent">One simple flow.</span>
           </h2>
           <p className="text-base text-gray-600 max-w-xl mx-auto">
             Whether you create content or run a brand, you can be up and collaborating the same day.
@@ -326,10 +346,11 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Creators column */}
-          <Reveal className="border border-gray-200 rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-white to-[#EEF4F5]/70 dark:from-[#0E1B2E] dark:to-[#0d2d33]/70 hover:border-[#5D8A8F]/40 hover:shadow-lg transition-all duration-300">
+          <Reveal className="relative overflow-hidden border border-gray-200 rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-white to-[#EEF4F5]/70 dark:from-[#0E1B2E] dark:to-[#0d2d33]/70 hover:border-[#5D8A8F]/40 hover:shadow-lg transition-all duration-300">
+            <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-emerald-500" />
             <div className="flex items-center gap-3 mb-8">
-              <span className="w-10 h-10 rounded-xl bg-[#EEF4F5] flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] shadow-md shadow-[#5D8A8F]/25 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                 </svg>
               </span>
@@ -357,10 +378,11 @@ export default function HomePage() {
           </Reveal>
 
           {/* Brands column */}
-          <Reveal delay={120} className="border border-gray-200 rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-white to-[#F5F3FF]/70 dark:from-[#0E1B2E] dark:to-[#2c1f4d]/70 hover:border-[#7C3AED]/40 hover:shadow-lg transition-all duration-300">
+          <Reveal delay={120} className="relative overflow-hidden border border-gray-200 rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-white to-[#F5F3FF]/70 dark:from-[#0E1B2E] dark:to-[#2c1f4d]/70 hover:border-[#7C3AED]/40 hover:shadow-lg transition-all duration-300">
+            <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#8B5CF6] via-[#7C3AED] to-blue-600" />
             <div className="flex items-center gap-3 mb-8">
-              <span className="w-10 h-10 rounded-xl bg-[#F5F3FF] flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] shadow-md shadow-[#7C3AED]/25 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>
                 </svg>
               </span>
@@ -387,15 +409,17 @@ export default function HomePage() {
             </Link>
           </Reveal>
         </div>
+      </div>
       </section>
 
       {/* ════ FEATURES ════ */}
-      <section className="bg-gradient-to-b from-[#F5F3FF]/60 via-white to-[#EEF4F5]/60 border-y border-gray-200 dark:from-[#2c1f4d]/50 dark:via-[#0E1B2E] dark:to-[#0d2d33]/50">
+      <section className="bg-gradient-to-b from-[#F5F3FF] via-amber-50/40 to-[#EEF4F5] border-y border-gray-200 dark:from-[#2c1f4d]/70 dark:via-[rgba(120,80,10,0.12)] dark:to-[#0d2d33]/70">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
           <Reveal className="text-center mb-14">
             <SectionLabel>Everything included</SectionLabel>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-              One platform for the whole collaboration
+              One platform for the{' '}
+              <span className="bg-gradient-to-r from-[#7C3AED] to-[#EA580C] bg-clip-text text-transparent">whole collaboration</span>
             </h2>
             <p className="text-base text-gray-600 max-w-xl mx-auto">
               From first discovery to final payment tracking — no spreadsheets, no DM chaos, no middlemen.
@@ -407,8 +431,9 @@ export default function HomePage() {
               <Reveal
                 key={f.title}
                 delay={(i % 3) * 90}
-                className="card-glow group bg-gradient-to-br from-white to-[#7FA8AD]/[0.06] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
+                className="card-glow group relative bg-gradient-to-br from-white to-[#7FA8AD]/[0.06] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 pt-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
               >
+                <span aria-hidden className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${f.bar}`} />
                 <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${f.tint}`}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {f.icon}
@@ -424,6 +449,7 @@ export default function HomePage() {
 
       {/* ════ TRUST & SAFETY ════ */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#2A3E42] to-[#4C1D95]">
+      <div aria-hidden className="bg-dot-grid-white absolute inset-0 opacity-60" />
       <div aria-hidden className="anim-blob absolute -top-20 -left-20 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
       <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -486,14 +512,15 @@ export default function HomePage() {
       </section>
 
       {/* ════ TESTIMONIALS ════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#EEF4F5]/70 via-amber-50/40 to-[#F5F3FF]/60 border-y border-gray-200 dark:from-[#0d2d33]/60 dark:via-[rgba(120,80,10,0.15)] dark:to-[#2c1f4d]/40">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#EEF4F5] via-amber-50/60 to-[#F5F3FF] border-y border-gray-200 dark:from-[#0d2d33]/80 dark:via-[rgba(120,80,10,0.18)] dark:to-[#2c1f4d]/60">
         <div aria-hidden className="anim-blob absolute -top-24 right-1/4 w-80 h-80 rounded-full bg-[#7FA8AD]/15 blur-3xl" />
         <div aria-hidden className="anim-blob absolute bottom-0 left-10 w-64 h-64 rounded-full bg-amber-400/15 blur-3xl" style={{ animationDelay: '5s' }} />
         <div className="relative max-w-5xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
           <Reveal className="text-center mb-12">
             <SectionLabel>Early voices</SectionLabel>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-              People are already loving it
+              People are already{' '}
+              <span className="bg-gradient-to-r from-amber-500 to-[#EA580C] bg-clip-text text-transparent">loving it</span>
             </h2>
             <p className="text-base text-gray-600 max-w-xl mx-auto">
               From nano creators landing their first paid collab to brands filling campaigns in days.
@@ -506,12 +533,13 @@ export default function HomePage() {
       </section>
 
       {/* ════ PRICING TEASER ════ */}
-      <section className="bg-gradient-to-b from-white via-[#EEF4F5]/40 to-[#F5F3FF]/40 dark:from-[#0E1B2E] dark:via-[#0d2d33]/30 dark:to-[#2c1f4d]/30">
+      <section className="bg-gradient-to-b from-white via-[#EEF4F5]/80 to-[#F5F3FF]/80 dark:from-[#0E1B2E] dark:via-[#0d2d33]/60 dark:to-[#2c1f4d]/60">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
           <Reveal className="text-center mb-14">
             <SectionLabel>Pricing</SectionLabel>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-              Start free. Upgrade when you&apos;re growing.
+              Start free.{' '}
+              <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] bg-clip-text text-transparent">Upgrade when you&apos;re growing.</span>
             </h2>
             <p className="text-base text-gray-600 max-w-xl mx-auto">
               Full platform access on day one — Premium simply removes the limits.
@@ -569,21 +597,26 @@ export default function HomePage() {
       </section>
 
       {/* ════ FAQ ════ */}
-      <section className="max-w-3xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#F5F3FF]/60 via-white to-white dark:from-[#2c1f4d]/40 dark:via-[#0E1B2E] dark:to-[#0E1B2E]">
+      <div aria-hidden className="anim-blob absolute top-10 -right-24 w-72 h-72 rounded-full bg-[#FB923C]/15 blur-3xl" />
+      <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
         <Reveal className="text-center mb-12">
           <SectionLabel>FAQ</SectionLabel>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-            Questions, answered
+            Questions,{' '}
+            <span className="bg-gradient-to-r from-[#5D8A8F] via-[#7C3AED] to-[#EA580C] bg-clip-text text-transparent">answered</span>
           </h2>
         </Reveal>
         <Reveal delay={100}>
           <FaqAccordion items={FAQS} />
         </Reveal>
+      </div>
       </section>
 
       {/* ════ FINAL CTA ════ */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-20 lg:pb-24">
         <Reveal className="anim-gradient-bg relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#5D8A8F] via-[#7C3AED] to-[#5D8A8F] px-8 py-16 sm:px-14 text-center shadow-2xl">
+          <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
           <div aria-hidden className="anim-blob absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
           <div aria-hidden className="anim-blob absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-white/10 blur-3xl" style={{ animationDelay: '6s' }} />
           <h2 className="relative text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">

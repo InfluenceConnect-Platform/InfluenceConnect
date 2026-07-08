@@ -15,6 +15,7 @@ interface Plan {
   gradient: string;      // CTA gradient classes
   border: string;
   wash: string;          // card background gradient tint
+  topBar: string;        // gradient strip across the card's top edge
   monthly: number;
   free: string[];
   premium: string[];
@@ -27,6 +28,7 @@ const PLANS: Plan[] = [
     gradient: 'from-[#5D8A8F] to-[#4A7A7F] hover:from-[#4A7A7F] hover:to-[#3D6B70]',
     border: 'border-[#5D8A8F]/25',
     wash: 'to-[#5D8A8F]/[0.06]',
+    topBar: 'from-[#7FA8AD] via-[#5D8A8F] to-emerald-500',
     monthly: CREATOR_MONTHLY,
     free: [
       'Public profile with custom URL',
@@ -50,6 +52,7 @@ const PLANS: Plan[] = [
     gradient: 'from-[#7C3AED] to-[#5B21B6] hover:from-[#6D28D9] hover:to-[#4C1D95]',
     border: 'border-[#7C3AED]/25',
     wash: 'to-[#7C3AED]/[0.06]',
+    topBar: 'from-[#8B5CF6] via-[#7C3AED] to-blue-600',
     monthly: BRAND_MONTHLY,
     free: [
       'Up to 2 active campaigns',
@@ -113,6 +116,7 @@ export default function PricingSection() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {PLANS.map(plan => (
           <div key={plan.audience} className={`bg-gradient-to-br from-white ${plan.wash} dark:from-[#0E1B2E] border-2 ${plan.border} rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300`}>
+            <div aria-hidden className={`h-1.5 bg-gradient-to-r ${plan.topBar}`} />
             <div className="p-8 pb-6 border-b border-gray-100">
               <p className={`text-xs font-bold uppercase tracking-widest ${plan.accent} mb-3`}>
                 {plan.audience}

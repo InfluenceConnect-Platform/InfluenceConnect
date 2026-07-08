@@ -83,9 +83,17 @@ export default function TestimonialCarousel() {
             >
               <div className={`bg-gradient-to-br from-white via-white ${t.wash} dark:from-[#0E1B2E] dark:via-[#0E1B2E] border border-gray-200 rounded-3xl p-8 sm:p-12 text-center shadow-sm mx-auto max-w-3xl`}>
                 {/* Quote mark */}
-                <svg className={`w-9 h-9 mx-auto mb-6 ${t.quoteColor}`} viewBox="0 0 24 24" fill="currentColor">
+                <svg className={`w-9 h-9 mx-auto mb-4 ${t.quoteColor}`} viewBox="0 0 24 24" fill="currentColor">
                   <path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"/>
                 </svg>
+                {/* Star rating */}
+                <span className="flex items-center justify-center gap-1 mb-5" aria-label="Rated 5 out of 5">
+                  {[0, 1, 2, 3, 4].map(s => (
+                    <svg key={s} className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  ))}
+                </span>
                 <blockquote className="text-lg sm:text-xl font-medium text-gray-800 leading-relaxed mb-8">
                   &ldquo;{t.quote}&rdquo;
                 </blockquote>

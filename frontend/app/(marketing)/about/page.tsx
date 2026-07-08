@@ -42,7 +42,7 @@ export default function AboutPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#EEF4F5]/50 via-white to-[#F5F3FF]/40 dark:from-[#0d2d33]/35 dark:via-[#0E1B2E] dark:to-[#2c1f4d]/30">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#EEF4F5] via-white to-[#F5F3FF] dark:from-[#0d2d33]/60 dark:via-[#0E1B2E] dark:to-[#2c1f4d]/50">
         <div aria-hidden className="anim-blob absolute -top-24 -right-24 w-[26rem] h-[26rem] rounded-full bg-[#7C3AED]/15 blur-3xl" />
         <div aria-hidden className="anim-blob absolute bottom-0 -left-16 w-72 h-72 rounded-full bg-amber-400/15 blur-3xl" style={{ animationDelay: '4s' }} />
         <div className="anim-fade-up relative max-w-3xl mx-auto px-5 sm:px-8 pt-16 pb-16 lg:pt-24 text-center">
@@ -64,8 +64,11 @@ export default function AboutPage() {
       </section>
 
       {/* Story */}
-      <section className="max-w-3xl mx-auto px-5 sm:px-8 pt-12 pb-16 sm:pt-16">
-        <div className="bg-gradient-to-br from-white via-white to-[#7FA8AD]/[0.05] dark:from-[#0E1B2E] dark:via-[#0E1B2E] border border-gray-200 rounded-3xl p-8 sm:p-10 shadow-sm">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white to-amber-50/50 dark:from-[#0E1B2E] dark:to-[rgba(120,80,10,0.12)]">
+      <div aria-hidden className="anim-blob absolute top-10 -right-24 w-64 h-64 rounded-full bg-amber-400/15 blur-3xl" />
+      <div className="relative max-w-3xl mx-auto px-5 sm:px-8 pt-12 pb-16 sm:pt-16">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white via-white to-[#7FA8AD]/[0.05] dark:from-[#0E1B2E] dark:via-[#0E1B2E] border border-gray-200 rounded-3xl p-8 sm:p-10 shadow-sm">
+          <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#5D8A8F] via-[#7C3AED] to-[#EA580C]" />
           <h2 className="text-xl font-bold text-gray-900 mb-4">Why we built this</h2>
           <div className="flex flex-col gap-4 text-sm sm:text-[0.95rem] text-gray-600 leading-relaxed">
             <p>
@@ -84,10 +87,12 @@ export default function AboutPage() {
             </p>
           </div>
         </div>
+      </div>
       </section>
 
       {/* Values */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#2A3E42] to-[#4C1D95]">
+        <div aria-hidden className="bg-dot-grid-white absolute inset-0 opacity-60" />
         <div aria-hidden className="anim-blob absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20">
           <h2 className="text-3xl font-bold tracking-tight text-white text-center mb-2">
@@ -113,26 +118,31 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="max-w-3xl mx-auto px-5 sm:px-8 py-20 text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-4">
-          Be part of it from the start
-        </h2>
-        <p className="text-base text-gray-600 mb-9 max-w-xl mx-auto">
-          Join the platform shaping how India&apos;s creators and brands collaborate — free, today.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
-          <Link
-            href="/auth/signup"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] shadow-lg active:scale-[0.98] transition-all"
-          >
-            Create free account
-          </Link>
-          <Link
-            href="/contact"
-            className="inline-flex items-center px-8 py-3.5 rounded-xl text-sm font-semibold text-gray-700 border border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
-          >
-            Talk to us
-          </Link>
+      <section className="max-w-5xl mx-auto px-5 sm:px-8 py-20">
+        <div className="anim-gradient-bg relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#5D8A8F] via-[#7C3AED] to-[#5D8A8F] px-8 py-14 sm:px-14 text-center shadow-2xl">
+          <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
+          <div aria-hidden className="anim-blob absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
+          <div aria-hidden className="anim-blob absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-[#FB923C]/20 blur-3xl" style={{ animationDelay: '5s' }} />
+          <h2 className="relative text-3xl font-bold tracking-tight text-white mb-4">
+            Be part of it from the start
+          </h2>
+          <p className="relative text-base text-white/85 mb-9 max-w-xl mx-auto">
+            Join the platform shaping how India&apos;s creators and brands collaborate — free, today.
+          </p>
+          <div className="relative flex flex-col sm:flex-row items-center justify-center gap-3.5">
+            <Link
+              href="/auth/signup"
+              className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-[#2A3E42] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all"
+            >
+              Create free account
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center px-8 py-3.5 rounded-xl text-sm font-semibold text-white border border-white/40 hover:bg-white/10 active:scale-[0.98] transition-all"
+            >
+              Talk to us
+            </Link>
+          </div>
         </div>
       </section>
     </>

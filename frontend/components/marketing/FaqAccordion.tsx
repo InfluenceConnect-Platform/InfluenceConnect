@@ -7,6 +7,15 @@ export interface FaqItem {
   a: string;
 }
 
+/* Per-item accent colors cycled down the list — matches the marketing palette. */
+const ACCENTS = [
+  { edge: 'border-l-[#5D8A8F]', circle: 'bg-[#5D8A8F] border-[#5D8A8F]' },
+  { edge: 'border-l-[#7C3AED]', circle: 'bg-[#7C3AED] border-[#7C3AED]' },
+  { edge: 'border-l-emerald-500', circle: 'bg-emerald-500 border-emerald-500' },
+  { edge: 'border-l-orange-500', circle: 'bg-orange-500 border-orange-500' },
+  { edge: 'border-l-blue-500', circle: 'bg-blue-500 border-blue-500' },
+];
+
 export default function FaqAccordion({ items }: { items: FaqItem[] }) {
   const [open, setOpen] = useState<number | null>(0);
 
@@ -14,10 +23,11 @@ export default function FaqAccordion({ items }: { items: FaqItem[] }) {
     <div className="flex flex-col gap-3">
       {items.map((item, i) => {
         const isOpen = open === i;
+        const accent = ACCENTS[i % ACCENTS.length];
         return (
           <div
             key={item.q}
-            className={`border rounded-2xl overflow-hidden transition-colors ${
+            className={`border border-l-4 rounded-2xl overflow-hidden transition-colors ${accent.edge} ${
               isOpen ? 'border-[#5D8A8F]/40 bg-white shadow-sm' : 'border-gray-200 bg-white'
             }`}
           >
@@ -31,7 +41,7 @@ export default function FaqAccordion({ items }: { items: FaqItem[] }) {
               </span>
               <span
                 className={`w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 transition-transform duration-200 ${
-                  isOpen ? 'rotate-45 bg-[#5D8A8F] border-[#5D8A8F]' : ''
+                  isOpen ? `rotate-45 ${accent.circle}` : ''
                 }`}
               >
                 <svg

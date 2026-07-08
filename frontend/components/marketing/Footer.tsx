@@ -30,7 +30,8 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-gray-50">
+    <footer className="bg-gray-50">
+      <div aria-hidden className="h-1 bg-gradient-to-r from-[#5D8A8F] via-[#7C3AED] to-[#EA580C]" />
       <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-8">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
           {/* Brand blurb */}
