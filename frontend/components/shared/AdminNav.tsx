@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, type ReactNode } from 'react';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import AdminCommandPalette from '@/components/shared/AdminCommandPalette';
 import api from '@/lib/api';
 
 type NavItem = { label: string; href: string; icon: ReactNode; badgeKey?: string };
@@ -87,7 +88,20 @@ export default function AdminNav({ user }: AdminNavProps) {
   const router    = useRouter();
   const confirm   = useConfirm();
   const [open, setOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [pendingGstin, setPendingGstin] = useState(0);
+
+  // ⌘K / Ctrl+K opens the command palette from anywhere in the admin panel.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(v => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -113,7 +127,8 @@ export default function AdminNav({ user }: AdminNavProps) {
 
   return (
     <>
-      <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[64px] sticky top-0 z-30 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_4px_16px_rgba(16,24,40,0.04)]">
+      <div className="h-[3px] bg-gradient-to-r from-[#5D8A8F] via-[#7FA8AD] to-amber-400 sticky top-0 z-40" />
+      <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[64px] sticky top-[3px] z-30 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_4px_16px_rgba(16,24,40,0.04)]">
 
         {/* Left: logo + desktop nav */}
         <div className="flex items-center gap-6 min-w-0 h-full">
@@ -138,7 +153,7 @@ export default function AdminNav({ user }: AdminNavProps) {
                   href={item.href}
                   className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'bg-[#3E4751] text-white shadow-[0_2px_8px_rgba(62,71,81,0.28)]'
+                      ? 'bg-gradient-to-br from-[#3E4751] to-[#262C33] text-white shadow-[0_2px_10px_rgba(62,71,81,0.35)]'
                       : 'text-gray-500 hover:text-gray-800 hover:bg-white dark:hover:bg-slate-800'
                   }`}
                 >
@@ -161,6 +176,29 @@ export default function AdminNav({ user }: AdminNavProps) {
 
         {/* Right */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+
+          {/* Command palette trigger */}
+          <button
+            onClick={() => setPaletteOpen(true)}
+            aria-label="Search (⌘K)"
+            className="hidden md:flex items-center gap-2 text-xs text-gray-400 pl-3 pr-2 py-1.5 border border-gray-200 rounded-xl bg-white/70 hover:bg-white hover:border-gray-300 hover:text-gray-600 transition-all cursor-pointer shadow-sm w-[190px]"
+          >
+            <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <span className="flex-1 text-left font-medium">Search…</span>
+            <kbd className="text-[10px] font-bold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5">⌘K</kbd>
+          </button>
+          <button
+            onClick={() => setPaletteOpen(true)}
+            aria-label="Search"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-all cursor-pointer"
+          >
+            <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+
           <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
             <span className="relative flex w-1.5 h-1.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
@@ -205,8 +243,8 @@ export default function AdminNav({ user }: AdminNavProps) {
       {/* Mobile dropdown */}
       {open && (
         <>
-          <div className="lg:hidden fixed inset-0 top-[64px] bg-black/20 z-20" onClick={() => setOpen(false)} />
-          <div className="lg:hidden fixed top-[64px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-lg">
+          <div className="lg:hidden fixed inset-0 top-[67px] bg-black/20 z-20" onClick={() => setOpen(false)} />
+          <div className="lg:hidden fixed top-[67px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-lg">
             <div className="px-4 py-3 flex flex-col gap-1">
               {NAV_ITEMS.map(item => {
                 const isActive = pathname === item.href;
@@ -217,7 +255,7 @@ export default function AdminNav({ user }: AdminNavProps) {
                     onClick={() => setOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                       isActive
-                        ? 'bg-[#3E4751] text-white shadow-sm'
+                        ? 'bg-gradient-to-br from-[#3E4751] to-[#262C33] text-white shadow-sm'
                         : 'text-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800/60 hover:text-gray-900'
                     }`}
                   >
@@ -250,6 +288,8 @@ export default function AdminNav({ user }: AdminNavProps) {
           </div>
         </>
       )}
+
+      <AdminCommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
   );
 }

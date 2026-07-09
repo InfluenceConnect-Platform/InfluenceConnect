@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
-import AdminNav from '@/components/shared/AdminNav';
+import { AdminShell, AdminHeader, CountUp, SpotlightCard } from '@/components/shared/AdminUI';
 import AdminRevenueChart from '@/components/charts/AdminRevenueChart';
 import AdminDonut from '@/components/charts/AdminDonut';
 
@@ -41,33 +41,41 @@ export default function AdminSubscriptions() {
   const fmt = (n: number) => n.toLocaleString('en-IN');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
-      <AdminNav />
+    <AdminShell>
 
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-9">
-
-        <div className="mb-7">
-          <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Revenue &amp; subscriptions</p>
-          <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">Subscriptions</h1>
-        </div>
+        <AdminHeader
+          eyebrow="Revenue & subscriptions"
+          title="Subscriptions"
+          subtitle="Track MRR, premium conversions and plan distribution in real time."
+        />
 
         {loading ? (
-          <div className="flex flex-col items-center gap-3 py-24">
-            <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-400 font-medium">Loading…</p>
+          <div className="flex flex-col gap-5 animate-pulse" aria-hidden="true">
+            <div className="h-44 rounded-3xl bg-gray-200/60" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[0, 1, 2, 3].map(i => <div key={i} className="h-28 rounded-2xl bg-gray-200/50" />)}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5">
+              <div className="h-72 rounded-2xl bg-gray-200/50" />
+              <div className="h-72 rounded-2xl bg-gray-200/50" />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-5">
 
             {/* MRR Hero */}
-            <div className="bg-[#3E4751] rounded-2xl px-6 sm:px-8 py-6 sm:py-7 text-white overflow-hidden relative">
-              <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/[0.04] rounded-full pointer-events-none" />
-              <div className="absolute -bottom-20 -left-10 w-56 h-56 bg-white/[0.03] rounded-full pointer-events-none" />
+            <div className="bg-gradient-to-br from-[#2E3944] via-[#3E4751] to-[#20262D] rounded-2xl sm:rounded-3xl px-5 sm:px-8 py-6 sm:py-7 text-white overflow-hidden relative shadow-[0_16px_44px_rgba(38,44,51,0.30)] anim-fade-up">
+              <div className="absolute -top-20 -right-16 w-64 h-64 bg-[#7FA8AD]/20 rounded-full blur-3xl pointer-events-none anim-blob" />
+              <div className="absolute -bottom-24 -left-10 w-72 h-72 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
               <div className="relative">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-1.5">Monthly Recurring Revenue</p>
-                    <p className="text-4xl sm:text-5xl font-bold tracking-tight tabular-nums">₹{fmt(overview?.mrr ?? 0)}</p>
+                    <CountUp
+                      value={overview?.mrr ?? 0}
+                      format={n => `₹${fmt(Math.round(n))}`}
+                      className="block text-[28px] sm:text-5xl font-bold tracking-tight tabular-nums"
+                    />
                   </div>
                   <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">
                     <svg className="w-5 h-5 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -94,24 +102,45 @@ export default function AdminSubscriptions() {
 
             {/* Quick stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                { label: 'Total Users',         value: overview?.totalUsers ?? 0,        icon: 'users',    color: 'text-blue-600',    bg: 'bg-blue-50' },
-                { label: 'Premium Users',        value: overview?.totalPremium ?? 0,      icon: 'star',     color: 'text-amber-600',   bg: 'bg-amber-50' },
-                { label: 'Freemium Users',       value: overview?.freemiumUsers ?? 0,     icon: 'free',     color: 'text-gray-500',    bg: 'bg-gray-100' },
-                { label: 'Conversion Rate',
+              {([
+                {
+                  label: 'Total Users', value: overview?.totalUsers ?? 0, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100', wash: 'to-blue-50/60',
+                  icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+                },
+                {
+                  label: 'Premium Users', value: overview?.totalPremium ?? 0, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100', wash: 'to-amber-50/60',
+                  icon: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
+                },
+                {
+                  label: 'Freemium Users', value: overview?.freemiumUsers ?? 0, color: 'text-gray-500', bg: 'bg-gray-100 border-gray-200', wash: 'to-gray-50/80',
+                  icon: <><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></>,
+                },
+                {
+                  label: 'Conversion Rate',
                   value: overview?.totalUsers
-                    ? `${Math.round(((overview.totalPremium ?? 0) / overview.totalUsers) * 100)}%`
-                    : '0%',                                                                icon: 'chart',    color: 'text-emerald-600', bg: 'bg-emerald-50' },
-              ].map((s, i) => (
-                <div key={i} className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">{s.label}</p>
-                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{s.value}</p>
-                </div>
+                    ? Math.round(((overview.totalPremium ?? 0) / overview.totalUsers) * 100)
+                    : 0,
+                  format: (n: number) => `${Math.round(n)}%`,
+                  color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100', wash: 'to-emerald-50/60',
+                  icon: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
+                },
+              ] as { label: string; value: number; format?: (n: number) => string; color: string; bg: string; wash: string; icon: React.ReactNode }[]).map((s, i) => (
+                <SpotlightCard key={i} className={`bg-gradient-to-br from-white via-white ${s.wash} border border-gray-200/80 rounded-2xl p-4 shadow-sm hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider pt-1">{s.label}</p>
+                    <span className={`w-8 h-8 rounded-lg border ${s.bg} ${s.color} flex items-center justify-center flex-shrink-0`}>
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {s.icon}
+                      </svg>
+                    </span>
+                  </div>
+                  <CountUp value={s.value} format={s.format} className="text-2xl font-bold text-gray-900 tabular-nums" />
+                </SpotlightCard>
               ))}
             </div>
 
             {/* MRR trend + premium mix */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 anim-fade-up anim-delay-2">
               <AdminRevenueChart
                 data={mrrTrend}
                 title="MRR growth"
@@ -129,7 +158,7 @@ export default function AdminSubscriptions() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 anim-fade-up anim-delay-3">
 
               {/* Revenue breakdown */}
               <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
@@ -233,7 +262,6 @@ export default function AdminSubscriptions() {
 
           </div>
         )}
-      </main>
-    </div>
+    </AdminShell>
   );
 }

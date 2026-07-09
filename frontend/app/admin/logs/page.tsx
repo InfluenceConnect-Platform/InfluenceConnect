@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
-import AdminNav from '@/components/shared/AdminNav';
+import { AdminShell, AdminHeader, TableSkeleton, CountUp, SpotlightCard } from '@/components/shared/AdminUI';
 import IdChip from '@/components/shared/IdChip';
 
 // ── Action badge config — colours mirror the admin status-badge system ──
@@ -171,76 +171,91 @@ export default function AdminLogs() {
   };
 
   const STAT_CARDS = [
-    { label: 'Actions today',       value: stats?.today ?? 0,  gradient: 'from-blue-500 to-blue-600' },
-    { label: 'Actions this week',   value: stats?.week ?? 0,   gradient: 'from-violet-500 to-purple-600' },
+    {
+      label: 'Actions today',
+      value: stats?.today ?? 0,
+      gradient: 'from-blue-500 to-blue-600',
+      wash: 'to-blue-50/70',
+      icon: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
+    },
+    {
+      label: 'Actions this week',
+      value: stats?.week ?? 0,
+      gradient: 'from-violet-500 to-purple-600',
+      wash: 'to-violet-50/70',
+      icon: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+    },
     {
       label: 'Top action this week',
       value: stats?.mostCommonAction ? actionMeta(stats.mostCommonAction).label : '—',
       sub: stats?.mostCommonAction ? `${stats.mostCommonCount} time${stats.mostCommonCount !== 1 ? 's' : ''}` : '',
       gradient: 'from-amber-400 to-orange-500',
+      wash: 'to-amber-50/70',
       small: true,
+      icon: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
     },
     {
       label: 'Last action',
       value: stats?.lastActionAt ? fmtTimestamp(stats.lastActionAt) : '—',
       gradient: 'from-emerald-500 to-teal-600',
+      wash: 'to-emerald-50/70',
       small: true,
+      icon: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
     },
   ];
 
-  const selectCls = 'text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 focus:border-[#3E4751] hover:border-gray-300 transition-all cursor-pointer text-gray-700 font-medium';
-  const dateCls = 'text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 focus:border-[#3E4751] hover:border-gray-300 transition-all text-gray-700 font-medium';
+  const selectCls = 'w-full sm:w-auto text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 focus:border-[#3E4751] hover:border-gray-300 transition-all cursor-pointer text-gray-700 font-medium';
+  const dateCls = 'w-full sm:w-auto text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 focus:border-[#3E4751] hover:border-gray-300 transition-all text-gray-700 font-medium';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
-      <AdminNav />
+    <AdminShell>
 
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-9">
-
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-7">
-          <div>
-            <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Audit trail</p>
-            <div className="flex items-center gap-3">
-              <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">Activity Log</h1>
-              {total > 0 && (
-                <span className="text-sm font-semibold text-gray-500 bg-gray-100 border border-gray-200/70 px-2.5 py-0.5 rounded-full tabular-nums">
-                  {total}
-                </span>
-              )}
-            </div>
-          </div>
-          <button
-            onClick={exportCsv}
-            disabled={exporting || total === 0}
-            className="flex items-center gap-1.5 text-xs font-semibold text-white px-3.5 py-2.5 rounded-xl bg-[#3E4751] hover:bg-[#2f363d] transition-all cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            {exporting ? 'Exporting…' : 'Export CSV'}
-          </button>
-        </div>
+        <AdminHeader
+          eyebrow="Audit trail"
+          title="Activity Log"
+          count={total}
+          subtitle="Every admin action, timestamped and exportable."
+          actions={
+            <button
+              onClick={exportCsv}
+              disabled={exporting || total === 0}
+              className="flex items-center gap-1.5 text-xs font-semibold text-white px-3.5 py-2.5 rounded-xl bg-gradient-to-br from-[#3E4751] to-[#262C33] hover:from-[#2f363d] hover:to-[#1b2026] transition-all cursor-pointer shadow-[0_2px_10px_rgba(62,71,81,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+          }
+        />
 
         {/* Stat chips */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {STAT_CARDS.map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200/70 p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)]">
+            <SpotlightCard key={i} className={`bg-gradient-to-br from-white via-white ${s.wash} rounded-2xl border border-gray-200/70 p-4 sm:p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}>
               <div className="flex items-start justify-between mb-3">
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider leading-tight pt-1">{s.label}</p>
-                <span className={`w-8 h-8 rounded-lg bg-gradient-to-br ${s.gradient} flex-shrink-0`} />
+                <span className={`w-9 h-9 rounded-xl bg-gradient-to-br ${s.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-white/20`}>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {s.icon}
+                  </svg>
+                </span>
               </div>
-              <p className={`font-bold text-gray-900 leading-tight tracking-tight ${s.small ? 'text-[15px]' : 'text-[28px] tabular-nums'}`}>
-                {s.value}
-              </p>
+              {typeof s.value === 'number' ? (
+                <CountUp value={s.value} className="block font-bold text-gray-900 leading-tight tracking-tight text-[28px] tabular-nums" />
+              ) : (
+                <p className={`font-bold text-gray-900 leading-tight tracking-tight ${s.small ? 'text-[15px]' : 'text-[28px] tabular-nums'}`}>
+                  {s.value}
+                </p>
+              )}
               {s.sub && <p className="text-xs text-gray-400 mt-1">{s.sub}</p>}
-            </div>
+            </SpotlightCard>
           ))}
         </section>
 
         {/* Filter bar */}
-        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04)] p-4 mb-5">
-          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3">
+        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04)] p-4 mb-5 anim-fade-up anim-delay-2">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-end gap-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Action</label>
               <select value={action} onChange={e => setAction(e.target.value)} className={selectCls}>
@@ -266,7 +281,7 @@ export default function AdminLogs() {
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-700 transition-all cursor-pointer"
+                className="col-span-2 sm:col-span-1 flex items-center justify-center sm:justify-start gap-1.5 text-xs font-semibold text-gray-500 px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-700 transition-all cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -278,12 +293,9 @@ export default function AdminLogs() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
+        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden anim-fade-up anim-delay-3">
           {loading ? (
-            <div className="flex flex-col items-center gap-3 py-20">
-              <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-gray-400 font-medium">Loading activity…</p>
-            </div>
+            <TableSkeleton rows={8} />
           ) : logs.length === 0 ? (
             <EmptyState hasFilters={hasFilters} onClear={clearFilters} />
           ) : (
@@ -389,7 +401,7 @@ export default function AdminLogs() {
 
               {/* Pagination */}
               {pages > 1 && (
-                <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
                   <p className="text-xs text-gray-500">
                     Page <span className="font-semibold text-gray-700">{page}</span> of{' '}
                     <span className="font-semibold text-gray-700">{pages}</span>
@@ -416,8 +428,7 @@ export default function AdminLogs() {
             </>
           )}
         </div>
-      </main>
-    </div>
+    </AdminShell>
   );
 }
 

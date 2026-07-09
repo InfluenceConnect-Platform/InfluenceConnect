@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AdminNav from '@/components/shared/AdminNav';
+import { AdminShell, AdminHeader } from '@/components/shared/AdminUI';
 import AccountInfoSection from '@/components/shared/AccountInfoSection';
 import api from '@/lib/api';
 
@@ -80,32 +80,28 @@ export default function AdminSettings() {
 
   const inputCls = 'w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-[#3E4751] focus:ring-[#3E4751]/10';
   const labelCls = 'block text-xs font-semibold mb-1.5 text-gray-500';
-  const cardCls = 'rounded-2xl border p-6 bg-white border-gray-200';
+  const cardCls = 'rounded-2xl border p-5 sm:p-6 bg-white border-gray-200';
   const accentBtn = 'flex items-center gap-2 bg-[#3E4751] hover:bg-[#2f363e] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 cursor-pointer';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
-      <AdminNav user={user} />
+    <AdminShell user={user} narrow>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Account &amp; security</p>
-          <h1 className="text-[26px] font-bold tracking-tight text-gray-900">Admin Settings</h1>
-          <p className="text-sm mt-1.5 text-gray-500">
-            Manage the admin account&apos;s email and password. Keep these credentials private.
-          </p>
-        </div>
+        <AdminHeader
+          eyebrow="Account & security"
+          title="Admin Settings"
+          subtitle="Manage the admin account's email and password. Keep these credentials private."
+        />
 
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-6 anim-fade-up anim-delay-1">
           {/* Sidebar */}
           <aside className="lg:w-52 flex-shrink-0">
-            <nav className="rounded-2xl border overflow-hidden bg-white border-gray-200">
+            <nav className="flex lg:flex-col rounded-2xl border overflow-hidden bg-white border-gray-200">
               {SECTIONS.map((s, i) => (
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all text-left cursor-pointer
-                    ${i < SECTIONS.length - 1 ? 'border-b border-gray-100' : ''}
+                  className={`flex-1 lg:flex-none lg:w-full flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-4 py-3 text-sm font-semibold transition-all text-left cursor-pointer
+                    ${i < SECTIONS.length - 1 ? 'border-r lg:border-r-0 lg:border-b border-gray-100' : ''}
                     ${activeSection === s.id
                       ? 'bg-[#3E4751]/8 text-[#3E4751]'
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
@@ -179,7 +175,6 @@ export default function AdminSettings() {
             )}
           </div>
         </div>
-      </main>
-    </div>
+    </AdminShell>
   );
 }

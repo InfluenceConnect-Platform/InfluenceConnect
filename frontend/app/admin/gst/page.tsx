@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
-import AdminNav from '@/components/shared/AdminNav';
+import { AdminShell, AdminHeader, TableSkeleton, CountUp } from '@/components/shared/AdminUI';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
@@ -177,18 +177,13 @@ export default function AdminGst() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
-      <AdminNav />
+    <AdminShell>
 
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-9">
-
-        <div className="mb-6">
-          <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Compliance</p>
-          <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">GST Verification</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manually review brand GSTINs. Approving marks the brand verified; rejecting suspends the account. Brands are emailed at every step.
-          </p>
-        </div>
+        <AdminHeader
+          eyebrow="Compliance"
+          title="GST Verification"
+          subtitle="Manually review brand GSTINs. Approving marks the brand verified; rejecting suspends the account. Brands are emailed at every step."
+        />
 
         {/* Stat cards — click to filter the list below */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -202,13 +197,13 @@ export default function AdminGst() {
                 onClick={() => setFilter(cardFilter)}
                 className={`text-left rounded-2xl border p-4 sm:p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] transition-all cursor-pointer hover:shadow-md ${t.card} ${
                   isActive ? 'ring-2 ring-[#3E4751] ring-offset-1' : 'hover:-translate-y-0.5'
-                }`}
+                } anim-fade-up anim-delay-1`}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`w-2 h-2 rounded-full ${t.dot}`} />
                   <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">{c.label}</p>
                 </div>
-                <p className={`text-3xl font-bold tabular-nums ${t.value}`}>{c.value}</p>
+                <CountUp value={c.value} className={`block text-2xl sm:text-3xl font-bold tabular-nums ${t.value}`} />
                 <p className="text-[11px] text-gray-400 mt-1">{isActive ? 'Showing below' : c.hint}</p>
               </button>
             );
@@ -232,7 +227,7 @@ export default function AdminGst() {
         )}
 
         {/* Search + filter tabs */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5 anim-fade-up anim-delay-2">
           <div className="relative flex-1 lg:max-w-sm">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -256,7 +251,7 @@ export default function AdminGst() {
               </button>
             )}
           </div>
-          <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto shadow-sm w-fit">
+          <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto shadow-sm w-fit max-w-full">
             {TABS.map(t => (
               <button
                 key={t.value || 'all'}
@@ -276,7 +271,7 @@ export default function AdminGst() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
+        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden anim-fade-up anim-delay-3">
 
           {/* Desktop table */}
           <div className="hidden md:block overflow-x-auto">
@@ -290,11 +285,8 @@ export default function AdminGst() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
-                  <tr><td colSpan={6} className="px-5 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
-                      <p className="text-sm text-gray-400 font-medium">Loading verifications…</p>
-                    </div>
+                  <tr><td colSpan={6} className="p-0">
+                    <TableSkeleton rows={7} />
                   </td></tr>
                 ) : visibleRows.length === 0 ? (
                   <tr><td colSpan={6} className="px-5 py-16 text-center">
@@ -382,10 +374,7 @@ export default function AdminGst() {
           {/* Mobile list */}
           <div className="md:hidden">
             {loading ? (
-              <div className="flex flex-col items-center gap-3 py-16">
-                <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-gray-400 font-medium">Loading verifications…</p>
-              </div>
+              <TableSkeleton rows={6} />
             ) : visibleRows.length === 0 ? (
               <div className="py-16 text-center">
                 <p className="text-sm font-medium text-gray-500">Nothing here</p>
@@ -455,35 +444,39 @@ export default function AdminGst() {
               </div>
             )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-4">
+          </div>
+
+          {/* Pagination — shared by the desktop table and mobile list */}
+          {totalPages > 1 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
+              <p className="text-xs text-gray-500">
+                Page <span className="font-semibold text-gray-700">{page}</span> of{' '}
+                <span className="font-semibold text-gray-700">{totalPages}</span>
+              </p>
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600 shadow-sm"
                 >
-                  Previous
+                  ← Prev
                 </button>
-                <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600 shadow-sm"
                 >
-                  Next
+                  Next →
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      </main>
-
       <UserDetailDrawer
         userId={selectedUserId}
         onClose={() => setSelectedUserId(null)}
         onChanged={() => fetchData({ silent: true })}
       />
-    </div>
+    </AdminShell>
   );
 }

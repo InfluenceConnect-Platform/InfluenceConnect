@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
-import AdminNav from '@/components/shared/AdminNav';
+import { AdminShell, CountUp, Sparkline, TrendBadge, SpotlightCard } from '@/components/shared/AdminUI';
 import { useToast } from '@/components/shared/Toast';
 import UserDetailDrawer from '@/components/shared/UserDetailDrawer';
 import AdminGrowthChart from '@/components/charts/AdminGrowthChart';
@@ -38,9 +38,14 @@ const STATUS_STYLES: Record<string, string> = {
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5] flex items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen bg-[#F6F8FB] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4 anim-pop">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#3E4751] to-[#262C33] flex items-center justify-center text-white font-bold text-sm shadow-[0_4px_16px_rgba(62,71,81,0.35)]">
+            IC
+          </div>
+          <div className="absolute -inset-2 border-2 border-[#7FA8AD]/40 border-t-[#5D8A8F] rounded-[18px] animate-spin" />
+        </div>
         <p className="text-sm text-gray-500 font-medium">Loading admin panel…</p>
       </div>
     </div>
@@ -112,13 +117,37 @@ export default function AdminDashboard() {
 
   if (loading) return <PageLoader />;
 
-  const STAT_CARDS = [
+  // Monthly series for sparklines + MoM deltas on the stat cards
+  const signupTotals = signupTrend.map((d: any) => (d.influencers ?? 0) + (d.brands ?? 0));
+  const mrrValues = revenueTrend.map((d: any) => d.value ?? 0);
+  const lastPair = (arr: number[]) =>
+    arr.length >= 2 ? { current: arr[arr.length - 1], previous: arr[arr.length - 2] } : null;
+
+  type StatCard = {
+    label: string;
+    value: number;
+    format?: (n: number) => string;
+    sub: string;
+    gradient: string;
+    glow: string;
+    wash: string;
+    icon: React.ReactNode;
+    spark?: number[];
+    sparkColor?: string;
+    trend?: { current: number; previous: number } | null;
+  };
+
+  const STAT_CARDS: StatCard[] = [
     {
       label: 'Total Users',
       value: stats?.totalUsers ?? 0,
       sub: `${stats?.totalInfluencers ?? 0} creators · ${stats?.totalBrands ?? 0} brands`,
+      spark: signupTotals,
+      sparkColor: '#3b82f6',
+      trend: lastPair(signupTotals),
       gradient: 'from-blue-500 to-blue-600',
       glow: 'group-hover:shadow-blue-500/10',
+      wash: 'to-blue-50/70',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -132,6 +161,7 @@ export default function AdminDashboard() {
       sub: 'Currently live on the platform',
       gradient: 'from-amber-400 to-orange-500',
       glow: 'group-hover:shadow-amber-500/10',
+      wash: 'to-amber-50/70',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -145,6 +175,7 @@ export default function AdminDashboard() {
       sub: `${stats?.completedDeals ?? 0} completed`,
       gradient: 'from-violet-500 to-purple-600',
       glow: 'group-hover:shadow-violet-500/10',
+      wash: 'to-violet-50/70',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -153,10 +184,15 @@ export default function AdminDashboard() {
     },
     {
       label: 'MRR',
-      value: `₹${(stats?.mrr ?? 0).toLocaleString('en-IN')}`,
+      value: stats?.mrr ?? 0,
+      format: (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`,
       sub: `${stats?.premiumUsers ?? 0} premium subscribers`,
+      spark: mrrValues,
+      sparkColor: '#10b981',
+      trend: lastPair(mrrValues),
       gradient: 'from-emerald-500 to-teal-600',
       glow: 'group-hover:shadow-emerald-500/10',
+      wash: 'to-emerald-50/70',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -182,58 +218,92 @@ export default function AdminDashboard() {
     color: '#7FA8AD',
   }));
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = user?.name?.split(' ')[0] ?? 'Admin';
+  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
+    <AdminShell user={user}>
 
-      <AdminNav user={user} />
-
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-9">
-
-        {/* Page header */}
-        <div className="flex items-start justify-between mb-7">
-          <div>
-            <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Platform overview</p>
-            <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">Dashboard</h1>
+        {/* Greeting hero */}
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#2E3944] via-[#3E4751] to-[#20262D] text-white px-5 sm:px-8 py-6 sm:py-8 mb-6 shadow-[0_16px_44px_rgba(38,44,51,0.30)] anim-fade-up">
+          <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-[#7FA8AD]/25 blur-3xl pointer-events-none anim-blob" />
+          <div className="absolute -bottom-28 left-1/4 w-80 h-80 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
+          <div className="absolute top-0 left-1/2 w-56 h-56 rounded-full bg-indigo-400/10 blur-3xl pointer-events-none" />
+          <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-bold text-[#9DC3C7] uppercase tracking-[0.2em] mb-2">Platform overview</p>
+              <h1 className="text-[25px] sm:text-[30px] font-bold tracking-tight leading-tight">
+                {greeting}, Admin <span className="inline-block">👋</span>
+              </h1>
+              <p className="text-sm text-white/55 mt-1.5">Here&apos;s what&apos;s happening across Influence Connect today.</p>
+              <div className="flex flex-wrap items-center gap-2 mt-5">
+                <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-400/15 border border-emerald-300/25 text-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 anim-pulse-dot" />
+                  Live data
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/75 tabular-nums">
+                  {stats?.totalUsers ?? 0} users
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/75 tabular-nums">
+                  {stats?.activeCampaigns ?? 0} active campaigns
+                </span>
+                {pendingGSTIN.length > 0 && (
+                  <Link
+                    href="/admin/gst"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-200 hover:bg-amber-400/30 transition-colors tabular-nums"
+                  >
+                    {pendingGSTIN.length} GSTIN{pendingGSTIN.length > 1 ? 's' : ''} awaiting review →
+                  </Link>
+                )}
+              </div>
+            </div>
+            <p className="hidden sm:block flex-shrink-0 text-right text-xs font-semibold text-white/45 pt-1">{today}</p>
           </div>
-          {/* <button
-            onClick={fetchData}
-            className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-gray-600 px-3.5 py-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer shadow-sm"
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-            </svg>
-            Refresh
-          </button> */}
-        </div>
+        </section>
 
         {/* Stat cards */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
           {STAT_CARDS.map((s, i) => (
-            <div
+            <SpotlightCard
               key={i}
-              className={`group bg-white rounded-2xl border border-gray-200/70 p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] ${s.glow} hover:-translate-y-0.5 transition-all duration-200`}
+              className={`group bg-gradient-to-br from-white via-white ${s.wash} rounded-2xl border border-gray-200/70 p-4 sm:p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] ${s.glow} hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}
             >
               <div className="flex items-start justify-between mb-4">
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider leading-tight pt-1">{s.label}</p>
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-white/20`}>
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${s.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-white/20`}>
                   {s.icon}
                 </div>
               </div>
-              <p className="text-[26px] sm:text-[30px] font-bold text-gray-900 leading-none mb-1.5 tabular-nums tracking-tight">{s.value}</p>
-              <p className="text-xs text-gray-400 leading-tight">{s.sub}</p>
-            </div>
+              <div className="flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <CountUp
+                      value={s.value}
+                      format={s.format}
+                      className="text-[23px] sm:text-[30px] font-bold text-gray-900 leading-none tabular-nums tracking-tight"
+                    />
+                    {s.trend && <TrendBadge current={s.trend.current} previous={s.trend.previous} />}
+                  </div>
+                  <p className="text-xs text-gray-400 leading-tight">{s.sub}</p>
+                </div>
+                {s.spark && s.spark.length >= 2 && (
+                  <Sparkline points={s.spark} color={s.sparkColor} className="w-[86px] h-9 flex-shrink-0 hidden sm:block" />
+                )}
+              </div>
+            </SpotlightCard>
           ))}
         </section>
 
         {/* Growth + revenue charts */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5 anim-fade-up anim-delay-2">
           <AdminGrowthChart data={signupTrend} />
           <AdminRevenueChart data={revenueTrend} />
         </section>
 
         {/* Deal pipeline + campaign status + top niches */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5 anim-fade-up anim-delay-3">
           <AdminDonut
             title="Deal pipeline"
             subtitle="All deals by current status"
@@ -255,7 +325,7 @@ export default function AdminDashboard() {
           />
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-5 mb-5">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-5 mb-5 anim-fade-up anim-delay-4">
 
           {/* Recent signups */}
           <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
@@ -451,7 +521,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* GSTIN Queue */}
-        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
+        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden anim-fade-up anim-delay-5">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div>
               <h3 className="font-semibold text-gray-900">GSTIN verification queue</h3>
@@ -490,16 +560,16 @@ export default function AdminDashboard() {
                       {item.gstin}
                     </p>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-2 w-full sm:w-auto sm:flex-shrink-0">
                     <button
                       onClick={() => handleGSTIN(item.brandProfileId, 'verified')}
-                      className="text-xs px-4 py-2 font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all cursor-pointer shadow-sm"
+                      className="flex-1 sm:flex-none text-xs px-4 py-2 font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all cursor-pointer shadow-sm"
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => handleGSTIN(item.brandProfileId, 'rejected')}
-                      className="text-xs px-4 py-2 font-semibold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-all cursor-pointer border border-red-100"
+                      className="flex-1 sm:flex-none text-xs px-4 py-2 font-semibold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-all cursor-pointer border border-red-100"
                     >
                       Reject
                     </button>
@@ -510,13 +580,11 @@ export default function AdminDashboard() {
           )}
         </div>
 
-      </main>
-
       <UserDetailDrawer
         userId={selectedUserId}
         onClose={() => setSelectedUserId(null)}
         onChanged={fetchData}
       />
-    </div>
+    </AdminShell>
   );
 }

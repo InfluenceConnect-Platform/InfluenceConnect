@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
-import AdminNav from '@/components/shared/AdminNav';
+import { AdminShell, AdminHeader, TableSkeleton } from '@/components/shared/AdminUI';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
@@ -135,26 +135,17 @@ export default function AdminCampaigns() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F8FA] via-[#F4F6F9] to-[#EDF0F5]">
+    <AdminShell>
 
-      <AdminNav />
-
-      <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-9">
-
-        <div className="mb-7">
-          <p className="text-[11px] font-semibold text-[#7FA8AD] uppercase tracking-[0.18em] mb-1.5">Platform campaigns</p>
-          <div className="flex items-center gap-3">
-            <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">Campaigns</h1>
-            {total > 0 && (
-              <span className="text-sm font-semibold text-gray-500 bg-gray-100 border border-gray-200/70 px-2.5 py-0.5 rounded-full tabular-nums">
-                {total}
-              </span>
-            )}
-          </div>
-        </div>
+        <AdminHeader
+          eyebrow="Platform campaigns"
+          title="Campaigns"
+          count={total}
+          subtitle="Monitor every campaign on the platform — flag suspicious ones or remove violations."
+        />
 
         {/* Search + status filter */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5 anim-fade-up anim-delay-1">
           <div className="relative flex-1 lg:max-w-sm">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -178,7 +169,7 @@ export default function AdminCampaigns() {
               </button>
             )}
           </div>
-          <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto w-fit shadow-sm">
+          <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto w-fit max-w-full shadow-sm">
             {STATUS_FILTERS.map(f => (
               <button
                 key={f.value}
@@ -195,7 +186,7 @@ export default function AdminCampaigns() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden">
+        <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden anim-fade-up anim-delay-2">
 
           {/* Desktop table */}
           <div className="hidden md:block overflow-x-auto">
@@ -212,16 +203,18 @@ export default function AdminCampaigns() {
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
-                        <p className="text-sm text-gray-400 font-medium">Loading campaigns…</p>
-                      </div>
+                    <td colSpan={7} className="p-0">
+                      <TableSkeleton rows={8} />
                     </td>
                   </tr>
                 ) : campaigns.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-5 py-16 text-center">
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-[#7FA8AD]/10 border border-[#7FA8AD]/20 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                        </svg>
+                      </div>
                       <p className="text-sm font-medium text-gray-500">No campaigns found</p>
                       <p className="text-xs text-gray-400 mt-1">Try a different search or filter</p>
                     </td>
@@ -299,10 +292,7 @@ export default function AdminCampaigns() {
           {/* Mobile list */}
           <div className="md:hidden">
             {loading ? (
-              <div className="flex flex-col items-center gap-3 py-16">
-                <div className="w-7 h-7 border-2 border-[#3E4751] border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-gray-400 font-medium">Loading campaigns…</p>
-              </div>
+              <TableSkeleton rows={6} />
             ) : campaigns.length === 0 ? (
               <div className="py-16 text-center">
                 <p className="text-sm font-medium text-gray-500">No campaigns found</p>
@@ -371,7 +361,7 @@ export default function AdminCampaigns() {
 
           {/* Pagination */}
           {!loading && pages > 1 && (
-            <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
               <p className="text-xs text-gray-500">
                 Page <span className="font-semibold text-gray-700">{page}</span> of{' '}
                 <span className="font-semibold text-gray-700">{pages}</span>
@@ -396,7 +386,7 @@ export default function AdminCampaigns() {
                       key={pageNum}
                       onClick={() => setPage(pageNum)}
                       disabled={loading}
-                      className={`w-8 h-8 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      className={`hidden min-[420px]:inline-flex items-center justify-center w-8 h-8 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                         pageNum === page
                           ? 'bg-[#3E4751] text-white shadow-sm'
                           : 'border border-gray-200 bg-white hover:bg-gray-50 text-gray-600'
@@ -417,13 +407,11 @@ export default function AdminCampaigns() {
             </div>
           )}
         </div>
-      </main>
-
       <CampaignDetailDrawer
         campaignId={selectedId}
         onClose={() => setSelectedId(null)}
         onChanged={() => fetchCampaigns({ silent: true })}
       />
-    </div>
+    </AdminShell>
   );
 }
