@@ -213,7 +213,9 @@ export default function VerifyOTPPage() {
 
   const otpInputClass = (digit: string, verified: boolean) => {
     if (verified) {
-      return 'border-emerald-600/50 bg-emerald-900/20 text-emerald-400';
+      return isDark
+        ? 'border-emerald-600/50 bg-emerald-900/20 text-emerald-400'
+        : 'border-emerald-400 bg-emerald-50 text-emerald-600';
     }
     if (digit) {
       return isDark ? TH.inputFilledDark : TH.inputFilledLight;

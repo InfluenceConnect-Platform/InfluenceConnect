@@ -82,7 +82,7 @@ function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    const backendURL = `${window.location.protocol}//${window.location.hostname}:8000`;
+    const backendURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     window.location.href = `${backendURL}/api/auth/google`;
   };
 
@@ -354,9 +354,9 @@ function LoginPage() {
 
             <p className={`text-[0.72rem] text-center mt-5 leading-relaxed transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
               By continuing you agree to our{' '}
-              <span className="text-[#5D8A8F] cursor-pointer hover:text-[#4A7A7F] font-semibold transition-colors">Terms</span>{' '}
+              <Link href="/legal/terms" className="text-[#5D8A8F] cursor-pointer hover:text-[#4A7A7F] font-semibold transition-colors">Terms</Link>{' '}
               and{' '}
-              <span className="text-[#5D8A8F] cursor-pointer hover:text-[#4A7A7F] font-semibold transition-colors">Privacy Policy</span>.
+              <Link href="/legal/privacy" className="text-[#5D8A8F] cursor-pointer hover:text-[#4A7A7F] font-semibold transition-colors">Privacy Policy</Link>.
             </p>
           </div>
         </div>

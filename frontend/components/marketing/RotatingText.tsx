@@ -23,10 +23,14 @@ export default function RotatingText({ phrases, interval = 2800, className = '' 
   }, [phrases.length, interval]);
 
   return (
-    <span className={`rotating-word-stack ${className}`}>
+    <span className="rotating-word-stack">
       {phrases.map((phrase, i) => (
         <span
           key={phrase}
+          /* className goes on each child, not the wrapper: bg-clip-text on the
+             parent breaks in Chromium when children carry transforms — the clip
+             mask includes every phrase's glyphs, so all phrases show at once. */
+          className={className}
           data-state={i === active ? 'in' : i === (active + 1) % phrases.length ? 'next' : 'out'}
           aria-hidden={i !== active}
         >

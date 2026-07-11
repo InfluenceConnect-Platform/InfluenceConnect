@@ -97,7 +97,9 @@ function ApplicationsOverTime({ data }: { data: BrandAnalyticsData['applications
     const cx = (prev.x + p.x) / 2;
     return `${acc} C ${cx} ${prev.y} ${cx} ${p.y} ${p.x} ${p.y}`;
   }, '');
-  const areaPath = `${linePath} L ${pts[pts.length - 1].x} ${PAD.top + plotH} L ${pts[0].x} ${PAD.top + plotH} Z`;
+  const areaPath = pts.length
+    ? `${linePath} L ${pts[pts.length - 1].x} ${PAD.top + plotH} L ${pts[0].x} ${PAD.top + plotH} Z`
+    : '';
   const hovPt = hovered !== null ? pts[hovered] : null;
 
   return (

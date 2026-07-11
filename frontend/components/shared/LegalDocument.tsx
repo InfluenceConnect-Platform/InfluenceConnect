@@ -146,7 +146,7 @@ export default function LegalDocument({ doc }: { doc: LegalDoc }) {
             {/* ── Cross-links to other documents ── */}
             <div className={`mt-12 border-t pt-8 ${isDark ? 'border-slate-800' : 'border-gray-200'}`}>
               <p className={`mb-3 text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>Related documents</p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {others.map((d) => (
                   <Link
                     key={d.slug}

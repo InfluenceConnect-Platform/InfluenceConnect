@@ -417,8 +417,9 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
           {NAV_ITEMS.map(item => {
             const isMessages  = item.href === '/influencer/messages';
             const isCampaigns = item.href === '/influencer/campaigns';
+            const isInvites   = item.href === '/influencer/invitations';
             const isActive    = pathname === item.href;
-            const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && (newCampaignCount > 0 || appUpdateCount > 0));
+            const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isCampaigns && (newCampaignCount > 0 || appUpdateCount > 0)) || (isInvites && pendingInviteCount > 0);
             return (
               <Link
                 key={item.href}

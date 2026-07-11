@@ -469,10 +469,10 @@ function PasswordStrength({ password }: { password: string }) {
     <div className="mt-1.5">
       <div className="flex gap-1 mb-1">
         {[0, 1, 2, 3].map(i => (
-          <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i < score ? colors[score - 1] : 'bg-slate-700'}`} />
+          <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i < score ? colors[score - 1] : 'bg-gray-200 dark:bg-slate-700'}`} />
         ))}
       </div>
-      <p className={`text-[0.7rem] font-semibold ${textColors[score - 1] || 'text-slate-600'}`}>
+      <p className={`text-[0.7rem] font-semibold ${textColors[score - 1] || 'text-gray-400 dark:text-slate-600'}`}>
         {score === 0 ? 'Enter a password' : labels[score - 1]}
       </p>
     </div>

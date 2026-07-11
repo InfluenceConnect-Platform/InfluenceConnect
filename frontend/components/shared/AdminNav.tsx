@@ -90,6 +90,12 @@ export default function AdminNav({ user }: AdminNavProps) {
   const [open, setOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [pendingGstin, setPendingGstin] = useState(0);
+  // Rendered as ⌘K during SSR, corrected to Ctrl K on non-Apple platforms after mount.
+  const [isMac, setIsMac] = useState(true);
+
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent));
+  }, []);
 
   // ⌘K / Ctrl+K opens the command palette from anywhere in the admin panel.
   useEffect(() => {
@@ -180,14 +186,14 @@ export default function AdminNav({ user }: AdminNavProps) {
           {/* Command palette trigger */}
           <button
             onClick={() => setPaletteOpen(true)}
-            aria-label="Search (⌘K)"
+            aria-label={isMac ? 'Search (⌘K)' : 'Search (Ctrl+K)'}
             className="hidden md:flex items-center gap-2 text-xs text-gray-400 pl-3 pr-2 py-1.5 border border-gray-200 rounded-xl bg-white/70 hover:bg-white hover:border-gray-300 hover:text-gray-600 transition-all cursor-pointer shadow-sm w-[190px]"
           >
             <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <span className="flex-1 text-left font-medium">Search…</span>
-            <kbd className="text-[10px] font-bold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5">⌘K</kbd>
+            <kbd className="text-[10px] font-bold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5 whitespace-nowrap">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
           </button>
           <button
             onClick={() => setPaletteOpen(true)}

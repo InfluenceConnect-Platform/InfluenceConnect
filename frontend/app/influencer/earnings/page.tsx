@@ -381,7 +381,34 @@ export default function EarningsPage() {
               <h3 className="font-bold text-gray-900 mb-0.5">Earnings by Category</h3>
               <p className="text-[11px] text-gray-400 mb-5">Breakdown of your deal categories</p>
               {dealHistory.length > 0 ? (
-                <div className="flex flex-col gap-3" />
+                <div className="flex flex-col gap-3.5">
+                  {(() => {
+                    // Group completed deals by campaign category, largest first.
+                    const byCat = new Map<string, number>();
+                    dealHistory.forEach(d => {
+                      const key = d.category || '';
+                      byCat.set(key, (byCat.get(key) ?? 0) + (d.amount || 0));
+                    });
+                    const rows = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
+                    const maxAmt = Math.max(rows[0]?.[1] ?? 0, 1);
+                    return rows.map(([cat, amount]) => (
+                      <div key={cat || 'general'}>
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${CAT_COLORS[cat] || 'bg-teal-50 text-teal-700 border-teal-200'}`}>
+                            {fmtCategory(cat)}
+                          </span>
+                          <span className="text-xs font-black text-gray-800 tabular-nums">₹{amount.toLocaleString()}</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] transition-all duration-500"
+                            style={{ width: `${(amount / maxAmt) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[140px] text-center">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
