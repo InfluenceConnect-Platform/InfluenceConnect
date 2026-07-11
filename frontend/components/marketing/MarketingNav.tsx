@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import ScrollProgress from '@/components/marketing/ScrollProgress';
-import { useTheme } from '@/lib/useTheme';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
@@ -16,9 +15,16 @@ const NAV_LINKS = [
   { href: '/contact', label: 'Contact' },
 ];
 
+/**
+ * Styled entirely with CSS `dark:` variants (not `isDark` conditionals) so the
+ * nav flips in the exact same style pass as the page content when the theme
+ * toggles — an isDark-driven nav re-renders one React pass behind the <html>
+ * class change and visibly lags. Light colours use arbitrary hex values
+ * (e.g. bg-[#f3f4f6]) where the plain token would be repainted by the
+ * globals.css dark-cascade overrides instead of the intended dark: value.
+ */
 export default function MarketingNav() {
   const pathname = usePathname();
-  const { isDark } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -35,9 +41,7 @@ export default function MarketingNav() {
     <header
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
         scrolled || menuOpen
-          ? isDark
-            ? 'bg-[#060D1A]/90 backdrop-blur-xl border-b border-slate-800/80 shadow-[0_1px_12px_rgba(0,0,0,0.35)]'
-            : 'bg-white/90 backdrop-blur-xl border-b border-gray-200/80 shadow-[0_1px_12px_rgba(0,0,0,0.05)]'
+          ? 'bg-white/90 dark:bg-[#060D1A]/90 backdrop-blur-xl border-b border-gray-200/80 dark:border-slate-800/80 shadow-[0_1px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_12px_rgba(0,0,0,0.35)]'
           : 'bg-transparent border-b border-transparent'
       }`}
     >
@@ -49,10 +53,10 @@ export default function MarketingNav() {
             IC
           </div>
           <div>
-            <span className={`text-sm font-bold tracking-tight block leading-none transition-colors ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
+            <span className="text-sm font-bold tracking-tight block leading-none transition-colors text-gray-900 dark:text-slate-100">
               Influence Connect
             </span>
-            <span className={`text-[0.6rem] font-medium tracking-wide uppercase transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+            <span className="text-[0.6rem] font-medium tracking-wide uppercase transition-colors text-gray-500 dark:text-slate-500">
               Creator · Brand Platform
             </span>
           </div>
@@ -68,8 +72,8 @@ export default function MarketingNav() {
                 href={link.href}
                 className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
                   active
-                    ? isDark ? 'text-white bg-slate-800/80' : 'text-gray-900 bg-gray-100'
-                    : isDark ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
+                    ? 'text-gray-900 bg-[#f3f4f6] dark:text-white dark:bg-slate-800/80'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50'
                 }`}
               >
                 {link.label}
@@ -83,9 +87,7 @@ export default function MarketingNav() {
           <ThemeToggle />
           <Link
             href="/auth/login"
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-              isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800/60' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className="px-4 py-2 rounded-xl text-sm font-semibold transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/60"
           >
             Log in
           </Link>
@@ -104,9 +106,7 @@ export default function MarketingNav() {
             onClick={() => setMenuOpen(v => !v)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors cursor-pointer ${
-              isDark ? 'border-slate-700 bg-slate-800/80 text-slate-300' : 'border-gray-200 bg-white text-gray-600'
-            }`}
+            className="w-10 h-10 flex items-center justify-center rounded-xl border transition-colors cursor-pointer border-[#e5e7eb] bg-[#fff] text-[#4b5563] dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               {menuOpen
@@ -119,9 +119,7 @@ export default function MarketingNav() {
 
       {/* Mobile menu panel */}
       {menuOpen && (
-        <div className={`lg:hidden border-t px-5 pt-3 pb-6 flex flex-col gap-1 ${
-          isDark ? 'border-slate-800 bg-[#060D1A]/95 backdrop-blur-xl' : 'border-gray-100 bg-white/95 backdrop-blur-xl'
-        }`}>
+        <div className="lg:hidden border-t px-5 pt-3 pb-6 flex flex-col gap-1 border-gray-100 dark:border-slate-800 bg-white/95 dark:bg-[#060D1A]/95 backdrop-blur-xl">
           {NAV_LINKS.map(link => (
             <Link
               key={link.href}
@@ -129,21 +127,19 @@ export default function MarketingNav() {
               onClick={closeMenu}
               className={`px-3.5 py-3 rounded-xl text-sm font-medium transition-colors ${
                 pathname === link.href
-                  ? isDark ? 'text-white bg-slate-800/80' : 'text-gray-900 bg-gray-100'
-                  : isDark ? 'text-slate-400 hover:text-slate-100' : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-gray-900 bg-[#f3f4f6] dark:text-white dark:bg-slate-800/80'
+                  : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-100'
               }`}
             >
               {link.label}
             </Link>
           ))}
-          <div className={`h-px my-3 ${isDark ? 'bg-slate-800' : 'bg-gray-100'}`} />
+          <div className="h-px my-3 bg-gray-100 dark:bg-slate-800" />
           <div className="flex flex-col gap-2.5">
             <Link
               href="/auth/login"
               onClick={closeMenu}
-              className={`px-4 py-3 rounded-xl text-sm font-semibold text-center border transition-colors ${
-                isDark ? 'border-slate-700 text-slate-200 hover:bg-slate-800/60' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-              }`}
+              className="px-4 py-3 rounded-xl text-sm font-semibold text-center border transition-colors border-[#e5e7eb] text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800/60"
             >
               Log in
             </Link>
