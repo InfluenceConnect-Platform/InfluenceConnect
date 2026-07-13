@@ -61,13 +61,21 @@ router.post('/account/mobile/request', authenticate, requestMobileChange);
 router.post('/account/mobile/verify', authenticate, verifyMobileChange);
 
 // Derive the backend/frontend origin from the incoming request so that OAuth
-// works correctly whether the request comes from localhost or a phone on the
-// local network (e.g. http://10.15.144.238:3000).
+// works correctly whether the request comes from localhost, a phone on the
+// local network (e.g. http://10.15.144.238:3000), or a deployed domain —
+// deployed hosts have no fixed dev port, so they use the configured URL.
+const isLocalOrLan = (hostname) =>
+  /^(localhost|127\.0\.0\.1|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(hostname);
+
 const getBackendUrl = (req) =>
-  `${req.protocol}://${req.hostname}:${process.env.PORT || 8000}`;
+  isLocalOrLan(req.hostname)
+    ? `${req.protocol}://${req.hostname}:${process.env.PORT || 8000}`
+    : (process.env.BACKEND_URL || `${req.protocol}://${req.hostname}`);
 
 const getFrontendUrl = (req) =>
-  `${req.protocol}://${req.hostname}:3000`;
+  isLocalOrLan(req.hostname)
+    ? `${req.protocol}://${req.hostname}:3000`
+    : (process.env.FRONTEND_URL || `${req.protocol}://${req.hostname}`);
 
 // GET /api/auth/google  — start Google OAuth flow
 router.get('/google', (req, res, next) => {

@@ -8,6 +8,7 @@ const logAdminAction = require('../utils/logAdminAction');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const FROM = process.env.EMAIL_FROM || 'Influence Connect <onboarding@resend.dev>';
 
 // Generate 6 digit OTP
 function generateOTP() {
@@ -181,7 +182,7 @@ exports.register = async (req, res) => {
 
     // Send email OTP via Resend
     const { error: emailError } = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: FROM,
       to: emailRecipient,
       subject: devBypass
         ? `[DEV] OTP for ${email} — Influence Connect`
@@ -200,21 +201,22 @@ exports.register = async (req, res) => {
       return res.status(500).json({ error: 'Failed to send verification email. Please try again.' });
     }
 
-    // Mobile OTP — send to bypass email in dev; MSG91 in prod
-    if (devBypass) {
-      await resend.emails.send({
-        from: 'onboarding@resend.dev',
-        to: devBypass,
-        subject: `[DEV] Mobile OTP for +91${mobile} — Influence Connect`,
-        html: buildOtpEmail({
-          heading: 'Verify your mobile number',
-          body: `Use the code below to verify the mobile number <strong>+91${mobile}</strong> on your Influence Connect account.`,
-          otp: mobileOTP,
-          codeLabel: 'Mobile verification code',
-          devNote: `DEV BYPASS — original recipient: +91${mobile}`
-        })
-      });
-    }
+    // Mobile OTP — MSG91 isn't wired up yet, so it's emailed to the account's
+    // own address instead (bypass inbox in dev, real address otherwise).
+    await resend.emails.send({
+      from: FROM,
+      to: emailRecipient,
+      subject: devBypass
+        ? `[DEV] Mobile OTP for +91${mobile} — Influence Connect`
+        : 'Verify your mobile number — Influence Connect',
+      html: buildOtpEmail({
+        heading: 'Verify your mobile number',
+        body: `Use the code below to verify the mobile number <strong>+91${mobile}</strong> on your Influence Connect account.`,
+        otp: mobileOTP,
+        codeLabel: 'Mobile verification code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: +91${mobile}` : null
+      })
+    });
     console.log(`[OTP] Mobile OTP for ${mobile}: ${mobileOTP}`);
 
     res.status(201).json({
@@ -367,7 +369,7 @@ exports.resendOTP = async (req, res) => {
     if (type === 'email') {
       const recipient = devBypass || user.email;
       const { error: emailError } = await resend.emails.send({
-        from: 'onboarding@resend.dev',
+        from: FROM,
         to: recipient,
         subject: devBypass
           ? `[DEV] New OTP for ${user.email} — Influence Connect`
@@ -387,20 +389,21 @@ exports.resendOTP = async (req, res) => {
     }
 
     if (type === 'mobile') {
-      if (devBypass) {
-        await resend.emails.send({
-          from: 'onboarding@resend.dev',
-          to: devBypass,
-          subject: `[DEV] New Mobile OTP for ${user.mobile} — Influence Connect`,
-          html: buildOtpEmail({
-            heading: 'New mobile verification code',
-            body: `You requested a new code to verify the mobile number <strong>${user.mobile}</strong>. Your previous code has been invalidated.`,
-            otp: newOTP,
-            codeLabel: 'Mobile verification code',
-            devNote: `DEV BYPASS — original recipient: ${user.mobile}`
-          })
-        });
-      }
+      const recipient = devBypass || user.email;
+      await resend.emails.send({
+        from: FROM,
+        to: recipient,
+        subject: devBypass
+          ? `[DEV] New Mobile OTP for ${user.mobile} — Influence Connect`
+          : 'Your new mobile verification code — Influence Connect',
+        html: buildOtpEmail({
+          heading: 'New mobile verification code',
+          body: `You requested a new code to verify the mobile number <strong>${user.mobile}</strong>. Your previous code has been invalidated.`,
+          otp: newOTP,
+          codeLabel: 'Mobile verification code',
+          devNote: devBypass ? `DEV BYPASS — original recipient: ${user.mobile}` : null
+        })
+      });
       console.log(`[OTP] New mobile OTP for ${user.mobile}: ${newOTP}`);
     }
 
@@ -560,7 +563,7 @@ exports.forgotPassword = async (req, res) => {
     const recipient = devBypass || email;
 
     const { error: emailError } = await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: FROM,
       to: recipient,
       subject: devBypass
         ? `[DEV] Password Reset for ${email} — Influence Connect`
@@ -755,22 +758,23 @@ exports.sendMobileOtp = async (req, res) => {
     const mobileOTP = generateOTP();
     await OTP.create({ userId, type: 'mobile', otp: mobileOTP });
 
-    // Send to bypass email in dev; MSG91 in prod
+    // MSG91 isn't wired up yet, so it's emailed to the account's own address
+    // instead (bypass inbox in dev, real address otherwise).
     const devBypass = process.env.DEV_OTP_EMAIL;
-    if (devBypass) {
-      await resend.emails.send({
-        from: 'onboarding@resend.dev',
-        to: devBypass,
-        subject: `[DEV] Mobile OTP for ${cleanMobile} — Influence Connect`,
-        html: buildOtpEmail({
-          heading: 'Verify your mobile number',
-          body: `Use the code below to verify the mobile number <strong>${cleanMobile}</strong> linked to your Influence Connect account.`,
-          otp: mobileOTP,
-          codeLabel: 'Mobile verification code',
-          devNote: `DEV BYPASS — original recipient: ${cleanMobile}`
-        })
-      });
-    }
+    await resend.emails.send({
+      from: FROM,
+      to: devBypass || user.email,
+      subject: devBypass
+        ? `[DEV] Mobile OTP for ${cleanMobile} — Influence Connect`
+        : 'Verify your mobile number — Influence Connect',
+      html: buildOtpEmail({
+        heading: 'Verify your mobile number',
+        body: `Use the code below to verify the mobile number <strong>${cleanMobile}</strong> linked to your Influence Connect account.`,
+        otp: mobileOTP,
+        codeLabel: 'Mobile verification code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: ${cleanMobile}` : null
+      })
+    });
     console.log(`[OTP] Mobile OTP for ${cleanMobile}: ${mobileOTP}`);
 
     res.json({ message: 'OTP sent to your mobile number.' });
@@ -917,7 +921,7 @@ exports.requestEmailChange = async (req, res) => {
 
     const devBypass = process.env.DEV_OTP_EMAIL;
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: FROM,
       to: devBypass || newEmail,
       subject: devBypass ? `[DEV] Email change OTP for ${newEmail} — Influence Connect` : 'Confirm your new email — Influence Connect',
       html: buildOtpEmail({
@@ -997,20 +1001,20 @@ exports.requestMobileChange = async (req, res) => {
     await OTP.create({ userId: user._id, type: 'mobile_change', otp: code, pendingValue: newMobile });
 
     const devBypass = process.env.DEV_OTP_EMAIL;
-    if (devBypass) {
-      await resend.emails.send({
-        from: 'onboarding@resend.dev',
-        to: devBypass,
-        subject: `[DEV] Mobile change OTP for ${newMobile} — Influence Connect`,
-        html: buildOtpEmail({
-          heading: 'Confirm your new phone number',
-          body: `You requested to change your phone number to <strong>${newMobile}</strong>. Use the code below to confirm.`,
-          otp: code,
-          codeLabel: 'Mobile confirmation code',
-          devNote: `DEV BYPASS — original recipient: ${newMobile}`,
-        }),
-      });
-    }
+    await resend.emails.send({
+      from: FROM,
+      to: devBypass || user.email,
+      subject: devBypass
+        ? `[DEV] Mobile change OTP for ${newMobile} — Influence Connect`
+        : 'Confirm your new phone number — Influence Connect',
+      html: buildOtpEmail({
+        heading: 'Confirm your new phone number',
+        body: `You requested to change your phone number to <strong>${newMobile}</strong>. Use the code below to confirm.`,
+        otp: code,
+        codeLabel: 'Mobile confirmation code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: ${newMobile}` : null,
+      }),
+    });
     console.log(`[OTP] Mobile change OTP for ${newMobile}: ${code}`);
 
     res.json({ message: `A verification code has been sent to ${newMobile}.` });

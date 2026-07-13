@@ -19,6 +19,11 @@ require('./config/passport');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Vercel terminates TLS and proxies over HTTP internally — without this,
+// req.protocol always reports 'http', breaking the Google OAuth callback URL
+// and the CORS/redirect logic in auth.routes.js that depends on https.
+app.set('trust proxy', 1);
+
 // ─────────────────────────────────────────
 // Middleware — MUST come before all routes
 // ─────────────────────────────────────────
@@ -89,7 +94,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Start server (skipped on Vercel, which imports `app` as a serverless function)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
