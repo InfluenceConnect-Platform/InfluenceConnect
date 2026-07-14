@@ -58,13 +58,26 @@ app.use(passport.session());
 // ─────────────────────────────────────────
 // Database connection
 // ─────────────────────────────────────────
-// family: 4 avoids intermittent mongodb+srv DNS/SRV lookup failures over IPv6
-// seen on some serverless egress paths (Vercel).
-mongoose.connect(process.env.MONGODB_URI, { family: 4, serverSelectionTimeoutMS: 10000 })
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch((err) => {
-    console.error('MongoDB connection failed:', err.message);
-  });
+// M0 (free tier) is shared infrastructure and intermittently stalls the TLS
+// handshake under connection churn from serverless cold starts. Retry a few
+// times before giving up instead of leaving the instance permanently
+// "Disconnected" for what's usually a transient hiccup.
+async function connectWithRetry(attempt = 1) {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      family: 4,
+      serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 5,
+    });
+    console.log('MongoDB connected successfully');
+  } catch (err) {
+    console.error(`MongoDB connection failed (attempt ${attempt}):`, err.message);
+    if (attempt < 3) {
+      setTimeout(() => connectWithRetry(attempt + 1), 2000);
+    }
+  }
+}
+connectWithRetry();
 
 // ─────────────────────────────────────────
 // Routes — MUST come after middleware
