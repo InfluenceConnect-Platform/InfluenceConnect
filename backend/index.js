@@ -58,7 +58,9 @@ app.use(passport.session());
 // ─────────────────────────────────────────
 // Database connection
 // ─────────────────────────────────────────
-mongoose.connect(process.env.MONGODB_URI)
+// family: 4 avoids intermittent mongodb+srv DNS/SRV lookup failures over IPv6
+// seen on some serverless egress paths (Vercel).
+mongoose.connect(process.env.MONGODB_URI, { family: 4, serverSelectionTimeoutMS: 10000 })
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => {
     console.error('MongoDB connection failed:', err.message);
