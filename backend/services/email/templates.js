@@ -291,6 +291,46 @@ module.exports = {
     };
   },
 
+  // New/countered price offer (to influencer)
+  offerMadeInfluencer({ campaignTitle, brandName, amount }) {
+    return {
+      subject: `New price offer — ${campaignTitle}`,
+      html: layout({
+        theme: CREATOR,
+        heading: 'You have a new price offer 💰',
+        bodyHtml:
+          para(`${esc(brandName || 'The brand')} proposed a price for <strong>${esc(campaignTitle)}</strong>.`) +
+          details([
+            ['Campaign', campaignTitle],
+            ['Brand', brandName],
+            ['Proposed amount', inr(amount)],
+          ]) +
+          para('Open the deal chat to accept or counter this offer.') +
+          button('Open messages', `${APP_URL}/influencer/messages`, CREATOR),
+      }),
+    };
+  },
+
+  // New/countered price offer (to brand)
+  offerMadeBrand({ campaignTitle, influencerName, amount }) {
+    return {
+      subject: `New price offer — ${campaignTitle}`,
+      html: layout({
+        theme: BRAND,
+        heading: 'You have a new price offer 💰',
+        bodyHtml:
+          para(`${esc(influencerName || 'The creator')} proposed a price for <strong>${esc(campaignTitle)}</strong>.`) +
+          details([
+            ['Creator', influencerName],
+            ['Campaign', campaignTitle],
+            ['Proposed amount', inr(amount)],
+          ]) +
+          para('Open the deal chat to accept or counter this offer.') +
+          button('Open messages', `${APP_URL}/brand/messages`, BRAND),
+      }),
+    };
+  },
+
   // Price agreed (to brand)
   priceAgreedBrand({ campaignTitle, influencerName, amount }) {
     return {

@@ -130,6 +130,27 @@ exports.makeOffer = async (req, res) => {
       actorContent: `💰 You proposed ${inr(parsed)}. Waiting for a response.`,
     });
 
+    // Email the other party too — a proposed price shouldn't rely on them
+    // noticing the in-app dot.
+    const [brand, influencer] = await Promise.all([
+      User.findById(deal.brandId).select('name email'),
+      User.findById(deal.influencerId).select('name email'),
+    ]);
+    const campaignTitle = deal.campaignId?.title;
+    if (isBrand && influencer?.email) {
+      notify.offerMadeInfluencer(influencer.email, {
+        campaignTitle,
+        brandName: brand?.name,
+        amount: parsed,
+      });
+    } else if (isInfluencer && brand?.email) {
+      notify.offerMadeBrand(brand.email, {
+        campaignTitle,
+        influencerName: influencer?.name,
+        amount: parsed,
+      });
+    }
+
     res.json({
       negotiationStatus: deal.negotiationStatus,
       agreedAmount: deal.agreedAmount,

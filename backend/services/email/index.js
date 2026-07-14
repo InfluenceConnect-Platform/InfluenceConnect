@@ -48,6 +48,9 @@ module.exports = {
   dealInProgressBrand:    make('dealInProgressBrand'),
   // 12 — brand: content submitted
   contentSubmittedBrand:  make('contentSubmittedBrand'),
+  // both parties: new/countered price offer submitted
+  offerMadeInfluencer:         make('offerMadeInfluencer'),
+  offerMadeBrand:              make('offerMadeBrand'),
   // both parties: offer accepted, price agreed
   priceAgreedInfluencer:       make('priceAgreedInfluencer'),
   priceAgreedBrand:            make('priceAgreedBrand'),
