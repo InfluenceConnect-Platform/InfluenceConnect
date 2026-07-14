@@ -4,8 +4,12 @@ import axios from 'axios';
 // accessing the app from a phone (e.g. http://10.15.144.238:3000) automatically
 // hits the laptop's backend at http://10.15.144.238:8000 instead of the phone's
 // own localhost:8000 (which has no server).
+const isLanHost = (hostname: string): boolean =>
+  /^(localhost|127\.0\.0\.1)$/.test(hostname) ||
+  /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(hostname);
+
 const getBaseURL = (): string => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && isLanHost(window.location.hostname)) {
     return `${window.location.protocol}//${window.location.hostname}:8000`;
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
