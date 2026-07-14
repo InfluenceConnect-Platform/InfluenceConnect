@@ -55,6 +55,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Tell browsers (esp. Android Chrome's "Auto Dark Theme") that this
+            page declares and manages its own light/dark styling, so they
+            don't force-repaint it with a heuristic darkening filter that
+            fights our own `dark` class toggle. */}
+        <meta name="color-scheme" content="light dark" />
         {/* Anti-flash: apply stored theme before React hydrates. A native inline
             script runs synchronously during HTML parse, so the `dark` class is
             set before first paint with no flash. */}
