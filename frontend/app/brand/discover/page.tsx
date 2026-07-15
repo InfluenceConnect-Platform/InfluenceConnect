@@ -1090,7 +1090,7 @@ function BrandDiscover() {
                   <div key={i} className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden animate-pulse">
                     <div className="h-20 bg-gray-100" />
                     <div className="px-4 pb-4">
-                      <div className="flex items-end justify-between -mt-7 mb-3">
+                      <div className="flex items-end justify-between mt-3 mb-3">
                         <div className="w-14 h-14 rounded-full bg-gray-200 border-[3px] border-white" />
                         <div className="flex gap-1 mb-1">
                           <div className="w-5 h-5 rounded bg-gray-100" />
@@ -1159,7 +1159,7 @@ function BrandDiscover() {
 
                       <div className="px-4 pb-4">
                         {/* Avatar + platforms row */}
-                        <div className="flex items-end justify-between -mt-7 mb-3">
+                        <div className="flex items-end justify-between mt-3 mb-3">
                           <div className={`w-14 h-14 rounded-full border-[3px] border-white shadow-md overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center flex-shrink-0`}>
                             {influencer.profilePicUrl ? (
                               // eslint-disable-next-line @next/next/no-img-element
