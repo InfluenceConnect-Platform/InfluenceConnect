@@ -1906,7 +1906,7 @@ function InfluencerProfile() {
 
         {/* Bottom save bar — mirrors the header actions so long profiles don't
             require scrolling back up to save or cancel. */}
-        <div className={`sticky bottom-4 z-10 mt-6 flex items-center justify-end gap-2.5 rounded-2xl border px-5 py-4 shadow-lg backdrop-blur-sm ${isDark ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-gray-200'}`}>
+        <div className={`mt-6 flex items-center justify-end gap-2.5 rounded-2xl border px-5 py-4 shadow-sm ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'}`}>
           {saved && (
             <span className="mr-auto flex items-center gap-1.5 text-sm text-emerald-700 font-semibold bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 shadow-sm">
               <CheckIcon />
