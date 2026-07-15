@@ -247,14 +247,24 @@ export default function CreatorProfilePage() {
   const closeModal = () => setModalOpen(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) { router.push('/auth/login'); return; }
     if (slug) fetchProfile();
   }, [slug]);
 
   const fetchProfile = async () => {
+    // This is a public, shareable profile link — anyone can view it (an
+    // influencer previewing their own link, an outside brand contact with no
+    // account, or a logged-out visitor). Only an authenticated brand hits the
+    // brand-only endpoint, which additionally tracks their freemium daily
+    // view cap; everyone else gets the plain public read.
+    let role: string | undefined;
+    try { role = JSON.parse(localStorage.getItem('user') || '{}')?.role; } catch {}
+    const token = localStorage.getItem('token');
+    const isBrandViewer = !!token && role === 'brand';
+
     try {
-      const res = await api.get(`/api/brand/influencer/${slug}`);
+      const res = await api.get(
+        isBrandViewer ? `/api/brand/influencer/${slug}` : `/api/influencer/profile/${slug}`
+      );
       setProfile(res.data.profile);
     } catch (err: any) {
       if (err.response?.status === 404) setNotFound(true);
