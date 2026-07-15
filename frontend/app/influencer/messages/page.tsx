@@ -181,6 +181,15 @@ function MessagesPage() {
   const pollRef = useRef<NodeJS.Timeout | null>(null);
   const activeIdRef = useRef<string | null>(null);
   const autoPromptedRef = useRef<Set<string>>(new Set());
+  // Only auto-scroll to the newest message if the reader was already near the
+  // bottom (or just opened this thread) — otherwise a background poll while
+  // they're scrolled up reading history would keep yanking them back down.
+  const nearBottomRef = useRef(true);
+  const handleThreadScroll = () => {
+    const el = threadRef.current;
+    if (!el) return;
+    nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  };
   const FREEMIUM_MSG_LIMIT = 10;
 
   useEffect(() => {
@@ -195,7 +204,7 @@ function MessagesPage() {
   }, []);
 
   useEffect(() => {
-    if (threadRef.current) {
+    if (threadRef.current && nearBottomRef.current) {
       threadRef.current.scrollTop = threadRef.current.scrollHeight;
     }
   }, [messages]);
@@ -204,6 +213,9 @@ function MessagesPage() {
   useEffect(() => {
     if (pollRef.current) clearInterval(pollRef.current);
     if (!selectedDealId) return;
+    // Opening a thread (or switching to another one) should always land at
+    // the newest message, regardless of where the previous thread was scrolled.
+    nearBottomRef.current = true;
     fetchMessages(selectedDealId);
     fetchDealState(selectedDealId);
     pollRef.current = setInterval(() => {
@@ -264,6 +276,7 @@ function MessagesPage() {
     if (dealClosed || chatLocked) return;
 
     setSending(true);
+    nearBottomRef.current = true;
     const attachmentsToSend = pendingAttachments;
     try {
       await api.post(`/api/messages/${selectedDeal._id}`, {
@@ -768,6 +781,7 @@ function MessagesPage() {
               {/* Messages thread — dot-grid background */}
               <div
                 ref={threadRef}
+                onScroll={handleThreadScroll}
                 className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 flex flex-col"
                 style={isDark ? {
                   backgroundColor: '#060D1A',

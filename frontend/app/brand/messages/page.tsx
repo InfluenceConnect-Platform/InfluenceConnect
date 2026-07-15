@@ -198,6 +198,15 @@ function BrandMessages() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeIdRef = useRef<string | null>(null);
+  // Only auto-scroll to the newest message if the reader was already near the
+  // bottom (or just opened this thread) — otherwise a background poll while
+  // they're scrolled up reading history would keep yanking them back down.
+  const nearBottomRef = useRef(true);
+  const handleThreadScroll = () => {
+    const el = threadRef.current;
+    if (!el) return;
+    nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  };
 
   const { isDark } = useTheme();
   const toast = useToast();
@@ -236,13 +245,16 @@ function BrandMessages() {
   }, [router]);
 
   useEffect(() => {
-    if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight;
+    if (threadRef.current && nearBottomRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight;
   }, [messages]);
 
   const selectedDealId = selectedDeal?._id ?? null;
   useEffect(() => {
     if (pollRef.current) clearInterval(pollRef.current);
     if (!selectedDealId) return;
+    // Opening a thread (or switching to another one) should always land at
+    // the newest message, regardless of where the previous thread was scrolled.
+    nearBottomRef.current = true;
     fetchMessages(selectedDealId);
     fetchDealState(selectedDealId);
     pollRef.current = setInterval(() => {
@@ -387,6 +399,7 @@ function BrandMessages() {
       return;
     }
     setSending(true);
+    nearBottomRef.current = true;
     const attachmentsToSend = pendingAttachments;
     const optimistic: Message = {
       _id: `tmp-${Date.now()}`,
@@ -844,6 +857,7 @@ function BrandMessages() {
               {/* Messages thread — dot-grid background */}
               <div
                 ref={threadRef}
+                onScroll={handleThreadScroll}
                 className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 flex flex-col"
                 style={isDark ? {
                   backgroundColor: '#060D1A',
