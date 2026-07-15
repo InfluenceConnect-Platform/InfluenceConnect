@@ -1905,6 +1905,41 @@ function InfluencerProfile() {
           </div>
 
         </div>
+
+        {/* Bottom save bar — mirrors the header actions so long profiles don't
+            require scrolling back up to save or cancel. */}
+        <div className={`sticky bottom-4 z-10 mt-6 flex items-center justify-end gap-2.5 rounded-2xl border px-5 py-4 shadow-lg backdrop-blur-sm ${isDark ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-gray-200'}`}>
+          {saved && (
+            <span className="mr-auto flex items-center gap-1.5 text-sm text-emerald-700 font-semibold bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 shadow-sm">
+              <CheckIcon />
+              Saved
+            </span>
+          )}
+          <button
+            onClick={handleCancelEdit}
+            className={`text-sm px-4 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="group relative flex items-center gap-2 bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] hover:from-[#4A7378] hover:to-[#6B9499] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
+            {saving ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+                Saving…
+              </>
+            ) : (
+              <>
+                <CheckIcon />
+                Save changes
+              </>
+            )}
+          </button>
+        </div>
         </>)}
       </main>
     </div>
