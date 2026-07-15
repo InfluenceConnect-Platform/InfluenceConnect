@@ -385,6 +385,10 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                       <DealList deals={inf.activeDeals} nameKey="brandName" nameLabel="Brand" />
                     </Section>
 
+                    <Section title="Completed Deals">
+                      <DealList deals={inf.completedDeals} nameKey="brandName" nameLabel="Brand" />
+                    </Section>
+
                     <Section title="Applications">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <MiniStat label="Total"    value={inf.applications.total} />
@@ -507,6 +511,10 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
 
                     <Section title="Active Deals">
                       <DealList deals={brand.activeDeals} nameKey="influencerName" nameLabel="Creator" />
+                    </Section>
+
+                    <Section title="Completed Deals">
+                      <DealList deals={brand.completedDeals} nameKey="influencerName" nameLabel="Creator" />
                     </Section>
 
                     <Section title="Working With">

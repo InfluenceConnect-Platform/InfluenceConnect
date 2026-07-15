@@ -294,19 +294,22 @@ exports.getUserDetails = async (req, res) => {
 
       const activeStatuses = ['in-progress', 'content-submitted'];
       const activeDealDocs = deals.filter(d => activeStatuses.includes(d.status));
-      const payoutStatusMap = await payoutStatusByDeal(activeDealDocs.map(d => d._id));
-      const activeDeals = activeDealDocs
-        .map(d => ({
-          dealId: d._id.toString(),
-          customId: d.customId || '',
-          brandName: d.brandId?.name || '—',
-          campaignTitle: d.campaignId?.title || '—',
-          agreedAmount: d.agreedAmount || 0,
-          status: d.status,
-          payoutStatus: payoutStatusMap.get(d._id.toString()) || 'not_submitted'
-        }));
-
       const completedDeals = deals.filter(d => d.status === 'completed');
+      const payoutStatusMap = await payoutStatusByDeal(
+        [...activeDealDocs, ...completedDeals].map(d => d._id)
+      );
+      const toDealCard = (d) => ({
+        dealId: d._id.toString(),
+        customId: d.customId || '',
+        brandName: d.brandId?.name || '—',
+        campaignTitle: d.campaignId?.title || '—',
+        agreedAmount: d.agreedAmount || 0,
+        status: d.status,
+        payoutStatus: payoutStatusMap.get(d._id.toString()) || 'not_submitted'
+      });
+      const activeDeals = activeDealDocs.map(toDealCard);
+      const completedDealCards = completedDeals.map(toDealCard);
+
       const totalEarnings = completedDeals.reduce((sum, d) => sum + (d.agreedAmount || 0), 0);
 
       const appsAccepted = applications.filter(a => a.status === 'accepted').length;
@@ -355,6 +358,7 @@ exports.getUserDetails = async (req, res) => {
           dealsCompleted: completedDeals.length,
           totalEarnings,
           activeDeals,
+          completedDeals: completedDealCards,
           applications: {
             total: applications.length,
             accepted: appsAccepted,
@@ -389,17 +393,21 @@ exports.getUserDetails = async (req, res) => {
 
       const activeStatuses = ['in-progress', 'content-submitted'];
       const activeDealDocs = deals.filter(d => activeStatuses.includes(d.status));
-      const payoutStatusMap = await payoutStatusByDeal(activeDealDocs.map(d => d._id));
-      const activeDeals = activeDealDocs
-        .map(d => ({
-          dealId: d._id.toString(),
-          customId: d.customId || '',
-          influencerName: d.influencerId?.name || '—',
-          campaignTitle: d.campaignId?.title || '—',
-          agreedAmount: d.agreedAmount || 0,
-          status: d.status,
-          payoutStatus: payoutStatusMap.get(d._id.toString()) || 'not_submitted'
-        }));
+      const completedDealDocs = deals.filter(d => d.status === 'completed');
+      const payoutStatusMap = await payoutStatusByDeal(
+        [...activeDealDocs, ...completedDealDocs].map(d => d._id)
+      );
+      const toDealCard = (d) => ({
+        dealId: d._id.toString(),
+        customId: d.customId || '',
+        influencerName: d.influencerId?.name || '—',
+        campaignTitle: d.campaignId?.title || '—',
+        agreedAmount: d.agreedAmount || 0,
+        status: d.status,
+        payoutStatus: payoutStatusMap.get(d._id.toString()) || 'not_submitted'
+      });
+      const activeDeals = activeDealDocs.map(toDealCard);
+      const completedDeals = completedDealDocs.map(toDealCard);
 
       // Money committed across all non-cancelled deals (accepted applications).
       const committedDeals = deals.filter(d => d.status !== 'cancelled');
@@ -444,6 +452,7 @@ exports.getUserDetails = async (req, res) => {
           applicationsReceived: applicationCount,
           totalCommitted,
           activeDeals,
+          completedDeals,
           workingWith
         } : null
       });
