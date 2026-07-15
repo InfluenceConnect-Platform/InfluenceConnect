@@ -1527,12 +1527,10 @@ function InfluencerProfile() {
                       <div key={platform.name} className="border border-gray-200 rounded-xl overflow-hidden">
                         <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
                           <div className="flex items-center gap-2.5">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-white uppercase shadow-sm ${
-                              platform.name === 'instagram' ? 'bg-gradient-to-br from-[#ee2a7b] to-[#6228d7]' :
-                              platform.name === 'youtube' ? 'bg-gradient-to-br from-[#FF0000] to-[#CC0000]' :
-                              'bg-gradient-to-br from-[#1877F2] to-[#0a5ed1]'
-                            }`}>
-                              {platform.name.slice(0, 2)}
+                            <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center shadow-sm">
+                              {platform.name === 'instagram' && <InstagramLogo size={28} />}
+                              {platform.name === 'youtube' && <YouTubeLogo size={28} />}
+                              {platform.name === 'facebook' && <FacebookLogo size={28} />}
                             </div>
                             <span className="text-sm font-bold capitalize text-gray-900">{platform.name}</span>
                           </div>
