@@ -6,6 +6,7 @@ const { Resend } = require('resend');
 const notify = require('../services/email');
 const logAdminAction = require('../utils/logAdminAction');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
+const { getAdminEmails } = require('../utils/getAdminEmails');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || 'Influence Connect <onboarding@resend.dev>';
@@ -308,6 +309,14 @@ exports.verifyOTP = async (req, res) => {
           companyName: brandProfile.companyName || user.name,
           gstin: brandProfile.gstin,
         });
+        getAdminEmails().then((adminEmails) => {
+          if (!adminEmails.length) return;
+          notify.gstinSubmittedAdmin(adminEmails, {
+            companyName: brandProfile.companyName || user.name,
+            gstin: brandProfile.gstin,
+            brandEmail: user.email,
+          });
+        }).catch((err) => console.error('[EMAIL:gstinSubmittedAdmin] admin lookup failed', err.message));
       }
 
       // Generate JWT token — user is fully verified

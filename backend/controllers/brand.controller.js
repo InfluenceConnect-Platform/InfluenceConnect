@@ -13,6 +13,7 @@ const { postDealNotice } = require('../utils/dealNotice');
 // Re-opening one already seen today is free (deduped). Premium = unlimited.
 const FREE_DAILY_PROFILE_VIEWS = 10;
 const notify = require('../services/email');
+const { getAdminEmails } = require('../utils/getAdminEmails');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 
 // Email influencers when a campaign goes live. Matches on niche overlap (or
@@ -151,6 +152,14 @@ exports.updateProfile = async (req, res) => {
         companyName: profile.companyName || req.user.name,
         gstin: profile.gstin,
       });
+      getAdminEmails().then((adminEmails) => {
+        if (!adminEmails.length) return;
+        notify.gstinSubmittedAdmin(adminEmails, {
+          companyName: profile.companyName || req.user.name,
+          gstin: profile.gstin,
+          brandEmail: req.user.email,
+        });
+      }).catch((err) => console.error('[EMAIL:gstinSubmittedAdmin] admin lookup failed', err.message));
     }
 
     res.json({

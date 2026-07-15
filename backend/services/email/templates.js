@@ -633,6 +633,25 @@ module.exports = {
     };
   },
 
+  // GSTIN submitted at signup / resubmitted from profile (to admin — review queue)
+  gstinSubmittedAdmin({ companyName, gstin, brandEmail }) {
+    return {
+      subject: `New GSTIN pending review — ${companyName || brandEmail || 'a brand'}`,
+      html: layout({
+        theme: BRAND,
+        heading: 'A GSTIN needs review',
+        bodyHtml:
+          para('A brand has submitted a GSTIN that needs manual verification.') +
+          details([
+            ['Company', companyName],
+            ['Brand email', brandEmail],
+            ['GSTIN', gstin],
+          ]) +
+          button('Review in admin panel', `${APP_URL}/admin/gst`, BRAND),
+      }),
+    };
+  },
+
   // GSTIN verified by admin (to brand)
   gstinApproved({ companyName }) {
     return {

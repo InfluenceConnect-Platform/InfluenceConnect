@@ -81,6 +81,7 @@ module.exports = {
   accountSuspended:          make('accountSuspended'),
   accountRestored:           make('accountRestored'),
   gstinSubmitted:            make('gstinSubmitted'),
+  gstinSubmittedAdmin:       make('gstinSubmittedAdmin'),
   gstinApproved:             make('gstinApproved'),
   gstinRejected:             make('gstinRejected'),
   gstinResubmitRequested:    make('gstinResubmitRequested'),
