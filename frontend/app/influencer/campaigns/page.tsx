@@ -115,6 +115,8 @@ export default function InfluencerCampaigns() {
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
   const [applying, setApplying] = useState<string | null>(null);
   const [appliedIds, setAppliedIds] = useState<string[]>([]);
   const [invitedIds, setInvitedIds] = useState<string[]>([]);
@@ -179,12 +181,21 @@ export default function InfluencerCampaigns() {
       const all: Campaign[] = [];
       let pageNum = 1;
       let totalPages = 1;
+      let incomplete = false;
+      let missing: string[] = [];
       do {
         const response = await api.get('/api/campaigns', { params: { ...base, page: pageNum, limit: 50 } });
+        if (response.data.profileIncomplete) {
+          incomplete = true;
+          missing = response.data.missingFields || [];
+          break;
+        }
         all.push(...response.data.campaigns);
         totalPages = response.data.pagination?.pages || 1;
         pageNum += 1;
       } while (pageNum <= totalPages);
+      setProfileIncomplete(incomplete);
+      setMissingFields(missing);
       setCampaigns(all);
     } catch (error) {
       console.error('Fetch campaigns error:', error);
@@ -306,7 +317,7 @@ export default function InfluencerCampaigns() {
                   <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                   </svg>
-                  {loading ? '…' : sortedCampaigns.length} campaign{sortedCampaigns.length !== 1 ? 's' : ''} available
+                  {loading ? '…' : profileIncomplete ? 'Complete your profile' : `${sortedCampaigns.length} campaign${sortedCampaigns.length !== 1 ? 's' : ''} available`}
                 </span>
                 {appliedIds.length > 0 && (
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
@@ -346,8 +357,38 @@ export default function InfluencerCampaigns() {
           </div>
         </section>
 
+        {/* ── Profile-incomplete gate ── */}
+        {!loading && profileIncomplete && (
+          <div className="rounded-2xl border border-[#7FA8AD]/30 bg-gradient-to-br from-[#EEF4F5] to-white dark:from-[#0d2d33]/40 dark:to-[#0f1e31] px-6 py-8 mb-6 shadow-sm text-center">
+            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 text-[#5D8A8F] flex items-center justify-center mx-auto mb-4 shadow-sm border border-[#7FA8AD]/20">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 7-7h2a7 7 0 0 1 7 7v1"/>
+              </svg>
+            </div>
+            <h3 className="font-bold text-gray-900 dark:text-slate-100 text-base mb-1.5">
+              Complete your profile to see campaigns
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-slate-400 max-w-md mx-auto mb-5 leading-relaxed">
+              We only show campaigns that genuinely fit you — brands filter by niche, rate, reach and city.
+              Fill in the following so we can match you accurately:
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-6 max-w-md mx-auto">
+              {missingFields.map(f => (
+                <span key={f} className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 px-3 py-1.5 rounded-full">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {f}
+                </span>
+              ))}
+            </div>
+            <Link href="/influencer/profile"
+              className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm">
+              Complete my profile
+            </Link>
+          </div>
+        )}
+
         {/* ── Freemium cap ── */}
-        {!isPremium && (
+        {!profileIncomplete && !isPremium && (
           <div className={`flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl px-5 py-4 mb-6 border shadow-sm ${
             applicationsUsed >= FREEMIUM_LIMIT
               ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/40'
@@ -393,6 +434,7 @@ export default function InfluencerCampaigns() {
         )}
 
         {/* ── Search + Filters ── */}
+        {!profileIncomplete && (
         <div className="flex flex-col gap-3 mb-6">
           <div className="flex gap-2.5">
             <div className="relative flex-1">
@@ -477,9 +519,10 @@ export default function InfluencerCampaigns() {
             )}
           </div>
         </div>
+        )}
 
         {/* ── Campaign grid ── */}
-        {loading ? (
+        {profileIncomplete ? null : loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
             <p className="text-sm text-gray-400">Finding the best campaigns for you…</p>

@@ -4,6 +4,7 @@ const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
 const User = require('../models/User');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
+const { getMissingProfileFields, isInfluencerProfileComplete } = require('../utils/profileCompleteness');
 const notify = require('../services/email');
 
 // ─────────────────────────────────────────
@@ -184,7 +185,21 @@ exports.getCampaigns = async (req, res) => {
     // Fetch this influencer's profile for automatic relevance matching
     // (niche, budget vs price card, platforms, follower range).
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('niche priceRangeMin platforms city');
+      .select('bio niche priceRangeMin priceRangeMax platforms city');
+
+    // Campaigns only mean something once we know enough about the creator to
+    // judge fit — an incomplete profile sees no campaigns rather than every
+    // campaign unfiltered.
+    const missingFields = getMissingProfileFields(influencerProfile);
+    if (missingFields.length > 0) {
+      return res.json({
+        campaigns: [],
+        pagination: { total: 0, page: parseInt(page), pages: 0 },
+        profileIncomplete: true,
+        missingFields,
+      });
+    }
+
     const influencerNiches = influencerProfile?.niche ?? [];
 
     // Exclude campaigns where this influencer was explicitly rejected
@@ -336,6 +351,19 @@ exports.applyToCampaign = async (req, res) => {
   try {
     const { message, proposedRate } = req.body;
     const campaignId = req.params.id;
+
+    // Profile must be complete before applying — mirrors the gate on browsing
+    // campaigns, in case this is hit directly rather than via the browse list.
+    const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
+      .select('bio niche priceRangeMin priceRangeMax platforms city');
+    const missingFields = getMissingProfileFields(influencerProfile);
+    if (missingFields.length > 0) {
+      return res.status(403).json({
+        error: 'profile_incomplete',
+        message: 'Complete your profile before applying to campaigns.',
+        missingFields,
+      });
+    }
 
     // Get campaign
     const campaign = await Campaign.findById(campaignId);
@@ -506,7 +534,9 @@ exports.getNewSinceCount = async (req, res) => {
 
     // Count only campaigns relevant to this influencer, matching the browse list.
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('niche priceRangeMin platforms city');
+      .select('bio niche priceRangeMin priceRangeMax platforms city');
+    if (!isInfluencerProfileComplete(influencerProfile)) return res.json({ count: 0 });
+
     const and = buildProfileMatchConditions(influencerProfile);
 
     const query = {
