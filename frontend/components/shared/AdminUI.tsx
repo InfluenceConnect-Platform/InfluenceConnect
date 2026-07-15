@@ -17,6 +17,20 @@ export function AdminShell({
   narrow?: boolean;
   children: ReactNode;
 }) {
+  // The admin panel is light-only — it was never built with dark-mode styling
+  // (unlike the rest of the app, which the user can toggle to dark). If dark
+  // mode is on from browsing elsewhere on the site, the global dark-mode CSS
+  // overrides some text colours here but not the light-only backgrounds,
+  // producing washed-out, barely-visible text. Force light while mounted here.
+  useEffect(() => {
+    const root = document.documentElement;
+    const hadDark = root.classList.contains('dark');
+    root.classList.remove('dark');
+    return () => {
+      if (hadDark) root.classList.add('dark');
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#F6F8FB] relative overflow-x-clip">
       {/* Ambient colour wash behind the top of the page */}
