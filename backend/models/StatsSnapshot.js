@@ -21,7 +21,10 @@ const statsSnapshotSchema = new mongoose.Schema({
     required: true
   },
 
-  // Sum of followers across all platforms = total reach.
+  // Follower count of the influencer's largest connected platform = total reach.
+  // Not a cross-platform sum: summing followers double-counts anyone who
+  // follows the creator on more than one platform, so we use the single
+  // biggest audience as the reach figure instead.
   totalFollowers: { type: Number, default: 0 },
 
   // Sum of avg interactions per post (likes + comments + shares) across platforms.
@@ -44,7 +47,9 @@ statsSnapshotSchema.statics.record = function (profile) {
   if (!profile) return Promise.resolve(null);
 
   const platforms = profile.platforms || [];
-  const totalFollowers = platforms.reduce((s, p) => s + (p.followers || 0), 0);
+  const totalFollowers = platforms.length
+    ? Math.max(...platforms.map(p => p.followers || 0))
+    : 0;
   const totalEngagement = platforms.reduce(
     (s, p) => s + (p.avgLikes || 0) + (p.avgComments || 0) + (p.avgShares || 0),
     0

@@ -129,7 +129,7 @@ export default function EngagementTrendChart({ history, totalFollowers }: Props)
                 ? `${(totalFollowers / 1_000).toFixed(0)}K`
                 : totalFollowers || '—'}
             </span>
-            <span className="text-[10px] text-teal-500 font-medium">Total Reach</span>
+            <span className="text-[10px] text-teal-500 font-medium">Reach</span>
           </div>
           {latestRate > 0 && (
             <div className="flex items-center gap-1.5 bg-violet-50 border border-violet-100 rounded-xl px-3 py-1.5">

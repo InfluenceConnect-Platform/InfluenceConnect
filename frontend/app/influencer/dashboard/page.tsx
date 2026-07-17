@@ -171,6 +171,9 @@ export default function InfluencerDashboard() {
   const CIRCUMFERENCE = 2 * Math.PI * 18;
 
   const totalFollowers = (profile?.platforms ?? []).reduce((sum, p) => sum + p.followers, 0);
+  // Reach uses the largest single platform, not a cross-platform sum, since
+  // summing double-counts anyone who follows the creator on more than one.
+  const reachFollowers = (profile?.platforms ?? []).reduce((max, p) => Math.max(max, p.followers), 0);
 
   const STATS = [
     {
@@ -364,7 +367,7 @@ export default function InfluencerDashboard() {
         <section className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-4 sm:gap-5 mb-6">
           <EngagementTrendChart
             history={statsHistory}
-            totalFollowers={totalFollowers}
+            totalFollowers={reachFollowers}
           />
           <MonthlyReachChart
             history={statsHistory}

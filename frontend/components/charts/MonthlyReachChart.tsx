@@ -110,7 +110,7 @@ export default function MonthlyReachChart({ history }: Props) {
       <div className="flex items-start justify-between px-5 sm:px-6 pt-5 pb-3">
         <div>
           <h3 className="font-bold text-gray-900 text-base">Monthly Reach</h3>
-          <p className="text-[11px] text-gray-400 mt-0.5">Recorded total followers by month</p>
+          <p className="text-[11px] text-gray-400 mt-0.5">Followers on your largest platform, by month</p>
         </div>
         <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
           {(['6m', '1y'] as Period[]).map(p => (
@@ -139,7 +139,7 @@ export default function MonthlyReachChart({ history }: Props) {
             </div>
             <p className="text-sm font-semibold text-gray-600">No reach data yet</p>
             <p className="text-[11px] text-gray-400 max-w-xs">
-              Your total reach is recorded each month from your follower counts. Add your social stats — bars appear here as months are recorded.
+              Your reach is recorded each month from your largest platform's follower count. Add your social stats — bars appear here as months are recorded.
             </p>
           </div>
         ) : (
