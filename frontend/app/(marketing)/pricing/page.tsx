@@ -1,14 +1,15 @@
-import type { Metadata } from 'next';
 import PricingSection from '@/components/marketing/PricingSection';
 import FaqAccordion from '@/components/marketing/FaqAccordion';
 import SectionWave from '@/components/marketing/SectionWave';
 import Reveal from '@/components/marketing/Reveal';
+import { pageMetadata, faqJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Pricing — Free & Premium Plans | Influence Connect',
   description:
     'Influence Connect pricing: free forever plans for creators and brands. Creator Premium ₹299/month, Brand Premium ₹1,499/month — 20% off yearly. Cancel anytime.',
-};
+  path: '/pricing',
+});
 
 const FAQS = [
   {
@@ -36,6 +37,10 @@ const FAQS = [
 export default function PricingPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
+      />
       <section className="relative overflow-hidden bg-gradient-to-br from-[#5D8A8F] via-[#4A5F8F] to-[#7C3AED]">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-32 left-1/2 -translate-x-1/2 w-[36rem] h-[24rem] rounded-full bg-white/10 blur-3xl" />

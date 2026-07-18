@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/lib/useTheme";
 import { ToastProvider } from "@/components/shared/Toast";
 import { ConfirmProvider } from "@/components/shared/ConfirmModal";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
+import GoogleAnalytics from "@/components/marketing/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +43,10 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // Set GOOGLE_SITE_VERIFICATION once Search Console issues a code for the live domain.
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export default function RootLayout({
@@ -68,6 +74,14 @@ export default function RootLayout({
             __html: `try{var t=localStorage.getItem('ic-theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}`,
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+        />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ThemeProvider>
@@ -75,6 +89,7 @@ export default function RootLayout({
             <ConfirmProvider>{children}</ConfirmProvider>
           </ToastProvider>
         </ThemeProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );

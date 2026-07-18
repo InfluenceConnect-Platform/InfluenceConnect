@@ -1,14 +1,15 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import FaqAccordion from '@/components/marketing/FaqAccordion';
 import Reveal from '@/components/marketing/Reveal';
 import SectionWave from '@/components/marketing/SectionWave';
+import { pageMetadata, faqJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'For Creators — Find Paid Brand Campaigns | Influence Connect',
   description:
     'Join Influence Connect free as a creator. Apply to campaigns from GST-verified Indian brands, negotiate safely in moderated chat, and track your earnings in one dashboard.',
-};
+  path: '/for-creators',
+});
 
 const BENEFITS = [
   {
@@ -77,6 +78,10 @@ const FAQS = [
 export default function ForCreatorsPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#5D8A8F] via-[#4A8A82] to-emerald-600">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />

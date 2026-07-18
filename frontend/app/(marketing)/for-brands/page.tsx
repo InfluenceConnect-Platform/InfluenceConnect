@@ -1,14 +1,15 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import FaqAccordion from '@/components/marketing/FaqAccordion';
 import Reveal from '@/components/marketing/Reveal';
 import SectionWave from '@/components/marketing/SectionWave';
+import { pageMetadata, faqJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'For Brands — Find the Right Creators | Influence Connect',
   description:
     'Discover Indian creators by niche, platform, location, and budget. Post campaigns, manage applications, and run influencer marketing that performs — free to start.',
-};
+  path: '/for-brands',
+});
 
 const BENEFITS = [
   {
@@ -77,6 +78,10 @@ const FAQS = [
 export default function ForBrandsPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#7C3AED] via-[#6D28D9] to-blue-600">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />

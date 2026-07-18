@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import FaqAccordion from '@/components/marketing/FaqAccordion';
 import Reveal from '@/components/marketing/Reveal';
@@ -8,18 +7,14 @@ import Parallax from '@/components/marketing/Parallax';
 import RotatingText from '@/components/marketing/RotatingText';
 import TestimonialCarousel from '@/components/marketing/TestimonialCarousel';
 import SectionWave from '@/components/marketing/SectionWave';
+import { pageMetadata, faqJsonLd } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Influence Connect — Where Indian Creators & Brands Collaborate',
   description:
     'Influence Connect is India\'s trusted influencer marketing platform. Creators find paid campaigns from GST-verified brands; brands discover the right creators. Free to start.',
-  openGraph: {
-    title: 'Influence Connect — Where Indian Creators & Brands Collaborate',
-    description:
-      'Creators find paid campaigns from GST-verified brands. Brands discover the right creators. Free to start.',
-    type: 'website',
-  },
-};
+  path: '/',
+});
 
 /* ── Small server-side building blocks ─────────────────────────────── */
 
@@ -148,6 +143,10 @@ const FAQS = [
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
+      />
       {/* ════ HERO ════ */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#5D8A8F] via-emerald-600 to-[#6D28D9]">
         {/* Depth layers: dot texture + soft light glows over the saturated gradient */}

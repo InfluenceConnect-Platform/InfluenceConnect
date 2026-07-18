@@ -1,12 +1,13 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import Reveal from '@/components/marketing/Reveal';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'About Us | Influence Connect',
   description:
     'Influence Connect exists to make influencer marketing in India fair, safe, and simple — for creators of every size and brands of every budget.',
-};
+  path: '/about',
+});
 
 const VALUES = [
   {

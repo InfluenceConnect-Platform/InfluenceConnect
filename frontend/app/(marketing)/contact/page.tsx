@@ -1,13 +1,14 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import SectionWave from '@/components/marketing/SectionWave';
 import Reveal from '@/components/marketing/Reveal';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: 'Contact Us | Influence Connect',
   description:
     'Get in touch with the Influence Connect team — support for creators and brands, partnership enquiries, and grievance redressal.',
-};
+  path: '/contact',
+});
 
 const CHANNELS = [
   {
