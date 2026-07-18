@@ -146,7 +146,7 @@ export default function AdminNav({ user }: AdminNavProps) {
       <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[64px] sticky top-[3px] z-30 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_4px_16px_rgba(16,24,40,0.04)]">
 
         {/* Left: logo + desktop nav */}
-        <div className="flex items-center gap-6 min-w-0 h-full">
+        <div className="flex items-center gap-6 min-w-0 flex-1 h-full">
 
           <Link href="/admin/dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#3E4751] to-[#262C33] flex items-center justify-center text-white font-bold text-[13px] shadow-[0_2px_8px_rgba(62,71,81,0.35)] ring-1 ring-white/10 group-hover:shadow-[0_4px_14px_rgba(62,71,81,0.45)] transition-shadow duration-200">
@@ -158,15 +158,16 @@ export default function AdminNav({ user }: AdminNavProps) {
             </div>
           </Link>
 
-          {/* Desktop nav — segmented pills */}
-          <div className="hidden lg:flex items-center gap-1 bg-gray-50/80 border border-gray-200/70 rounded-2xl p-1">
+          {/* Desktop nav — segmented pills. Scrolls within its own bounds
+              instead of overflowing onto the search box when items don't fit. */}
+          <div className="hidden lg:flex items-center gap-1 bg-gray-50/80 border border-gray-200/70 rounded-2xl p-1 min-w-0 overflow-x-auto">
             {NAV_ITEMS.map(item => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
+                  className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 cursor-pointer flex-shrink-0 ${
                     isActive
                       ? 'bg-gradient-to-br from-[#3E4751] to-[#262C33] text-white shadow-[0_2px_10px_rgba(62,71,81,0.35)]'
                       : 'text-gray-500 hover:text-gray-800 hover:bg-white dark:hover:bg-slate-800'
