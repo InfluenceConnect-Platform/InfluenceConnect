@@ -1231,6 +1231,96 @@ exports.getAdminLogStats = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// GET ALL PAYMENTS (consolidated admin view)
+// One paginated table across every campaign's deals, joined with payout
+// status/transaction info (never the encrypted bank/UPI fields — those stay
+// behind the audit-logged reveal in getPayoutDetailsAdmin below).
+// ─────────────────────────────────────────
+exports.getAllPayments = async (req, res) => {
+  try {
+    const { status, paidStatus, search, page = 1, limit = 20 } = req.query;
+    const query = {};
+    if (status) query.status = status;
+
+    const term = (search || '').trim();
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const [matchingUsers, matchingCampaigns] = await Promise.all([
+        User.find({ role: { $in: ['brand', 'influencer'] }, name: rx }).select('_id'),
+        Campaign.find({ title: rx }).select('_id'),
+      ]);
+      query.$or = [
+        { customId: rx },
+        { brandId: { $in: matchingUsers.map(u => u._id) } },
+        { influencerId: { $in: matchingUsers.map(u => u._id) } },
+        { campaignId: { $in: matchingCampaigns.map(c => c._id) } },
+      ];
+    }
+
+    if (paidStatus) {
+      const dealIdsWithPayout = await PayoutDetail.find({}).select('dealId paid');
+      if (paidStatus === 'not_submitted') {
+        query._id = { $nin: dealIdsWithPayout.map(p => p.dealId) };
+      } else if (paidStatus === 'submitted') {
+        query._id = { $in: dealIdsWithPayout.filter(p => !p.paid).map(p => p.dealId) };
+      } else if (paidStatus === 'paid') {
+        query._id = { $in: dealIdsWithPayout.filter(p => p.paid).map(p => p.dealId) };
+      }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [deals, total] = await Promise.all([
+      Deal.find(query)
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('campaignId', 'title customId')
+        .populate('brandId', 'name email')
+        .populate('influencerId', 'name email'),
+      Deal.countDocuments(query)
+    ]);
+
+    const dealIds = deals.map(d => d._id);
+    const payouts = await PayoutDetail.find({ dealId: { $in: dealIds } })
+      .select('dealId method paid paidAt transactionRef receiptUrl');
+    const payoutMap = new Map(payouts.map(p => [p.dealId.toString(), p]));
+
+    const payments = deals.map(d => {
+      const payout = payoutMap.get(d._id.toString());
+      return {
+        dealId: d._id.toString(),
+        customId: d.customId || '',
+        campaignTitle: d.campaignId?.title || '—',
+        campaignCustomId: d.campaignId?.customId || '',
+        brandName: d.brandId?.name || '—',
+        brandEmail: d.brandId?.email || '',
+        influencerName: d.influencerId?.name || '—',
+        influencerEmail: d.influencerId?.email || '',
+        agreedAmount: d.agreedAmount || 0,
+        dealStatus: d.status,
+        startedAt: d.startedAt,
+        completedAt: d.completedAt,
+        payoutStatus: payout ? (payout.paid ? 'paid' : 'submitted') : 'not_submitted',
+        payoutMethod: payout?.method || null,
+        paidAt: payout?.paidAt || null,
+        transactionRef: payout?.transactionRef || '',
+        receiptUrl: payout?.receiptUrl || '',
+      };
+    });
+
+    res.json({
+      payments,
+      pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) }
+    });
+
+  } catch (error) {
+    console.error('Get all payments error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET PAYOUT DETAILS (admin reveal — for dispute resolution)
 // Every reveal is written to the audit trail, since this decrypts a
 // creator's bank/UPI details.

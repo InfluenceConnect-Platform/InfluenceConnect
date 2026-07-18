@@ -18,6 +18,7 @@ const {
   getSubscriptionOverview,
   getAdminLogs,
   getAdminLogStats,
+  getAllPayments,
   getPayoutDetailsAdmin
 } = require('../controllers/admin.controller');
 
@@ -39,6 +40,7 @@ router.put('/gstin/:brandProfileId/reopen', reopenGstinRejection);
 router.get('/subscriptions/overview', getSubscriptionOverview);
 router.get('/logs/stats', getAdminLogStats);
 router.get('/logs', getAdminLogs);
+router.get('/payments', getAllPayments);
 router.get('/deals/:dealId/payout', getPayoutDetailsAdmin);
 
 module.exports = router;
