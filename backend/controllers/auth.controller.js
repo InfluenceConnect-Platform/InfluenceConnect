@@ -11,6 +11,10 @@ const { getAdminEmails } = require('../utils/getAdminEmails');
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || 'Influence Connect <onboarding@resend.dev>';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Indian mobile numbers, +91 followed by 10 digits starting 6-9 (matches sendMobileOtp below).
+const MOBILE_REGEX = /^\+91[6-9]\d{9}$/;
+
 // Generate 6 digit OTP
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -115,6 +119,19 @@ function generateToken(userId) {
 exports.register = async (req, res) => {
   try {
     const { name, email, mobile, password, gstin } = req.body;
+
+    if (!name || !email || !mobile || !password) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ error: 'Please enter a valid email address.' });
+    }
+    if (!MOBILE_REGEX.test(mobile)) {
+      return res.status(400).json({ error: 'Please enter a valid 10-digit mobile number.' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+    }
 
     // SECURITY: never trust a client-supplied role. Self-service signup may only
     // create 'brand' or 'influencer' accounts — admins are provisioned manually.

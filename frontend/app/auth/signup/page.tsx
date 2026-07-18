@@ -13,6 +13,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Structural check for an Indian GSTIN (mirrors the backend validator).
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Indian mobile numbers: 10 digits, starting 6-9 (mirrors the backend validator).
+const MOBILE_REGEX = /^[6-9]\d{9}$/;
+
+type FieldErrors = Partial<Record<'name' | 'email' | 'mobile' | 'password' | 'gstin', string>>;
 
 type Role = 'influencer' | 'brand';
 
@@ -126,15 +131,39 @@ function SignupPage() {
   const [gstin, setGstin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const clearFieldError = (field: keyof FieldErrors) => {
+    setFieldErrors(prev => (prev[field] ? { ...prev, [field]: undefined } : prev));
+  };
+  const handleNameChange = (v: string) => { setName(v); clearFieldError('name'); };
+  const handleEmailChange = (v: string) => { setEmail(v); clearFieldError('email'); };
+  const handleMobileChange = (v: string) => { setMobile(v.replace(/\D/g, '').slice(0, 10)); clearFieldError('mobile'); };
+  const handlePasswordChange = (v: string) => { setPassword(v); clearFieldError('password'); };
+  const handleGstinChange = (v: string) => { setGstin(v.toUpperCase()); clearFieldError('gstin'); };
+
+  const validate = (): FieldErrors => {
+    const errors: FieldErrors = {};
+    if (!name.trim()) errors.name = 'Please enter your name.';
+    if (!email.trim()) errors.email = 'Please enter your email address.';
+    else if (!EMAIL_REGEX.test(email.trim())) errors.email = 'Please enter a valid email address.';
+    if (!mobile) errors.mobile = 'Please enter your mobile number.';
+    else if (!MOBILE_REGEX.test(mobile)) errors.mobile = 'Enter a valid 10-digit mobile number.';
+    if (!password) errors.password = 'Please enter a password.';
+    else if (password.length < 8) errors.password = 'Password must be at least 8 characters.';
+    if (role === 'brand') {
+      const normalizedGstin = gstin.replace(/\s+/g, '').toUpperCase();
+      if (!normalizedGstin) errors.gstin = 'GST number is required to register as a brand.';
+      else if (!GSTIN_REGEX.test(normalizedGstin)) errors.gstin = 'Please enter a valid 15-character GST number.';
+    }
+    return errors;
+  };
 
   const handleSignup = async () => {
-    if (!name || !email || !mobile || !password) { setError('All fields are required.'); return; }
-    if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) { setError(''); return; }
     const normalizedGstin = gstin.replace(/\s+/g, '').toUpperCase();
-    if (role === 'brand') {
-      if (!normalizedGstin) { setError('GST number is required to register as a brand.'); return; }
-      if (!GSTIN_REGEX.test(normalizedGstin)) { setError('Please enter a valid 15-character GST number.'); return; }
-    }
     setLoading(true);
     setError('');
     try {
@@ -260,7 +289,7 @@ function SignupPage() {
                   <button
                     key={r}
                     type="button"
-                    onClick={() => setRole(r)}
+                    onClick={() => { setRole(r); setFieldErrors({}); }}
                     className={`p-3.5 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer active:scale-[0.98] ${
                       isActive
                         ? `bg-gradient-to-br ${ROLE_META[r].gradient} border-transparent shadow-lg`
@@ -298,10 +327,10 @@ function SignupPage() {
 
             {/* Form fields */}
             <div className="flex flex-col gap-3">
-              <Input dark={isDark} label={ROLE_META[role].fields.name.label} placeholder={ROLE_META[role].fields.name.placeholder} helper={ROLE_META[role].fields.name.helper} value={name} onChange={setName} />
-              <Input dark={isDark} label={ROLE_META[role].fields.email.label} type="email" placeholder={ROLE_META[role].fields.email.placeholder} helper={ROLE_META[role].fields.email.helper} value={email} onChange={setEmail} />
-              <Input dark={isDark} label={ROLE_META[role].fields.mobile.label} type="tel" placeholder={ROLE_META[role].fields.mobile.placeholder} helper={ROLE_META[role].fields.mobile.helper} value={mobile} onChange={setMobile} prefix="+91" />
-              <Input dark={isDark} label={ROLE_META[role].fields.password.label} type="password" placeholder={ROLE_META[role].fields.password.placeholder} value={password} onChange={setPassword} showPasswordToggle />
+              <Input dark={isDark} label={ROLE_META[role].fields.name.label} placeholder={ROLE_META[role].fields.name.placeholder} helper={ROLE_META[role].fields.name.helper} value={name} onChange={handleNameChange} error={fieldErrors.name} />
+              <Input dark={isDark} label={ROLE_META[role].fields.email.label} type="email" placeholder={ROLE_META[role].fields.email.placeholder} helper={ROLE_META[role].fields.email.helper} value={email} onChange={handleEmailChange} error={fieldErrors.email} />
+              <Input dark={isDark} label={ROLE_META[role].fields.mobile.label} type="tel" placeholder={ROLE_META[role].fields.mobile.placeholder} helper={ROLE_META[role].fields.mobile.helper} value={mobile} onChange={handleMobileChange} prefix="+91" error={fieldErrors.mobile} />
+              <Input dark={isDark} label={ROLE_META[role].fields.password.label} type="password" placeholder={ROLE_META[role].fields.password.placeholder} value={password} onChange={handlePasswordChange} showPasswordToggle error={fieldErrors.password} />
 
               {role === 'brand' && (
                 <div className="flex flex-col gap-2">
@@ -310,7 +339,8 @@ function SignupPage() {
                     label="GST number (GSTIN)"
                     placeholder="e.g. 22AAAAA0000A1Z5"
                     value={gstin}
-                    onChange={(v) => setGstin(v.toUpperCase())}
+                    onChange={handleGstinChange}
+                    error={fieldErrors.gstin}
                   />
                   <div className={`flex items-start gap-2.5 p-3 border rounded-xl text-[0.72rem] leading-relaxed ${
                     isDark
