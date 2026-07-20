@@ -454,6 +454,30 @@ module.exports = {
     };
   },
 
+  // Premium subscription purchased/renewed via Razorpay (to the subscriber)
+  premiumUpgradeConfirmed({ role, billingCycle, amount, premiumUntil }) {
+    const theme = themeFor(role);
+    const until = premiumUntil
+      ? new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+      : null;
+    return {
+      subject: 'Payment received — Premium is active',
+      html: layout({
+        theme,
+        heading: 'Welcome to Premium 🎉',
+        bodyHtml:
+          para(`Your payment went through and Premium is now active on your account.`) +
+          details([
+            ['Billing cycle', billingCycle === 'yearly' ? 'Yearly' : 'Monthly'],
+            ['Amount paid', inr(amount)],
+            ['Renews', until],
+          ]) +
+          para('This receipt is for your records. You can cancel anytime from your Billing page — you keep Premium access until the date above.') +
+          button('Manage billing', `${APP_URL}/${role}/billing`, theme),
+      }),
+    };
+  },
+
   // New campaign published (to a matching influencer)
   newCampaignToInfluencer({ campaignTitle, brandName, budgetMin, budgetMax, niche }) {
     const budget = budgetMin || budgetMax ? `${inr(budgetMin)} – ${inr(budgetMax)}` : 'Open';

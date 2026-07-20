@@ -7,6 +7,7 @@ const notify = require('../services/email');
 const logAdminAction = require('../utils/logAdminAction');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 const { getAdminEmails } = require('../utils/getAdminEmails');
+const applyPremiumUpgrade = require('../utils/applyPremiumUpgrade');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || 'Influence Connect <onboarding@resend.dev>';
@@ -819,9 +820,7 @@ exports.upgradePlan = async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
-    user.plan = 'premium';
-    if (!user.premiumStartedAt) user.premiumStartedAt = new Date();
-    user.premiumUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year
+    applyPremiumUpgrade(user, 12); // dev bypass — 1 year, no payment involved
     await user.save();
 
     res.json({
