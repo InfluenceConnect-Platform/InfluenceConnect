@@ -34,3 +34,5 @@ Thumbs.db
 
 #docs
 docs/
+
+backend/package-lock.json
