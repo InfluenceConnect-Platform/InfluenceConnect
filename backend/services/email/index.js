@@ -64,6 +64,8 @@ module.exports = {
   paymentCompletedInfluencer:  make('paymentCompletedInfluencer'),
   // brand: record/confirmation of the payment they just marked
   paymentRecordedBrand:        make('paymentRecordedBrand'),
+  // Premium subscription purchased/renewed via Razorpay
+  premiumUpgradeConfirmed:     make('premiumUpgradeConfirmed'),
 
   // Campaign + invitations
   newCampaignToInfluencer:   make('newCampaignToInfluencer'),

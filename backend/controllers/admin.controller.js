@@ -11,9 +11,7 @@ const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
 const logAdminAction = require('../utils/logAdminAction');
 const { decryptForResponse: decryptPayoutForResponse } = require('./payout.controller');
-
-// Plan prices — single source of truth for MRR calculations.
-const PLAN_PRICE = { influencer: 299, brand: 1499 };
+const { PLAN_PRICE } = require('../utils/planPricing');
 
 // Best-effort client IP for the audit trail. Validates the X-Forwarded-For value
 // to basic IPv4/IPv6 format so forged headers don't pollute the log.

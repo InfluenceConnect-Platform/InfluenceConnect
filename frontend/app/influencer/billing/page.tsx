@@ -7,6 +7,7 @@ import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
+import { openRazorpayCheckout } from '@/lib/razorpay';
 
 const FREEMIUM_FEATURES = [
   { text: 'Public profile with custom URL', included: true },
@@ -102,6 +103,7 @@ export default function BillingPage() {
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [premiumStartedAt, setPremiumStartedAt] = useState<string | null>(null);
   const [premiumUntil, setPremiumUntil] = useState<string | null>(null);
+  const [accountEmail, setAccountEmail] = useState('');
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
   const [downgrading, setDowngrading] = useState(false);
@@ -125,6 +127,7 @@ export default function BillingPage() {
     api.get('/api/auth/account').then(res => {
       setPremiumStartedAt(res.data.premiumStartedAt ?? null);
       setPremiumUntil(res.data.premiumUntil ?? null);
+      setAccountEmail(res.data.email ?? '');
     }).catch(() => {});
   };
 
@@ -155,14 +158,35 @@ export default function BillingPage() {
   const handleUpgrade = async () => {
     setLoading(true);
     try {
-      const res = await api.post('/api/auth/upgrade');
-      syncUserToStorage(res.data.user);
-      setPremiumStartedAt(res.data.user.premiumStartedAt ?? null);
-      setPremiumUntil(res.data.user.premiumUntil ?? null);
-      showToast('🎉 Welcome to Premium! All features are now unlocked.');
+      const orderRes = await api.post('/api/payments/create-order', { billingCycle: billing });
+      const { orderId, amount, currency, keyId } = orderRes.data;
+
+      await openRazorpayCheckout({
+        key: keyId,
+        amount,
+        currency,
+        order_id: orderId,
+        name: 'Influence Connect',
+        description: `Premium (${billing}) subscription`,
+        prefill: { name: user?.name, email: accountEmail },
+        theme: { color: '#27717E' },
+        handler: async (response) => {
+          try {
+            const verifyRes = await api.post('/api/payments/verify', response);
+            syncUserToStorage(verifyRes.data.user);
+            setPremiumStartedAt(verifyRes.data.user.premiumStartedAt ?? null);
+            setPremiumUntil(verifyRes.data.user.premiumUntil ?? null);
+            showToast('🎉 Welcome to Premium! All features are now unlocked.');
+          } catch (error: any) {
+            showToast(error.response?.data?.error || 'Payment verification failed. Contact support if you were charged.');
+          } finally {
+            setLoading(false);
+          }
+        },
+        modal: { ondismiss: () => setLoading(false) },
+      });
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Upgrade failed. Please try again.');
-    } finally {
       setLoading(false);
     }
   };

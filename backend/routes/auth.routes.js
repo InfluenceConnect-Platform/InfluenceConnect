@@ -27,8 +27,14 @@ router.post('/forgot-password', accountActionLimiter, forgotPassword);
 // POST /api/auth/reset-password
 router.post('/reset-password', sensitiveAuthLimiter, resetPassword);
 
-// POST /api/auth/upgrade  — bypass payment, set plan = premium
-router.post('/upgrade', authenticate, upgradePlan);
+// POST /api/auth/upgrade  — bypass payment, set plan = premium.
+// Dev/local-testing only: real upgrades go through /api/payments (Razorpay).
+// A free-upgrade endpoint reachable in production would be a live security hole.
+const devOnly = (req, res, next) => {
+  if (process.env.NODE_ENV === 'production') return res.status(404).end();
+  next();
+};
+router.post('/upgrade', devOnly, authenticate, upgradePlan);
 
 // POST /api/auth/downgrade  — revert to freemium
 router.post('/downgrade', authenticate, downgradePlan);

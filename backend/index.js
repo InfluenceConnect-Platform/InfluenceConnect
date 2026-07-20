@@ -6,7 +6,7 @@ const passport = require('passport');
 require('dotenv').config();
 
 // Validate required env vars
-const required = ['MONGODB_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
+const required = ['MONGODB_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET'];
 for (const key of required) {
   if (!process.env[key]) {
     console.error(`Missing required env variable: ${key}`);
@@ -45,7 +45,9 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
+// Captures the raw request body alongside express's parsed JSON, needed to
+// verify the Razorpay webhook's HMAC signature (payment.controller.js).
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(session({
   secret: process.env.JWT_SECRET,
   resave: false,
@@ -91,6 +93,7 @@ app.use('/api/deals', require('./routes/deal.routes'));
 app.use('/api/invitations', require('./routes/invitation.routes'));
 app.use('/api/brand', require('./routes/brand.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
+app.use('/api/payments', require('./routes/payment.routes'));
 // Protected test route
 const authenticate = require('./middleware/auth.middleware');
 app.get('/api/protected', authenticate, (req, res) => {
