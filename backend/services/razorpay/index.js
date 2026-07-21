@@ -48,4 +48,12 @@ function verifyWebhookSignature({ rawBody, signature }) {
   return safeEqual(expected, signature);
 }
 
-module.exports = { createOrder, verifyPaymentSignature, verifyWebhookSignature };
+// Used by the reconciliation sweep to check the real status of an order
+// directly with Razorpay when our own webhook/verify flow never landed.
+async function fetchOrderPayments(orderId) {
+  const instance = getInstance();
+  const { items } = await instance.orders.fetchPayments(orderId);
+  return items;
+}
+
+module.exports = { createOrder, verifyPaymentSignature, verifyWebhookSignature, fetchOrderPayments };

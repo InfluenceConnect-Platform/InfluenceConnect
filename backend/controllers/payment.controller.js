@@ -152,3 +152,54 @@ exports.webhook = async (req, res) => {
     res.status(500).json({ error: 'Webhook processing failed.' });
   }
 };
+
+// ─────────────────────────────────────────
+// RECONCILE  (Vercel Cron backstop — catches orders stuck in 'created'
+// because the webhook was never delivered/exhausted retries AND the user
+// never returned to the success page for /verify to run)
+// ─────────────────────────────────────────
+const STUCK_AFTER_MS = 30 * 60 * 1000; // Razorpay checkout sessions expire well before this
+
+exports.reconcile = async (req, res) => {
+  // Vercel Cron automatically sends `Authorization: Bearer $CRON_SECRET` when
+  // a CRON_SECRET env var is set on the project — no extra config needed.
+  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized.' });
+  }
+
+  try {
+    const stuck = await Payment.find({
+      status: 'created',
+      createdAt: { $lt: new Date(Date.now() - STUCK_AFTER_MS) },
+    }).limit(100);
+
+    let confirmed = 0;
+    let failed = 0;
+    let errored = 0;
+
+    for (const payment of stuck) {
+      try {
+        const razorpayPayments = await razorpay.fetchOrderPayments(payment.razorpayOrderId);
+        const captured = razorpayPayments.find((p) => p.status === 'captured');
+
+        if (captured) {
+          await confirmPaymentAndUpgrade(payment, captured.id, '');
+          confirmed++;
+        } else if (razorpayPayments.length > 0 && razorpayPayments.every((p) => p.status === 'failed')) {
+          await Payment.updateOne({ _id: payment._id, status: 'created' }, { status: 'failed' });
+          failed++;
+        }
+        // else: no payment attempt yet on Razorpay's side — leave as 'created',
+        // the user likely abandoned checkout before paying.
+      } catch (err) {
+        console.error(`Reconcile error for order ${payment.razorpayOrderId}:`, err);
+        errored++;
+      }
+    }
+
+    res.json({ checked: stuck.length, confirmed, failed, errored });
+  } catch (error) {
+    console.error('Reconcile sweep error:', error);
+    res.status(500).json({ error: 'Reconciliation sweep failed.' });
+  }
+};

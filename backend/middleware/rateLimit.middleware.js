@@ -38,4 +38,17 @@ const accountActionLimiter = rateLimit({
     json(res, 'Too many requests. Please wait a few minutes and try again.'),
 });
 
-module.exports = { sensitiveAuthLimiter, accountActionLimiter };
+// Razorpay's webhook is intentionally unauthenticated (verified via HMAC
+// signature inside the controller instead of a session/JWT), which makes it
+// a target for request floods. Signature verification happens after this
+// limiter, so a flood still costs us CPU on the HMAC compare — this caps
+// that cost. Keyed by IP; legitimate traffic is only Razorpay's servers.
+const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => json(res, 'Too many requests.'),
+});
+
+module.exports = { sensitiveAuthLimiter, accountActionLimiter, webhookLimiter };
