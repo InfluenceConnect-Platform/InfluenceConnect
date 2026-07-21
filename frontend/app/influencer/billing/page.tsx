@@ -202,7 +202,7 @@ export default function BillingPage() {
 
         {/* Already on Premium — special state */}
         {isPremium && (
-          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#0d3138] via-[#0e8a92] to-[#38c9b9] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
             <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-md flex-shrink-0 border border-white/20">
               <StarIcon />
@@ -237,7 +237,7 @@ export default function BillingPage() {
         )}
 
         {/* Hero header */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#27717E] to-[#5BA8B5] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0d3138] via-[#0e8a92] to-[#38c9b9] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
           <div className="absolute -top-14 -right-14 w-52 h-52 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />
           <div className="relative">

@@ -95,7 +95,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1C4A52] via-[#2A3E42] to-[#4C1D95]">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#04141a] via-[#3b2f6b] to-[#7C3AED]">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0 opacity-60" />
         <div aria-hidden className="anim-blob absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20">
@@ -127,7 +127,7 @@ export default function AboutPage() {
       {/* CTA */}
       <section className="max-w-5xl mx-auto px-5 sm:px-8 py-20">
         <Reveal>
-        <div className="anim-gradient-bg relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#5D8A8F] via-[#7C3AED] to-[#5D8A8F] px-8 py-14 sm:px-14 text-center shadow-2xl">
+        <div className="anim-gradient-bg relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0f4d52] via-[#7C3AED] to-[#0f4d52] px-8 py-14 sm:px-14 text-center shadow-2xl">
           <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
           <div aria-hidden className="anim-blob absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
           <div aria-hidden className="anim-blob absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-[#FB923C]/20 blur-3xl" style={{ animationDelay: '5s' }} />

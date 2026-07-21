@@ -1213,7 +1213,7 @@ function BrandMessages() {
               }}
             >
               <div className={`backdrop-blur-sm rounded-3xl p-10 flex flex-col items-center shadow-xl border ${isDark ? 'bg-[#0E1B2E]/90 border-slate-700/50 shadow-slate-900/50' : 'bg-white/80 border-white/70 shadow-indigo-100/30'}`}>
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#161F3F] via-[#2B3B68] to-[#4a5fa0] text-white flex items-center justify-center mb-5 shadow-xl shadow-indigo-400/20">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] text-white flex items-center justify-center mb-5 shadow-xl shadow-indigo-400/20">
                   <ChatBubbleIcon size={38} />
                 </div>
                 <h3 className={`text-[17px] font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>Deal conversations</h3>

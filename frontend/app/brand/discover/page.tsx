@@ -963,7 +963,7 @@ function BrandDiscover() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* Hero banner */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#1e2f5c] via-[#3D5087] to-[#4a5fa0] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-5 shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-5 shadow-lg">
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -1138,7 +1138,7 @@ function BrandDiscover() {
                   const charCode = influencer.userId?.name?.charCodeAt(0) || 0;
                   const avatarGrad = AVATAR_GRADIENTS[charCode % 6];
                   // Use the brand's signature lavender/indigo banner for every card.
-                  const bannerGrad = 'from-[#1e2f5c] via-[#3D5087] to-[#4a5fa0]';
+                  const bannerGrad = 'from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6]';
                   return (
                     <div
                       key={i}

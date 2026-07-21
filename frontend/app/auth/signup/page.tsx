@@ -257,7 +257,7 @@ function SignupPage() {
           <div className={`h-[3px] bg-gradient-to-r ${
             role === 'influencer'
               ? 'from-[#7FA8AD] via-[#5D8A8F] to-[#3D7082]'
-              : 'from-[#1e2f5c] via-[#3D5087] to-[#4a5fa0]'
+              : 'from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6]'
           } transition-all duration-300`} />
 
           <div className={`px-8 pt-7 pb-8 transition-colors ${isDark ? 'bg-[#0E1B2E]' : 'bg-white'}`}>
