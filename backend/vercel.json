@@ -1,3 +1,6 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.js" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.js" }],
+  "crons": [
+    { "path": "/api/payments/reconcile", "schedule": "*/30 * * * *" }
+  ]
 }
