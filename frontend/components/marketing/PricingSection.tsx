@@ -131,8 +131,8 @@ export default function PricingSection() {
               </div>
               <p className="text-xs text-gray-500 mt-2 h-4">
                 {billing === 'yearly'
-                  ? `₹${yearly(plan.monthly).toLocaleString('en-IN')} billed yearly · cancel anytime`
-                  : 'Billed monthly · cancel anytime'}
+                  ? `₹${yearly(plan.monthly).toLocaleString('en-IN')} one-time payment for 365 days`
+                  : 'One-time payment for 30 days'}
               </p>
             </div>
 

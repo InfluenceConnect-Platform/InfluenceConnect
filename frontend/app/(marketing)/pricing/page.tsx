@@ -7,22 +7,22 @@ import { pageMetadata, faqJsonLd } from '@/lib/seo';
 export const metadata = pageMetadata({
   title: 'Pricing — Free & Premium Plans | Influence Connect',
   description:
-    'Influence Connect pricing: free forever plans for creators and brands. Creator Premium ₹299/month, Brand Premium ₹1,499/month — 20% off yearly. Cancel anytime.',
+    'Influence Connect pricing: free forever plans for creators and brands. Creator Premium ₹299, Brand Premium ₹1,499 — one-time payment for 30 days, 20% off for 365 days.',
   path: '/pricing',
 });
 
 const FAQS = [
   {
-    q: 'Can I cancel anytime?',
-    a: 'Yes — cancel your Premium subscription anytime from your billing page. You keep Premium access until the end of the period you have already paid for. No hidden fees, no questions asked.',
+    q: 'Can I cancel my Premium purchase?',
+    a: 'Premium is a one-time payment, not a recurring subscription — there\'s nothing to cancel. It simply stays active for the 30 or 365 days you paid for, and your account automatically moves back to the free plan if you don\'t buy again.',
   },
   {
-    q: 'What happens if I downgrade to the free plan?',
+    q: 'What happens when my Premium expires?',
     a: 'Your account and data stay intact. Free plan limits simply apply going forward — for example, new campaign applications count against the creator 5/month limit, and brands are limited to 2 active campaigns.',
   },
   {
     q: 'How is payment handled?',
-    a: 'Premium subscriptions are billed securely through Razorpay, in Indian Rupees, in advance on a monthly or yearly basis. We never store your card details.',
+    a: 'Premium is billed securely through Razorpay, in Indian Rupees, as a single one-time payment for 30 days (monthly) or 365 days (yearly) — there is no auto-renewal. Buying again while a Premium period is still active adds the new days on top of your current expiry date. We never store your card details.',
   },
   {
     q: 'Are there refunds?',

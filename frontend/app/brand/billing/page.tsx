@@ -7,7 +7,6 @@ import BrandNav from '@/components/shared/BrandNav';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import { useToast } from '@/components/shared/Toast';
-import { useConfirm } from '@/components/shared/ConfirmModal';
 import { openRazorpayCheckout } from '@/lib/razorpay';
 
 const FREEMIUM_FEATURES = [
@@ -44,12 +43,12 @@ const COMPARE_ROWS: { feature: string; free: string | boolean; premium: string |
 
 const FAQS = [
   {
-    q: 'Can I cancel anytime?',
-    a: 'Yes — cancel your subscription anytime from this page. You keep Premium access until the end of your current billing period. No hidden fees.',
+    q: 'Can I cancel my Premium purchase?',
+    a: 'Premium is a one-time payment, not a recurring subscription — there\'s nothing to cancel. It simply stays active until it expires, and your account automatically moves back to Freemium if you don\'t buy again.',
   },
   {
-    q: 'What happens to my campaigns if I downgrade?',
-    a: 'Your existing campaigns and data are preserved. After downgrading, only 2 campaigns can be active at a time. Closed or completed campaigns are unaffected.',
+    q: 'What happens when my Premium expires?',
+    a: 'Your account automatically reverts to Freemium at the end of the period you paid for. Your existing campaigns and data are preserved — only 2 campaigns can be active at a time going forward. Closed or completed campaigns are unaffected.',
   },
   {
     q: 'Do you take a commission on deals?',
@@ -113,7 +112,6 @@ const SparkIcon = () => (
 export default function BrandBillingPage() {
   const router = useRouter();
   const toast = useToast();
-  const confirm = useConfirm();
   const [user, setUser] = useState<{ name: string; plan?: string } | null>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -123,7 +121,6 @@ export default function BrandBillingPage() {
   const [accountEmail, setAccountEmail] = useState('');
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
-  const [downgrading, setDowngrading] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const MONTHLY_PRICE = 1499;
@@ -185,16 +182,19 @@ export default function BrandBillingPage() {
         currency,
         order_id: orderId,
         name: 'Influence Connect',
-        description: `Premium (${billing}) subscription`,
+        description: `Premium (${billing === 'monthly' ? '30 days' : '365 days'})`,
         prefill: { name: user?.name, email: accountEmail },
         theme: { color: '#3D5087' },
         handler: async (response) => {
           try {
+            const wasAlreadyPremium = isPremium;
             const verifyRes = await api.post('/api/payments/verify', response);
             syncUserToStorage(verifyRes.data.user);
             setPremiumStartedAt(verifyRes.data.user.premiumStartedAt ?? null);
             setPremiumUntil(verifyRes.data.user.premiumUntil ?? null);
-            showToast('🎉 Welcome to Premium! All features are now unlocked.');
+            showToast(wasAlreadyPremium
+              ? '🎉 Premium extended! Your new expiry date is above.'
+              : '🎉 Welcome to Premium! All features are now unlocked.');
           } catch (error: any) {
             showToast(error.response?.data?.error || 'Payment verification failed. Contact support if you were charged.');
           } finally {
@@ -206,28 +206,6 @@ export default function BrandBillingPage() {
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Upgrade failed. Please try again.');
       setLoading(false);
-    }
-  };
-
-  const handleDowngrade = async () => {
-    if (!(await confirm({
-      title: 'Downgrade to Freemium?',
-      description: 'You will lose Premium features.',
-      confirmLabel: 'Downgrade',
-      cancelLabel: 'Keep Premium',
-      variant: 'warning',
-    }))) return;
-    setDowngrading(true);
-    try {
-      const res = await api.post('/api/auth/downgrade');
-      syncUserToStorage(res.data.user);
-      setPremiumStartedAt(null);
-      setPremiumUntil(null);
-      showToast('Plan downgraded to Freemium.');
-    } catch (error: any) {
-      showToast(error.response?.data?.error || 'Downgrade failed. Please try again.');
-    } finally {
-      setDowngrading(false);
     }
   };
 
@@ -270,18 +248,18 @@ export default function BrandBillingPage() {
                 {premiumUntil && (
                   <span className="flex items-center gap-1.5 text-xs text-blue-100/80">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Renews {new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    Expires {new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 )}
               </div>
             </div>
             <button
-              onClick={handleDowngrade}
-              disabled={downgrading}
+              onClick={handleUpgrade}
+              disabled={loading}
               className="relative flex-shrink-0 self-start sm:self-auto flex items-center gap-2 text-sm text-[#2B3B68] font-semibold bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-all cursor-pointer shadow-sm disabled:opacity-60"
             >
               <RefreshIcon />
-              {downgrading ? 'Downgrading…' : 'Cancel plan'}
+              {loading ? 'Processing…' : 'Renew now'}
             </button>
           </div>
         )}
@@ -366,19 +344,9 @@ export default function BrandBillingPage() {
             </div>
 
             <div className="relative px-6 py-5 flex-1 flex flex-col">
-              {isPremium ? (
-                <button
-                  onClick={handleDowngrade}
-                  disabled={downgrading}
-                  className="w-full py-2.5 border border-[#3D5087]/25 rounded-xl text-sm font-semibold text-[#3D5087] hover:bg-[#3D5087]/10 transition-all mb-5 cursor-pointer disabled:opacity-50 bg-white/60"
-                >
-                  {downgrading ? 'Downgrading…' : 'Downgrade to Freemium'}
-                </button>
-              ) : (
-                <div className="w-full py-2.5 border border-[#3D5087]/20 rounded-xl text-sm font-semibold text-[#3D5087]/60 text-center mb-5 bg-white/50 select-none">
-                  Current plan
-                </div>
-              )}
+              <div className="w-full py-2.5 border border-[#3D5087]/20 rounded-xl text-sm font-semibold text-[#3D5087]/60 text-center mb-5 bg-white/50 select-none">
+                {isPremium ? 'Starts automatically when Premium expires' : 'Current plan'}
+              </div>
 
               <div className="flex flex-col gap-2.5 flex-1">
                 {FREEMIUM_FEATURES.map((f, i) => (
@@ -421,10 +389,10 @@ export default function BrandBillingPage() {
               </div>
               {billing === 'yearly' ? (
                 <p className="text-xs text-white/80 font-medium">
-                  ₹{YEARLY_PRICE.toLocaleString('en-IN')} billed yearly
+                  ₹{YEARLY_PRICE.toLocaleString('en-IN')} one-time payment for 365 days
                 </p>
               ) : (
-                <p className="text-xs text-white/70">Billed monthly, cancel anytime</p>
+                <p className="text-xs text-white/70">One-time payment for 30 days</p>
               )}
             </div>
 
@@ -475,7 +443,7 @@ export default function BrandBillingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
             {[
               { icon: <LockIcon />, text: <><strong className="text-gray-700">Razorpay</strong> secured checkout</>, color: 'bg-gradient-to-br from-blue-500 to-indigo-600' },
-              { icon: <RefreshIcon />, text: <>Cancel <strong className="text-gray-700">anytime</strong>, no questions asked</>, color: 'bg-gradient-to-br from-emerald-500 to-green-600' },
+              { icon: <RefreshIcon />, text: <>One-time payment, <strong className="text-gray-700">no auto-renewal</strong></>, color: 'bg-gradient-to-br from-emerald-500 to-green-600' },
               { icon: <ShieldIcon />, text: <>We <strong className="text-gray-700">never</strong> store card details</>, color: 'bg-gradient-to-br from-violet-500 to-purple-600' },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-2 text-sm text-gray-500">

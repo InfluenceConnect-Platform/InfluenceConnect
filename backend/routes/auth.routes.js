@@ -36,8 +36,10 @@ const devOnly = (req, res, next) => {
 };
 router.post('/upgrade', devOnly, authenticate, upgradePlan);
 
-// POST /api/auth/downgrade  — revert to freemium
-router.post('/downgrade', authenticate, downgradePlan);
+// POST /api/auth/downgrade  — dev/local-testing only, reverts to freemium.
+// Premium is a one-time non-cancellable purchase in production; it expires
+// on its own (see auth.middleware.js) rather than being user-revocable.
+router.post('/downgrade', devOnly, authenticate, downgradePlan);
 
 // GET  /api/auth/account  — get current user account info
 router.get('/account', authenticate, getAccountInfo);

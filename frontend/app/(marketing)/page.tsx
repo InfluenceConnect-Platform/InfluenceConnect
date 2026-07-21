@@ -96,7 +96,7 @@ const FEATURES = [
   },
   {
     title: 'Secure payments',
-    body: 'Premium subscriptions are billed safely through Razorpay. Cancel anytime — you keep access until your period ends.',
+    body: 'Premium is billed safely through Razorpay as a one-time payment — no auto-renewal, no cancellation needed.',
     icon: <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
     tint: 'bg-gradient-to-br from-indigo-400 to-indigo-600 text-white shadow-md shadow-indigo-500/25',
     bar: 'from-indigo-400 to-indigo-600',
@@ -130,7 +130,7 @@ const FAQS = [
   },
   {
     q: 'What does Premium cost?',
-    a: 'Creator Premium is ₹299/month and Brand Premium is ₹1,499/month, with 20% off on yearly billing. You can cancel anytime and keep access until the end of your billing period.',
+    a: 'Creator Premium is ₹299 and Brand Premium is ₹1,499 — a one-time payment for 30 days, with 20% off for 365 days. It\'s not a recurring subscription, so there\'s nothing to cancel; it simply expires and you can buy again whenever you like.',
   },
   {
     q: 'Which platforms do creators come from?',

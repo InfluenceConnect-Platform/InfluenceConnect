@@ -36,6 +36,14 @@ const authenticate = async (req, res, next) => {
       });
     }
 
+    // Premium is a one-time purchase with no auto-renewal and no cancel
+    // button — this is the one place a logged-in user's plan is guaranteed
+    // to pass through, so it doubles as where expiry is enforced.
+    if (user.plan === 'premium' && user.premiumUntil && user.premiumUntil <= new Date()) {
+      user.plan = 'freemium';
+      await user.save();
+    }
+
     // Attach user to request object
     req.user = user;
     req.userId = user._id;

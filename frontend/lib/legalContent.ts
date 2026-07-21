@@ -2,10 +2,11 @@
 // Influence Connect — Legal content (single source of truth)
 //
 // These documents are written for an Indian audience and reflect how the
-// platform actually operates: a subscription-based marketplace that *connects*
-// brands and influencers but is not itself a party to the collaborations they
-// agree. Premium subscriptions are billed through Razorpay; the platform never
-// takes a cut of the deals users strike with each other.
+// platform actually operates: a marketplace that *connects* brands and
+// influencers but is not itself a party to the collaborations they agree.
+// Premium is a one-time, non-recurring payment (30 or 365 days of access,
+// no auto-renewal, no cancellation) billed through Razorpay; the platform
+// never takes a cut of the deals users strike with each other.
 //
 // ⚠️  BEFORE GOING LIVE: replace the placeholders wrapped in 〔…〕 in
 //     `LEGAL_ENTITY` below (registered business name, address, grievance
@@ -91,7 +92,7 @@ const TERMS: LegalDoc = {
           `"Influencer" or "Creator" means an individual or entity offering content-creation or promotional services through the Platform.`,
           `"User", "you", or "your" means any Brand, Influencer, or visitor who accesses the Platform.`,
           `"Collaboration" or "Deal" means any arrangement, campaign, or transaction agreed directly between a Brand and an Influencer.`,
-          `"Subscription" means a paid Premium plan that unlocks additional Platform features, as described on the Billing page.`,
+          `"Premium Purchase" means a one-time, non-recurring payment that unlocks Premium features for a fixed period (30 days for a monthly purchase, 365 days for a yearly purchase), as described on the Billing page.`,
           `"Content" means any text, images, links, briefs, profiles, messages, or other material submitted to or displayed on the Platform.`,
         ]),
       ],
@@ -193,7 +194,7 @@ const TERMS: LegalDoc = {
     },
     {
       id: 'subscriptions',
-      title: '8. Subscriptions, Fees & Billing',
+      title: '8. Premium Purchases, Fees & Billing',
       blocks: [
         p(
           `The Platform offers a free "Freemium" plan and a paid "Premium" plan. Premium features and prices are described ` +
@@ -201,25 +202,33 @@ const TERMS: LegalDoc = {
           `exclusive of applicable taxes unless stated otherwise.`
         ),
         p(
-          `Premium subscriptions are billed in advance on a monthly or yearly basis through our payment partner, Razorpay. ` +
-          `By purchasing a Subscription you authorise us (through Razorpay) to charge the applicable fee for the billing ` +
-          `cycle you select. Subscriptions renew automatically at the end of each cycle unless cancelled beforehand. We do ` +
-          `not store the card or bank details used for subscription billing on our servers. (Payout details an Influencer ` +
-          `chooses to share for a deal are handled separately, as described in Section 7 and our Privacy Policy.)`
+          `Premium is billed through our payment partner, Razorpay, as a single one-time payment for a fixed period — 30 ` +
+          `days for the monthly option or 365 days for the yearly option. It is not a recurring subscription: we do not ` +
+          `store your card or bank details, and no further amount is ever charged automatically. Premium access ends ` +
+          `automatically at the end of the period you paid for, and your account then reverts to the Freemium plan. ` +
+          `(Payout details an Influencer chooses to share for a deal are handled separately, as described in Section 7 and ` +
+          `our Privacy Policy.)`
         ),
         p(
-          `We may change our prices or plan features with reasonable prior notice. Any price change will take effect from ` +
-          `your next billing cycle. Refunds and cancellations are governed by our Refund & Cancellation Policy.`
+          `If you make a further Premium Purchase while an earlier one is still active, the new period is added to the end ` +
+          `of your current period rather than starting immediately — for example, purchasing 30 more days on the 15th day ` +
+          `of an active period extends your access by 30 days from its current expiry date, not from the date of the new ` +
+          `purchase.`
+        ),
+        p(
+          `We may change our prices or plan features with reasonable prior notice. Any price change applies only to ` +
+          `Premium Purchases made after the change takes effect. Refunds are governed by our Refund & Cancellation Policy.`
         ),
       ],
     },
     {
       id: 'cancellation',
-      title: '9. Cancellation & Refunds',
+      title: '9. No Cancellation; Refunds',
       blocks: [
         p(
-          `You may cancel your Premium Subscription at any time from the Billing page; you will retain Premium access until ` +
-          `the end of the period you have already paid for, after which your account reverts to the Freemium plan. Refund ` +
+          `Because Premium is a one-time, non-recurring payment rather than an auto-renewing subscription, there is no ` +
+          `ongoing charge to cancel. Your Premium access simply runs for the period you paid for and then ends on its own ` +
+          `— you are never billed again unless you choose to make another Premium Purchase. Refund ` +
           `eligibility, exceptions, and processing timelines are set out in our Refund & Cancellation Policy, which forms ` +
           `part of these Terms.`
         ),
@@ -596,12 +605,12 @@ const PRIVACY: LegalDoc = {
 const REFUND: LegalDoc = {
   slug: 'refund',
   title: 'Refund & Cancellation Policy',
-  subtitle: 'Our policy on Premium subscription cancellations, refunds, and billing.',
+  subtitle: 'Our policy on Premium one-time payments, refunds, and expiry.',
   lastUpdated: LEGAL_ENTITY.lastUpdated,
   intro:
-    `This Refund & Cancellation Policy explains how cancellations and refunds work for paid Premium subscriptions on the ` +
+    `This Refund & Cancellation Policy explains how one-time payments, expiry, and refunds work for Premium on the ` +
     `${LEGAL_ENTITY.brandName} Platform. It forms part of, and should be read together with, our Terms & Conditions. ` +
-    `This Policy applies only to subscription fees paid to Influence Connect — it does not apply to payments exchanged ` +
+    `This Policy applies only to Premium payments made to Influence Connect — it does not apply to payments exchanged ` +
     `directly between Brands and Influencers for their Collaborations.`,
   sections: [
     {
@@ -609,8 +618,8 @@ const REFUND: LegalDoc = {
       title: '1. What This Policy Covers',
       blocks: [
         p(
-          `This Policy covers Premium subscription fees you pay to Influence Connect through our payment partner, Razorpay. ` +
-          `It does not cover, and we are not responsible for refunding, any amount agreed or paid between a Brand and an ` +
+          `This Policy covers Premium payments you make to Influence Connect through our payment partner, Razorpay. It ` +
+          `does not cover, and we are not responsible for refunding, any amount agreed or paid between a Brand and an ` +
           `Influencer for a Collaboration — those are direct transactions between Users and we do not process or hold ` +
           `those funds.`
         ),
@@ -621,10 +630,11 @@ const REFUND: LegalDoc = {
       title: '2. Plans & Billing',
       blocks: [
         p(
-          `The Platform offers a free Freemium plan and a paid Premium plan. Premium is billed in advance on a monthly or ` +
-          `yearly basis, in Indian Rupees, through Razorpay. Yearly plans are offered at a discount compared with paying ` +
-          `monthly. Subscriptions renew automatically at the end of each billing cycle unless you cancel before the ` +
-          `renewal date.`
+          `The Platform offers a free Freemium plan and a paid Premium plan. Premium is a one-time, non-recurring payment ` +
+          `made in advance, in Indian Rupees, through Razorpay — it is not a subscription and does not renew or charge you ` +
+          `automatically. A monthly Premium Purchase grants 30 days of access; a yearly Premium Purchase, offered at a ` +
+          `discount, grants 365 days of access. If you make a further Premium Purchase while an earlier one is still ` +
+          `active, the new period is added to the end of your current period rather than starting immediately.`
         ),
       ],
     },
@@ -640,19 +650,20 @@ const REFUND: LegalDoc = {
     },
     {
       id: 'cancellation',
-      title: '4. Cancelling Your Subscription',
+      title: '4. No Cancellation; Automatic Expiry',
       blocks: [
         p(
-          `You can cancel your Premium subscription at any time from the Billing page. When you cancel:`
+          `Because Premium is a one-time payment and not a recurring subscription, there is nothing to cancel and no ` +
+          `"cancel" option is offered. Instead:`
         ),
         list([
-          `your subscription will not renew for the next billing cycle;`,
-          `you keep Premium access until the end of the period you have already paid for; and`,
-          `at the end of that period, your account automatically moves to the Freemium plan.`,
+          `Premium access simply runs for the period you paid for (30 or 365 days) and is never billed again automatically;`,
+          `at the end of that period, your account automatically moves to the Freemium plan; and`,
+          `you may make another Premium Purchase at any time, including before your current period ends, in which case the new period is added on top of your existing one.`,
         ]),
         p(
-          `Cancelling stops future charges. By itself, cancellation does not trigger a refund of the current period — see ` +
-          `the refund rules below.`
+          `Because there is no auto-renewal to stop, making a Premium Purchase does not, by itself, trigger a refund of ` +
+          `any current or prior period — see the refund rules below.`
         ),
       ],
     },
@@ -661,14 +672,13 @@ const REFUND: LegalDoc = {
       title: '5. Refund Eligibility',
       blocks: [
         p(
-          `Premium subscription fees are generally non-refundable, because access to Premium features is made available to ` +
-          `you immediately and for the full billing period. However, we will review refund requests in good faith and may ` +
+          `Premium payments are generally non-refundable, because access to Premium features is made available to you ` +
+          `immediately and for the full period purchased. However, we will review refund requests in good faith and may ` +
           `issue a full or partial refund in circumstances such as:`
         ),
         list([
-          `a duplicate or accidental charge for the same billing period;`,
-          `you were charged after cancelling, and did not use Premium features in the new period;`,
-          `a verified technical failure on our side that prevented you from accessing Premium features for a significant part of the billing period and that we were unable to resolve in reasonable time; or`,
+          `a duplicate or accidental charge for the same or overlapping period;`,
+          `a verified technical failure on our side that prevented you from accessing Premium features for a significant part of the paid period and that we were unable to resolve in reasonable time; or`,
           `an unauthorised transaction that you report promptly and that we are able to verify.`,
         ]),
         p(`Approved refunds are made to your original payment method through Razorpay.`),
@@ -680,8 +690,8 @@ const REFUND: LegalDoc = {
       blocks: [
         p(`Except where required by law, we do not provide refunds:`),
         list([
-          `simply because you did not use the Platform or the Premium features during a paid period;`,
-          `for the unused portion of a billing cycle after you cancel (you retain access until the period ends);`,
+          `simply because you did not use the Platform or the Premium features during the paid period;`,
+          `for the unused portion of a paid period, since Premium has no cancellation to trigger a partial refund;`,
           `where your account has been suspended or terminated for breach of our Terms; or`,
           `for any payment made directly between a Brand and an Influencer for a Collaboration.`,
         ]),
@@ -730,9 +740,9 @@ const REFUND: LegalDoc = {
       title: '10. Price Changes',
       blocks: [
         p(
-          `We may change subscription prices from time to time. Any change will be communicated in advance and will apply ` +
-          `from your next billing cycle. You can choose to cancel before the change takes effect if you do not wish to ` +
-          `continue at the new price.`
+          `We may change Premium prices from time to time. Any change will be communicated in advance and will apply only ` +
+          `to Premium Purchases made after the new price takes effect — it never changes the price of a period you have ` +
+          `already paid for.`
         ),
       ],
     },
@@ -771,5 +781,5 @@ export const LEGAL_DOCS: Record<LegalSlug, LegalDoc> = {
 export const LEGAL_INDEX: { slug: LegalSlug; title: string; desc: string }[] = [
   { slug: 'terms', title: 'Terms & Conditions', desc: 'The agreement governing your use of Influence Connect.' },
   { slug: 'privacy', title: 'Privacy Policy', desc: 'How we collect, use, and protect your personal data.' },
-  { slug: 'refund', title: 'Refund & Cancellation Policy', desc: 'Our policy on subscription refunds and cancellations.' },
+  { slug: 'refund', title: 'Refund & Cancellation Policy', desc: 'Our policy on Premium one-time payments, refunds, and expiry.' },
 ];

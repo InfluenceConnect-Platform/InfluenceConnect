@@ -55,7 +55,7 @@ const FAQ_ITEMS = [
   { q: 'How do influencers apply to my campaigns?', a: 'Once published, influencers on the platform can discover and apply. You\'ll see applications in the campaign detail view.' },
   { q: 'How does the Premium plan work?', a: 'Premium unlocks unlimited campaigns, priority discovery placement, and advanced analytics. You can upgrade anytime from the Billing section.' },
   { q: 'Can I message an influencer before accepting their application?', a: 'No — messaging unlocks only after you accept an influencer for a campaign. Once accepted, a conversation opens in the Messages tab.' },
-  { q: 'How do I cancel my subscription?', a: 'Go to Billing and click Downgrade to Freemium. Your premium features remain active until the billing period ends.' },
+  { q: 'How do I cancel Premium?', a: 'Premium is a one-time payment, not a recurring subscription, so there\'s nothing to cancel. It simply stays active until it expires, and your account automatically moves back to Freemium.' },
 ];
 
 export default function BrandSettings() {

@@ -820,7 +820,7 @@ exports.upgradePlan = async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
-    applyPremiumUpgrade(user, 12); // dev bypass — 1 year, no payment involved
+    applyPremiumUpgrade(user, 365); // dev bypass — 1 year, no payment involved
     await user.save();
 
     res.json({
@@ -842,7 +842,10 @@ exports.upgradePlan = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
-// DOWNGRADE PLAN  (back to freemium)
+// DOWNGRADE PLAN  (dev/testing only — back to freemium)
+// Premium is a one-time, non-cancellable purchase in production: it simply
+// expires on premiumUntil (enforced in auth.middleware.js) rather than being
+// revocable by the user. This handler exists only to reset local test state.
 // ─────────────────────────────────────────
 exports.downgradePlan = async (req, res) => {
   try {

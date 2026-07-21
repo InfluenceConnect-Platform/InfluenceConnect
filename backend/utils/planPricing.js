@@ -7,12 +7,14 @@
 // in-app billing pages (frontend/app/{brand,influencer}/billing/page.tsx).
 const PLAN_PRICE = { influencer: 299, brand: 1499 };
 
+// One-time, non-recurring purchases — a cycle just buys a fixed number of
+// days of Premium access (30 or 365), not an auto-renewing subscription.
 // Yearly billing is 20% off (2 months free), rounded — mirrors the
 // `yearly(monthly) = Math.round(monthly * 12 * 0.8)` formula used on the
 // frontend pricing pages.
 const BILLING_CYCLES = {
-  monthly: { months: 1, price: (monthly) => monthly },
-  yearly: { months: 12, price: (monthly) => Math.round(monthly * 12 * 0.8) },
+  monthly: { days: 30, price: (monthly) => monthly },
+  yearly: { days: 365, price: (monthly) => Math.round(monthly * 12 * 0.8) },
 };
 
 // Amount to charge, in paise (Razorpay's smallest currency unit), for a

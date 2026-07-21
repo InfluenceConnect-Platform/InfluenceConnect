@@ -69,7 +69,7 @@ async function confirmPaymentAndUpgrade(payment, razorpayPaymentId, razorpaySign
 
   const user = await User.findById(payment.userId);
   if (!user) return;
-  applyPremiumUpgrade(user, BILLING_CYCLES[payment.billingCycle].months);
+  applyPremiumUpgrade(user, BILLING_CYCLES[payment.billingCycle].days);
   await user.save();
 
   notify.premiumUpgradeConfirmed(user.email, {

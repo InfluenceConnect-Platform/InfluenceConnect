@@ -6,7 +6,6 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useToast } from '@/components/shared/Toast';
-import { useConfirm } from '@/components/shared/ConfirmModal';
 import { openRazorpayCheckout } from '@/lib/razorpay';
 
 const FREEMIUM_FEATURES = [
@@ -36,12 +35,12 @@ const PREMIUM_FEATURES = [
 
 const FAQS = [
   {
-    q: 'Can I cancel anytime?',
-    a: 'Yes — cancel your subscription anytime from this page. You keep Premium access until the end of your billing period. No questions asked.',
+    q: 'Can I cancel my Premium purchase?',
+    a: 'Premium is a one-time payment, not a recurring subscription — there\'s nothing to cancel. It simply stays active until it expires, and your account automatically moves back to Freemium if you don\'t buy again.',
   },
   {
-    q: 'What happens to my applications if I downgrade?',
-    a: 'Your existing applications are not affected. Only new applications will be subject to the 5/month freemium limit going forward.',
+    q: 'What happens when my Premium expires?',
+    a: 'Your account automatically reverts to Freemium at the end of the period you paid for. Your existing applications are not affected — only new applications will be subject to the 5/month Freemium limit going forward.',
   },
   {
     q: 'Is my portfolio visible on Freemium?',
@@ -98,7 +97,6 @@ const RefreshIcon = () => (
 export default function BillingPage() {
   const router = useRouter();
   const toast = useToast();
-  const confirm = useConfirm();
   const [user, setUser] = useState<{ name: string; plan: string } | null>(null);
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [premiumStartedAt, setPremiumStartedAt] = useState<string | null>(null);
@@ -106,7 +104,6 @@ export default function BillingPage() {
   const [accountEmail, setAccountEmail] = useState('');
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
-  const [downgrading, setDowngrading] = useState(false);
 
   const MONTHLY_PRICE = 299;
   const YEARLY_PRICE = Math.round(MONTHLY_PRICE * 12 * 0.8);
@@ -167,16 +164,19 @@ export default function BillingPage() {
         currency,
         order_id: orderId,
         name: 'Influence Connect',
-        description: `Premium (${billing}) subscription`,
+        description: `Premium (${billing === 'monthly' ? '30 days' : '365 days'})`,
         prefill: { name: user?.name, email: accountEmail },
         theme: { color: '#27717E' },
         handler: async (response) => {
           try {
+            const wasAlreadyPremium = isPremium;
             const verifyRes = await api.post('/api/payments/verify', response);
             syncUserToStorage(verifyRes.data.user);
             setPremiumStartedAt(verifyRes.data.user.premiumStartedAt ?? null);
             setPremiumUntil(verifyRes.data.user.premiumUntil ?? null);
-            showToast('🎉 Welcome to Premium! All features are now unlocked.');
+            showToast(wasAlreadyPremium
+              ? '🎉 Premium extended! Your new expiry date is above.'
+              : '🎉 Welcome to Premium! All features are now unlocked.');
           } catch (error: any) {
             showToast(error.response?.data?.error || 'Payment verification failed. Contact support if you were charged.');
           } finally {
@@ -188,28 +188,6 @@ export default function BillingPage() {
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Upgrade failed. Please try again.');
       setLoading(false);
-    }
-  };
-
-  const handleDowngrade = async () => {
-    if (!(await confirm({
-      title: 'Downgrade to Freemium?',
-      description: 'You will lose Premium features at the end of your billing period.',
-      confirmLabel: 'Downgrade',
-      cancelLabel: 'Keep Premium',
-      variant: 'warning',
-    }))) return;
-    setDowngrading(true);
-    try {
-      const res = await api.post('/api/auth/downgrade');
-      syncUserToStorage(res.data.user);
-      setPremiumStartedAt(null);
-      setPremiumUntil(null);
-      showToast('Plan downgraded to Freemium.');
-    } catch (error: any) {
-      showToast(error.response?.data?.error || 'Downgrade failed. Please try again.');
-    } finally {
-      setDowngrading(false);
     }
   };
 
@@ -242,18 +220,18 @@ export default function BillingPage() {
                 {premiumUntil && (
                   <span className="flex items-center gap-1.5 text-xs text-teal-100/80">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Renews {new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    Expires {new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 )}
               </div>
             </div>
             <button
-              onClick={handleDowngrade}
-              disabled={downgrading}
+              onClick={handleUpgrade}
+              disabled={loading}
               className="relative flex-shrink-0 self-start sm:self-auto flex items-center gap-2 text-sm text-[#1C4A52] font-semibold bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-150 cursor-pointer shadow-sm disabled:opacity-60"
             >
               <RefreshIcon />
-              {downgrading ? 'Downgrading…' : 'Cancel plan'}
+              {loading ? 'Processing…' : 'Renew now'}
             </button>
           </div>
         )}
@@ -330,19 +308,9 @@ export default function BillingPage() {
             </div>
 
             <div className="relative px-6 py-5 flex-1 flex flex-col">
-              {isPremium ? (
-                <button
-                  onClick={handleDowngrade}
-                  disabled={downgrading}
-                  className="w-full py-2.5 border border-gray-300 dark:border-white/15 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-500/10 transition-all mb-5 cursor-pointer disabled:opacity-50 bg-gray-50"
-                >
-                  {downgrading ? 'Downgrading…' : 'Downgrade to Freemium'}
-                </button>
-              ) : (
-                <div className="w-full py-2.5 border border-gray-300 dark:border-white/15 rounded-xl text-sm font-semibold text-gray-700 text-center mb-5 bg-gray-50 select-none">
-                  Current plan
-                </div>
-              )}
+              <div className="w-full py-2.5 border border-gray-300 dark:border-white/15 rounded-xl text-sm font-semibold text-gray-700 text-center mb-5 bg-gray-50 select-none">
+                {isPremium ? 'Starts automatically when Premium expires' : 'Current plan'}
+              </div>
 
               <div className="flex flex-col gap-2.5 flex-1">
                 {FREEMIUM_FEATURES.map((f, i) => (
@@ -387,10 +355,10 @@ export default function BillingPage() {
               </div>
               {billing === 'yearly' ? (
                 <p className="text-xs text-white/80 font-medium">
-                  ₹{YEARLY_PRICE.toLocaleString()} billed yearly
+                  ₹{YEARLY_PRICE.toLocaleString()} one-time payment for 365 days
                 </p>
               ) : (
-                <p className="text-xs text-white/70">Billed monthly, cancel anytime</p>
+                <p className="text-xs text-white/70">One-time payment for 30 days</p>
               )}
             </div>
 
@@ -449,7 +417,7 @@ export default function BillingPage() {
               <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <RefreshIcon />
               </span>
-              <span>Cancel <strong className="text-gray-700">anytime</strong>, no questions asked</span>
+              <span>One-time payment, <strong className="text-gray-700">no auto-renewal</strong></span>
             </div>
             <div className="hidden sm:block w-px h-5 bg-gray-200" />
             <div className="flex items-center gap-2 text-sm text-gray-500">
