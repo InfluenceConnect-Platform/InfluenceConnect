@@ -49,7 +49,7 @@ export default function LegalDocument({ doc }: { doc: LegalDoc }) {
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3.5 sm:px-8">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] text-sm font-bold text-white shadow-md">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#0d6672] to-[#3346d9] text-sm font-bold text-white shadow-md">
               IC
             </div>
             <span className={`font-semibold tracking-tight ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>

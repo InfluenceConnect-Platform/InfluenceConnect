@@ -209,7 +209,7 @@ function SignupPage() {
           <h1 className={`text-[2.75rem] font-bold leading-[1.12] tracking-tight mb-4 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Create your account<br />
             and{' '}
-            <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#7C9ED9] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#0d6672] via-[#0d9488] to-[#5f6fff] bg-clip-text text-transparent">
               start connecting
             </span>.
           </h1>
@@ -257,14 +257,14 @@ function SignupPage() {
           <div className={`h-[3px] bg-gradient-to-r ${
             role === 'influencer'
               ? 'from-[#7FA8AD] via-[#5D8A8F] to-[#3D7082]'
-              : 'from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6]'
+              : 'from-[#03050f] via-[#3346d9] to-[#7c8aff]'
           } transition-all duration-300`} />
 
           <div className={`px-8 pt-7 pb-8 transition-colors ${isDark ? 'bg-[#0E1B2E]' : 'bg-white'}`}>
 
             {/* IC branding inside card */}
             <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0d6672] to-[#3346d9] flex items-center justify-center text-white font-bold text-sm shadow-md">
                 IC
               </div>
               <div>

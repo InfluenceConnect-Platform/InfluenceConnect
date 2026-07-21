@@ -186,7 +186,7 @@ export default function BrandProfile() {
         <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm mb-5">
 
           {/* Cover banner */}
-          <div className="h-28 sm:h-36 bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] relative overflow-hidden">
+          <div className="h-28 sm:h-36 bg-gradient-to-br from-[#03050f] via-[#3346d9] to-[#7c8aff] relative overflow-hidden">
             <svg className="absolute inset-0 w-full h-full" style={{opacity:0.04}} aria-hidden="true">
               <defs><pattern id="bp-dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="white"/></pattern></defs>
               <rect width="100%" height="100%" fill="url(#bp-dots)"/>

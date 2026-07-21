@@ -242,7 +242,7 @@ export default function InfluencerDashboard() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* ── Hero ── */}
-        <section className="relative bg-gradient-to-br from-[#04141a] via-[#0b5e6c] to-[#1fb8a8] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
+        <section className="relative bg-gradient-to-br from-[#010609] via-[#0aa3b3] to-[#2dfad0] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
           {/* decorative blobs */}
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
@@ -549,7 +549,7 @@ export default function InfluencerDashboard() {
 
             {/* Upgrade / Premium card */}
             {!isPremium ? (
-              <div className="relative bg-gradient-to-br from-[#04141a] via-[#0b5e6c] to-[#1fb8a8] rounded-2xl p-5 overflow-hidden shadow-md">
+              <div className="relative bg-gradient-to-br from-[#010609] via-[#0aa3b3] to-[#2dfad0] rounded-2xl p-5 overflow-hidden shadow-md">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
                 <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
                 <div className="relative">

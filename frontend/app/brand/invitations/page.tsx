@@ -86,7 +86,7 @@ export default function BrandInvitations() {
       <main className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl px-6 sm:px-8 py-7 mb-5 shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#03050f] via-[#3346d9] to-[#7c8aff] rounded-2xl px-6 sm:px-8 py-7 mb-5 shadow-lg">
           <div className="absolute -top-12 -right-12 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-12 -left-8 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
           <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">

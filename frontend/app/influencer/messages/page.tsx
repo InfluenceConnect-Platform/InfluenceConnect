@@ -1160,7 +1160,7 @@ function MessagesPage() {
               }}
             >
               <div className={`backdrop-blur-sm rounded-3xl p-10 flex flex-col items-center shadow-xl border ${isDark ? 'bg-[#0E1B2E]/90 border-slate-700/50 shadow-slate-900/50' : 'bg-white/80 border-white/70 shadow-teal-100/30'}`}>
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#0d2f36] via-[#0e8a92] to-[#38c9b9] text-white flex items-center justify-center mb-5 shadow-xl shadow-teal-400/20">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#040f11] via-[#0ec4d1] to-[#5ef5df] text-white flex items-center justify-center mb-5 shadow-xl shadow-teal-400/20">
                   <ChatBubbleIcon size={38} />
                 </div>
                 <h3 className={`text-[17px] font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>Your messages</h3>

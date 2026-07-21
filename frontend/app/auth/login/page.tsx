@@ -145,7 +145,7 @@ function LoginPage() {
 
           <h1 className={`text-[2.75rem] font-bold leading-[1.12] tracking-tight mb-4 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Welcome back to<br />
-            <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#7C9ED9] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#0d6672] via-[#0d9488] to-[#5f6fff] bg-clip-text text-transparent">
               Influence Connect
             </span>.
           </h1>
@@ -176,7 +176,7 @@ function LoginPage() {
               : 'bg-white/70 border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.06)]'
           }`}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center flex-shrink-0 shadow-md">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0d6672] to-[#3346d9] flex items-center justify-center flex-shrink-0 shadow-md">
                 <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>
                 </svg>
@@ -216,7 +216,7 @@ function LoginPage() {
 
             {/* IC branding inside card */}
             <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0d6672] to-[#3346d9] flex items-center justify-center text-white font-bold text-sm shadow-md">
                 IC
               </div>
               <div>
