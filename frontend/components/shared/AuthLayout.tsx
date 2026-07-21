@@ -132,7 +132,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       {/* ── Top bar ── */}
       <header className="relative z-10 flex items-center justify-between px-8 py-5">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0d6672] to-[#3346d9] flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow">
             IC
           </div>
           <span className={`font-semibold tracking-tight transition-colors ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>

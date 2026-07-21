@@ -41,7 +41,7 @@ export default function PricingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
       />
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#04181a] via-[#4338ca] to-[#9333ea]">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0d3a3f] via-[#3b3f8f] to-[#7C3AED]">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-32 left-1/2 -translate-x-1/2 w-[36rem] h-[24rem] rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="anim-blob absolute bottom-0 right-0 w-72 h-72 rounded-full bg-[#FB923C]/20 blur-3xl" style={{ animationDelay: '4s' }} />

@@ -769,7 +769,7 @@ function InfluencerProfile() {
 
                 {/* HERO */}
                 <div className={`${card} overflow-hidden`}>
-                  <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#040f11] via-[#0e8a92] to-[#6dffe8]">
+                  <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#0d2226] via-[#1f5b62] to-[#4fd8c4]">
                     {!profile.coverPhotoUrl && <>
                       <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
                       <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-white/5 pointer-events-none" />
@@ -1111,7 +1111,7 @@ function InfluencerProfile() {
                 </div>
 
                 {/* CTA — edit your profile */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#061417] via-[#0fb8bd] to-[#8ef7e6] sm:rounded-2xl px-6 py-6 shadow-lg">
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#173238] via-[#1a8f92] to-[#5eead4] sm:rounded-2xl px-6 py-6 shadow-lg">
                   <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
                   <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
                   <div className="absolute -bottom-8 -left-6 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />

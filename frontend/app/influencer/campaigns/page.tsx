@@ -292,7 +292,7 @@ export default function InfluencerCampaigns() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* ── Hero ── */}
-        <section className="relative bg-gradient-to-br from-[#010609] via-[#0aa3b3] to-[#2dfad0] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
+        <section className="relative bg-gradient-to-br from-[#04141a] via-[#0b5e6c] to-[#1fb8a8] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">

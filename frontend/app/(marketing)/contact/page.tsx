@@ -43,7 +43,7 @@ const CHANNELS = [
 export default function ContactPage() {
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#04181a] via-[#4338ca] to-[#9333ea]">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0d3a3f] via-[#3b3f8f] to-[#7C3AED]">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-24 left-1/2 -translate-x-1/2 w-[32rem] h-[20rem] rounded-full bg-white/10 blur-3xl" />
         <div className="anim-fade-up relative max-w-3xl mx-auto px-5 sm:px-8 pt-16 pb-20 lg:pt-24 text-center">

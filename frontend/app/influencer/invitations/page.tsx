@@ -168,7 +168,7 @@ export default function InfluencerInvitations() {
       <main className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#051a1d] via-[#0ec4d1] to-[#5ef5df] rounded-2xl px-6 sm:px-8 py-7 mb-5 shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0d3138] via-[#0e8a92] to-[#38c9b9] rounded-2xl px-6 sm:px-8 py-7 mb-5 shadow-lg">
           <div className="absolute -top-12 -right-12 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-12 -left-8 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
           <div className="relative">

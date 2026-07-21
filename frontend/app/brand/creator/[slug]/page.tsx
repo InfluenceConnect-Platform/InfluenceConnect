@@ -390,7 +390,7 @@ export default function CreatorProfilePage() {
         <div className={`${card} overflow-hidden`}>
 
           {/* Cover — clickable if coverPhotoUrl exists */}
-          <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#03050f] via-[#3346d9] to-[#7c8aff]">
+          <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6]">
             {/* Decorative shapes on the cover default gradient */}
             {!profile.coverPhotoUrl && <>
               <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />

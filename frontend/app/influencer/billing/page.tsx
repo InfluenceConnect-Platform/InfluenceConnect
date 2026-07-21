@@ -202,7 +202,7 @@ export default function BillingPage() {
 
         {/* Already on Premium — special state */}
         {isPremium && (
-          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#051a1d] via-[#0ec4d1] to-[#5ef5df] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#0d3138] via-[#0e8a92] to-[#38c9b9] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
             <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-md flex-shrink-0 border border-white/20">
               <StarIcon />
@@ -237,7 +237,7 @@ export default function BillingPage() {
         )}
 
         {/* Hero header */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#051a1d] via-[#0ec4d1] to-[#5ef5df] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0d3138] via-[#0e8a92] to-[#38c9b9] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
           <div className="absolute -top-14 -right-14 w-52 h-52 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />
           <div className="relative">
@@ -335,7 +335,7 @@ export default function BillingPage() {
           <div className="relative rounded-2xl overflow-hidden shadow-lg flex flex-col border-2 border-[#7FA8AD]">
 
             {/* Gradient hero top */}
-            <div className="bg-gradient-to-br from-[#0f6672] via-[#14b8a6] to-[#5eead4] px-6 pt-6 pb-5 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#5D8A8F] via-[#7FA8AD] to-[#9fc5c9] px-6 pt-6 pb-5 relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-10 translate-x-10 pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full translate-y-8 -translate-x-6 pointer-events-none" />

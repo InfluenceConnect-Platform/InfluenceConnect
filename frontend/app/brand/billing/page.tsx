@@ -221,7 +221,7 @@ export default function BrandBillingPage() {
 
         {/* Already Premium */}
         {isPremium && (
-          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#03050f] via-[#3346d9] to-[#7c8aff] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="mb-8 relative overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl p-5 sm:p-7 shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
             <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
             <div className="absolute -bottom-10 -left-8 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
             <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -265,7 +265,7 @@ export default function BrandBillingPage() {
         )}
 
         {/* Hero header */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#03050f] via-[#3346d9] to-[#7c8aff] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -369,7 +369,7 @@ export default function BrandBillingPage() {
 
           {/* Premium */}
           <div className="relative rounded-2xl overflow-hidden shadow-lg flex flex-col border-2 border-[#3D5087]">
-            <div className="bg-gradient-to-br from-[#080b1f] via-[#3346d9] to-[#7c8aff] px-6 pt-6 pb-5 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#161f3f] via-[#2c3f9b] to-[#4c5fe6] px-6 pt-6 pb-5 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-10 translate-x-10 pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full translate-y-8 -translate-x-6 pointer-events-none" />
 
