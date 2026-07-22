@@ -348,6 +348,12 @@ function MessagesPage() {
     setPayoutLoaded(false);
     setPayoutModalOpen(false);
     setSelectedDeal(deal);
+    // Push a history entry only when moving from the list into a chat (not when
+    // switching between chats while one is already open), so the mobile back
+    // button returns to the chat list instead of leaving the messages page.
+    if (typeof window !== 'undefined' && !showChat) {
+      window.history.pushState({ messagesChatOpen: true }, '');
+    }
     setShowChat(true);
     setDeals(prev => prev.map(d => d._id === deal._id ? { ...d, unreadCount: 0 } : d));
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -365,8 +371,27 @@ function MessagesPage() {
   };
 
   const goBackToList = () => {
-    setShowChat(false);
+    // If opening the chat pushed a history entry, pop it — the resulting
+    // popstate event (handled below) is what actually closes the chat, so
+    // the physical/browser back button stays in sync with this button.
+    if (typeof window !== 'undefined' && window.history.state?.messagesChatOpen) {
+      window.history.back();
+    } else {
+      setShowChat(false);
+    }
   };
+
+  // Keep the mobile back button scoped to the messages page: pressing it while
+  // a chat is open should return to the chat list, not navigate away entirely.
+  useEffect(() => {
+    const onPopState = (e: PopStateEvent) => {
+      if (!e.state?.messagesChatOpen) {
+        setShowChat(false);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   // Open a specific conversation when navigated with ?deal=<dealId> (e.g. from an accepted invitation).
   useEffect(() => {
@@ -684,8 +709,9 @@ function MessagesPage() {
                   {selectedDeal.status === 'in-progress' && (
                     <button
                       onClick={handleSubmitContent}
-                      disabled={actionLoading}
-                      className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-[#27717E] hover:bg-[#1C5A65] text-white transition-all duration-150 cursor-pointer disabled:opacity-60 shadow-sm active:scale-95"
+                      disabled={actionLoading || chatLocked}
+                      title={chatLocked ? 'Unlock the chat to mark content as submitted' : undefined}
+                      className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-[#27717E] hover:bg-[#1C5A65] text-white transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm active:scale-95"
                     >
                       {actionLoading ? 'Submitting…' : 'Mark Done'}
                     </button>
