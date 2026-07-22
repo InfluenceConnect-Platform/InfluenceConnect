@@ -8,6 +8,7 @@ import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { NICHE_STYLES, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
+import DealHistoryDrawer, { DealHistoryRow } from '@/components/shared/DealHistoryDrawer';
 
 interface EarningsSummary {
   totalEarnings: number;
@@ -24,14 +25,9 @@ interface MonthlyTrend {
   deals: number;
 }
 
-interface DealHistory {
-  brandName: string;
-  brandLogoUrl?: string;
-  campaignTitle: string;
+interface DealHistory extends DealHistoryRow {
   category: string;
   completedAt: string;
-  status: string;
-  amount: number;
 }
 
 // Turn a raw ISO timestamp into a clear, readable date, e.g. "15 Jun 2026".
@@ -78,6 +74,7 @@ export default function EarningsPage() {
   const [activeTab, setActiveTab] = useState<'6months' | '1year'>('6months');
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [exported, setExported] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState<DealHistory | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -509,7 +506,11 @@ export default function EarningsPage() {
                     {dealHistory.map((deal, index) => {
                       const grad = BRAND_GRADS[(deal.brandName?.charCodeAt(0) || 0) % BRAND_GRADS.length];
                       return (
-                        <tr key={index} className="border-b border-gray-50 hover:bg-[#EEF4F5]/40 transition-colors">
+                        <tr
+                          key={index}
+                          onClick={() => setSelectedDeal(deal)}
+                          className="border-b border-gray-50 hover:bg-[#EEF4F5]/40 transition-colors cursor-pointer"
+                        >
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-2.5">
                               {deal.brandLogoUrl ? (
@@ -555,7 +556,11 @@ export default function EarningsPage() {
                 {dealHistory.map((deal, index) => {
                   const grad = BRAND_GRADS[(deal.brandName?.charCodeAt(0) || 0) % BRAND_GRADS.length];
                   return (
-                    <div key={index} className="px-4 py-4 hover:bg-gray-50/60 transition-colors">
+                    <div
+                      key={index}
+                      onClick={() => setSelectedDeal(deal)}
+                      className="px-4 py-4 hover:bg-gray-50/60 transition-colors cursor-pointer"
+                    >
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                           {deal.brandLogoUrl ? (
@@ -619,6 +624,8 @@ export default function EarningsPage() {
         </p> */}
 
       </main>
+
+      <DealHistoryDrawer deal={selectedDeal} onClose={() => setSelectedDeal(null)} />
     </div>
   );
 }

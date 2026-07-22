@@ -359,8 +359,8 @@ exports.getEarnings = async (req, res) => {
 
     // Fetch all deals for this influencer
     const allDeals = await Deal.find({ influencerId: req.userId })
-      .populate('campaignId', 'title niche')
-      .populate('brandId', 'name');
+      .populate('campaignId', 'title customId niche description deliverables')
+      .populate('brandId', 'name email');
 
     // Brand logos live on BrandProfile, keyed by the brand's userId. Batch-fetch
     // them once so the deal history can show real logos (with a letter fallback).
@@ -402,12 +402,20 @@ exports.getEarnings = async (req, res) => {
     // Deal history
     const dealHistory = completedDeals.map(d => ({
       _id: d._id,
+      customId: d.customId || '',
+      campaignId: d.campaignId?._id || d.campaignId,
+      campaignCustomId: d.campaignId?.customId || '',
       campaignTitle: d.campaignId?.title || 'Campaign',
+      campaignDescription: d.campaignId?.description || '',
+      deliverables: d.campaignId?.deliverables || '',
+      niche: d.campaignId?.niche || [],
       brandName: d.brandId?.name || 'Brand',
+      brandEmail: d.brandId?.email || '',
       brandLogoUrl: logoByBrand.get((d.brandId?._id || d.brandId)?.toString()) || '',
       category: d.campaignId?.niche?.[0] || '',
       status: d.status,
       amount: d.agreedAmount || 0,
+      startedAt: d.startedAt,
       completedAt: d.completedAt
     }));
 
