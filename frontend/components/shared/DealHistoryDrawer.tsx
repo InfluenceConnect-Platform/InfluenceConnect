@@ -16,7 +16,6 @@ export interface DealHistoryRow {
   deliverables?: string;
   niche?: string[];
   brandName: string;
-  brandEmail?: string;
   brandLogoUrl?: string;
   category?: string;
   status: string;
@@ -157,8 +156,7 @@ export default function DealHistoryDrawer({ deal, onClose }: Props) {
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 <Field label="Started" value={fmtDate(deal.startedAt)} />
                 <Field label="Completed" value={fmtDate(deal.completedAt)} />
-                <Field label="Brand" value={deal.brandName} />
-                <Field label="Brand email" value={deal.brandEmail || '—'} />
+                <Field label="Brand" value={deal.brandName} full />
               </div>
             </Section>
 
