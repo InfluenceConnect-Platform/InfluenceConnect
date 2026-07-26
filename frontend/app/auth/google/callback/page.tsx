@@ -46,10 +46,10 @@ function GoogleCallbackPage() {
   }, [router, searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#EEF4F5] via-white to-[#EAEDF6]">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#EEF4F5] via-white to-[#EAEDF6] dark:from-[#0B1725] dark:via-[#0B1725] dark:to-[#0E1B2E]">
       <div className="text-center">
         <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm text-gray-500">Signing you in with Google…</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Signing you in with Google…</p>
       </div>
     </div>
   );

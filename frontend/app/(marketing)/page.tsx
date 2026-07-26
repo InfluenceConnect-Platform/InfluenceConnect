@@ -8,6 +8,7 @@ import RotatingText from '@/components/marketing/RotatingText';
 import TestimonialCarousel from '@/components/marketing/TestimonialCarousel';
 import SectionWave from '@/components/marketing/SectionWave';
 import { pageMetadata, faqJsonLd } from '@/lib/seo';
+import { NICHES, NICHE_LABELS } from '@/lib/niches';
 
 export const metadata = pageMetadata({
   title: 'Influence Connect — Where Indian Creators & Brands Collaborate',
@@ -289,8 +290,8 @@ export default function HomePage() {
       {/* ════ NICHE MARQUEE — two rows, opposite directions, pause on hover ════ */}
       <section className="py-8 overflow-hidden marquee-paused flex flex-col gap-4" aria-label="Creator niches on the platform">
         {[
-          { cls: 'anim-marquee', niches: ['Fashion', 'Beauty', 'Tech', 'Gaming', 'Food', 'Travel', 'Fitness', 'Finance', 'Comedy', 'Education', 'Music', 'Lifestyle', 'Parenting', 'Automobiles'] },
-          { cls: 'anim-marquee-rev', niches: ['Photography', 'Vlogging', 'Art & DIY', 'Books', 'Skincare', 'Streetwear', 'Home Decor', 'Pets', 'Startups', 'Cricket', 'Regional Cinema', 'Cooking', 'Dance', 'Wellness'] },
+          { cls: 'anim-marquee', niches: NICHES.slice(0, 14).map(n => NICHE_LABELS[n]) },
+          { cls: 'anim-marquee-rev', niches: NICHES.slice(14).map(n => NICHE_LABELS[n]) },
         ].map(row => (
           <div key={row.cls} className="marquee-mask">
             <div className={`${row.cls} flex w-max items-center gap-4`}>

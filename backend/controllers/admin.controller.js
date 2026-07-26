@@ -76,7 +76,8 @@ exports.getOverviewStats = async (req, res) => {
       avatarUrl: recentAvatarMap.get(String(u._id)) || ''
     }));
 
-    // MRR calculation
+    // Active Premium revenue (one-time purchases, not recurring — see applyPremiumUpgrade.js).
+    // Field names (mrr/influencerMRR/brandMRR) kept as-is for API stability.
     const influencerPremium = await User.countDocuments({
       role: 'influencer', plan: 'premium'
     });
@@ -1093,8 +1094,8 @@ exports.getSubscriptionOverview = async (req, res) => {
     const mrr = (premiumInfluencers * PLAN_PRICE.influencer) + (premiumBrands * PLAN_PRICE.brand);
     const freemiumUsers = await User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } });
 
-    // ── Cumulative MRR over the last 6 months ──
-    // Derived from currently-premium users' start dates: MRR at each month-end
+    // ── Cumulative active Premium revenue over the last 6 months ──
+    // Derived from currently-premium users' start dates: revenue at each month-end
     // is the sum of plan prices for everyone who had upgraded by then.
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const now = new Date();

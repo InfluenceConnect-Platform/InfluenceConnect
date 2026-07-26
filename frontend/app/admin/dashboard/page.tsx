@@ -183,7 +183,7 @@ export default function AdminDashboard() {
       ),
     },
     {
-      label: 'MRR',
+      label: 'Premium Revenue',
       value: stats?.mrr ?? 0,
       format: (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`,
       sub: `${stats?.premiumUsers ?? 0} premium subscribers`,
@@ -464,9 +464,9 @@ export default function AdminDashboard() {
 
             <div className="h-px bg-gray-100" />
 
-            {/* MRR breakdown */}
+            {/* Premium revenue breakdown */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">MRR breakdown</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Premium revenue breakdown</p>
               <div className="flex flex-col gap-3.5">
                 {[
                   {

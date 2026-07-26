@@ -46,7 +46,7 @@ export default function AdminSubscriptions() {
         <AdminHeader
           eyebrow="Revenue & subscriptions"
           title="Subscriptions"
-          subtitle="Track MRR, premium conversions and plan distribution in real time."
+          subtitle="Track active Premium revenue, conversions and plan distribution in real time."
         />
 
         {loading ? (
@@ -63,14 +63,14 @@ export default function AdminSubscriptions() {
         ) : (
           <div className="flex flex-col gap-5">
 
-            {/* MRR Hero */}
+            {/* Active Premium Revenue Hero */}
             <div className="bg-gradient-to-br from-[#2E3944] via-[#3E4751] to-[#20262D] rounded-2xl sm:rounded-3xl px-5 sm:px-8 py-6 sm:py-7 text-white overflow-hidden relative shadow-[0_16px_44px_rgba(38,44,51,0.30)] anim-fade-up">
               <div className="absolute -top-20 -right-16 w-64 h-64 bg-[#7FA8AD]/20 rounded-full blur-3xl pointer-events-none anim-blob" />
               <div className="absolute -bottom-24 -left-10 w-72 h-72 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
               <div className="relative">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-1.5">Monthly Recurring Revenue</p>
+                    <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-1.5">Active Premium Revenue</p>
                     <CountUp
                       value={overview?.mrr ?? 0}
                       format={n => `₹${fmt(Math.round(n))}`}
@@ -139,12 +139,12 @@ export default function AdminSubscriptions() {
               ))}
             </div>
 
-            {/* MRR trend + premium mix */}
+            {/* Premium revenue trend + premium mix */}
             <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 anim-fade-up anim-delay-2">
               <AdminRevenueChart
                 data={mrrTrend}
-                title="MRR growth"
-                subtitle="Cumulative monthly recurring revenue · last 6 months"
+                title="Premium revenue growth"
+                subtitle="Cumulative active Premium revenue · last 6 months"
                 color="#3E4751"
               />
               <AdminDonut

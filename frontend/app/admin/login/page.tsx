@@ -102,7 +102,7 @@ export default function AdminLoginPage() {
                 </svg>
               ),
               title: 'Subscription & revenue',
-              desc: 'Track MRR, premium conversions, and plan distribution live.',
+              desc: 'Track Premium revenue, conversions, and plan distribution live.',
             },
             {
               icon: (

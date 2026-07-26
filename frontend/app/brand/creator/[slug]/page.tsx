@@ -180,6 +180,7 @@ function MediaModal({
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img decoding="async"
+            loading="lazy"
             key={current.src}
             src={cdnImg(current.src, 1600)}
             alt={current.label ?? 'media'}
