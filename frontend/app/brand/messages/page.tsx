@@ -165,6 +165,7 @@ function BrandMessages() {
   // Initialize to null so server and first client render match (avoids hydration
   // mismatch); the effect below hydrates it from localStorage after mount.
   const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(null);
+  const [logoUrl, setLogoUrl] = useState('');
   const [deals, setDeals] = useState<Deal[]>([]);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -241,6 +242,9 @@ function BrandMessages() {
     if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     if (!user) setUser(JSON.parse(stored));
     fetchDeals();
+    api.get('/api/brand/profile/me').then(res => {
+      if (res.data?.profile?.logoUrl) setLogoUrl(res.data.profile.logoUrl);
+    }).catch(() => {});
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [router]);
 
@@ -508,7 +512,7 @@ function BrandMessages() {
 
   return (
     <div className={`h-[100dvh] flex flex-col overflow-hidden ${isDark ? 'bg-[#060D1A]' : 'bg-[#ECEEF6]'}`}>
-      <BrandNav user={user} />
+      <BrandNav user={user} logoUrl={logoUrl} />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
 
@@ -1049,10 +1053,14 @@ function BrandMessages() {
 
                           {/* My avatar */}
                           {isMine && (
-                            <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mb-0.5 bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white text-[9px] font-bold ${
-                              isLast ? 'opacity-100' : 'opacity-0'
-                            }`}>
-                              {user?.name?.charAt(0).toUpperCase()}
+                            <div className={`w-7 h-7 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center mb-0.5 ${
+                              logoUrl ? 'bg-gray-100' : 'bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white text-[9px] font-bold'
+                            } ${isLast ? 'opacity-100' : 'opacity-0'}`}>
+                              {logoUrl ? (
+                                <img loading="lazy" decoding="async" src={cdnImg(logoUrl)} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                user?.name?.charAt(0).toUpperCase()
+                              )}
                             </div>
                           )}
                         </div>
