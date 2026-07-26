@@ -288,7 +288,7 @@ export default function HomePage() {
       </section>
 
       {/* ════ NICHE MARQUEE — two rows, opposite directions, pause on hover ════ */}
-      <section className="py-8 overflow-x-hidden marquee-paused flex flex-col gap-4" aria-label="Creator niches on the platform">
+      <section className="py-8 marquee-paused flex flex-col gap-4" aria-label="Creator niches on the platform">
         {[
           { cls: 'anim-marquee', niches: NICHES.slice(0, 14).map(n => NICHE_LABELS[n]) },
           { cls: 'anim-marquee-rev', niches: NICHES.slice(14).map(n => NICHE_LABELS[n]) },
