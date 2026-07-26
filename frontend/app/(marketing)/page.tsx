@@ -288,7 +288,7 @@ export default function HomePage() {
       </section>
 
       {/* ════ NICHE MARQUEE — two rows, opposite directions, pause on hover ════ */}
-      <section className="py-8 overflow-hidden marquee-paused flex flex-col gap-4" aria-label="Creator niches on the platform">
+      <section className="py-8 overflow-x-hidden marquee-paused flex flex-col gap-4" aria-label="Creator niches on the platform">
         {[
           { cls: 'anim-marquee', niches: NICHES.slice(0, 14).map(n => NICHE_LABELS[n]) },
           { cls: 'anim-marquee-rev', niches: NICHES.slice(14).map(n => NICHE_LABELS[n]) },
@@ -301,7 +301,7 @@ export default function HomePage() {
                   {row.niches.map((niche, i) => (
                     <span
                       key={niche}
-                      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full border text-sm font-semibold shadow-sm whitespace-nowrap hover:-translate-y-0.5 transition-all duration-200 cursor-default ${NICHE_CHIP_TINTS[i % NICHE_CHIP_TINTS.length]}`}
+                      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full border text-sm font-semibold shadow-sm whitespace-nowrap hover:-translate-y-1 hover:scale-[1.05] hover:shadow-lg transition-all duration-200 cursor-default ${NICHE_CHIP_TINTS[i % NICHE_CHIP_TINTS.length]}`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${NICHE_DOT_COLORS[i % NICHE_DOT_COLORS.length]}`} />
                       {niche}
