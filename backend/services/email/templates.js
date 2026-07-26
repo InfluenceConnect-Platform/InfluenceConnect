@@ -470,9 +470,9 @@ module.exports = {
           details([
             ['Billing cycle', billingCycle === 'yearly' ? 'Yearly' : 'Monthly'],
             ['Amount paid', inr(amount)],
-            ['Renews', until],
+            ['Expires', until],
           ]) +
-          para('This receipt is for your records. You can cancel anytime from your Billing page — you keep Premium access until the date above.') +
+          para('This receipt is for your records. Premium is a one-time purchase, not an auto-renewing subscription — it simply stays active until the date above.') +
           button('Manage billing', `${APP_URL}/${role}/billing`, theme),
       }),
     };
