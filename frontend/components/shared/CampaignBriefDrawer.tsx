@@ -57,7 +57,7 @@ const fmtDate = (d?: string) => {
   const date = new Date(d);
   return Number.isNaN(date.getTime())
     ? null
-    : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 };
 // Brands may store a website with or without a scheme. Build a safe href and a
 // clean display label (host without protocol or trailing slash).

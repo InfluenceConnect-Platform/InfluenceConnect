@@ -221,7 +221,7 @@ export default function AdminDashboard() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const firstName = user?.name?.split(' ')[0] ?? 'Admin';
-  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
 
   return (
     <AdminShell user={user}>
@@ -395,7 +395,7 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-[11px] text-gray-400 whitespace-nowrap">
-                        {new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        {new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}
                       </td>
                     </tr>
                   ))}

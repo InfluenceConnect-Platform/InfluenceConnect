@@ -105,7 +105,7 @@ const matchTone = (score: number) =>
     : { cls: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800/50', label: 'Fair match' };
 
 const daysUntil = (dateStr: string) => Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000);
-const formatDate = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const formatDate = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 
 export default function InfluencerCampaigns() {
   const router = useRouter();
@@ -958,7 +958,7 @@ function MyApplications() {
                     ₹{app.campaignId?.budgetMin?.toLocaleString()} – ₹{app.campaignId?.budgetMax?.toLocaleString()}
                   </td>
                   <td className="px-5 py-4 text-xs text-gray-400 font-medium">
-                    {new Date(app.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {new Date(app.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                   </td>
                   <td className="px-5 py-4">
                     <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-bold ${cfg.cls}`}>
@@ -1010,7 +1010,7 @@ function MyApplications() {
                   ₹{app.campaignId?.budgetMin?.toLocaleString()} – ₹{app.campaignId?.budgetMax?.toLocaleString()}
                 </span>
                 <span>·</span>
-                <span>{new Date(app.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                <span>{new Date(app.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}</span>
               </div>
               {app.status === 'applied' && (
                 <div className="mt-2.5">

@@ -38,7 +38,7 @@ const AVATAR_GRADS = [
 
 const inr = (n?: number) => '₹' + (Number.isFinite(n as number) ? (n as number) : 0).toLocaleString('en-IN');
 const fmtDate = (d?: string | null) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '—';
 const cap = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '—');
 const fmtNum = (n: number) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;

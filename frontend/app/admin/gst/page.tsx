@@ -39,7 +39,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const fmtDate = (d?: string | null) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '—';
 
 export default function AdminGst() {
   const router = useRouter();

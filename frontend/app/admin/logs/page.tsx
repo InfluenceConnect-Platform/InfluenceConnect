@@ -30,7 +30,7 @@ const cap = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '—')
 function fmtTimestamp(iso?: string) {
   if (!iso) return '—';
   const d = new Date(iso);
-  const date = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  const date = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
   let h = d.getHours();
   const m = String(d.getMinutes()).padStart(2, '0');
   const ampm = h >= 12 ? 'PM' : 'AM';

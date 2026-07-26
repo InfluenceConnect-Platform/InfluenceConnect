@@ -42,7 +42,7 @@ const DEAL_STATUS_STYLES: Record<string, string> = {
 const inr = (n: number) => '₹' + (Number.isFinite(n) ? n : 0).toLocaleString('en-IN');
 const fmtNum = (n: number) => (Number.isFinite(n) ? n : 0).toLocaleString('en-IN');
 const fmtDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '—';
 const cap = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '—');
 
 interface Props {

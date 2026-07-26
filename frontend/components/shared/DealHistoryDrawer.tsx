@@ -51,7 +51,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const inr = (n?: number) => '₹' + (Number.isFinite(n) ? (n as number) : 0).toLocaleString('en-IN');
 const fmtDate = (d?: string | null) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '—';
 
 export default function DealHistoryDrawer({ deal, onClose }: Props) {
   const [payout, setPayout] = useState<PayoutInfo | null>(null);

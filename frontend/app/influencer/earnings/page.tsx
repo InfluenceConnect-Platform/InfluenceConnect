@@ -36,7 +36,7 @@ const fmtDealDate = (iso?: string) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? '—'
-    : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 };
 
 // Human-friendly category label; campaigns without a niche show "General".

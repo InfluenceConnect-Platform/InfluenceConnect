@@ -372,7 +372,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
       </div>
 
       <p className={`text-xs pt-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
-        Member since {new Date(account.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+        Member since {new Date(account.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}
         {showPlan && <> · {account.plan === 'premium' ? '★ Premium' : 'Freemium'} plan</>}
       </p>
     </div>

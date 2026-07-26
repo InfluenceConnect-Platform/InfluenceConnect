@@ -458,7 +458,7 @@ module.exports = {
   premiumUpgradeConfirmed({ role, billingCycle, amount, premiumUntil }) {
     const theme = themeFor(role);
     const until = premiumUntil
-      ? new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+      ? new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
       : null;
     return {
       subject: 'Payment received — Premium is active',
@@ -577,7 +577,7 @@ module.exports = {
   accountDeletionScheduled({ name, deleteAt, role }) {
     const theme = themeFor(role);
     const when = deleteAt
-      ? new Date(deleteAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+      ? new Date(deleteAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
       : 'in 30 days';
     return {
       subject: 'Your account is scheduled for deletion',

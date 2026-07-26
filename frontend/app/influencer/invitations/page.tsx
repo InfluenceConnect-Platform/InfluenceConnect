@@ -26,7 +26,7 @@ const BRAND_GRADS = [
 ];
 
 const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 
 const InstagramLogo = ({ size = 11 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24">

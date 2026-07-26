@@ -27,7 +27,7 @@ const STATUS_HINT: Record<string, { text: string; box: string; icon: string }> =
 
 const inr = (n?: number) => '₹' + (Number.isFinite(n as number) ? (n as number) : 0).toLocaleString('en-IN');
 const fmtDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '—';
 const cap = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '—');
 
 interface Props {

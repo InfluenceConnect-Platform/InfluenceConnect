@@ -117,7 +117,7 @@ const formatRelativeTime = (d: string) => {
   if (diff < 60_000) return 'Just now';
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
   if (diff < 86_400_000) return formatTime(d);
-  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
 };
 
 const getInitials = (name: string) =>

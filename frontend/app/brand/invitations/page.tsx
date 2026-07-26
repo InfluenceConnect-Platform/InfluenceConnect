@@ -25,7 +25,7 @@ const AVATAR_GRADS = [
 ];
 
 const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
 
 interface Invitation {
   _id: string;

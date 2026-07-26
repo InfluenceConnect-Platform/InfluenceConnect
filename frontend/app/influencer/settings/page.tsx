@@ -322,7 +322,7 @@ export default function InfluencerSettings() {
                         <p className={`text-sm font-semibold mb-1 ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>Deletion Scheduled</p>
                         <p className={`text-xs mb-4 ${isDark ? 'text-amber-400/70' : 'text-amber-600'}`}>
                           Your account is scheduled for permanent deletion on{' '}
-                          <strong>{new Date(account.deleteScheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+                          <strong>{new Date(account.deleteScheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}</strong>.
                           You can cancel anytime before that date.
                         </p>
                         <button
