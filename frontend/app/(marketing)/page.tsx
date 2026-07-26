@@ -293,7 +293,7 @@ export default function HomePage() {
           { cls: 'anim-marquee', niches: NICHES.slice(0, 14).map(n => NICHE_LABELS[n]) },
           { cls: 'anim-marquee-rev', niches: NICHES.slice(14).map(n => NICHE_LABELS[n]) },
         ].map(row => (
-          <div key={row.cls} className="marquee-mask">
+          <div key={row.cls} className="marquee-mask py-3 -my-3">
             <div className={`${row.cls} flex w-max items-center gap-4`}>
               {/* List rendered twice for a seamless loop */}
               {[0, 1].map(copy => (
