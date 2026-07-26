@@ -160,7 +160,7 @@ export default function AdminNav({ user }: AdminNavProps) {
 
           {/* Desktop nav — segmented pills. Scrolls within its own bounds
               instead of overflowing onto the search box when items don't fit. */}
-          <div className="hidden lg:flex items-center gap-1 bg-gray-50/80 border border-gray-200/70 rounded-2xl p-1 min-w-0 overflow-x-auto">
+          <div className="hidden lg:flex items-center gap-1 bg-gray-50/80 border border-gray-200/70 rounded-2xl p-1 min-w-0 overflow-x-auto mr-4">
             {NAV_ITEMS.map(item => {
               const isActive = pathname === item.href;
               return (
