@@ -3,7 +3,7 @@ const Deal = require('../models/Deal');
 const User = require('../models/User');
 const notify = require('../services/email');
 
-const BLOCKED_PATTERN = /(\+?\d[\d\s\-()\u200c]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|instagram|insta\.me|facebook|fb\.com|whatsapp|wa\.me|telegram|t\.me|snapchat)/i;
+const BLOCKED_PATTERN = /(\+?\d[\d\s\-()\u200c]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|insta(gram)?\b|insta\.me|face ?book|\bfb\b|fb\.com|whatsapp|wa\.me|telegram|t\.me|snap(chat)?\b|\bhandle\b|\busername\b)/i;
 
 // ─────────────────────────────────────────
 // DOWNLOAD ATTACHMENT
