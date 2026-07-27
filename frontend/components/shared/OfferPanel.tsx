@@ -47,6 +47,11 @@ export default function OfferPanel({
   const isAgreed = negotiationStatus === 'agreed';
   const isLocked = isAgreed || dealClosed;
 
+  // Collapsed by default once agreed (the amount is already shown in the header
+  // row, so the summary line is redundant); open by default while still
+  // negotiating so a pending offer stays visible without an extra tap.
+  const [expanded, setExpanded] = useState(!isAgreed);
+
   const pending = offers.filter(o => o.status === 'pending');
   const latestPending = pending[pending.length - 1] ?? null;
   const canAccept = !!latestPending && latestPending.proposedBy !== currentUserId;
@@ -98,37 +103,50 @@ export default function OfferPanel({
         : isDark ? 'bg-amber-900/15 border-amber-700/30' : 'bg-amber-50/50 border-amber-200/50'
     }`}>
 
-      {/* Header row */}
-      <div className="flex items-center justify-between gap-3 px-4 sm:px-5 pt-2.5 pb-2">
+      {/* Header row — always one line, toggles the body open/closed */}
+      <button
+        type="button"
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center justify-between gap-3 px-4 sm:px-5 pt-2.5 pb-2 cursor-pointer"
+        aria-expanded={expanded}
+      >
         <div className="flex items-center gap-2 min-w-0">
           <svg className={`w-3.5 h-3.5 flex-shrink-0 ${isAgreed ? 'text-emerald-500' : 'text-amber-500'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 3h12M6 8h12M12 21 6 8"/><path d="M6 13h3a4 4 0 1 0 0-5H6"/>
           </svg>
-          <span className={`text-[12px] font-semibold ${isDark ? 'text-slate-100' : 'text-gray-700'}`}>Price Negotiation</span>
-          <span className={`text-[11px] hidden sm:inline ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+          <span className={`text-[12px] font-semibold flex-shrink-0 ${isDark ? 'text-slate-100' : 'text-gray-700'}`}>Price Negotiation</span>
+          <span className={`text-[11px] hidden sm:inline truncate ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
             · Budget ₹{budgetMin.toLocaleString('en-IN')} – ₹{budgetMax.toLocaleString('en-IN')}
           </span>
         </div>
 
-        {isAgreed ? (
-          <span className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border flex-shrink-0 ${
-            isDark ? 'text-emerald-300 bg-emerald-900/40 border-emerald-700/50' : 'text-emerald-700 bg-emerald-100 border-emerald-200'
-          }`}>
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Agreed · ₹{agreedAmount.toLocaleString('en-IN')}
-          </span>
-        ) : (
-          <span className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border flex-shrink-0 ${
-            isDark ? 'text-amber-300 bg-amber-900/30 border-amber-700/40' : 'text-amber-700 bg-amber-100 border-amber-200'
-          }`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            Pending
-          </span>
-        )}
-      </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isAgreed ? (
+            <span className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border flex-shrink-0 ${
+              isDark ? 'text-emerald-300 bg-emerald-900/40 border-emerald-700/50' : 'text-emerald-700 bg-emerald-100 border-emerald-200'
+            }`}>
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Agreed · ₹{agreedAmount.toLocaleString('en-IN')}
+            </span>
+          ) : (
+            <span className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border flex-shrink-0 ${
+              isDark ? 'text-amber-300 bg-amber-900/30 border-amber-700/40' : 'text-amber-700 bg-amber-100 border-amber-200'
+            }`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Pending
+            </span>
+          )}
+          <svg
+            className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''} ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          >
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+      </button>
 
       {/* Body */}
-      {isAgreed ? (
+      {!expanded ? null : isAgreed ? (
         /* Agreed state — show locked summary */
         <div className="px-4 sm:px-5 pb-2.5">
           <p className={`text-[11px] font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>

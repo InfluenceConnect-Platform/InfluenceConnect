@@ -444,7 +444,9 @@ function MessagesPage() {
   return (
     <div className={`h-[100dvh] flex flex-col overflow-hidden ${isDark ? 'bg-[#060D1A]' : 'bg-[#EDF3F4]'}`}>
 
-      <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
+      <div className={showChat ? 'hidden lg:block flex-shrink-0' : 'flex-shrink-0'}>
+        <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
+      </div>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
 
@@ -691,18 +693,7 @@ function MessagesPage() {
                   ) : (
                     <p className={`text-[15px] font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedDeal.brandId?.name}</p>
                   )}
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className={`text-[11px] truncate ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
-                    {selectedDeal.negotiationStatus === 'agreed' ? (
-                      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200/60 flex-shrink-0">
-                        ₹{selectedDeal.agreedAmount.toLocaleString()} agreed
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60 flex-shrink-0">
-                        Negotiating…
-                      </span>
-                    )}
-                  </div>
+                  <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">

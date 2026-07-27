@@ -512,7 +512,9 @@ function BrandMessages() {
 
   return (
     <div className={`h-[100dvh] flex flex-col overflow-hidden ${isDark ? 'bg-[#060D1A]' : 'bg-[#ECEEF6]'}`}>
-      <BrandNav user={user} logoUrl={logoUrl} />
+      <div className={showChat ? 'hidden lg:block flex-shrink-0' : 'flex-shrink-0'}>
+        <BrandNav user={user} logoUrl={logoUrl} />
+      </div>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
 
@@ -754,15 +756,6 @@ function BrandMessages() {
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className={`text-[11px] truncate ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
                     {selectedDeal.customId && <IdChip id={selectedDeal.customId} size="xs" tone={isDark ? 'dark' : 'subtle'} />}
-                    {selectedDeal.negotiationStatus === 'agreed' ? (
-                      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200/60 flex-shrink-0">
-                        ₹{selectedDeal.agreedAmount.toLocaleString()} agreed
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60 flex-shrink-0">
-                        Negotiating…
-                      </span>
-                    )}
                   </div>
                 </div>
 
