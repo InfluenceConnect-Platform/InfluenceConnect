@@ -446,7 +446,7 @@ export default function InfluencerCampaigns() {
               <input
                 ref={searchRef}
                 type="text"
-                placeholder="Search campaigns or brands…"
+                placeholder="Search campaigns…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all shadow-sm"
