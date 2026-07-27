@@ -13,8 +13,8 @@ export default function AdminLoginPage() {
   const [error, setError]     = useState('');
 
   useEffect(() => {
-    const token  = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
+    const token  = sessionStorage.getItem('token');
+    const stored = sessionStorage.getItem('user');
     if (token && stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -34,8 +34,8 @@ export default function AdminLoginPage() {
         setError('Access denied. This portal is for admin accounts only.');
         return;
       }
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(user));
+      sessionStorage.setItem('token', response.data.token);
+      sessionStorage.setItem('user', JSON.stringify(user));
       router.push('/admin/dashboard');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };

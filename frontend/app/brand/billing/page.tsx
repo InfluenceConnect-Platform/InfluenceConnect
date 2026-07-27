@@ -114,7 +114,7 @@ export default function BrandBillingPage() {
   const toast = useToast();
   const [user, setUser] = useState<{ name: string; plan?: string } | null>(() => {
     if (typeof window === 'undefined') return null;
-    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
+    try { const s = sessionStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
   const [premiumStartedAt, setPremiumStartedAt] = useState<string | null>(null);
   const [premiumUntil, setPremiumUntil] = useState<string | null>(null);
@@ -129,8 +129,8 @@ export default function BrandBillingPage() {
   const YEARLY_SAVINGS = MONTHLY_PRICE * 12 - YEARLY_PRICE;
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
+    const token = sessionStorage.getItem('token');
+    const stored = sessionStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     const parsed = JSON.parse(stored);
     if (parsed.role !== 'brand') { router.push('/auth/login'); return; }
@@ -161,11 +161,11 @@ export default function BrandBillingPage() {
   };
 
   const syncUserToStorage = (updatedUser: any) => {
-    const stored = localStorage.getItem('user');
+    const stored = sessionStorage.getItem('user');
     if (stored) {
       const parsed = JSON.parse(stored);
       const merged = { ...parsed, plan: updatedUser.plan };
-      localStorage.setItem('user', JSON.stringify(merged));
+      sessionStorage.setItem('user', JSON.stringify(merged));
       setUser(merged);
     }
   };

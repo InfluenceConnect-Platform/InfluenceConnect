@@ -258,8 +258,8 @@ export default function CreatorProfilePage() {
     // brand-only endpoint, which additionally tracks their freemium daily
     // view cap; everyone else gets the plain public read.
     let role: string | undefined;
-    try { role = JSON.parse(localStorage.getItem('user') || '{}')?.role; } catch {}
-    const token = localStorage.getItem('token');
+    try { role = JSON.parse(sessionStorage.getItem('user') || '{}')?.role; } catch {}
+    const token = sessionStorage.getItem('token');
     const isBrandViewer = !!token && role === 'brand';
 
     try {

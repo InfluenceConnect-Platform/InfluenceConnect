@@ -123,9 +123,8 @@ function CompleteProfilePage() {
 
       // verify-otp returns token only when both email + mobile verified
       if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        document.cookie = `ic_role=${response.data.user?.role}; path=/; max-age=604800; SameSite=Lax`;
+        sessionStorage.setItem('token', response.data.token);
+        sessionStorage.setItem('user', JSON.stringify(response.data.user));
         const role = response.data.user?.role;
         if (role === 'brand') router.replace('/brand/dashboard');
         else router.replace('/influencer/dashboard');

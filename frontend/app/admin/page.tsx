@@ -7,8 +7,8 @@ export default function AdminRoot() {
   const router = useRouter();
 
   useEffect(() => {
-    const token  = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
+    const token  = sessionStorage.getItem('token');
+    const stored = sessionStorage.getItem('user');
     if (token && stored) {
       try {
         const parsed = JSON.parse(stored);

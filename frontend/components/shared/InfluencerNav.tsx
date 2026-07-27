@@ -110,7 +110,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
 
   useEffect(() => {
     try {
-      const s = localStorage.getItem('user');
+      const s = sessionStorage.getItem('user');
       if (s) setLocalUser(JSON.parse(s));
     } catch {}
   }, []);
@@ -197,8 +197,8 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
       variant: 'warning',
     });
     if (!ok) return;
+    sessionStorage.clear();
     localStorage.clear();
-    document.cookie = 'ic_role=; path=/; max-age=0; SameSite=Lax';
     router.push('/auth/login');
   };
 

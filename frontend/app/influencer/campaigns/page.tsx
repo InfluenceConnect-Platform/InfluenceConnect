@@ -153,8 +153,8 @@ export default function InfluencerCampaigns() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
+    const token = sessionStorage.getItem('token');
+    const stored = sessionStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
     setUser(JSON.parse(stored));

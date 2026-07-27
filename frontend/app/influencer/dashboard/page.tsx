@@ -112,8 +112,8 @@ export default function InfluencerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+    const stored = sessionStorage.getItem('user');
+    const token = sessionStorage.getItem('token');
     if (!token || !stored) { router.push('/auth/login'); return; }
     const parsedUser = JSON.parse(stored);
     if (parsedUser.role !== 'influencer') { router.push('/auth/login'); return; }

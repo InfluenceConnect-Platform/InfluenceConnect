@@ -23,7 +23,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -47,9 +47,10 @@ api.interceptors.response.use(
       handlingSuspension = true;
       let loginPath = '/auth/login';
       try {
-        const role = JSON.parse(localStorage.getItem('user') || '{}')?.role;
+        const role = JSON.parse(sessionStorage.getItem('user') || '{}')?.role;
         if (role === 'admin') loginPath = '/admin/login';
       } catch {}
+      sessionStorage.clear();
       localStorage.clear();
       window.location.href = `${loginPath}?error=suspended`;
     }

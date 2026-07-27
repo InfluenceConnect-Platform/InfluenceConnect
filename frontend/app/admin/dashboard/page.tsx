@@ -68,8 +68,8 @@ export default function AdminDashboard() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const token  = localStorage.getItem('token');
-    const stored = localStorage.getItem('user');
+    const token  = sessionStorage.getItem('token');
+    const stored = sessionStorage.getItem('user');
     if (!token || !stored) { router.push('/admin/login'); return; }
     const parsed = JSON.parse(stored);
     if (parsed.role !== 'admin') { router.push('/admin/login'); return; }

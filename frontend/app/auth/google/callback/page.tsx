@@ -30,9 +30,8 @@ function GoogleCallbackPage() {
     if (token && userRaw) {
       try {
         const user = JSON.parse(decodeURIComponent(userRaw));
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        document.cookie = `ic_role=${user.role}; path=/; max-age=604800; SameSite=Lax`;
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('user', JSON.stringify(user));
 
         if (user.role === 'brand') router.replace('/brand/dashboard');
         else router.replace('/influencer/dashboard');

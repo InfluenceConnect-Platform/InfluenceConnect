@@ -82,8 +82,8 @@ export default function InfluencerSettings() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (!stored || !localStorage.getItem('token')) { router.push('/auth/login'); return; }
+    const stored = sessionStorage.getItem('user');
+    if (!stored || !sessionStorage.getItem('token')) { router.push('/auth/login'); return; }
     if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
     api.get('/api/auth/account').then(r => setAccount(r.data)).catch(() => {}).finally(() => setLoading(false));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data.profile?.profilePicUrl || '')).catch(() => {});

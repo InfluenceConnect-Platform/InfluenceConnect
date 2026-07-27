@@ -136,6 +136,7 @@ export default function AdminNav({ user }: AdminNavProps) {
       variant: 'warning',
     });
     if (!ok) return;
+    sessionStorage.clear();
     localStorage.clear();
     router.push('/admin/login');
   };
