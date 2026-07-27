@@ -482,7 +482,7 @@ function MessagesPage() {
               </div>
               <input
                 type="text"
-                placeholder="Search conversations…"
+                placeholder="Search brand or campaign"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2.5 text-[13px] text-white placeholder:text-white/35 bg-white/10 border border-white/10 rounded-xl focus:outline-none focus:bg-white/15 focus:border-white/25 transition-all duration-200"
