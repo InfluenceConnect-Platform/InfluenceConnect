@@ -681,7 +681,7 @@ function InfluencerProfile() {
                     href={profile?.slug ? `/brand/creator/${profile.slug}` : '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`hidden sm:flex items-center gap-1.5 text-sm px-3.5 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
+                    className={`flex items-center justify-center gap-1.5 text-sm px-3.5 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm flex-1 sm:flex-none ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
                     </svg>
@@ -689,7 +689,7 @@ function InfluencerProfile() {
                   </a>
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="group relative inline-flex items-center gap-2 bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] hover:from-[#4A7378] hover:to-[#6B9499] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer overflow-hidden">
+                    className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] hover:from-[#4A7378] hover:to-[#6B9499] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer overflow-hidden flex-1 sm:flex-none">
                     <span className="absolute inset-0 bg-[radial-gradient(circle_at_20%_-20%,rgba(255,255,255,0.35),transparent_60%)] pointer-events-none" />
                     <span className="relative flex items-center gap-2">
                       <PencilIcon />
