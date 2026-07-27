@@ -2,6 +2,12 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
 
+// GoogleStrategy's constructor throws if clientID/clientSecret are missing,
+// which would crash the whole process at require time (index.js loads this
+// unconditionally) — so only register it once both are actually configured.
+// The /api/auth/google routes already handle an unregistered strategy by
+// erroring just that request, not the server.
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -44,6 +50,7 @@ passport.use(new GoogleStrategy({
     return done(err, null);
   }
 }));
+}
 
 passport.serializeUser((user, done) => done(null, user._id));
 passport.deserializeUser(async (id, done) => {

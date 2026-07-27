@@ -5,12 +5,21 @@ const session = require('express-session');
 const passport = require('passport');
 require('dotenv').config();
 
-// Validate required env vars
-const required = ['MONGODB_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET', 'CRON_SECRET'];
+// Validate required env vars. Only vars the app cannot run at all without
+// are hard-required here — a missing Google/Razorpay/cron var should disable
+// that one feature, not crash every request on the whole site.
+const required = ['MONGODB_URI', 'JWT_SECRET'];
 for (const key of required) {
   if (!process.env[key]) {
     console.error(`Missing required env variable: ${key}`);
     process.exit(1);
+  }
+}
+
+const optional = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET', 'CRON_SECRET'];
+for (const key of optional) {
+  if (!process.env[key]) {
+    console.warn(`Missing optional env variable: ${key} — related features will be unavailable.`);
   }
 }
 
