@@ -389,7 +389,7 @@ function BrandDiscover() {
   const searchParams = useSearchParams();
   const [user] = useState<any>(() => {
     if (typeof window === 'undefined') return null;
-    try { const s = sessionStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
+    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
   const [influencers, setInfluencers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -608,8 +608,8 @@ function BrandDiscover() {
   const [sortBy, setSortBy] = useState('relevance');
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    const stored = sessionStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     fetchInfluencers();

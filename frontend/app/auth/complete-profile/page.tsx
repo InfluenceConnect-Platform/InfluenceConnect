@@ -123,8 +123,8 @@ function CompleteProfilePage() {
 
       // verify-otp returns token only when both email + mobile verified
       if (response.data.token) {
-        sessionStorage.setItem('token', response.data.token);
-        sessionStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         const role = response.data.user?.role;
         if (role === 'brand') router.replace('/brand/dashboard');
         else router.replace('/influencer/dashboard');

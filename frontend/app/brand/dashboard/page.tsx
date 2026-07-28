@@ -37,7 +37,7 @@ export default function BrandDashboard() {
   const router = useRouter();
   const [user] = useState<any>(() => {
     if (typeof window === 'undefined') return null;
-    try { const s = sessionStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
+    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
   const [stats, setStats] = useState<any>(null);
   const [analytics, setAnalytics] = useState<BrandAnalyticsData | null>(null);
@@ -47,8 +47,8 @@ export default function BrandDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    const stored = sessionStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     fetchDashboard();

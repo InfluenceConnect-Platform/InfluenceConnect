@@ -77,8 +77,8 @@ export default function EarningsPage() {
   const [selectedDeal, setSelectedDeal] = useState<DealHistory | null>(null);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    const stored = sessionStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
     setUser(JSON.parse(stored));

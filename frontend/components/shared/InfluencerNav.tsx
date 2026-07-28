@@ -110,7 +110,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
 
   useEffect(() => {
     try {
-      const s = sessionStorage.getItem('user');
+      const s = localStorage.getItem('user');
       if (s) setLocalUser(JSON.parse(s));
     } catch {}
   }, []);
@@ -197,7 +197,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
       variant: 'warning',
     });
     if (!ok) return;
-    sessionStorage.clear();
+    localStorage.clear();
     localStorage.clear();
     router.push('/auth/login');
   };

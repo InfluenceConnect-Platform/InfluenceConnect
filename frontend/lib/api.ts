@@ -23,7 +23,9 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token');
+  // Influencer/brand sessions persist in localStorage; admin sessions stay in
+  // sessionStorage so admins are logged out when the browser closes.
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -47,7 +49,8 @@ api.interceptors.response.use(
       handlingSuspension = true;
       let loginPath = '/auth/login';
       try {
-        const role = JSON.parse(sessionStorage.getItem('user') || '{}')?.role;
+        const stored = localStorage.getItem('user') || sessionStorage.getItem('user');
+        const role = JSON.parse(stored || '{}')?.role;
         if (role === 'admin') loginPath = '/admin/login';
       } catch {}
       sessionStorage.clear();

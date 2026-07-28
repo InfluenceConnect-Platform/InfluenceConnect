@@ -17,7 +17,7 @@ export default function BrandProfile() {
 
   const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(() => {
     if (typeof window === 'undefined') return null;
-    try { const s = sessionStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
+    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
   const [profile, setProfile]       = useState<any>(null);
   const [loading, setLoading]       = useState(true);
@@ -38,8 +38,8 @@ export default function BrandProfile() {
   const [gstinError, setGstinError]   = useState('');
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    const stored = sessionStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     if (!user) setUser(JSON.parse(stored));
@@ -76,7 +76,7 @@ export default function BrandProfile() {
       if (user) {
         const updatedUser = { ...user, name: trimmedName };
         setUser(updatedUser);
-        sessionStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);

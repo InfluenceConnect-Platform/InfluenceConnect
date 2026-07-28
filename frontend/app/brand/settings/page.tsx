@@ -84,8 +84,8 @@ export default function BrandSettings() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('user');
-    if (!stored || !sessionStorage.getItem('token')) { router.push('/auth/login'); return; }
+    const stored = localStorage.getItem('user');
+    if (!stored || !localStorage.getItem('token')) { router.push('/auth/login'); return; }
     if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
     api.get('/api/auth/account').then(r => setAccount(r.data)).catch(() => {}).finally(() => setLoading(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

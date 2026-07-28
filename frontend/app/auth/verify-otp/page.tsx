@@ -182,8 +182,8 @@ export default function VerifyOTPPage() {
       if (type === 'mobile') setMobileVerified(true);
 
       if (response.data.token) {
-        sessionStorage.setItem('token', response.data.token);
-        sessionStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         localStorage.removeItem('pendingUserId');
 
         const user = response.data.user;

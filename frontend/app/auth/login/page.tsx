@@ -58,8 +58,8 @@ function LoginPage() {
     setError('');
     try {
       const response = await api.post('/api/auth/login', { email, password });
-      sessionStorage.setItem('token', response.data.token);
-      sessionStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       const user = response.data.user;
       if (user.role === 'influencer') router.push('/influencer/dashboard');
       else if (user.role === 'brand') router.push('/brand/dashboard');

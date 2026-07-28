@@ -308,8 +308,8 @@ function InfluencerProfile() {
   }[]>([]);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    const stored = sessionStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    const stored = localStorage.getItem('user');
     if (!token || !stored) { router.push('/auth/login'); return; }
     if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
     fetchProfile();
@@ -414,10 +414,10 @@ function InfluencerProfile() {
       // Keep the cached user (top nav, avatar) in sync with the new name. The
       // public profile slug is unaffected — it never changes after creation.
       try {
-        const stored = sessionStorage.getItem('user');
+        const stored = localStorage.getItem('user');
         if (stored) {
           const u = JSON.parse(stored);
-          sessionStorage.setItem('user', JSON.stringify({ ...u, name: trimmedName }));
+          localStorage.setItem('user', JSON.stringify({ ...u, name: trimmedName }));
         }
       } catch { /* ignore */ }
       // Now persist any buffered portfolio uploads
