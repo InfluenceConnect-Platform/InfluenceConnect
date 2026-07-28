@@ -140,7 +140,19 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           </span>
         </Link>
 
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className={`text-sm font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+              isDark
+                ? 'border-slate-700 text-slate-300 hover:bg-slate-800/60'
+                : 'border-gray-200 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Visit Website
+          </Link>
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* ── Page content ── */}

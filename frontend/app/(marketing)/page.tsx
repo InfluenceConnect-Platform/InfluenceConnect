@@ -9,6 +9,7 @@ import TestimonialCarousel from '@/components/marketing/TestimonialCarousel';
 import SectionWave from '@/components/marketing/SectionWave';
 import { pageMetadata, faqJsonLd } from '@/lib/seo';
 import { NICHES, NICHE_LABELS } from '@/lib/niches';
+import HomeAuthRedirect from '@/components/marketing/HomeAuthRedirect';
 
 export const metadata = pageMetadata({
   title: 'Influence Connect — Where Indian Creators & Brands Collaborate',
@@ -144,6 +145,7 @@ const FAQS = [
 export default function HomePage() {
   return (
     <>
+      <HomeAuthRedirect />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
