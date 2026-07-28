@@ -9,7 +9,7 @@ import TestimonialCarousel from '@/components/marketing/TestimonialCarousel';
 import SectionWave from '@/components/marketing/SectionWave';
 import { pageMetadata, faqJsonLd } from '@/lib/seo';
 import { NICHES, NICHE_LABELS } from '@/lib/niches';
-import HomeAuthRedirect from '@/components/marketing/HomeAuthRedirect';
+import { homeAuthRedirectScript } from '@/components/marketing/homeAuthRedirectScript';
 
 export const metadata = pageMetadata({
   title: 'Influence Connect — Where Indian Creators & Brands Collaborate',
@@ -145,7 +145,9 @@ const FAQS = [
 export default function HomePage() {
   return (
     <>
-      <HomeAuthRedirect />
+      {/* Runs synchronously during HTML parsing, before the nav/hero below it
+          are painted, so a logged-in visitor never sees the homepage flash. */}
+      <script dangerouslySetInnerHTML={{ __html: homeAuthRedirectScript }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
