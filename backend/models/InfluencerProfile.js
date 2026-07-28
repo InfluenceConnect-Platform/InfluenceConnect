@@ -66,6 +66,15 @@ const influencerProfileSchema = new mongoose.Schema({
     default: ''
   },
 
+  // Free-text neighborhood/locality (e.g. "Koramangala", "Andheri West").
+  // Display-only — never used in matching, search, or filter logic.
+  area: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Area cannot exceed 100 characters'],
+    default: ''
+  },
+
   priceRangeMin: { type: Number, default: 0 },
   priceRangeMax: { type: Number, default: 0 },
 

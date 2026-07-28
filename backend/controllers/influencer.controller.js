@@ -136,7 +136,7 @@ exports.getStatsHistory = async (req, res) => {
 // ─────────────────────────────────────────
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, bio, niche, city, priceRangeMin, priceRangeMax, platforms } = req.body;
+    const { name, bio, niche, city, area, priceRangeMin, priceRangeMax, platforms } = req.body;
 
     const profile = await InfluencerProfile.findOne({ userId: req.userId });
     if (!profile) {
@@ -158,6 +158,7 @@ exports.updateProfile = async (req, res) => {
     if (bio !== undefined)          profile.bio = bio;
     if (niche !== undefined)        profile.niche = niche;
     if (city !== undefined)         profile.city = city;
+    if (area !== undefined)         profile.area = area;
     if (priceRangeMin !== undefined) profile.priceRangeMin = priceRangeMin;
     if (priceRangeMax !== undefined) profile.priceRangeMax = priceRangeMax;
 

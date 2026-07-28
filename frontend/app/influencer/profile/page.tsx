@@ -300,6 +300,7 @@ function InfluencerProfile() {
   const [bio, setBio] = useState('');
   const [niche, setNiche] = useState<string[]>([]);
   const [city, setCity] = useState('');
+  const [area, setArea] = useState('');
   const [priceRangeMin, setPriceRangeMin] = useState('');
   const [priceRangeMax, setPriceRangeMax] = useState('');
   const [platforms, setPlatforms] = useState<any[]>([]);
@@ -335,6 +336,7 @@ function InfluencerProfile() {
         setBio(p.bio || '');
         setNiche(p.niche || []);
         setCity(p.city || '');
+        setArea(p.area || '');
         setPriceRangeMin(p.priceRangeMin?.toString() || '');
         setPriceRangeMax(p.priceRangeMax?.toString() || '');
         setPlatforms(p.platforms || []);
@@ -352,6 +354,7 @@ function InfluencerProfile() {
     setBio(profile.bio || '');
     setNiche(profile.niche || []);
     setCity(profile.city || '');
+    setArea(profile.area || '');
     setPriceRangeMin(profile.priceRangeMin?.toString() || '');
     setPriceRangeMax(profile.priceRangeMax?.toString() || '');
     setPlatforms(profile.platforms || []);
@@ -407,7 +410,7 @@ function InfluencerProfile() {
     try {
       await api.put('/api/influencer/profile', {
         name: trimmedName,
-        bio, niche, city,
+        bio, niche, city, area: area.trim(),
         priceRangeMin: parseInt(priceRangeMin) || 0,
         priceRangeMax: parseInt(priceRangeMax) || 0,
         platforms,
@@ -841,7 +844,7 @@ function InfluencerProfile() {
                           <svg className="w-3 h-3 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                           </svg>
-                          {profile.city}
+                          {profile.area ? `${profile.area}, ${profile.city}` : profile.city}
                         </span>
                       )}
                       {(profile.platforms ?? []).map((p: any) => p.profileUrl && (
@@ -1283,7 +1286,7 @@ function InfluencerProfile() {
                 <div className="flex flex-wrap items-center gap-2 mt-3">
                   {profile?.city && (
                     <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">
-                      <MapPinIcon />{profile.city}
+                      <MapPinIcon />{profile.area ? `${profile.area}, ${profile.city}` : profile.city}
                     </span>
                   )}
                   {(profile?.niche || []).slice(0, 3).map((n: string, idx: number) => {
@@ -1375,6 +1378,14 @@ function InfluencerProfile() {
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>
                     </div>
+                    <input
+                      type="text"
+                      value={area}
+                      onChange={e => setArea(e.target.value.slice(0, 100))}
+                      placeholder="Area / locality (optional) — e.g. Koramangala, Andheri West"
+                      className="w-full mt-2 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150 bg-white"
+                    />
+                    <p className="text-xs text-gray-400 mt-1.5">Let brands know exactly where you're based — shown on your profile only.</p>
                   </div>
 
                   {/* Niche */}
@@ -1446,7 +1457,7 @@ function InfluencerProfile() {
                       </p>
                       {profile?.city ? (
                         <span className="inline-block bg-[#EEF4F5] text-[#2A3E42] px-3 py-1 rounded-full text-xs font-semibold">
-                          {profile.city}
+                          {profile.area ? `${profile.area}, ${profile.city}` : profile.city}
                         </span>
                       ) : (
                         <p className="text-sm text-gray-400 italic">Not set</p>
