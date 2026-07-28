@@ -1357,11 +1357,23 @@ function InfluencerProfile() {
                     </div>
                   </div>
 
-                  {/* City */}
+                  {/* City / Area */}
                   <div>
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                       <MapPinIcon />
-                      City
+                      Enter your city name
+                    </label>
+                    <input
+                      type="text"
+                      value={area}
+                      onChange={e => setArea(e.target.value.slice(0, 100))}
+                      placeholder="e.g. Bhagalpur, Koramangala, Andheri West"
+                      className="w-full px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150 bg-white"
+                    />
+                    <p className="text-xs text-gray-400 mt-1.5 mb-3">Wherever you're actually based — shown on your profile only.</p>
+
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">
+                      Nearby famous city
                     </label>
                     <div className="relative">
                       <select
@@ -1371,21 +1383,14 @@ function InfluencerProfile() {
                           !city ? 'text-gray-400' : 'text-gray-900'
                         }`}
                       >
-                        <option value="" className="text-gray-400">Select your city</option>
+                        <option value="" className="text-gray-400">Select nearest famous city</option>
                         {CITIES.map(c => <option key={c} value={c} className="text-gray-900">{c}</option>)}
                       </select>
                       <svg className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>
                     </div>
-                    <input
-                      type="text"
-                      value={area}
-                      onChange={e => setArea(e.target.value.slice(0, 100))}
-                      placeholder="Area / locality (optional) — e.g. Koramangala, Andheri West"
-                      className="w-full mt-2 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150 bg-white"
-                    />
-                    <p className="text-xs text-gray-400 mt-1.5">Let brands know exactly where you're based — shown on your profile only.</p>
+                    <p className="text-xs text-gray-400 mt-1.5">Helps brands find you when they search by city.</p>
                   </div>
 
                   {/* Niche */}
