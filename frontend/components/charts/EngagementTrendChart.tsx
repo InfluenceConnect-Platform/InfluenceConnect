@@ -46,20 +46,37 @@ export default function EngagementTrendChart({ history, totalFollowers }: Props)
     cutoff.setHours(0, 0, 0, 0);
     cutoff.setDate(cutoff.getDate() - (N - 1));
 
-    const labelStep = Math.ceil(N / 6);
+    const maxTicks = width < 400 ? 4 : 6;
+    const labelStep = Math.ceil(N / maxTicks);
 
-    return (history ?? [])
+    const filtered = (history ?? [])
       .map(s => ({ ...s, date: new Date(s.day) }))
       .filter(s => !isNaN(s.date.getTime()) && s.date >= cutoff)
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
-      .map((s, i, arr) => ({
-        label: range === '7d'
-          ? DAYS[weekdayIndex(s.date)]
-          : `${s.date.getDate()} ${MONTHS[s.date.getMonth()]}`,
-        showLabel: range === '7d' || i % labelStep === 0 || i === arr.length - 1,
-        value: s.avgEngagementRate || 0,
-      }));
-  }, [history, range]);
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    const lastIdx = filtered.length - 1;
+    const shownIndices = new Set<number>();
+    if (range === '7d') {
+      filtered.forEach((_, i) => shownIndices.add(i));
+    } else {
+      for (let i = 0; i <= lastIdx; i += labelStep) shownIndices.add(i);
+      // Always label the most recent point, but if it lands too close to the
+      // previously stepped label, drop that one instead of crowding both in.
+      if (lastIdx >= 0 && !shownIndices.has(lastIdx)) {
+        const prevShown = Math.max(...Array.from(shownIndices));
+        if (lastIdx - prevShown < labelStep) shownIndices.delete(prevShown);
+        shownIndices.add(lastIdx);
+      }
+    }
+
+    return filtered.map((s, i) => ({
+      label: range === '7d'
+        ? DAYS[weekdayIndex(s.date)]
+        : `${s.date.getDate()} ${MONTHS[s.date.getMonth()]}`,
+      showLabel: shownIndices.has(i),
+      value: s.avgEngagementRate || 0,
+    }));
+  }, [history, range, width]);
 
   const latestRate = history?.length ? history[history.length - 1].avgEngagementRate : 0;
 
