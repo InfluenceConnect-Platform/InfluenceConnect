@@ -277,6 +277,7 @@ function InfluencerProfile() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [contentError, setContentError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'reels' | 'photos' | 'products' | 'stories'>('all');
 
@@ -440,12 +441,12 @@ function InfluencerProfile() {
     if (!file) return;
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
-    if (!isImage && !isVideo) { setError('Only images and videos are allowed.'); return; }
-    if (isImage && file.size > 10 * 1024 * 1024) { setError('Image must be under 10 MB.'); return; }
-    if (isVideo && file.size > 100 * 1024 * 1024) { setError('Video must be under 100 MB.'); return; }
+    if (!isImage && !isVideo) { setContentError('Only images and videos are allowed.'); return; }
+    if (isImage && file.size > 10 * 1024 * 1024) { setContentError('Image must be under 10 MB.'); return; }
+    if (isVideo && file.size > 100 * 1024 * 1024) { setContentError('Video must be under 100 MB.'); return; }
 
     setUploading(true);
-    setError('');
+    setContentError('');
     try {
       const sigResponse = await api.get('/api/upload/signature');
       const { signature, timestamp, apiKey, cloudName, folder } = sigResponse.data;
@@ -479,7 +480,7 @@ function InfluencerProfile() {
         duration: uploadData.duration || 0,
       }]);
     } catch (err: any) {
-      setError(err.message || 'Upload failed. Please try again.');
+      setContentError(err.message || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -1690,7 +1691,7 @@ function InfluencerProfile() {
               ] as const).map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => { setActiveTab(tab.id); setContentError(''); }}
                   className={`flex items-center gap-1.5 px-3.5 py-3 text-[13px] font-semibold border-b-2 transition-all duration-150 cursor-pointer whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
                       ? 'border-[#7FA8AD] text-[#2A3E42]'
@@ -1725,6 +1726,16 @@ function InfluencerProfile() {
                   e.target.value = '';
                 }}
               />
+
+              {/* Content upload error — scoped to this card, not the page-level banner */}
+              {contentError && (
+                <div className="mb-4 flex items-start gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-xl">
+                  <svg className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <p className="text-[11px] text-red-600 font-medium">{contentError}</p>
+                </div>
+              )}
 
               {/* Pending uploads banner */}
               {pendingUploads.length > 0 && (
