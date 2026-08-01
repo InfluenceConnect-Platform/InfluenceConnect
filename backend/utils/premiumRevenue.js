@@ -10,10 +10,17 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 // approximation that silently disagreed with each other and ignored yearly
 // billing entirely).
 //
-// Revenue is derived from each currently-premium user's ACTUAL latest paid
-// Payment, normalizing yearly purchases to a monthly-equivalent so amounts
-// stay comparable across billing cycles. Falls back to the flat PLAN_PRICE
-// only for premium grants with no matching paid record (e.g. legacy/manual).
+// Revenue is derived from each currently-premium user's most representative
+// paid Payment, normalizing yearly purchases to a monthly-equivalent so
+// amounts stay comparable across billing cycles. Purchases stack additively
+// onto premiumUntil rather than replacing each other (see
+// applyPremiumUpgrade.js), so a user can hold, say, an active yearly
+// purchase and later top up with a monthly one — picking the single most
+// *recent* payment would then misclassify a yearly subscriber as monthly.
+// A yearly payment is preferred whenever one exists among the user's paid
+// payments; only when there's no yearly payment do we fall back to their
+// most recent monthly one. Falls back to the flat PLAN_PRICE only for
+// premium grants with no matching paid record (e.g. legacy/manual).
 async function computePremiumRevenue() {
   const now = new Date();
 
@@ -30,7 +37,11 @@ async function computePremiumRevenue() {
   const premiumUserIds = premiumMembers.map(u => u._id);
   const latestPaidByUser = await Payment.aggregate([
     { $match: { status: 'paid', userId: { $in: premiumUserIds } } },
-    { $sort: { createdAt: -1 } },
+    // Yearly payments sort first regardless of date, so $first below picks a
+    // user's yearly payment over a chronologically-later monthly top-up;
+    // among payments of the same cycle, the most recent one wins.
+    { $addFields: { _yearlyFirst: { $cond: [{ $eq: ['$billingCycle', 'yearly'] }, 1, 0] } } },
+    { $sort: { _yearlyFirst: -1, createdAt: -1 } },
     { $group: { _id: '$userId', billingCycle: { $first: '$billingCycle' }, amount: { $first: '$amount' } } }
   ]);
   const latestByUser = {};
