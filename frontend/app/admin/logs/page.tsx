@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import { AdminShell, AdminHeader, TableSkeleton, CountUp, SpotlightCard } from '@/components/shared/AdminUI';
 import IdChip from '@/components/shared/IdChip';
+import LogDetailDrawer from '@/components/shared/LogDetailDrawer';
 
 // ── Action badge config — colours mirror the admin status-badge system ──
 const ACTION_META: Record<string, { label: string; cls: string }> = {
@@ -40,6 +41,7 @@ function fmtTimestamp(iso?: string) {
 
 interface Log {
   _id: string;
+  adminId?: string;
   adminName: string;
   action: string;
   targetType: string;
@@ -59,7 +61,7 @@ export default function AdminLogs() {
   const [total, setTotal]     = useState(0);
   const [page, setPage]       = useState(1);
   const [pages, setPages]     = useState(1);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
   const [exporting, setExporting] = useState(false);
 
   const [stats, setStats] = useState<any>(null);
@@ -315,51 +317,39 @@ export default function AdminLogs() {
                   <tbody className="divide-y divide-gray-50">
                     {logs.map(log => {
                       const meta = actionMeta(log.action);
-                      const isOpen = expanded === log._id;
-                      const hasMeta = log.metadata && Object.keys(log.metadata).length > 0;
                       return (
-                        <FragmentRow key={log._id}>
-                          <tr
-                            onClick={() => setExpanded(isOpen ? null : log._id)}
-                            className="hover:bg-gray-50/60 transition-colors cursor-pointer"
-                          >
-                            <td className="px-5 py-3.5 text-[12px] text-gray-600 font-medium whitespace-nowrap tabular-nums">
-                              {fmtTimestamp(log.createdAt)}
-                            </td>
-                            <td className="px-5 py-3.5 text-[13px] font-semibold text-gray-900 whitespace-nowrap">
-                              {log.adminName || '—'}
-                            </td>
-                            <td className="px-5 py-3.5">
-                              <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border whitespace-nowrap ${meta.cls}`}>
-                                {meta.label}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3.5 text-[12px] text-gray-600 whitespace-nowrap">
-                              <span className="text-gray-400">{cap(log.targetType)}</span>
-                              {log.targetName ? <span className="text-gray-700 font-medium"> · {log.targetName}</span> : null}
-                            </td>
-                            <td className="px-5 py-3.5">
-                              {log.targetId ? <IdChip id={log.targetId} size="xs" tone="subtle" /> : <span className="text-gray-300">—</span>}
-                            </td>
-                            <td className="px-5 py-3.5 text-[12px] text-gray-500 max-w-[320px]">
-                              <span className="line-clamp-1">{log.details || '—'}</span>
-                            </td>
-                            <td className="px-5 py-3.5 text-right">
-                              {hasMeta && (
-                                <svg className={`w-4 h-4 text-gray-300 inline transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="6 9 12 15 18 9"/>
-                                </svg>
-                              )}
-                            </td>
-                          </tr>
-                          {isOpen && hasMeta && (
-                            <tr className="bg-gray-50/60">
-                              <td colSpan={7} className="px-5 py-4">
-                                <MetadataView metadata={log.metadata} ip={log.ipAddress} />
-                              </td>
-                            </tr>
-                          )}
-                        </FragmentRow>
+                        <tr
+                          key={log._id}
+                          onClick={() => setSelectedLog(log)}
+                          className="hover:bg-gray-50/60 transition-colors cursor-pointer"
+                        >
+                          <td className="px-5 py-3.5 text-[12px] text-gray-600 font-medium whitespace-nowrap tabular-nums">
+                            {fmtTimestamp(log.createdAt)}
+                          </td>
+                          <td className="px-5 py-3.5 text-[13px] font-semibold text-gray-900 whitespace-nowrap">
+                            {log.adminName || '—'}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border whitespace-nowrap ${meta.cls}`}>
+                              {meta.label}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-[12px] text-gray-600 whitespace-nowrap">
+                            <span className="text-gray-400">{cap(log.targetType)}</span>
+                            {log.targetName ? <span className="text-gray-700 font-medium"> · {log.targetName}</span> : null}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            {log.targetId ? <IdChip id={log.targetId} size="xs" tone="subtle" /> : <span className="text-gray-300">—</span>}
+                          </td>
+                          <td className="px-5 py-3.5 text-[12px] text-gray-500 max-w-[320px]">
+                            <span className="line-clamp-1">{log.details || '—'}</span>
+                          </td>
+                          <td className="px-5 py-3.5 text-right">
+                            <svg className="w-4 h-4 text-gray-300 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                          </td>
+                        </tr>
                       );
                     })}
                   </tbody>
@@ -370,30 +360,21 @@ export default function AdminLogs() {
               <div className="lg:hidden divide-y divide-gray-50">
                 {logs.map(log => {
                   const meta = actionMeta(log.action);
-                  const isOpen = expanded === log._id;
-                  const hasMeta = log.metadata && Object.keys(log.metadata).length > 0;
                   return (
-                    <div key={log._id} className="px-4 py-3.5">
-                      <div onClick={() => setExpanded(isOpen ? null : log._id)} className="cursor-pointer">
-                        <div className="flex items-center justify-between gap-2 mb-1.5">
-                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${meta.cls}`}>
-                            {meta.label}
-                          </span>
-                          <span className="text-[11px] text-gray-400 font-medium tabular-nums">{fmtTimestamp(log.createdAt)}</span>
-                        </div>
-                        <p className="text-[13px] text-gray-700 leading-snug mb-1.5">{log.details || '—'}</p>
-                        <div className="flex items-center gap-2 flex-wrap text-[11px] text-gray-400">
-                          <span className="font-semibold text-gray-600">{log.adminName || '—'}</span>
-                          <span>·</span>
-                          <span>{cap(log.targetType)}{log.targetName ? ` · ${log.targetName}` : ''}</span>
-                          {log.targetId && <IdChip id={log.targetId} size="xs" tone="subtle" />}
-                        </div>
+                    <div key={log._id} onClick={() => setSelectedLog(log)} className="px-4 py-3.5 cursor-pointer">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${meta.cls}`}>
+                          {meta.label}
+                        </span>
+                        <span className="text-[11px] text-gray-400 font-medium tabular-nums">{fmtTimestamp(log.createdAt)}</span>
                       </div>
-                      {isOpen && hasMeta && (
-                        <div className="mt-3">
-                          <MetadataView metadata={log.metadata} ip={log.ipAddress} />
-                        </div>
-                      )}
+                      <p className="text-[13px] text-gray-700 leading-snug mb-1.5">{log.details || '—'}</p>
+                      <div className="flex items-center gap-2 flex-wrap text-[11px] text-gray-400">
+                        <span className="font-semibold text-gray-600">{log.adminName || '—'}</span>
+                        <span>·</span>
+                        <span>{cap(log.targetType)}{log.targetName ? ` · ${log.targetName}` : ''}</span>
+                        {log.targetId && <IdChip id={log.targetId} size="xs" tone="subtle" />}
+                      </div>
                     </div>
                   );
                 })}
@@ -428,37 +409,9 @@ export default function AdminLogs() {
             </>
           )}
         </div>
+
+        <LogDetailDrawer log={selectedLog} onClose={() => setSelectedLog(null)} />
     </AdminShell>
-  );
-}
-
-// React.Fragment with a key, so each log can render two <tr>s (row + metadata).
-function FragmentRow({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
-
-function MetadataView({ metadata, ip }: { metadata: Record<string, any>; ip?: string }) {
-  const entries = Object.entries(metadata || {});
-  return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-[#7FA8AD] mb-2.5">Details</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-        {entries.map(([k, v]) => (
-          <div key={k} className="flex items-baseline justify-between gap-3 border-b border-gray-50 pb-1.5">
-            <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">{k}</span>
-            <span className="text-[12px] font-semibold text-gray-800 text-right break-words">
-              {typeof v === 'object' ? JSON.stringify(v) : String(v)}
-            </span>
-          </div>
-        ))}
-        {ip && (
-          <div className="flex items-baseline justify-between gap-3 border-b border-gray-50 pb-1.5">
-            <span className="text-[11px] text-gray-400 font-medium uppercase tracking-wide">ip address</span>
-            <span className="text-[12px] font-semibold text-gray-800 font-mono">{ip}</span>
-          </div>
-        )}
-      </div>
-    </div>
   );
 }
 
