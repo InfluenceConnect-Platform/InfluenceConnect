@@ -4,6 +4,7 @@ import { useState, useEffect, ReactNode } from 'react';
 import api from '@/lib/api';
 import { useToast } from '@/components/shared/Toast';
 import IdChip from '@/components/shared/IdChip';
+import { downloadUrlFor } from '@/lib/chatAttachments';
 
 const TEAL = '#7FA8AD';
 
@@ -46,6 +47,7 @@ export interface PaymentRow {
   paidAt?: string | null;
   transactionRef: string;
   receiptUrl: string;
+  receiptFileName?: string;
 }
 
 interface RevealedPayout {
@@ -186,7 +188,15 @@ export default function PaymentDetailDrawer({ payment, onClose }: Props) {
                     <Field
                       label="Receipt"
                       value={payment.receiptUrl
-                        ? <a href={payment.receiptUrl} target="_blank" rel="noopener noreferrer" className="text-[#3E4751] underline">View receipt</a>
+                        ? (
+                          <a
+                            href={downloadUrlFor({ url: payment.receiptUrl, fileName: payment.receiptFileName || 'receipt', type: 'raw', fileSize: 0, mimeType: '' })}
+                            download={payment.receiptFileName || true}
+                            className="text-[#3E4751] underline"
+                          >
+                            View receipt
+                          </a>
+                        )
                         : '—'}
                       full
                     />

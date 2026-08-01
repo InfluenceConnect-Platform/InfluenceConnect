@@ -67,18 +67,22 @@ export default function AdminGst() {
 
   useEffect(() => {
     setPage(1);
-  }, [filter]);
+  }, [filter, search]);
 
+  // Refetch on status change immediately; debounce free-text search so we
+  // don't fire a request on every keystroke.
   useEffect(() => {
-    fetchData();
+    const t = setTimeout(() => fetchData(), 300);
+    return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter, page]);
+  }, [filter, search, page]);
 
   const fetchData = async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
     try {
       const params: Record<string, string | number> = { page, limit: 20 };
       if (filter) params.status = filter;
+      if (search.trim()) params.search = search.trim();
       const res = await api.get('/api/admin/gstin', { params });
       setCounts(res.data.counts);
       setRows(res.data.verifications);
@@ -159,15 +163,10 @@ export default function AdminGst() {
     slate: { card: 'bg-white border-gray-200/70',     value: 'text-gray-900',  dot: 'bg-gray-400' },
   };
 
-  // Search by brand/company name or Brand ID — filters the loaded rows client-side.
-  const q = search.trim().toLowerCase();
-  const visibleRows = q
-    ? rows.filter(v =>
-        v.name.toLowerCase().includes(q) ||
-        v.companyName.toLowerCase().includes(q) ||
-        v.customId.toLowerCase().includes(q)
-      )
-    : rows;
+  // Search by brand/company name, email, Brand ID, GSTIN or company name —
+  // matched server-side across the whole dataset, not just the loaded page.
+  const q = search.trim();
+  const visibleRows = rows;
 
   const TABS = [
     { value: 'pending'  as const, label: 'Pending',  count: counts.pending },

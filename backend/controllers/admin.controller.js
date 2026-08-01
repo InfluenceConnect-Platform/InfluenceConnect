@@ -210,13 +210,14 @@ exports.getAllUsers = async (req, res) => {
       ];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const safeLimit = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const skip = (parseInt(page) - 1) * safeLimit;
 
     const [users, total] = await Promise.all([
       User.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(parseInt(limit))
+        .limit(safeLimit)
         .select('-password'),
       User.countDocuments(query)
     ]);
@@ -245,7 +246,7 @@ exports.getAllUsers = async (req, res) => {
       pagination: {
         total,
         page: parseInt(page),
-        pages: Math.ceil(total / parseInt(limit))
+        pages: Math.ceil(total / safeLimit)
       }
     });
 
@@ -547,20 +548,21 @@ exports.getAllCampaigns = async (req, res) => {
       ];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const safeLimit = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const skip = (parseInt(page) - 1) * safeLimit;
 
     const [campaigns, total] = await Promise.all([
       Campaign.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(parseInt(limit))
+        .limit(safeLimit)
         .populate('brandId', 'name email'),
       Campaign.countDocuments(query)
     ]);
 
     res.json({
       campaigns,
-      pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) }
+      pagination: { total, page: parseInt(page), pages: Math.ceil(total / safeLimit) }
     });
 
   } catch (error) {
@@ -884,7 +886,7 @@ exports.flagCampaign = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getGstinVerifications = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, search } = req.query;
     let page  = parseInt(req.query.page,  10) || 1;
     let limit = parseInt(req.query.limit, 10) || 20;
     if (page < 1) page = 1;
@@ -893,9 +895,27 @@ exports.getGstinVerifications = async (req, res) => {
     // Only brands that have actually submitted a GSTIN are relevant here.
     const submittedFilter = { gstinStatus: { $in: ['pending', 'verified', 'rejected'] } };
 
-    const listFilter = ['pending', 'verified', 'rejected'].includes(status)
+    const baseFilter = ['pending', 'verified', 'rejected'].includes(status)
       ? { gstinStatus: status }
       : submittedFilter;
+
+    // Search by company name, GSTIN, or the brand's name/email/ID — matches
+    // the whole dataset (not just the current page), same as Campaigns/Payments.
+    const term = (search || '').trim();
+    let listFilter = baseFilter;
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const matchingUsers = await User.find({
+        role: 'brand',
+        $or: [{ name: rx }, { email: rx }, { customId: rx }],
+      }).select('_id');
+      listFilter = {
+        $and: [
+          baseFilter,
+          { $or: [{ companyName: rx }, { gstin: rx }, { userId: { $in: matchingUsers.map(u => u._id) } }] },
+        ],
+      };
+    }
 
     const skip = (page - 1) * limit;
 
@@ -1265,13 +1285,14 @@ exports.getAllPayments = async (req, res) => {
       }
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const safeLimit = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const skip = (parseInt(page) - 1) * safeLimit;
 
     const [deals, total] = await Promise.all([
       Deal.find(query)
         .sort({ updatedAt: -1 })
         .skip(skip)
-        .limit(parseInt(limit))
+        .limit(safeLimit)
         .populate('campaignId', 'title customId')
         .populate('brandId', 'name email')
         .populate('influencerId', 'name email'),
@@ -1280,7 +1301,7 @@ exports.getAllPayments = async (req, res) => {
 
     const dealIds = deals.map(d => d._id);
     const payouts = await PayoutDetail.find({ dealId: { $in: dealIds } })
-      .select('dealId method paid paidAt transactionRef receiptUrl');
+      .select('dealId method paid paidAt transactionRef receiptUrl receiptFileName');
     const payoutMap = new Map(payouts.map(p => [p.dealId.toString(), p]));
 
     const payments = deals.map(d => {
@@ -1303,12 +1324,13 @@ exports.getAllPayments = async (req, res) => {
         paidAt: payout?.paidAt || null,
         transactionRef: payout?.transactionRef || '',
         receiptUrl: payout?.receiptUrl || '',
+        receiptFileName: payout?.receiptFileName || '',
       };
     });
 
     res.json({
       payments,
-      pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) }
+      pagination: { total, page: parseInt(page), pages: Math.ceil(total / safeLimit) }
     });
 
   } catch (error) {

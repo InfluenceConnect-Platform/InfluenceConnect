@@ -671,6 +671,9 @@ interface RevealedPayout {
 }
 
 function DealList({ deals, nameKey, nameLabel }: { deals: any[]; nameKey: string; nameLabel: string }) {
+  const toast = useToast();
+  const showToast = (msg: string) =>
+    toast.show(msg, /fail|error|cannot|unable|wrong/.test(msg.toLowerCase()) ? 'error' : 'success');
   const [revealed, setRevealed] = useState<Record<string, RevealedPayout>>({});
   const [revealingId, setRevealingId] = useState<string | null>(null);
 
@@ -682,8 +685,14 @@ function DealList({ deals, nameKey, nameLabel }: { deals: any[]; nameKey: string
     setRevealingId(dealId);
     try {
       const res = await api.get(`/api/admin/deals/${dealId}/payout`);
+      if (!res.data?.payout) {
+        showToast('No payout details submitted for this deal.');
+        return;
+      }
       setRevealed(prev => ({ ...prev, [dealId]: res.data.payout }));
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      showToast(err?.response?.data?.error || 'Failed to reveal payout details.');
+    }
     finally { setRevealingId(null); }
   };
 
