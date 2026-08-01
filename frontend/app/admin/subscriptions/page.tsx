@@ -4,15 +4,39 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
-import { AdminShell, AdminHeader, CountUp, SpotlightCard } from '@/components/shared/AdminUI';
+import { AdminShell, AdminHeader, CountUp, SpotlightCard, TableSkeleton } from '@/components/shared/AdminUI';
 import AdminRevenueChart from '@/components/charts/AdminRevenueChart';
 import AdminDonut from '@/components/charts/AdminDonut';
+import IdChip from '@/components/shared/IdChip';
+import SubscriptionDetailDrawer from '@/components/shared/SubscriptionDetailDrawer';
+
+const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
+  paid:    { cls: 'bg-green-50 text-green-700 border-green-100', dot: 'bg-green-500', label: 'Paid' },
+  created: { cls: 'bg-amber-50 text-amber-700 border-amber-100', dot: 'bg-amber-400', label: 'Awaiting payment' },
+  failed:  { cls: 'bg-red-50 text-red-600 border-red-100',       dot: 'bg-red-400',   label: 'Failed' },
+};
+const statusMeta = (s: string) => STATUS_CONFIG[s] || STATUS_CONFIG.created;
+const capWord = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '—');
+const inr = (paise?: number) => '₹' + ((paise ?? 0) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const fmtDate = (d?: string) =>
+  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '—';
 
 export default function AdminSubscriptions() {
   const router = useRouter();
   const [overview, setOverview] = useState<any>(null);
   const [mrrTrend, setMrrTrend] = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
+
+  const [payments, setPayments]         = useState<any[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [paymentsTotal, setPaymentsTotal]     = useState(0);
+  const [paymentsPage, setPaymentsPage]       = useState(1);
+  const [paymentsPages, setPaymentsPages]     = useState(1);
+  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+
+  const [roleFilter, setRoleFilter]     = useState('');
+  const [cycleFilter, setCycleFilter]   = useState('');
+  const [statusFilter, setStatusFilter] = useState('paid');
 
   useEffect(() => {
     const token  = sessionStorage.getItem('token');
@@ -24,7 +48,7 @@ export default function AdminSubscriptions() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useLiveData(() => { fetchOverview(); });
+  useLiveData(() => { fetchOverview(); fetchPayments({ silent: true }); });
 
   const fetchOverview = async () => {
     try {
@@ -37,6 +61,27 @@ export default function AdminSubscriptions() {
       setLoading(false);
     }
   };
+
+  const fetchPayments = async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setPaymentsLoading(true);
+    try {
+      const params: Record<string, string | number> = { page: paymentsPage, limit: 10 };
+      if (roleFilter)   params.role = roleFilter;
+      if (cycleFilter)  params.billingCycle = cycleFilter;
+      if (statusFilter) params.status = statusFilter;
+      const response = await api.get('/api/admin/subscriptions/payments', { params });
+      setPayments(response.data.payments ?? []);
+      setPaymentsTotal(response.data.pagination?.total ?? 0);
+      setPaymentsPages(response.data.pagination?.pages ?? 1);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPaymentsLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchPayments(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [paymentsPage, roleFilter, cycleFilter, statusFilter]);
+  useEffect(() => { setPaymentsPage(1); }, [roleFilter, cycleFilter, statusFilter]);
 
   const fmt = (n: number) => n.toLocaleString('en-IN');
 
@@ -95,6 +140,14 @@ export default function AdminSubscriptions() {
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-white/40 flex-shrink-0" />
                     <span className="text-xs text-white/50">Total premium: <span className="text-white font-semibold">{overview?.totalPremium ?? 0} users</span></span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                    <span className="text-xs text-white/50">Yearly value (ARR): <span className="text-white font-semibold">₹{fmt(overview?.arr ?? 0)}</span></span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-sky-400 flex-shrink-0" />
+                    <span className="text-xs text-white/50">Lifetime collected: <span className="text-white font-semibold">₹{fmt(overview?.lifetimeRevenue ?? 0)}</span></span>
                   </div>
                 </div>
               </div>
@@ -167,16 +220,16 @@ export default function AdminSubscriptions() {
                   {[
                     {
                       label: 'Creator Premium',
-                      value: `₹${fmt(overview?.influencerMRR ?? 0)}`,
-                      sub:   `${overview?.premiumInfluencers ?? 0} subscribers × ₹299/mo`,
+                      value: `₹${fmt(overview?.influencerMRR ?? 0)}/mo`,
+                      sub:   `${overview?.premiumInfluencers ?? 0} subscribers · ${overview?.influencerMonthlyCount ?? 0} monthly, ${overview?.influencerYearlyCount ?? 0} yearly`,
                       bar:   overview?.mrr ? Math.round(((overview.influencerMRR ?? 0) / overview.mrr) * 100) : 0,
                       color: 'bg-teal-400',
                       dotColor: 'bg-teal-400',
                     },
                     {
                       label: 'Brand Premium',
-                      value: `₹${fmt(overview?.brandMRR ?? 0)}`,
-                      sub:   `${overview?.premiumBrands ?? 0} subscribers × ₹1,499/mo`,
+                      value: `₹${fmt(overview?.brandMRR ?? 0)}/mo`,
+                      sub:   `${overview?.premiumBrands ?? 0} subscribers · ${overview?.brandMonthlyCount ?? 0} monthly, ${overview?.brandYearlyCount ?? 0} yearly`,
                       bar:   overview?.mrr ? Math.round(((overview.brandMRR ?? 0) / overview.mrr) * 100) : 0,
                       color: 'bg-amber-400',
                       dotColor: 'bg-amber-400',
@@ -260,8 +313,143 @@ export default function AdminSubscriptions() {
               </div>
             </div>
 
+            {/* Per-subscriber payment records */}
+            <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden anim-fade-up anim-delay-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-6 py-4 border-b border-gray-100">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Subscription payments</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Every Premium purchase — user, plan, amount and Razorpay reference.</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value)}
+                    className="text-xs border border-gray-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 hover:border-gray-300 transition-all cursor-pointer text-gray-700 font-medium"
+                  >
+                    <option value="">All statuses</option>
+                    <option value="paid">Paid</option>
+                    <option value="created">Awaiting payment</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <select
+                    value={roleFilter}
+                    onChange={e => setRoleFilter(e.target.value)}
+                    className="text-xs border border-gray-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 hover:border-gray-300 transition-all cursor-pointer text-gray-700 font-medium"
+                  >
+                    <option value="">All roles</option>
+                    <option value="influencer">Creator</option>
+                    <option value="brand">Brand</option>
+                  </select>
+                  <select
+                    value={cycleFilter}
+                    onChange={e => setCycleFilter(e.target.value)}
+                    className="text-xs border border-gray-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E4751]/20 hover:border-gray-300 transition-all cursor-pointer text-gray-700 font-medium"
+                  >
+                    <option value="">All cycles</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+              </div>
+
+              {paymentsLoading ? (
+                <TableSkeleton rows={6} />
+              ) : payments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                  <p className="text-sm font-semibold text-gray-700">No subscription payments found</p>
+                  <p className="text-xs text-gray-400 mt-1">Try widening your filters.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50/80 border-b border-gray-100">
+                          {['Date', 'User', 'Plan', 'Cycle', 'Amount', 'Status', 'ID', ''].map((h, i) => (
+                            <th key={i} className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {payments.map(p => {
+                          const meta = statusMeta(p.status);
+                          return (
+                            <tr
+                              key={p._id}
+                              onClick={() => setSelectedPayment(p)}
+                              className="hover:bg-gray-50/60 transition-colors cursor-pointer"
+                            >
+                              <td className="px-5 py-3.5 text-[12px] text-gray-600 font-medium whitespace-nowrap tabular-nums">
+                                {fmtDate(p.createdAt)}
+                              </td>
+                              <td className="px-5 py-3.5 text-[13px] whitespace-nowrap">
+                                <p className="font-semibold text-gray-900">{p.userId?.name || '—'}</p>
+                                <p className="text-[11px] text-gray-400">{p.userId?.email || '—'}</p>
+                              </td>
+                              <td className="px-5 py-3.5 text-[12px] text-gray-600 capitalize whitespace-nowrap">
+                                {capWord(p.role)}
+                              </td>
+                              <td className="px-5 py-3.5 text-[12px] text-gray-600 capitalize whitespace-nowrap">
+                                {p.billingCycle}
+                              </td>
+                              <td className="px-5 py-3.5 text-[13px] font-semibold text-gray-900 tabular-nums whitespace-nowrap">
+                                {inr(p.amount)}
+                              </td>
+                              <td className="px-5 py-3.5">
+                                <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full font-semibold border whitespace-nowrap ${meta.cls}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />{meta.label}
+                                </span>
+                              </td>
+                              <td className="px-5 py-3.5">
+                                {p.customId ? <IdChip id={p.customId} size="xs" tone="subtle" /> : <span className="text-gray-300">—</span>}
+                              </td>
+                              <td className="px-5 py-3.5 text-right">
+                                <svg className="w-4 h-4 text-gray-300 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {paymentsPages > 1 && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-t border-gray-100 bg-gray-50/50">
+                      <p className="text-xs text-gray-500">
+                        Page <span className="font-semibold text-gray-700">{paymentsPage}</span> of{' '}
+                        <span className="font-semibold text-gray-700">{paymentsPages}</span>
+                        <span className="text-gray-400 ml-1.5">· {paymentsTotal} total</span>
+                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => setPaymentsPage(p => Math.max(1, p - 1))}
+                          disabled={paymentsPage === 1}
+                          className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600 shadow-sm"
+                        >
+                          ← Prev
+                        </button>
+                        <button
+                          onClick={() => setPaymentsPage(p => Math.min(paymentsPages, p + 1))}
+                          disabled={paymentsPage === paymentsPages}
+                          className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600 shadow-sm"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
           </div>
         )}
+
+        <SubscriptionDetailDrawer payment={selectedPayment} onClose={() => setSelectedPayment(null)} />
     </AdminShell>
   );
 }

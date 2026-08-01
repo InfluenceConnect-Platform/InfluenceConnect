@@ -54,12 +54,13 @@ exports.createOrder = async (req, res) => {
 
 // Applies the upgrade exactly once per Payment doc — called from both the
 // client-side /verify call and the /webhook, whichever arrives first.
-async function confirmPaymentAndUpgrade(payment, razorpayPaymentId, razorpaySignature) {
+async function confirmPaymentAndUpgrade(payment, razorpayPaymentId, razorpaySignature, method) {
   if (payment.status === 'paid') return; // already applied
 
   payment.status = 'paid';
   payment.razorpayPaymentId = razorpayPaymentId;
   payment.razorpaySignature = razorpaySignature || '';
+  if (method) payment.method = method;
   try {
     await payment.save();
   } catch (err) {
@@ -102,7 +103,17 @@ exports.verifyPayment = async (req, res) => {
     const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id, userId: req.userId });
     if (!payment) return res.status(404).json({ error: 'Order not found.' });
 
-    await confirmPaymentAndUpgrade(payment, razorpay_payment_id, razorpay_signature);
+    // Best-effort: look up the payment method from Razorpay for the admin
+    // dashboard. Never block confirmation if this lookup fails.
+    let method = '';
+    try {
+      const orderPayments = await razorpay.fetchOrderPayments(razorpay_order_id);
+      method = orderPayments.find((p) => p.id === razorpay_payment_id)?.method || '';
+    } catch (err) {
+      console.error('Fetch payment method error:', err);
+    }
+
+    await confirmPaymentAndUpgrade(payment, razorpay_payment_id, razorpay_signature, method);
 
     const user = await User.findById(req.userId);
     res.json({
@@ -137,7 +148,7 @@ exports.webhook = async (req, res) => {
     if (event === 'payment.captured') {
       const entity = payload?.payment?.entity;
       const payment = await Payment.findOne({ razorpayOrderId: entity?.order_id });
-      if (payment) await confirmPaymentAndUpgrade(payment, entity.id, '');
+      if (payment) await confirmPaymentAndUpgrade(payment, entity.id, '', entity.method);
     } else if (event === 'payment.failed') {
       const entity = payload?.payment?.entity;
       await Payment.updateOne(
@@ -183,7 +194,7 @@ exports.reconcile = async (req, res) => {
         const captured = razorpayPayments.find((p) => p.status === 'captured');
 
         if (captured) {
-          await confirmPaymentAndUpgrade(payment, captured.id, '');
+          await confirmPaymentAndUpgrade(payment, captured.id, '', captured.method);
           confirmed++;
         } else if (razorpayPayments.length > 0 && razorpayPayments.every((p) => p.status === 'failed')) {
           await Payment.updateOne({ _id: payment._id, status: 'created' }, { status: 'failed' });

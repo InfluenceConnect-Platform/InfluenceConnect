@@ -16,6 +16,7 @@ const {
   updateGSTINStatus,
   reopenGstinRejection,
   getSubscriptionOverview,
+  getSubscriptionPayments,
   getAdminLogs,
   getAdminLogStats,
   getAllPayments,
@@ -38,6 +39,7 @@ router.get('/gstin', getGstinVerifications);
 router.put('/gstin/:brandProfileId/status', updateGSTINStatus);
 router.put('/gstin/:brandProfileId/reopen', reopenGstinRejection);
 router.get('/subscriptions/overview', getSubscriptionOverview);
+router.get('/subscriptions/payments', getSubscriptionPayments);
 router.get('/logs/stats', getAdminLogStats);
 router.get('/logs', getAdminLogs);
 router.get('/payments', getAllPayments);

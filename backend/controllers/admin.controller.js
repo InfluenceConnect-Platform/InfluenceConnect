@@ -7,6 +7,7 @@ const Message = require('../models/Message');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
 const AdminLog = require('../models/AdminLog');
+const Payment = require('../models/Payment');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
 const logAdminAction = require('../utils/logAdminAction');
@@ -1081,25 +1082,70 @@ exports.reopenGstinRejection = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getSubscriptionOverview = async (req, res) => {
   try {
-    const [
-      totalUsers,
-      premiumInfluencers,
-      premiumBrands
-    ] = await Promise.all([
+    const now = new Date();
+
+    const [totalUsers, premiumInfluencers, premiumBrands, freemiumUsers, lifetimeAgg] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: 'influencer', plan: 'premium' }),
-      User.countDocuments({ role: 'brand', plan: 'premium' })
+      User.countDocuments({ role: 'brand', plan: 'premium' }),
+      User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } }),
+      // Total, all-time revenue actually collected — not tied to who's still active.
+      Payment.aggregate([
+        { $match: { status: 'paid' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ])
     ]);
+    const lifetimeRevenue = Math.round((lifetimeAgg[0]?.total || 0) / 100);
 
-    const mrr = (premiumInfluencers * PLAN_PRICE.influencer) + (premiumBrands * PLAN_PRICE.brand);
-    const freemiumUsers = await User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } });
+    // ── Real active revenue, derived from what each currently-premium user
+    // actually paid (not a fixed per-role rate) — a yearly purchase is
+    // normalized to its monthly-equivalent so the "active revenue" figure
+    // stays comparable across billing cycles. ──
+    const premiumMembers = await User.find({
+      plan: 'premium',
+      premiumUntil: { $gt: now }
+    }).select('role premiumStartedAt premiumUntil');
+    const premiumUserIds = premiumMembers.map(u => u._id);
+
+    const latestPaidByUser = await Payment.aggregate([
+      { $match: { status: 'paid', userId: { $in: premiumUserIds } } },
+      { $sort: { createdAt: -1 } },
+      { $group: { _id: '$userId', billingCycle: { $first: '$billingCycle' }, amount: { $first: '$amount' } } }
+    ]);
+    const latestByUser = {};
+    latestPaidByUser.forEach(p => { latestByUser[p._id.toString()] = p; });
+
+    let influencerMRR = 0, brandMRR = 0;
+    let influencerMonthlyCount = 0, influencerYearlyCount = 0;
+    let brandMonthlyCount = 0, brandYearlyCount = 0;
+
+    premiumMembers.forEach(u => {
+      const latest = latestByUser[u._id.toString()];
+      // Fall back to the flat plan price if premium was granted without a
+      // matching paid record (e.g. a manual/legacy grant).
+      const monthlyEquivalent = latest
+        ? (latest.billingCycle === 'yearly' ? (latest.amount / 100) / 12 : latest.amount / 100)
+        : (PLAN_PRICE[u.role] || 0);
+
+      if (u.role === 'influencer') {
+        influencerMRR += monthlyEquivalent;
+        if (latest?.billingCycle === 'yearly') influencerYearlyCount++; else influencerMonthlyCount++;
+      } else if (u.role === 'brand') {
+        brandMRR += monthlyEquivalent;
+        if (latest?.billingCycle === 'yearly') brandYearlyCount++; else brandMonthlyCount++;
+      }
+    });
+
+    influencerMRR = Math.round(influencerMRR);
+    brandMRR = Math.round(brandMRR);
+    const mrr = influencerMRR + brandMRR;
+    const arr = mrr * 12;
 
     // ── Cumulative active Premium revenue over the last 6 months ──
-    // Derived from currently-premium users' start dates: revenue at each month-end
-    // is the sum of plan prices for everyone who had upgraded by then.
+    // Same normalized-monthly-value logic as above, applied at each
+    // month-end for whoever had already upgraded by then.
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const now = new Date();
-    const premiumMembers = await User.find({
+    const allPremiumMembers = await User.find({
       plan: 'premium',
       premiumStartedAt: { $ne: null }
     }).select('role premiumStartedAt');
@@ -1109,12 +1155,15 @@ exports.getSubscriptionOverview = async (req, res) => {
       // Last millisecond of the month i months ago.
       const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
       let monthMrr = 0;
-      premiumMembers.forEach(u => {
+      allPremiumMembers.forEach(u => {
         if (new Date(u.premiumStartedAt) <= monthEnd) {
-          monthMrr += PLAN_PRICE[u.role] || 0;
+          const latest = latestByUser[u._id.toString()];
+          monthMrr += latest
+            ? (latest.billingCycle === 'yearly' ? (latest.amount / 100) / 12 : latest.amount / 100)
+            : (PLAN_PRICE[u.role] || 0);
         }
       });
-      mrrTrend.push({ month: MONTHS[(now.getMonth() - i + 12) % 12], value: monthMrr });
+      mrrTrend.push({ month: MONTHS[(now.getMonth() - i + 12) % 12], value: Math.round(monthMrr) });
     }
 
     res.json({
@@ -1125,14 +1174,55 @@ exports.getSubscriptionOverview = async (req, res) => {
         totalPremium: premiumInfluencers + premiumBrands,
         freemiumUsers,
         mrr,
-        influencerMRR: premiumInfluencers * PLAN_PRICE.influencer,
-        brandMRR: premiumBrands * PLAN_PRICE.brand
+        arr,
+        lifetimeRevenue,
+        influencerMRR,
+        brandMRR,
+        influencerMonthlyCount,
+        influencerYearlyCount,
+        brandMonthlyCount,
+        brandYearlyCount
       },
       mrrTrend
     });
 
   } catch (error) {
     console.error('Subscription overview error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// GET SUBSCRIPTION PAYMENTS (per-subscriber detail list)
+// ─────────────────────────────────────────
+exports.getSubscriptionPayments = async (req, res) => {
+  try {
+    const { role, billingCycle, status } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const query = {};
+    if (role) query.role = role;
+    if (billingCycle) query.billingCycle = billingCycle;
+    if (status) query.status = status;
+
+    const [payments, total] = await Promise.all([
+      Payment.find(query)
+        .populate('userId', 'name email customId role plan premiumUntil')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Payment.countDocuments(query)
+    ]);
+
+    res.json({
+      payments,
+      pagination: { total, page, pages: Math.ceil(total / limit) || 1 }
+    });
+
+  } catch (error) {
+    console.error('Subscription payments error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

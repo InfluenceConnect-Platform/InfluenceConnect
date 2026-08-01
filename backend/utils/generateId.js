@@ -10,6 +10,7 @@ const PREFIXES = {
   campaign:    'IC-CAM',
   application: 'IC-APP',
   deal:        'IC-DEL',
+  payment:     'IC-PAY',
 };
 
 /**
