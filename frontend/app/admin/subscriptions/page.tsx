@@ -221,7 +221,7 @@ export default function AdminSubscriptions() {
                     {
                       label: 'Creator Premium',
                       value: `₹${fmt(overview?.influencerMRR ?? 0)}/mo`,
-                      sub:   `${overview?.premiumInfluencers ?? 0} subscribers · ${overview?.influencerMonthlyCount ?? 0} monthly, ${overview?.influencerYearlyCount ?? 0} yearly`,
+                      sub:   `${overview?.premiumInfluencers ?? 0} subscribers · ${overview?.influencerMonthlyCount ?? 0} on monthly, ${overview?.influencerYearlyCount ?? 0} on yearly`,
                       bar:   overview?.mrr ? Math.round(((overview.influencerMRR ?? 0) / overview.mrr) * 100) : 0,
                       color: 'bg-teal-400',
                       dotColor: 'bg-teal-400',
@@ -229,7 +229,7 @@ export default function AdminSubscriptions() {
                     {
                       label: 'Brand Premium',
                       value: `₹${fmt(overview?.brandMRR ?? 0)}/mo`,
-                      sub:   `${overview?.premiumBrands ?? 0} subscribers · ${overview?.brandMonthlyCount ?? 0} monthly, ${overview?.brandYearlyCount ?? 0} yearly`,
+                      sub:   `${overview?.premiumBrands ?? 0} subscribers · ${overview?.brandMonthlyCount ?? 0} on monthly, ${overview?.brandYearlyCount ?? 0} on yearly`,
                       bar:   overview?.mrr ? Math.round(((overview.brandMRR ?? 0) / overview.mrr) * 100) : 0,
                       color: 'bg-amber-400',
                       dotColor: 'bg-amber-400',

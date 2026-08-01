@@ -10,17 +10,15 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 // approximation that silently disagreed with each other and ignored yearly
 // billing entirely).
 //
-// Revenue is derived from each currently-premium user's most representative
-// paid Payment, normalizing yearly purchases to a monthly-equivalent so
-// amounts stay comparable across billing cycles. Purchases stack additively
-// onto premiumUntil rather than replacing each other (see
-// applyPremiumUpgrade.js), so a user can hold, say, an active yearly
-// purchase and later top up with a monthly one — picking the single most
-// *recent* payment would then misclassify a yearly subscriber as monthly.
-// A yearly payment is preferred whenever one exists among the user's paid
-// payments; only when there's no yearly payment do we fall back to their
-// most recent monthly one. Falls back to the flat PLAN_PRICE only for
-// premium grants with no matching paid record (e.g. legacy/manual).
+// Revenue is derived from EVERY paid Payment a currently-premium user holds,
+// normalizing each one to a monthly-equivalent and summing them — not from
+// picking a single "representative" payment. Purchases stack additively onto
+// premiumUntil rather than replacing each other (see applyPremiumUpgrade.js),
+// so a user can genuinely hold both an active yearly purchase and a monthly
+// top-up bought on top of it; neither cycle is favored over the other, both
+// are counted, because both were actually paid. Falls back to the flat
+// PLAN_PRICE only for premium grants with no matching paid record at all
+// (e.g. legacy/manual).
 async function computePremiumRevenue() {
   const now = new Date();
 
@@ -35,22 +33,31 @@ async function computePremiumRevenue() {
   const lifetimeRevenue = Math.round((lifetimeAgg[0]?.total || 0) / 100);
 
   const premiumUserIds = premiumMembers.map(u => u._id);
-  const latestPaidByUser = await Payment.aggregate([
-    { $match: { status: 'paid', userId: { $in: premiumUserIds } } },
-    // Yearly payments sort first regardless of date, so $first below picks a
-    // user's yearly payment over a chronologically-later monthly top-up;
-    // among payments of the same cycle, the most recent one wins.
-    { $addFields: { _yearlyFirst: { $cond: [{ $eq: ['$billingCycle', 'yearly'] }, 1, 0] } } },
-    { $sort: { _yearlyFirst: -1, createdAt: -1 } },
-    { $group: { _id: '$userId', billingCycle: { $first: '$billingCycle' }, amount: { $first: '$amount' } } }
-  ]);
-  const latestByUser = {};
-  latestPaidByUser.forEach(p => { latestByUser[p._id.toString()] = p; });
+  const paidPayments = await Payment.find({
+    status: 'paid',
+    userId: { $in: premiumUserIds }
+  }).select('userId billingCycle amount');
 
+  const paymentsByUser = {};
+  paidPayments.forEach(p => {
+    const key = p.userId.toString();
+    (paymentsByUser[key] || (paymentsByUser[key] = [])).push(p);
+  });
+
+  // Sum of every paid payment's monthly-equivalent value for this user.
   const monthlyEquivalentFor = (u) => {
-    const latest = latestByUser[u._id.toString()];
-    if (!latest) return PLAN_PRICE[u.role] || 0;
-    return latest.billingCycle === 'yearly' ? (latest.amount / 100) / 12 : latest.amount / 100;
+    const payments = paymentsByUser[u._id.toString()];
+    if (!payments || payments.length === 0) return PLAN_PRICE[u.role] || 0;
+    return payments.reduce((sum, p) => sum + (p.billingCycle === 'yearly' ? (p.amount / 100) / 12 : p.amount / 100), 0);
+  };
+
+  // Which billing cycles this user actually has an active paid payment for —
+  // can be both, so a user can count toward both the monthly and yearly
+  // subscriber tallies at once.
+  const cyclesFor = (u) => {
+    const payments = paymentsByUser[u._id.toString()];
+    if (!payments || payments.length === 0) return new Set();
+    return new Set(payments.map(p => p.billingCycle));
   };
 
   let influencerMRR = 0, brandMRR = 0;
@@ -60,15 +67,22 @@ async function computePremiumRevenue() {
 
   premiumMembers.forEach(u => {
     const monthlyEquivalent = monthlyEquivalentFor(u);
-    const latest = latestByUser[u._id.toString()];
+    const cycles = cyclesFor(u);
+    // No paid record at all (legacy/manual grant) — default to the monthly
+    // bucket, same as the previous fallback behavior.
+    const hasMonthly = cycles.has('monthly') || cycles.size === 0;
+    const hasYearly = cycles.has('yearly');
+
     if (u.role === 'influencer') {
       premiumInfluencers++;
       influencerMRR += monthlyEquivalent;
-      if (latest?.billingCycle === 'yearly') influencerYearlyCount++; else influencerMonthlyCount++;
+      if (hasMonthly) influencerMonthlyCount++;
+      if (hasYearly) influencerYearlyCount++;
     } else if (u.role === 'brand') {
       premiumBrands++;
       brandMRR += monthlyEquivalent;
-      if (latest?.billingCycle === 'yearly') brandYearlyCount++; else brandMonthlyCount++;
+      if (hasMonthly) brandMonthlyCount++;
+      if (hasYearly) brandYearlyCount++;
     }
   });
 
