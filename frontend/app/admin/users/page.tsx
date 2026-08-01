@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import { AdminShell, AdminHeader, TableSkeleton } from '@/components/shared/AdminUI';
@@ -17,19 +17,16 @@ const ROLE_STYLES: Record<string, string> = {
   admin:      'bg-gray-100 text-gray-600 border border-gray-200',
 };
 
-export default function AdminUsers() {
+function AdminUsers() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
   const confirm = useConfirm();
-  // Seed role/plan filters from the URL so deep links like
-  // /admin/users?plan=premium (e.g. from the subscriptions breakdown) land
-  // pre-filtered. Guarded for SSR, matching the discover page pattern.
-  const initialParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const [users, setUsers]           = useState<any[]>([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
-  const [roleFilter, setRoleFilter] = useState(initialParams?.get('role') || '');
-  const [planFilter, setPlanFilter] = useState(initialParams?.get('plan') || '');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [planFilter, setPlanFilter] = useState('');
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
   const [pages, setPages]           = useState(1);
@@ -43,6 +40,17 @@ export default function AdminUsers() {
     if (parsed.role !== 'admin') { router.push('/admin/login'); return; }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync role/plan filters from the URL so deep links like
+  // /admin/users?plan=premium (e.g. from the subscriptions breakdown) land
+  // pre-filtered — reads via useSearchParams (not a one-time useState
+  // initializer) so it re-applies even when the App Router reuses this
+  // page's already-mounted instance for a query-string-only navigation.
+  useEffect(() => {
+    setRoleFilter(searchParams.get('role') || '');
+    setPlanFilter(searchParams.get('plan') || '');
+    setPage(1);
+  }, [searchParams]);
 
   useEffect(() => {
     fetchUsers();
@@ -400,5 +408,14 @@ export default function AdminUsers() {
         onChanged={() => fetchUsers({ silent: true })}
       />
     </AdminShell>
+  );
+}
+
+// useSearchParams() must be wrapped in Suspense for production builds
+export default function AdminUsersPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <AdminUsers />
+    </Suspense>
   );
 }
