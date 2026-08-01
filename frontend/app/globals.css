@@ -210,6 +210,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 
+/* Single-line text marquee (e.g. a long campaign title in a header) — duration
+   is set per-instance via --marquee-duration so speed stays proportional to
+   text length rather than a fixed one-size-fits-all rate. */
+.anim-marquee-title { animation: marqueeX var(--marquee-duration, 12s) linear infinite; }
+
 /* White dot-grid texture for saturated gradient bands (heroes, CTA strips) */
 .bg-dot-grid-white {
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
@@ -295,7 +300,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .anim-fade-up, .anim-float, .anim-float-slow, .anim-gradient-text, .anim-blob,
-  .anim-marquee, .anim-marquee-rev, .anim-gradient-bg, .card-glow:hover::before,
+  .anim-marquee, .anim-marquee-rev, .anim-marquee-title, .anim-gradient-bg, .card-glow:hover::before,
   .anim-pulse-dot::after, .anim-pop, .anim-bar,
   .anim-wave-slow, .anim-wave-mid, .anim-wave-fast {
     animation: none;

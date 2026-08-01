@@ -10,6 +10,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { NICHES, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
+import MarqueeText from '@/components/shared/MarqueeText';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
@@ -224,6 +225,14 @@ function BrandCampaigns() {
   };
 
   const handleSelectCampaign = (campaign: any) => {
+    // Push a history entry only when actually opening the panel (not when
+    // switching the selection while it's already open), so one hardware/
+    // gesture back press closes the panel and returns to the campaigns list
+    // instead of leaving the page entirely — mirrors the chat-open pattern
+    // on the messages page.
+    if (!showPanel) {
+      window.history.pushState({ campaignPanelOpen: true }, '');
+    }
     setSelectedCampaign(campaign);
     fetchApplications(campaign._id);   // backend marks this campaign's applicants seen
     setShowPanel(true);
@@ -232,6 +241,31 @@ function BrandCampaigns() {
       setCampaigns(prev => prev.map(c => c._id === campaign._id ? { ...c, newApplicants: 0 } : c));
     }
   };
+
+  // Closes the panel via the explicit × button. If opening it pushed a
+  // history entry, go back through that entry so state and history stay in
+  // sync — the resulting popstate event is what actually closes the panel.
+  const closePanel = () => {
+    if (window.history.state?.campaignPanelOpen) {
+      window.history.back();
+    } else {
+      setShowPanel(false);
+      setSelectedCampaign(null);
+    }
+  };
+
+  // Hardware/gesture back button while the panel is open should close it and
+  // return to the campaigns list, not navigate away from this page entirely.
+  useEffect(() => {
+    const onPopState = (e: PopStateEvent) => {
+      if (!e.state?.campaignPanelOpen) {
+        setShowPanel(false);
+        setSelectedCampaign(null);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   useLiveData(() => {
     fetchCampaigns();
@@ -842,14 +876,14 @@ function BrandCampaigns() {
       {showPanel && selectedCampaign && (
         <div className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-end">
           <div className="bg-white w-full rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
-              <div>
-                <h3 className="font-bold text-gray-900 truncate pr-4">{selectedCampaign.title}</h3>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0 gap-3">
+              <div className="min-w-0 flex-1">
+                <MarqueeText text={selectedCampaign.title} className="font-bold text-gray-900" />
                 <p className="text-xs text-gray-400 mt-0.5">{applications.length} applications</p>
               </div>
               <button
-                onClick={() => setShowPanel(false)}
-                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 cursor-pointer"
+                onClick={closePanel}
+                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 cursor-pointer flex-shrink-0"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -1205,7 +1239,7 @@ function BrandCampaigns() {
                 {/* Panel header */}
                 <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700/60 bg-gradient-to-r from-[#F4F6FB] to-white dark:from-slate-800/60 dark:to-[#0f1e31]">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-bold text-gray-900 dark:text-slate-100 truncate text-[15px]">{selectedCampaign.title}</h3>
+                    <MarqueeText text={selectedCampaign.title} className="font-bold text-gray-900 dark:text-slate-100 text-[15px] min-w-0 flex-1" />
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 ${CAMPAIGN_STATUS_STYLES[selectedCampaign.status] || 'bg-gray-100 text-gray-600'}`}>
                       {CAMPAIGN_STATUS_LABELS[selectedCampaign.status] ?? selectedCampaign.status}
                     </span>
