@@ -12,7 +12,7 @@ const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const notify = require('../services/email');
 const logAdminAction = require('../utils/logAdminAction');
 const { decryptForResponse: decryptPayoutForResponse } = require('./payout.controller');
-const { PLAN_PRICE } = require('../utils/planPricing');
+const { computePremiumRevenue } = require('../utils/premiumRevenue');
 
 // Best-effort client IP for the audit trail. Validates the X-Forwarded-For value
 // to basic IPv4/IPv6 format so forged headers don't pollute the log.
@@ -78,17 +78,11 @@ exports.getOverviewStats = async (req, res) => {
     }));
 
     // Active Premium revenue (one-time purchases, not recurring — see applyPremiumUpgrade.js).
-    // Field names (mrr/influencerMRR/brandMRR) kept as-is for API stability.
-    const influencerPremium = await User.countDocuments({
-      role: 'influencer', plan: 'premium'
-    });
-    const brandPremium = await User.countDocuments({
-      role: 'brand', plan: 'premium'
-    });
-
-    const influencerMRR = influencerPremium * PLAN_PRICE.influencer;
-    const brandMRR = brandPremium * PLAN_PRICE.brand;
-    const mrr = influencerMRR + brandMRR;
+    // Shares computePremiumRevenue with the Subscriptions page so the two
+    // dashboards can never disagree on what "Premium revenue" means, and so
+    // this card gets its own real trend instead of borrowing GMV's.
+    const premium = await computePremiumRevenue();
+    const { mrr, influencerMRR, brandMRR, mrrTrend: premiumTrend } = premium;
 
     // ── Monthly signup trend (last 6 months, split by role) ──
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -184,7 +178,8 @@ exports.getOverviewStats = async (req, res) => {
       dealStatus,
       campaignStatus,
       topNiches,
-      revenueTrend
+      revenueTrend,
+      premiumTrend
     });
 
   } catch (error) {
@@ -1082,106 +1077,19 @@ exports.reopenGstinRejection = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getSubscriptionOverview = async (req, res) => {
   try {
-    const now = new Date();
-
-    const [totalUsers, premiumInfluencers, premiumBrands, freemiumUsers, lifetimeAgg] = await Promise.all([
+    const [totalUsers, freemiumUsers, premium] = await Promise.all([
       User.countDocuments(),
-      User.countDocuments({ role: 'influencer', plan: 'premium' }),
-      User.countDocuments({ role: 'brand', plan: 'premium' }),
       User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } }),
-      // Total, all-time revenue actually collected — not tied to who's still active.
-      Payment.aggregate([
-        { $match: { status: 'paid' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-      ])
+      computePremiumRevenue()
     ]);
-    const lifetimeRevenue = Math.round((lifetimeAgg[0]?.total || 0) / 100);
 
-    // ── Real active revenue, derived from what each currently-premium user
-    // actually paid (not a fixed per-role rate) — a yearly purchase is
-    // normalized to its monthly-equivalent so the "active revenue" figure
-    // stays comparable across billing cycles. ──
-    const premiumMembers = await User.find({
-      plan: 'premium',
-      premiumUntil: { $gt: now }
-    }).select('role premiumStartedAt premiumUntil');
-    const premiumUserIds = premiumMembers.map(u => u._id);
-
-    const latestPaidByUser = await Payment.aggregate([
-      { $match: { status: 'paid', userId: { $in: premiumUserIds } } },
-      { $sort: { createdAt: -1 } },
-      { $group: { _id: '$userId', billingCycle: { $first: '$billingCycle' }, amount: { $first: '$amount' } } }
-    ]);
-    const latestByUser = {};
-    latestPaidByUser.forEach(p => { latestByUser[p._id.toString()] = p; });
-
-    let influencerMRR = 0, brandMRR = 0;
-    let influencerMonthlyCount = 0, influencerYearlyCount = 0;
-    let brandMonthlyCount = 0, brandYearlyCount = 0;
-
-    premiumMembers.forEach(u => {
-      const latest = latestByUser[u._id.toString()];
-      // Fall back to the flat plan price if premium was granted without a
-      // matching paid record (e.g. a manual/legacy grant).
-      const monthlyEquivalent = latest
-        ? (latest.billingCycle === 'yearly' ? (latest.amount / 100) / 12 : latest.amount / 100)
-        : (PLAN_PRICE[u.role] || 0);
-
-      if (u.role === 'influencer') {
-        influencerMRR += monthlyEquivalent;
-        if (latest?.billingCycle === 'yearly') influencerYearlyCount++; else influencerMonthlyCount++;
-      } else if (u.role === 'brand') {
-        brandMRR += monthlyEquivalent;
-        if (latest?.billingCycle === 'yearly') brandYearlyCount++; else brandMonthlyCount++;
-      }
-    });
-
-    influencerMRR = Math.round(influencerMRR);
-    brandMRR = Math.round(brandMRR);
-    const mrr = influencerMRR + brandMRR;
-    const arr = mrr * 12;
-
-    // ── Cumulative active Premium revenue over the last 6 months ──
-    // Same normalized-monthly-value logic as above, applied at each
-    // month-end for whoever had already upgraded by then.
-    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const allPremiumMembers = await User.find({
-      plan: 'premium',
-      premiumStartedAt: { $ne: null }
-    }).select('role premiumStartedAt');
-
-    const mrrTrend = [];
-    for (let i = 5; i >= 0; i--) {
-      // Last millisecond of the month i months ago.
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
-      let monthMrr = 0;
-      allPremiumMembers.forEach(u => {
-        if (new Date(u.premiumStartedAt) <= monthEnd) {
-          const latest = latestByUser[u._id.toString()];
-          monthMrr += latest
-            ? (latest.billingCycle === 'yearly' ? (latest.amount / 100) / 12 : latest.amount / 100)
-            : (PLAN_PRICE[u.role] || 0);
-        }
-      });
-      mrrTrend.push({ month: MONTHS[(now.getMonth() - i + 12) % 12], value: Math.round(monthMrr) });
-    }
+    const { mrrTrend, ...premiumFields } = premium;
 
     res.json({
       overview: {
         totalUsers,
-        premiumInfluencers,
-        premiumBrands,
-        totalPremium: premiumInfluencers + premiumBrands,
         freemiumUsers,
-        mrr,
-        arr,
-        lifetimeRevenue,
-        influencerMRR,
-        brandMRR,
-        influencerMonthlyCount,
-        influencerYearlyCount,
-        brandMonthlyCount,
-        brandYearlyCount
+        ...premiumFields
       },
       mrrTrend
     });

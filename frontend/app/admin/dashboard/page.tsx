@@ -60,6 +60,7 @@ export default function AdminDashboard() {
   const [recentSignups, setRecentSignups] = useState<any[]>([]);
   const [signupTrend, setSignupTrend]     = useState<any[]>([]);
   const [revenueTrend, setRevenueTrend]   = useState<any[]>([]);
+  const [premiumTrend, setPremiumTrend]   = useState<any[]>([]);
   const [dealStatus, setDealStatus]       = useState<any>(null);
   const [campaignStatus, setCampaignStatus] = useState<any>(null);
   const [topNiches, setTopNiches]         = useState<any[]>([]);
@@ -90,6 +91,7 @@ export default function AdminDashboard() {
       setRecentSignups(statsRes.data.recentSignups);
       setSignupTrend(statsRes.data.signupTrend ?? []);
       setRevenueTrend(statsRes.data.revenueTrend ?? []);
+      setPremiumTrend(statsRes.data.premiumTrend ?? []);
       setDealStatus(statsRes.data.dealStatus ?? null);
       setCampaignStatus(statsRes.data.campaignStatus ?? null);
       setTopNiches(statsRes.data.topNiches ?? []);
@@ -119,7 +121,7 @@ export default function AdminDashboard() {
 
   // Monthly series for sparklines + MoM deltas on the stat cards
   const signupTotals = signupTrend.map((d: any) => (d.influencers ?? 0) + (d.brands ?? 0));
-  const mrrValues = revenueTrend.map((d: any) => d.value ?? 0);
+  const mrrValues = premiumTrend.map((d: any) => d.value ?? 0);
   const lastPair = (arr: number[]) =>
     arr.length >= 2 ? { current: arr[arr.length - 1], previous: arr[arr.length - 2] } : null;
 
