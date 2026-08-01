@@ -1,5 +1,6 @@
 const Campaign = require('../models/Campaign');
 const Application = require('../models/Application');
+const Deal = require('../models/Deal');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
 const User = require('../models/User');
@@ -468,7 +469,24 @@ exports.getMyApplications = async (req, res) => {
       .populate('brandId', 'name')
       .sort({ createdAt: -1 });
 
-    res.json({ applications });
+    // Attach the linked deal (if any) so the frontend can deep-link "Go to
+    // Messages" straight into the right conversation instead of the inbox.
+    const deals = await Deal.find({
+      influencerId: req.userId,
+      applicationId: { $in: applications.map(app => app._id) }
+    }).select('applicationId');
+    const dealIdByApplication = {};
+    deals.forEach(deal => {
+      dealIdByApplication[deal.applicationId.toString()] = deal._id;
+    });
+
+    const applicationsWithDealId = applications.map(app => {
+      const obj = app.toObject();
+      obj.dealId = dealIdByApplication[app._id.toString()] || null;
+      return obj;
+    });
+
+    res.json({ applications: applicationsWithDealId });
 
   } catch (error) {
     console.error('Get applications error:', error);

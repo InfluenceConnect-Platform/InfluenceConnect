@@ -198,7 +198,7 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
                 )}
                 {app.status === 'accepted' && (
                   <button
-                    onClick={() => router.push('/influencer/messages')}
+                    onClick={() => router.push(app.dealId ? `/influencer/messages?deal=${app.dealId}` : '/influencer/messages')}
                     className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-[#1C4A52] to-[#2d7a88] hover:opacity-95 transition-opacity cursor-pointer inline-flex items-center justify-center gap-2"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
