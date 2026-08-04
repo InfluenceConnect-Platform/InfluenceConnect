@@ -1016,7 +1016,7 @@ function BrandCampaigns() {
                   <div className="p-5">
                   <div className="flex items-start justify-between mb-3 gap-2">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-0.5 truncate">{campaign.title}</h3>
+                      <MarqueeText text={campaign.title} className="font-semibold text-gray-900 mb-0.5" />
                       {campaign.customId && <IdChip id={campaign.customId} size="xs" tone="subtle" />}
                       {/* Badges below title on mobile */}
                       <div className="flex items-center gap-1.5 mt-1.5 sm:hidden flex-wrap">
