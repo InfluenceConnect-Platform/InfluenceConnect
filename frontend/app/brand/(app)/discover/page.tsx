@@ -397,6 +397,18 @@ function BrandDiscover() {
   const [total, setTotal] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
 
+  // When installed as a standalone app/shortcut on mobile, target="_blank" opens the
+  // profile in a new OS-level window with no history to go "back" into, so the phone's
+  // back button exits the app instead of returning to Discover. Fall back to same-tab
+  // navigation in that case; regular desktop/mobile browser tabs keep target="_blank".
+  const [openProfileSameTab, setOpenProfileSameTab] = useState(false);
+  useEffect(() => {
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+    setOpenProfileSameTab(isStandalone && window.matchMedia('(max-width: 767px)').matches);
+  }, []);
+
   // ── Invite mode (entered from a campaign's "Invite Influencers" button) ──
   const inviteCampaignId = searchParams.get('inviteCampaign') || '';
   const inviteCampaignTitle = searchParams.get('campaignTitle') || '';
@@ -1249,8 +1261,7 @@ function BrandDiscover() {
                                 <div className="flex items-center gap-2 w-full">
                                   <Link
                                     href={`/brand/creator/${influencer.slug}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    {...(openProfileSameTab ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                                     className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all whitespace-nowrap"
                                   >
                                     View profile
@@ -1297,8 +1308,7 @@ function BrandDiscover() {
                                 <div className="flex items-center gap-2 w-full">
                                   <Link
                                     href={`/brand/creator/${influencer.slug}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    {...(openProfileSameTab ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                                     className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all whitespace-nowrap"
                                   >
                                     View profile
