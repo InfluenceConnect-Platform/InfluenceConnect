@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, useRef, useId, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
@@ -109,21 +109,27 @@ const CAMPAIGN_STATUS_STYLES: Record<string, string> = {
   expired:       'bg-gradient-to-r from-gray-500 to-gray-600 text-white',
 };
 
-const InstagramLogo = ({ size = 12 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24">
-    <defs>
-      <radialGradient id="ig-camp" cx="30%" cy="110%" r="130%">
-        <stop offset="0%" stopColor="#ffd676"/><stop offset="25%" stopColor="#f46f30"/>
-        <stop offset="50%" stopColor="#e1306c"/><stop offset="75%" stopColor="#833ab4"/>
-        <stop offset="100%" stopColor="#4a23a8"/>
-      </radialGradient>
-    </defs>
-    <rect width="24" height="24" rx="6" fill="url(#ig-camp)"/>
-    <rect x="6.5" y="6.5" width="11" height="11" rx="3.5" fill="none" stroke="white" strokeWidth="1.6"/>
-    <circle cx="12" cy="12" r="3" fill="none" stroke="white" strokeWidth="1.6"/>
-    <circle cx="17.2" cy="6.8" r="1.1" fill="white"/>
-  </svg>
-);
+const InstagramLogo = ({ size = 12 }: { size?: number }) => {
+  // Renders multiple times per page (per-campaign platform lists), so a
+  // hardcoded gradient id would repeat — duplicate SVG ids can make the
+  // gradient fail to paint after re-renders.
+  const gradId = `ig-camp-${useId()}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <defs>
+        <radialGradient id={gradId} cx="30%" cy="110%" r="130%">
+          <stop offset="0%" stopColor="#ffd676"/><stop offset="25%" stopColor="#f46f30"/>
+          <stop offset="50%" stopColor="#e1306c"/><stop offset="75%" stopColor="#833ab4"/>
+          <stop offset="100%" stopColor="#4a23a8"/>
+        </radialGradient>
+      </defs>
+      <rect width="24" height="24" rx="6" fill={`url(#${gradId})`}/>
+      <rect x="6.5" y="6.5" width="11" height="11" rx="3.5" fill="none" stroke="white" strokeWidth="1.6"/>
+      <circle cx="12" cy="12" r="3" fill="none" stroke="white" strokeWidth="1.6"/>
+      <circle cx="17.2" cy="6.8" r="1.1" fill="white"/>
+    </svg>
+  );
+};
 const YouTubeLogo = ({ size = 12 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24">
     <rect width="24" height="24" rx="5" fill="#FF0000"/>
