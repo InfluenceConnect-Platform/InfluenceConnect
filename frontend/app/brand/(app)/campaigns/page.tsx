@@ -1104,7 +1104,7 @@ function BrandCampaigns() {
                     </div>
                     <div className="p-3 rounded-xl bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-200/80">
                       <p className="text-[10px] font-bold uppercase tracking-wide text-teal-400 mb-1.5">Deliverables</p>
-                      <p className="text-xs font-bold text-teal-900 leading-snug line-clamp-2">{campaign.deliverables || '—'}</p>
+                      <p className="text-xs font-bold text-teal-900 leading-snug">{campaign.deliverables || '—'}</p>
                     </div>
                   </div>
 
