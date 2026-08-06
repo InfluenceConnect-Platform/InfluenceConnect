@@ -533,6 +533,13 @@ function BrandCampaigns() {
     .filter(c => activeTab === 'all' ? true : c.status === activeTab)
     .slice()
     .sort((a, b) => {
+      // Expired campaigns: most recently expired (latest deadline) first,
+      // like newest-on-top mobile notifications.
+      if (activeTab === 'expired') {
+        const dA = a.deadline ? new Date(a.deadline).getTime() : 0;
+        const dB = b.deadline ? new Date(b.deadline).getTime() : 0;
+        return dB - dA;
+      }
       const tA = a.lastApplicantAt ? new Date(a.lastApplicantAt).getTime() : 0;
       const tB = b.lastApplicantAt ? new Date(b.lastApplicantAt).getTime() : 0;
       if (tA !== tB) return tB - tA;
