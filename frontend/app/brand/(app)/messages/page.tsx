@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { brandCaps } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
@@ -44,7 +45,9 @@ interface Deal {
 const BLOCKED_PATTERN =
   /(\+?\d[\d\s\-()‌]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|instagram|insta\.me|facebook|fb\.com|whatsapp|wa\.me|telegram|t\.me|snapchat)/i;
 
-const FREEMIUM_MSG_LIMIT = 10;
+// Per-tier daily message allowance — mirrors backend/utils/tiers.js
+// (brand free = 5/day, silver = 10, golden = unlimited). The old flat 10
+// over-promised to free brands, who are cut off by the server at 5.
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getInitials(name = '') {
@@ -226,8 +229,8 @@ function BrandMessages() {
   const { isDark } = useTheme();
   const toast = useToast();
   const confirm = useConfirm();
-  const isPremium = user?.plan === 'premium';
-  const limitHit = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
+  const msgLimit = brandCaps((user as { tier?: string } | null)?.tier).maxMessagesPerDay;
+  const limitHit = Number.isFinite(msgLimit) && messagesUsed >= msgLimit;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
   const negotiationPending = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
   const payoutMissing = !dealClosed && selectedDeal?.negotiationStatus === 'agreed' && payoutLoaded && !payout;
@@ -459,7 +462,7 @@ function BrandMessages() {
       const res = await api.post(`/api/messages/${selectedDeal._id}`, { content: optimistic.content, attachments: attachmentsToSend });
       setMessages(prev => prev.map(m => m._id === optimistic._id ? res.data.message : m));
       setMessagesUsed(prev => prev + 1);
-      if (!isPremium && messagesUsed + 1 >= FREEMIUM_MSG_LIMIT) setLimitReached(true);
+      if (Number.isFinite(msgLimit) && messagesUsed + 1 >= msgLimit) setLimitReached(true);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       setMessages(prev => prev.filter(m => m._id !== optimistic._id));
@@ -538,9 +541,9 @@ function BrandMessages() {
                   </span>
                 )}
               </div>
-              {!isPremium && messagesUsed > 0 && (
+              {Number.isFinite(msgLimit) && messagesUsed > 0 && (
                 <span className="text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/10 bg-white/10 text-amber-300">
-                  {messagesUsed}/{FREEMIUM_MSG_LIMIT} used
+                  {messagesUsed}/{msgLimit} used
                 </span>
               )}
             </div>
@@ -688,7 +691,7 @@ function BrandMessages() {
           </div>
 
           {/* Freemium upgrade */}
-          {!isPremium && (
+          {Number.isFinite(msgLimit) && (
             <div className={`border-t p-3 flex-shrink-0 ${isDark ? 'border-slate-800' : 'border-gray-100'}`}>
               <div className="relative overflow-hidden rounded-2xl p-3.5 flex items-center gap-3"
                 style={{ background: 'linear-gradient(135deg, #1B6E1B 0%, #228B22 60%, #3FA34D 100%)' }}>

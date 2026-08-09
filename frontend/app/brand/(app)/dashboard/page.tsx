@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { brandCaps, limitLabel, normalizeTier, BRAND_TIERS } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
@@ -75,7 +76,14 @@ export default function BrandDashboard() {
     }
   };
 
-  const isPremium = user?.plan === 'premium';
+  // Active-campaign allowance for THIS tier (free 3, silver 5, golden ∞).
+  const campaignLimit = brandCaps((user as { tier?: string } | null)?.tier).maxActiveCampaigns;
+  const campaignCapped = Number.isFinite(campaignLimit);
+  const atCampaignCap = campaignCapped && (stats?.activeCampaigns ?? 0) >= campaignLimit;
+  const currentTierKey = normalizeTier('brand', (user as { tier?: string } | null)?.tier);
+  const tierLabel = currentTierKey === 'free' ? '' : BRAND_TIERS.find(t => t.key === currentTierKey)?.label ?? '';
+  // Golden is the top brand tier — nothing left to upsell.
+  const onTopTier = currentTierKey === 'golden';
 
   if (loading) {
     return (
@@ -92,8 +100,8 @@ export default function BrandDashboard() {
     {
       label: 'Active Campaigns',
       value: stats?.activeCampaigns ?? 0,
-      sub: isPremium ? 'On your plan' : `${stats?.activeCampaigns ?? 0} of 3 free`,
-      warn: !isPremium && (stats?.activeCampaigns ?? 0) >= 3,
+      sub: campaignCapped ? `${stats?.activeCampaigns ?? 0} of ${limitLabel(campaignLimit)} used` : 'Unlimited on your plan',
+      warn: atCampaignCap,
       from: 'from-[#3FA34D]', to: 'to-[#228B22]',
       bgFrom: 'from-[#EAF7EA]', bgTo: 'to-emerald-50',
       border: 'border-[#228B22]/20',
@@ -193,9 +201,9 @@ export default function BrandDashboard() {
                   <svg className="w-3 h-3 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                   {stats?.totalApplications ?? 0} application{(stats?.totalApplications ?? 0) !== 1 ? 's' : ''}
                 </span>
-                {isPremium && (
+                {tierLabel && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-amber-400/20 to-yellow-400/20 border border-amber-400/30 text-amber-300 px-3 py-1.5 rounded-full">
-                    ★ Premium
+                    ★ {tierLabel}
                   </span>
                 )}
               </div>
@@ -224,7 +232,7 @@ export default function BrandDashboard() {
         </section>
 
         {/* ── Freemium warning ── */}
-        {!isPremium && (stats?.activeCampaigns || 0) >= 3 && (
+        {atCampaignCap && (
           <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
@@ -395,7 +403,7 @@ export default function BrandDashboard() {
             </div>
 
             {/* Upgrade card */}
-            {!isPremium ? (
+            {!onTopTier ? (
               <div className="relative bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] rounded-2xl p-5 overflow-hidden shadow-md">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
                 <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />

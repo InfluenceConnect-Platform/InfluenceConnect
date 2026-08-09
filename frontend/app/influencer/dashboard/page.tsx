@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { influencerCaps, normalizeTier, INFLUENCER_TIERS } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import IdChip from '@/components/shared/IdChip';
@@ -158,9 +159,12 @@ export default function InfluencerDashboard() {
     );
   }
 
-  const isPremium = user?.plan === 'premium';
-  const VISIBLE_LIMIT: Record<string, number> = { free: 1, silver: 3, golden: 5, platinum: Infinity };
-  const visibleLimit = VISIBLE_LIMIT[(user as any)?.tier || (isPremium ? 'silver' : 'free')] ?? 1;
+  // Portfolio visibility comes from the shared tier config, not a local copy.
+  const caps = influencerCaps((user as { tier?: string } | null)?.tier);
+  const visibleLimit = caps.visiblePortfolioItems;
+  const currentTierKey = normalizeTier('influencer', (user as { tier?: string } | null)?.tier);
+  const tierLabel = currentTierKey === 'free' ? '' : INFLUENCER_TIERS.find(t => t.key === currentTierKey)?.label ?? '';
+  const onTopTier = currentTierKey === 'platinum';
 
   const completionFlags = [
     !!profile?.bio,
@@ -297,9 +301,9 @@ export default function InfluencerDashboard() {
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-300" />
                   {profile?.level || 'Starter'}
                 </span>
-                {isPremium && (
+                {tierLabel && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-amber-400/20 to-yellow-400/20 border border-amber-400/30 text-amber-300 px-3 py-1.5 rounded-full">
-                    ★ Premium
+                    ★ {tierLabel}
                   </span>
                 )}
               </div>
@@ -555,7 +559,7 @@ export default function InfluencerDashboard() {
             </div>
 
             {/* Upgrade / Premium card */}
-            {!isPremium ? (
+            {!onTopTier ? (
               <div className="relative bg-gradient-to-br from-[#2E0818] via-[#7A0F3D] to-[#F0417B] rounded-2xl p-5 overflow-hidden shadow-md">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
                 <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />

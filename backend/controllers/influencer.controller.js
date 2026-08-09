@@ -421,6 +421,12 @@ exports.getEarnings = async (req, res) => {
       completedAt: d.completedAt
     }));
 
+    // Earnings analytics are a Golden+ feature (backend/utils/tiers.js).
+    // Withhold the series server-side rather than only hiding the chart —
+    // otherwise the data still ships to every free client in the payload.
+    const { getTierConfig } = require('../utils/tiers');
+    const caps = getTierConfig('influencer', req.user.tier);
+
     res.json({
       summary: {
         totalEarnings,
@@ -429,9 +435,14 @@ exports.getEarnings = async (req, res) => {
         dealsCompleted,
         avgDealValue
       },
-      monthlyTrend: trend,
+      monthlyTrend: caps.earningsBreakdown ? trend : [],
       categoryBreakdown: [],
-      dealHistory
+      dealHistory,
+      // Echoed so the UI gates on the same source of truth the server used.
+      capabilities: {
+        earningsBreakdown: !!caps.earningsBreakdown,
+        csvExport: !!caps.csvExport,
+      }
     });
 
   } catch (error) {

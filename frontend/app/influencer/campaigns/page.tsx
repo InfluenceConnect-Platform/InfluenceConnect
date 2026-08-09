@@ -10,6 +10,7 @@ import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import ApplicationDetailDrawer from '@/components/shared/ApplicationDetailDrawer';
+import { influencerCaps, limitLabel } from '@/lib/tiers';
 import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS , SUB_NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import { levelBadgeCls } from '@/lib/levelBadge';
@@ -153,7 +154,12 @@ export default function InfluencerCampaigns() {
     e.stopPropagation();
     setExpandedCampDesc(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   };
-  const FREEMIUM_LIMIT = 5;
+  // Applications-per-month allowance for THIS user's tier. The old hardcoded
+  // 5 disagreed with the backend (free = 3), so free creators were told they
+  // had 5 and then hard-rejected at 3.
+  const caps = influencerCaps(user?.tier);
+  const APPLICATION_LIMIT = caps.maxApplicationsPerMonth;
+  const limitReachedApps = Number.isFinite(APPLICATION_LIMIT) && applicationsUsed >= APPLICATION_LIMIT;
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -238,8 +244,7 @@ export default function InfluencerCampaigns() {
   };
 
   const handleApply = async (campaignId: string) => {
-    const isPremium = user?.plan === 'premium';
-    if (!isPremium && applicationsUsed >= FREEMIUM_LIMIT) {
+    if (limitReachedApps) {
       showToast('You have used all 5 free applications this month. Upgrade to Premium.', 'error');
       return;
     }
@@ -285,7 +290,6 @@ export default function InfluencerCampaigns() {
       return 0;
     });
 
-  const isPremium = user?.plan === 'premium';
 
   return (
     <div className="min-h-screen bg-[#F7F9FA]">
@@ -331,7 +335,7 @@ export default function InfluencerCampaigns() {
                     {appliedIds.length} applied
                   </span>
                 )}
-                {isPremium && (
+                {!Number.isFinite(APPLICATION_LIMIT) && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-amber-400/20 to-yellow-400/20 border border-amber-400/30 text-amber-300 px-3 py-1.5 rounded-full">
                     ★ Unlimited applications
                   </span>
@@ -391,16 +395,17 @@ export default function InfluencerCampaigns() {
           </div>
         )}
 
-        {/* ── Freemium cap ── */}
-        {!profileIncomplete && !isPremium && (
+        {/* ── Application allowance — shown to every tier that has a finite
+             cap, not just free; Platinum is unlimited so it shows nothing. ── */}
+        {!profileIncomplete && Number.isFinite(APPLICATION_LIMIT) && (
           <div className={`flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl px-5 py-4 mb-6 border shadow-sm ${
-            applicationsUsed >= FREEMIUM_LIMIT
+            limitReachedApps
               ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/40'
               : 'bg-gradient-to-br from-rose-50 to-cyan-50 dark:from-rose-900/20 dark:to-cyan-900/20 border-rose-200 dark:border-rose-800/40'
           }`}>
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm text-white ${
-                applicationsUsed >= FREEMIUM_LIMIT
+                limitReachedApps
                   ? 'bg-gradient-to-br from-red-400 to-rose-500'
                   : 'bg-gradient-to-br from-[#F0417B] to-[#E0115F]'
               }`}>
@@ -409,21 +414,21 @@ export default function InfluencerCampaigns() {
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-bold mb-1 ${applicationsUsed >= FREEMIUM_LIMIT ? 'text-red-800 dark:text-red-300' : 'text-[#7A0F3D] dark:text-slate-100'}`}>
-                  {applicationsUsed >= FREEMIUM_LIMIT
+                <p className={`text-sm font-bold mb-1 ${limitReachedApps ? 'text-red-800 dark:text-red-300' : 'text-[#7A0F3D] dark:text-slate-100'}`}>
+                  {limitReachedApps
                     ? 'Monthly limit reached — upgrade to keep applying'
-                    : `${applicationsUsed} of ${FREEMIUM_LIMIT} free applications used this month`}
+                    : `${applicationsUsed} of ${limitLabel(APPLICATION_LIMIT)} applications used this month`}
                 </p>
                 <div className="flex items-center gap-2.5 max-w-[200px]">
                   <div className="flex-1 h-1.5 bg-black/10 dark:bg-white/15 rounded-full overflow-hidden ring-1 ring-inset ring-black/5 dark:ring-white/10">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
-                        applicationsUsed >= FREEMIUM_LIMIT ? 'bg-red-500' : 'bg-[#E0115F] dark:bg-[#F0417B]'
+                        limitReachedApps ? 'bg-red-500' : 'bg-[#E0115F] dark:bg-[#F0417B]'
                       }`}
-                      style={{ width: `${Math.min((applicationsUsed / FREEMIUM_LIMIT) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((applicationsUsed / APPLICATION_LIMIT) * 100, 100)}%` }}
                     />
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-slate-400 font-medium flex-shrink-0">{Math.max(0, FREEMIUM_LIMIT - applicationsUsed)} left</span>
+                  <span className="text-xs text-gray-500 dark:text-slate-400 font-medium flex-shrink-0">{Math.max(0, APPLICATION_LIMIT - applicationsUsed)} left</span>
                 </div>
               </div>
             </div>
@@ -833,7 +838,7 @@ export default function InfluencerCampaigns() {
                         <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-gray-100 dark:bg-slate-700/50 text-gray-400 dark:text-slate-400 rounded-xl cursor-not-allowed font-semibold">
                           Closed
                         </button>
-                      ) : !isPremium && applicationsUsed >= FREEMIUM_LIMIT ? (
+                      ) : limitReachedApps ? (
                         <Link href="/influencer/billing"
                           className="flex-shrink-0 text-xs px-4 py-2 bg-[#F0417B] hover:bg-[#E0115F] text-white rounded-xl font-bold transition-all duration-150 cursor-pointer text-center shadow-sm">
                           Upgrade

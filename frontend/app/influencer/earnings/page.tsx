@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { influencerCaps } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { NICHE_STYLES, NICHE_LABELS } from '@/lib/niches';
@@ -145,7 +146,12 @@ export default function EarningsPage() {
   };
 
   const maxEarnings = Math.max(...monthlyTrend.map(m => m.earnings), 1);
-  const isPremium = user?.plan === 'premium';
+  // Earnings analytics and CSV export are Golden+ (backend/utils/tiers.js).
+  // The server also withholds monthlyTrend for lower tiers, so this only
+  // controls presentation — it is not the enforcement point.
+  const caps = influencerCaps((user as { tier?: string } | null)?.tier);
+  const canSeeBreakdown = caps.earningsBreakdown;
+  const canExportCsv = caps.csvExport;
 
   if (loading) {
     return (
@@ -198,9 +204,9 @@ export default function EarningsPage() {
                   </svg>
                   {summary?.dealsCompleted || 0} deals done
                 </span>
-                {isPremium && (
+                {canSeeBreakdown && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-amber-400/20 to-yellow-400/20 border border-amber-400/30 text-amber-300 px-3 py-1.5 rounded-full">
-                    ★ Premium
+                    ★ Analytics
                   </span>
                 )}
               </div>
@@ -221,7 +227,7 @@ export default function EarningsPage() {
                   </button>
                 ))}
               </div>
-              {isPremium && (
+              {canExportCsv && (
                 <button
                   onClick={exportToCSV}
                   className="flex items-center gap-1.5 text-xs text-white/90 px-3 py-2 border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all cursor-pointer font-semibold"
@@ -322,8 +328,8 @@ export default function EarningsPage() {
 
         </section>
 
-        {/* ── Analytics (Premium) or gate ── */}
-        {isPremium ? (
+        {/* ── Analytics (Golden+) or upgrade gate ── */}
+        {canSeeBreakdown ? (
           <section className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 md:gap-5 mb-6">
 
             {/* Monthly earnings chart */}
@@ -444,7 +450,7 @@ export default function EarningsPage() {
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-extrabold text-white text-[15px] mb-1">Unlock earnings analytics with Premium</h3>
+                    <h3 className="font-extrabold text-white text-[15px] mb-1">Unlock earnings analytics with Golden</h3>
                     <p className="text-sm text-rose-100/80 leading-relaxed mb-3">
                       See your full monthly trend, earnings by category, and export your data as CSV.
                     </p>
@@ -465,7 +471,7 @@ export default function EarningsPage() {
                 <Link
                   href="/influencer/billing"
                   className="flex-shrink-0 bg-white hover:bg-rose-50 text-[#7A0F3D] px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap self-start sm:self-auto">
-                  Upgrade · from ₹9/mo →
+                  Upgrade to Golden · ₹21/mo →
                 </Link>
               </div>
             </div>

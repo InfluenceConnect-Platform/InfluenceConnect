@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { influencerCaps, limitLabel } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
 import PayoutPanel, { Payout } from '@/components/shared/PayoutPanel';
@@ -164,7 +165,7 @@ function MessagesPage() {
   const { isDark } = useTheme();
   const toast = useToast();
   const confirm = useConfirm();
-  const [user, setUser] = useState<{ id: string; name: string; plan: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; plan: string; tier?: string } | null>(null);
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [deals, setDeals] = useState<Deal[]>([]);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
@@ -204,7 +205,10 @@ function MessagesPage() {
     if (!el) return;
     nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
   };
-  const FREEMIUM_MSG_LIMIT = 10;
+  // Daily message allowance for THIS user's tier. The old hardcoded 10
+  // disagreed with the backend (free = 3/day).
+  const msgCaps = influencerCaps((user as { tier?: string } | null)?.tier);
+  const MSG_LIMIT = msgCaps.maxMessagesPerDay;
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -286,7 +290,7 @@ function MessagesPage() {
       setTimeout(() => setBlocked(false), 4000);
       return;
     }
-    if (!isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT) return;
+    if (Number.isFinite(MSG_LIMIT) && messagesUsed >= MSG_LIMIT) return;
     if (dealClosed || chatLocked) return;
 
     setSending(true);
@@ -443,8 +447,7 @@ function MessagesPage() {
     d.campaignId?.title?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const isPremium = user?.plan === 'premium';
-  const limitReached = !isPremium && messagesUsed >= FREEMIUM_MSG_LIMIT;
+  const limitReached = Number.isFinite(MSG_LIMIT) && messagesUsed >= MSG_LIMIT;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
   const negotiationPending = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
   const payoutMissing = !dealClosed && selectedDeal?.negotiationStatus === 'agreed' && payoutLoaded && !payout;
@@ -483,9 +486,9 @@ function MessagesPage() {
                   </span>
                 )}
               </div>
-              {!isPremium && (
+              {Number.isFinite(MSG_LIMIT) && (
                 <span className="text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/10 bg-white/10 text-amber-300">
-                  {messagesUsed}/{FREEMIUM_MSG_LIMIT} used
+                  {messagesUsed}/{limitLabel(MSG_LIMIT)} used today
                 </span>
               )}
             </div>
@@ -633,8 +636,8 @@ function MessagesPage() {
             )}
           </div>
 
-          {/* Freemium upgrade */}
-          {!isPremium && (
+          {/* Upgrade nudge — shown to any tier that still has a daily cap */}
+          {Number.isFinite(MSG_LIMIT) && (
             <div className="border-t border-gray-100 p-3 flex-shrink-0">
               <div className="relative overflow-hidden rounded-2xl p-3.5 flex items-center gap-3"
                 style={{ background: 'linear-gradient(135deg, #7A0F3D 0%, #B00D4D 60%, #F0417B 100%)' }}>
