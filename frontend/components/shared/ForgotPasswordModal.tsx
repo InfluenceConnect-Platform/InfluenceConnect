@@ -165,18 +165,18 @@ export default function ForgotPasswordModal({ onClose, onSuccess, accent = RUBY 
 
   const inputCls = `w-full px-4 py-3 text-sm border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 ${
     isDark
-      ? 'text-slate-100 placeholder-slate-600 bg-[#0A1628] border-slate-700 hover:border-slate-600 focus:ring-[#7FA8AD]/25 focus:border-[#7FA8AD]'
+      ? 'text-slate-100 placeholder-slate-600 bg-[#0A1628] border-slate-700 hover:border-slate-600 focus:ring-[var(--ic-accent-mid)]/30 focus:border-[var(--ic-accent-mid)]'
       : 'text-gray-900 placeholder-gray-400 bg-gray-50 border-gray-200 hover:border-gray-300 focus:ring-[var(--ic-accent)]/25 focus:border-[var(--ic-accent)]'
   }`;
 
   const otpDigitCls = (digit: string) => {
     if (digit) {
       return isDark
-        ? 'border-[#7FA8AD] bg-[#7FA8AD]/10 text-[#9FC8CD]'
+        ? 'border-[var(--ic-accent-mid)] bg-[var(--ic-accent-mid)]/15 text-[var(--ic-accent-mid)]'
         : 'border-[var(--ic-accent)] bg-[var(--ic-accent)]/10 text-[var(--ic-accent-dark)]';
     }
     return isDark
-      ? 'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#7FA8AD] focus:bg-[#7FA8AD]/5'
+      ? 'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[var(--ic-accent-mid)] focus:bg-[var(--ic-accent-mid)]/10'
       : 'border-gray-200 bg-gray-50 text-gray-900 focus:border-[var(--ic-accent)] focus:bg-[var(--ic-accent)]/5';
   };
 

@@ -105,7 +105,7 @@ const CAMPAIGN_STATUS_STYLES: Record<string, string> = {
   active:        'bg-gradient-to-r from-emerald-500 to-green-600 text-white',
   draft:         'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-slate-200',
   'in-progress': 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
-  completed:     'bg-gradient-to-r from-blue-500 to-indigo-600 text-white',
+  completed:     'bg-gradient-to-r from-emerald-600 to-teal-700 text-white',
   closed:        'bg-gradient-to-r from-red-500 to-rose-600 text-white',
   expired:       'bg-gradient-to-r from-gray-500 to-gray-600 text-white',
 };
@@ -1360,7 +1360,7 @@ function ApplicationsList({
     );
   }
 
-  const AVATAR_GRADS = ['bg-gradient-to-br from-cyan-500 to-sky-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'];
+  const AVATAR_GRADS = ['bg-gradient-to-br from-cyan-500 to-sky-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-sky-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'];
 
   return (
     <div className="divide-y divide-gray-100 max-h-[60vh] lg:max-h-[520px] overflow-y-auto">

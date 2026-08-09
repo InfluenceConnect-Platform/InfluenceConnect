@@ -36,8 +36,8 @@ const VARIANTS: Record<ConfirmVariant, { chip: string; button: string; icon: Rea
     ),
   },
   info: {
-    chip: 'bg-[#EAEDF6] text-[#3D5087] dark:bg-[#3D5087]/25 dark:text-[#7B9DD4]',
-    button: 'bg-[#3D5087] hover:bg-[#33446f] focus-visible:ring-[#3D5087]/40',
+    chip: 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-200',
+    button: 'bg-slate-700 hover:bg-slate-800 focus-visible:ring-slate-500/40',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />

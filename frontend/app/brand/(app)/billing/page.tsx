@@ -398,7 +398,7 @@ export default function BrandBillingPage() {
         <div className="bg-white border border-gray-200 rounded-2xl px-4 sm:px-6 py-4 mb-8 shadow-sm">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
             {[
-              { icon: <LockIcon />, text: <><strong className="text-gray-700">Razorpay</strong> secured checkout</>, color: 'bg-gradient-to-br from-blue-500 to-indigo-600' },
+              { icon: <LockIcon />, text: <><strong className="text-gray-700">Razorpay</strong> secured checkout</>, color: 'bg-gradient-to-br from-sky-500 to-blue-600' },
               { icon: <RefreshIcon />, text: <>One-time by default, <strong className="text-gray-700">Autopay optional</strong></>, color: 'bg-gradient-to-br from-emerald-500 to-green-600' },
               { icon: <ShieldIcon />, text: <>We <strong className="text-gray-700">never</strong> store card details</>, color: 'bg-gradient-to-br from-cyan-500 to-sky-600' },
             ].map((item, i) => (

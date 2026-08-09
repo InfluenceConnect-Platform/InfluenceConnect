@@ -15,7 +15,7 @@ interface AccountInfo {
 
 interface Props {
   account: AccountInfo;
-  accentColor: string; // e.g. '#3D5087' for brand, '#5D8A8F' for influencer
+  accentColor: string; // '#228B22' for brand, '#E0115F' for creator
   onUpdate: (updates: Partial<AccountInfo>) => void;
   showPlan?: boolean;  // false for accounts without a plan (e.g. admin)
 }

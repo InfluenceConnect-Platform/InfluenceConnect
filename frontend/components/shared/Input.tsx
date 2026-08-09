@@ -50,7 +50,7 @@ export default function Input({
   autoComplete,
   name,
   required,
-  accent = '#7FA8AD',
+  accent = '#64748B',   // neutral slate; role screens pass their own
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const id = useId();

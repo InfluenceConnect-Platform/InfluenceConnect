@@ -50,7 +50,7 @@ const ICONS: Record<ToastType, ReactNode> = {
 const ICON_STYLES: Record<ToastType, string> = {
   success: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
   error: 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400',
-  info: 'bg-[#EAEDF6] text-[#3D5087] dark:bg-[#3D5087]/25 dark:text-[#7B9DD4]',
+  info: 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-200',
 };
 
 function ToastCard({ toast, onClose }: { toast: ToastItem; onClose: () => void }) {

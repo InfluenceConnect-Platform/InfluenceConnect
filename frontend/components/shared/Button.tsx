@@ -23,7 +23,9 @@ export default function Button({
   const base = 'inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 select-none';
 
   const primaryColors: Record<string, string> = {
-    default:    'bg-gradient-to-r from-[#5D8A8F] via-[#4E7A80] to-[#3D5087] hover:from-[#4A7A7F] hover:via-[#3D6B70] hover:to-[#2B3B68] text-white shadow-md hover:shadow-lg',
+    // Neutral graphite for genuinely role-less contexts — the old teal→navy
+    // here was the pre-rebrand palette, not a neutral.
+    default:    'bg-gradient-to-r from-[#4B5563] to-[#1F2937] hover:from-[#374151] hover:to-[#111827] text-white shadow-md hover:shadow-lg',
     // influencer/brand colorSchemes are only used by the signup page's
     // per-role submit button — kept in ruby/forest-green lockstep with
     // ROLE_COLOR there (see [[brand-palette-rebrand]] memory).

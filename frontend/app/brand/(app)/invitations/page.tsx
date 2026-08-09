@@ -19,7 +19,7 @@ const AVATAR_GRADS = [
   'from-cyan-500 to-sky-600',
   'from-teal-500 to-cyan-600',
   'from-amber-500 to-orange-500',
-  'from-indigo-500 to-blue-600',
+  'from-sky-500 to-blue-600',
   'from-pink-500 to-rose-500',
   'from-emerald-500 to-green-600',
 ];

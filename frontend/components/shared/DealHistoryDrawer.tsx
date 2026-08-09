@@ -5,7 +5,7 @@ import api from '@/lib/api';
 import { NICHE_STYLES, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 
-const TEAL = '#5D8A8F';
+const ACCENT = '#B00D4D';   // creator ruby — this drawer is influencer-only
 
 export interface DealHistoryRow {
   _id: string;
@@ -39,7 +39,7 @@ interface Props {
 const STATUS_STYLES: Record<string, string> = {
   completed: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
   'content-submitted': 'bg-amber-50 text-amber-700 border border-amber-200',
-  'in-progress': 'bg-blue-50 text-blue-700 border border-blue-100',
+  'in-progress': 'bg-[#FCE4EC] text-[#7A0F3D] border border-[#F3B8CB]',
   cancelled: 'bg-gray-50 text-gray-500 border border-gray-200',
 };
 const STATUS_LABELS: Record<string, string> = {
@@ -115,7 +115,7 @@ export default function DealHistoryDrawer({ deal, onClose }: Props) {
             {/* Header card */}
             <div className="bg-white border border-gray-100 rounded-2xl px-5 pt-5 pb-4">
               <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-white font-bold bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F]">
+                <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-white font-bold bg-gradient-to-br from-[#F0417B] to-[#7A0F3D]">
                   {deal.brandLogoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img loading="lazy" decoding="async" src={cdnImg(deal.brandLogoUrl)} alt={deal.brandName} className="w-full h-full object-cover" />
@@ -187,7 +187,7 @@ export default function DealHistoryDrawer({ deal, onClose }: Props) {
             <Section title="Payment proof">
               {loadingPayout ? (
                 <div className="flex items-center gap-2 py-1">
-                  <div className="w-3.5 h-3.5 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-3.5 h-3.5 border-2 border-[#F0417B] border-t-transparent rounded-full animate-spin" />
                   <span className="text-[12px] text-gray-400">Loading…</span>
                 </div>
               ) : payout?.paid ? (
@@ -218,7 +218,7 @@ export default function DealHistoryDrawer({ deal, onClose }: Props) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl px-5 py-4">
-      <h3 className="text-[10.5px] font-bold uppercase tracking-widest mb-2.5" style={{ color: TEAL }}>
+      <h3 className="text-[10.5px] font-bold uppercase tracking-widest mb-2.5" style={{ color: ACCENT }}>
         {title}
       </h3>
       {children}

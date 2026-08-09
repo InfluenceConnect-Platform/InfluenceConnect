@@ -20,18 +20,20 @@ const STATUS_HINT: Record<string, { text: string; box: string; icon: string }> =
   rejected: { text: 'The creator declined this invitation.', box: 'bg-red-50 border-red-100 text-red-700', icon: 'text-red-500' },
 };
 
+// Level styling comes from the shared map so brand- and creator-facing
+// surfaces can't drift apart (the local copy here had gone indigo).
 const LEVEL_BADGE: Record<string, string> = {
   starter:      'bg-gray-100 text-gray-600 border-gray-200',
   growing:      'bg-emerald-50 text-emerald-700 border-emerald-200',
-  professional: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  professional: 'bg-sky-50 text-sky-700 border-sky-200',
   elite:        'bg-amber-50 text-amber-700 border-amber-200',
 };
 
 const AVATAR_GRADS = [
-  'from-violet-500 to-purple-600',
+  'from-[#3FA34D] to-[#14531D]',
   'from-[#3FA34D] to-[#1B6E1B]',
   'from-amber-500 to-orange-500',
-  'from-indigo-500 to-blue-600',
+  'from-sky-500 to-blue-600',
   'from-pink-500 to-rose-500',
   'from-emerald-500 to-green-600',
 ];
@@ -145,7 +147,7 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                     </div>
                     {creator.city && (
                       <p className="text-[12.5px] text-gray-500 font-medium mt-1 inline-flex items-center gap-1.5">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#6B7FBB]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1B6E1B]/70">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                         </svg>
                         {creator.city}
@@ -158,7 +160,7 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                 {creator.niche?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {creator.niche.map((n: string) => (
-                      <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                      <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-[#EAF7EA] text-[#14531D] border-[#C8E6C9]'}`}>
                         {NICHE_LABELS[n] ?? n}
                       </span>
                     ))}
@@ -210,7 +212,7 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                     {campaign.niche?.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-3.5">
                         {campaign.niche.map((n: string) => (
-                          <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
+                          <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-[#EAF7EA] text-[#14531D] border-[#C8E6C9]'}`}>
                             {NICHE_LABELS[n] ?? n}
                           </span>
                         ))}
@@ -241,7 +243,7 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                 {slug && (
                   <button
                     onClick={() => router.push(`/brand/creator/${slug}`)}
-                    className="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-white text-[#3D5087] border border-[#C7D2EC] hover:bg-[#EEF1FB] transition-colors cursor-pointer inline-flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-white text-[#14531D] border border-[#C8E6C9] hover:bg-[#EAF7EA] transition-colors cursor-pointer inline-flex items-center justify-center gap-2"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
@@ -281,9 +283,9 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-[#EEF1FB] border border-[#D9E1F2] rounded-xl px-2.5 py-2.5 text-center">
-      <p className="text-[14px] font-bold text-[#3D5087] leading-tight">{value}</p>
-      <p className="text-[10px] text-[#6B7FBB] font-semibold uppercase tracking-wide mt-1">{label}</p>
+    <div className="bg-[#EAF7EA] border border-[#C8E6C9] rounded-xl px-2.5 py-2.5 text-center">
+      <p className="text-[14px] font-bold text-[#14531D] leading-tight">{value}</p>
+      <p className="text-[10px] text-[#1B6E1B]/80 font-semibold uppercase tracking-wide mt-1">{label}</p>
     </div>
   );
 }

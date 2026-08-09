@@ -9,7 +9,7 @@ import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 const ACCENT = '#B00D4D';   // creator ruby — this drawer is influencer-only
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
-  applied:     { cls: 'bg-blue-50 text-blue-700 border border-blue-200',    dot: 'bg-blue-400',  label: 'Applied' },
+  applied:     { cls: 'bg-[#FCE4EC] text-[#7A0F3D] border border-[#F3B8CB]', dot: 'bg-[#E0115F]', label: 'Applied' },
   shortlisted: { cls: 'bg-amber-50 text-amber-700 border border-amber-200', dot: 'bg-amber-400', label: 'Shortlisted' },
   accepted:    { cls: 'bg-green-50 text-green-700 border border-green-200', dot: 'bg-green-500',  label: 'Accepted' },
   rejected:    { cls: 'bg-red-50 text-red-600 border border-red-200',       dot: 'bg-red-400',    label: 'Rejected' },
@@ -18,7 +18,7 @@ const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }>
 
 // Friendly explanation + tint for each status, shown as a banner.
 const STATUS_HINT: Record<string, { text: string; box: string; icon: string }> = {
-  applied:     { text: 'Your application is in. The brand typically reviews within 48 hours.', box: 'bg-blue-50 border-blue-100 text-blue-800', icon: 'text-blue-500' },
+  applied:     { text: 'Your application is in. The brand typically reviews within 48 hours.', box: 'bg-[#FCE4EC] border-[#F3B8CB] text-[#7A0F3D]', icon: 'text-[#E0115F]' },
   shortlisted: { text: "You've been shortlisted — the brand is considering you for this campaign.", box: 'bg-amber-50 border-amber-100 text-amber-800', icon: 'text-amber-500' },
   accepted:    { text: "Congratulations, you're booked! Head to Messages to coordinate the deliverables.", box: 'bg-green-50 border-green-100 text-green-800', icon: 'text-green-500' },
   rejected:    { text: "This application wasn't selected this time. Plenty more campaigns to explore.", box: 'bg-red-50 border-red-100 text-red-700', icon: 'text-red-500' },
@@ -119,7 +119,7 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
                     <h2 className="text-[19px] font-bold text-gray-900 leading-snug">{campaign.title || 'Campaign'}</h2>
                     <div className="flex items-center gap-2 mt-2 text-[13px] text-gray-500 font-medium">
                       <span className="inline-flex items-center gap-1.5">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#7FA8AD]">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#F0417B]">
                           <path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" />
                         </svg>
                         {brandName}
@@ -238,7 +238,7 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-[#FCE4EC]/70 border border-[#F3B8CB] rounded-xl px-2.5 py-2.5 text-center">
-      <p className="text-[10px] text-[#5D8A8F] font-semibold uppercase tracking-wide">{label}</p>
+      <p className="text-[10px] text-[#B00D4D] font-semibold uppercase tracking-wide">{label}</p>
       <p className="text-[12.5px] font-bold text-[#B00D4D] mt-1 leading-tight break-words">{value}</p>
     </div>
   );
