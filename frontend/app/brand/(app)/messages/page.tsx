@@ -230,6 +230,9 @@ function BrandMessages() {
   const toast = useToast();
   const confirm = useConfirm();
   const msgLimit = brandCaps((user as { tier?: string } | null)?.tier).maxMessagesPerDay;
+  // "Shared files up to 10/30 MB" — checked before uploading, and again by the
+  // server on send. See backend/utils/tiers.js.
+  const fileLimitMB = brandCaps((user as { tier?: string } | null)?.tier).maxFileMB;
   const limitHit = Number.isFinite(msgLimit) && messagesUsed >= msgLimit;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
   const negotiationPending = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
@@ -485,7 +488,7 @@ function BrandMessages() {
     setUploadingAttachments(true);
     try {
       for (const file of Array.from(files)) {
-        const validationError = validateChatFile(file);
+        const validationError = validateChatFile(file, fileLimitMB);
         if (validationError) { setAttachmentError(validationError); continue; }
         try {
           const uploaded = await uploadChatAttachment(file, selectedDeal._id);
@@ -1200,7 +1203,7 @@ function BrandMessages() {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={limitHit || uploadingAttachments}
-                      title="Attach files"
+                      title={Number.isFinite(fileLimitMB) ? `Attach files — up to ${fileLimitMB} MB on your plan` : 'Attach files'}
                       className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${isDark ? 'text-slate-400 hover:bg-slate-700/60 hover:text-slate-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
                     >
                       <PaperclipIcon />

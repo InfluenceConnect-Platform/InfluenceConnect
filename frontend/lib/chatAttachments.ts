@@ -23,10 +23,24 @@ const resourceTypeFor = (file: File): ChatAttachment['type'] => {
   return 'raw';
 };
 
-export function validateChatFile(file: File): string | null {
+/**
+ * `maxFileMB` is the sender's per-tier shared-file cap (backend/utils/tiers.js
+ * — "Shared files up to 10/30 MB"). Pass Infinity for roles or tiers with no
+ * cap. It is checked BEFORE the upload starts: the server also enforces it when
+ * the message is sent, but without this the file uploads to Cloudinary in full
+ * and only then gets rejected — wasting the transfer, leaving the asset
+ * orphaned in Cloudinary, and quoting a limit (100 MB) ten times the plan's
+ * actual entitlement.
+ */
+export function validateChatFile(file: File, maxFileMB: number = Infinity): string | null {
   const lowerName = file.name.toLowerCase();
   if (BLOCKED_EXTENSIONS.some(ext => lowerName.endsWith(ext))) {
     return `"${file.name}" can't be shared — that file type isn't allowed.`;
+  }
+  // The plan cap applies to every file type, so check it first — otherwise a
+  // 90 MB video on a 10 MB plan would pass the type check and be told nothing.
+  if (Number.isFinite(maxFileMB) && file.size > maxFileMB * 1024 * 1024) {
+    return `Your plan allows files up to ${maxFileMB} MB. Upgrade to share larger files.`;
   }
   const type = resourceTypeFor(file);
   if (type === 'image' && file.size > MAX_IMAGE_SIZE) return 'Images must be under 10 MB.';

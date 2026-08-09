@@ -9,7 +9,7 @@ import IdChip from '@/components/shared/IdChip';
 import { useTheme } from '@/lib/useTheme';
 import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import NichePicker from '@/components/shared/NichePicker';
-import { influencerCaps, normalizeTier, tierLabel } from '@/lib/tiers';
+import { influencerCaps, normalizeTier, tierLabel, limitLabel } from '@/lib/tiers';
 import { cdnImg } from '@/lib/img';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
@@ -460,6 +460,12 @@ function InfluencerProfile() {
     if (!isImage && !isVideo) { setContentError('Only images and videos are allowed.'); return; }
     if (isImage && file.size > 10 * 1024 * 1024) { setContentError('Image must be under 10 MB.'); return; }
     if (isVideo && file.size > 100 * 1024 * 1024) { setContentError('Video must be under 100 MB.'); return; }
+    // Stop at the tier's upload cap before spending the upload. The server
+    // rejects it too, but only after the file has already gone to Cloudinary.
+    if (Number.isFinite(uploadCap) && savedPortfolioCount >= uploadCap) {
+      setContentError(`Your plan allows ${uploadCap} portfolio uploads. Upgrade to add more.`);
+      return;
+    }
 
     setUploading(true);
     setContentError('');
@@ -568,7 +574,15 @@ function InfluencerProfile() {
     } finally { setUploadingPic(false); }
   };
 
-  const isPremiumUser = profile?.userId?.plan === 'premium';
+  // Portfolio allowances come from the tier, not the legacy premium flag —
+  // Silver shows 3 items, Golden 5, only Platinum shows everything, so
+  // "premium ⇒ all visible" was wrong for two of the four paid tiers.
+  const portfolioCaps = influencerCaps((profile?.userId as { tier?: string } | undefined)?.tier);
+  const uploadCap = portfolioCaps.maxPortfolioUploads;
+  const visibleCap = portfolioCaps.visiblePortfolioItems;
+  const allVisible = !Number.isFinite(visibleCap);
+  // Saved items only — pending uploads aren't committed yet.
+  const savedPortfolioCount = (profile?.portfolioItems || []).length;
 
   // Merge saved + pending uploads for the content grid
   const allPortfolioItems: Array<{
@@ -588,6 +602,22 @@ function InfluencerProfile() {
   const filteredPortfolioItems = activeTab === 'all'
     ? allPortfolioItems
     : allPortfolioItems.filter(i => itemMatchesTab(i, activeTab));
+
+  // Which saved items brands actually can't see. Mirrors the server's rule in
+  // InfluencerProfile.getVisiblePortfolio — pinned first, then the rest, and
+  // everything past the tier's visible cap is locked.
+  //
+  // The stored `isVisible` flag is written once at upload time from the count
+  // at that moment, so after an upgrade or downgrade it disagrees with what
+  // brands are served. Deriving it here keeps the owner's view honest.
+  const hiddenItemIds = (() => {
+    if (allVisible) return new Set<string>();
+    const saved = (profile?.portfolioItems || []) as Array<{ _id: string; isPinned?: boolean }>;
+    const ordered = [...saved.filter(i => i.isPinned), ...saved.filter(i => !i.isPinned)];
+    return new Set(ordered.slice(visibleCap).map(i => i._id));
+  })();
+  const isHiddenFromBrands = (item: { _id: string; pending?: boolean }) =>
+    !item.pending && hiddenItemIds.has(item._id);
 
   const totalFollowers = (profile?.platforms || []).reduce((acc: number, p: { followers?: number }) => acc + (p.followers || 0), 0);
   const engagingPlatforms = (profile?.platforms || []).filter((p: { followers?: number }) => (p.followers || 0) > 0);
@@ -744,7 +774,6 @@ function InfluencerProfile() {
             ? ((profile.platforms.reduce((s: number, p: any) => s + (p.engagementRate ?? 0), 0)) / profile.platforms.length).toFixed(1)
             : '0';
 
-          const isPremium = profile?.userId?.plan === 'premium';
           // Always show all items to the owner — items beyond the free limit just get a
           // "hidden from brands" badge so the influencer knows which ones brands can't see.
           const visible  = profile.portfolioItems ?? [];
@@ -1066,7 +1095,7 @@ function InfluencerProfile() {
                       <div className="grid grid-cols-3 gap-px bg-gray-100">
                         {tabMedia[viewTab].map((item: any, i: number) => {
                           const mediaList = buildMediaItems(tabMedia[viewTab]);
-                          const hiddenFromBrands = !isPremium && item.isVisible === false;
+                          const hiddenFromBrands = isHiddenFromBrands(item);
                           return (
                             <button key={item._id ?? i}
                               onClick={() => openModal(mediaList, i)}
@@ -1897,7 +1926,7 @@ function InfluencerProfile() {
                       className={`relative aspect-square rounded-xl overflow-hidden group border-2 transition-all duration-150 ${
                         item.pending
                           ? 'border-amber-400'
-                          : (!isPremiumUser && item.isVisible === false)
+                          : isHiddenFromBrands(item)
                             ? 'border-gray-200 opacity-60'
                             : 'border-transparent hover:border-[#F0417B]/40'
                       }`}
@@ -1944,7 +1973,7 @@ function InfluencerProfile() {
                         <div className="flex items-center gap-1">
                           {item.pending ? (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-400 text-white">Unsaved</span>
-                          ) : (!isPremiumUser && item.isVisible === false) ? (
+                          ) : isHiddenFromBrands(item) ? (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-black/50 text-white backdrop-blur-sm">Hidden</span>
                           ) : null}
                           {isEditing && (
@@ -1965,12 +1994,15 @@ function InfluencerProfile() {
                 </div>
               )}
 
-              {/* Plan notice */}
-              {isPremiumUser ? (
+              {/* Plan notice — every number here comes from the tier. The old
+                  copy said "upload freely… 3 most recent items", which was
+                  wrong twice over on Free: uploads are capped at 2, and only 1
+                  is shown to brands. */}
+              {allVisible ? (
                 <div className="mt-5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 leading-relaxed">
                   <div className="flex items-center gap-2">
                     <span className="text-amber-500 flex-shrink-0">★</span>
-                    <p><strong>Premium active.</strong> All your uploaded content is visible to brands.</p>
+                    <p><strong>{profilePlanName} active.</strong> All your uploaded content is visible to brands.</p>
                   </div>
                 </div>
               ) : (
@@ -1978,9 +2010,11 @@ function InfluencerProfile() {
                   <div className="flex items-start gap-2">
                     <span className="text-[#F0417B] mt-0.5 flex-shrink-0"><LockIcon /></span>
                     <p>
-                      <strong>Upload freely.</strong> On freemium, brands see your 3 most recent items.{' '}
+                      <strong>{savedPortfolioCount}/{limitLabel(uploadCap)} uploads used.</strong>{' '}
+                      On {profilePlanName}, brands see your{' '}
+                      {visibleCap === 1 ? 'most recent item' : `${visibleCap} most recent items`}.{' '}
                       <Link href="/influencer/billing" className="text-[#E0115F] font-semibold hover:underline cursor-pointer">
-                        Upgrade to show all →
+                        Upgrade to show more →
                       </Link>
                     </p>
                   </div>
