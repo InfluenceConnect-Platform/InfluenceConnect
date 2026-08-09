@@ -171,7 +171,11 @@ export default function SubscriptionPanel({ accent, accentDark, tierLabel, onCha
           aria-labelledby="cancel-sub-title"
           onClick={e => { if (e.target === e.currentTarget && !submitting) setDialogOpen(false); }}
         >
-          <div className={`w-full max-w-md rounded-2xl border shadow-2xl p-6 ${card}`}>
+          {/* max-h + scroll matches the other modals here. Without it the
+              on-screen keyboard (this dialog has a textarea) shrinks the
+              viewport below the dialog height and the confirm buttons become
+              unreachable on a phone. */}
+          <div className={`w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-2xl border shadow-2xl p-5 sm:p-6 ${card}`}>
             <h3 id="cancel-sub-title" className={`text-lg font-bold mb-1.5 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
               Cancel auto-renewal?
             </h3>

@@ -109,7 +109,7 @@ export default function NichePicker({
               onClick={() => toggleCategory(cat.slug)}
               aria-expanded={isOpen}
               aria-controls={panelId}
-              className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors cursor-pointer ${
+              className={`w-full flex items-center justify-between gap-3 px-3.5 py-3.5 sm:py-2.5 min-h-[48px] sm:min-h-0 text-left transition-colors cursor-pointer ${
                 dark ? 'hover:bg-slate-800/50' : 'hover:bg-gray-50'
               }`}
             >
@@ -148,7 +148,7 @@ export default function NichePicker({
                         onClick={() => toggleNiche(n.slug)}
                         disabled={blocked}
                         aria-pressed={on}
-                        className={`px-3 py-1.5 rounded-full text-[11.5px] font-semibold border transition-all duration-150 ${
+                        className={`px-3 py-2.5 sm:py-1.5 rounded-full text-[11.5px] font-semibold border transition-all duration-150 ${
                           blocked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
                         } ${on ? 'text-white border-transparent shadow-sm' : dark
                           ? 'bg-slate-800/60 border-slate-700 text-slate-300 hover:border-slate-600'
@@ -179,7 +179,7 @@ export default function NichePicker({
                               type="button"
                               onClick={() => toggleSubNiche(s)}
                               aria-pressed={on}
-                              className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all duration-150 cursor-pointer ${
+                              className={`px-2.5 py-2 sm:py-1 rounded-full text-[11px] font-medium border transition-all duration-150 cursor-pointer ${
                                 on ? '' : dark
                                   ? 'bg-slate-800/40 border-slate-700 text-slate-400 hover:text-slate-200'
                                   : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'

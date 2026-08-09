@@ -442,7 +442,7 @@ export default function AdminSubscriptions() {
                 </div>
               ) : (
                 <>
-                  <div className="overflow-x-auto">
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr className="bg-gray-50/80 border-b border-gray-100">
@@ -519,6 +519,49 @@ export default function AdminSubscriptions() {
                         })}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Phone view — the table is 9 columns of nowrap cells, which
+                      is an unusable sideways scroll on a handset. */}
+                  <div className="md:hidden divide-y divide-gray-50">
+                    {payments.map(p => {
+                      const meta = statusMeta(p.status);
+                      return (
+                        <div
+                          key={p._id}
+                          onClick={() => setSelectedPayment(p)}
+                          className="px-4 py-4 cursor-pointer active:bg-gray-50"
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-semibold text-gray-900 truncate">{p.userId?.name || '—'}</p>
+                              <p className="text-[11px] text-gray-400 truncate">{p.userId?.email || '—'}</p>
+                            </div>
+                            <p className="text-[14px] font-bold text-gray-900 tabular-nums flex-shrink-0">{inr(p.amount)}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold capitalize border ${
+                              p.tier === 'platinum' ? 'bg-violet-50 text-violet-700 border-violet-200'
+                              : p.tier === 'golden' ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : p.tier === 'silver' ? 'bg-slate-100 text-slate-700 border-slate-300'
+                              : 'bg-gray-50 text-gray-500 border-gray-200'
+                            }`}>{p.tier ?? '—'}</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
+                              p.recurring
+                                ? 'bg-green-50 text-green-700 border-green-200'
+                                : 'bg-gray-50 text-gray-500 border-gray-200'
+                            }`}>{p.recurring ? 'Renewal' : 'One-time'}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold border bg-gray-50 text-gray-500 border-gray-200 capitalize">
+                              {p.billingCycle}
+                            </span>
+                            <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold border ${meta.cls}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />{meta.label}
+                            </span>
+                            <span className="text-[10px] text-gray-400 ml-auto tabular-nums">{fmtDate(p.createdAt)}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {paymentsPages > 1 && (
