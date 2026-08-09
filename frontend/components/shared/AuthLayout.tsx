@@ -183,9 +183,9 @@ export default function AuthLayout({ children, role = 'influencer' }: AuthLayout
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
             href="/"
-            className={`inline-flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm font-medium px-2.5 sm:px-3.5 py-1.5 rounded-full border transition-colors ${
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm font-semibold px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-xl sm:rounded-full border-2 sm:border shadow-sm sm:shadow-none transition-colors ${
               isDark
-                ? 'border-[var(--ic-a-mid)]/30 bg-[var(--ic-a-mid)]/10 text-[var(--ic-a-bright)] hover:bg-[var(--ic-a-mid)]/20'
+                ? 'border-[var(--ic-a-mid)]/50 sm:border-[var(--ic-a-mid)]/30 bg-[var(--ic-a-mid)]/15 sm:bg-[var(--ic-a-mid)]/10 text-[var(--ic-a-bright)] hover:bg-[var(--ic-a-mid)]/25'
                 : 'border-[var(--ic-a-border)] bg-[var(--ic-a-tint)] text-[var(--ic-a-dark)] hover:bg-[var(--ic-a-hover)]'
             }`}
           >
