@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
-import { canUseDarkMode } from '@/lib/tiers';
+import { canUseDarkMode, normalizeTier, tierLabel } from '@/lib/tiers';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { cdnImg } from '@/lib/img';
 
@@ -138,7 +138,11 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
     if (!darkAllowed && isDark) setTheme('light');
   }, [darkAllowed, isDark, setTheme]);
 
-  const isPremium = user?.plan === 'premium';
+  // Name the actual tier. The legacy `plan` field only knows freemium/premium,
+  // so it badged a ₹399 Silver brand identically to a ₹499 Golden one.
+  const planTier = normalizeTier('brand', (user as { tier?: string } | null)?.tier);
+  const planName = tierLabel('brand', planTier);
+  const isPaid = planTier !== 'free';
 
   useEffect(() => {
     if (logoUrlProp !== undefined) return;
@@ -301,14 +305,18 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
 
           {/* Gated on `user` so the badge only renders once the plan is known —
               avoids both a hydration mismatch and a Freemium→Premium flash. */}
-          {user && (isPremium ? (
-            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-white shadow-sm shadow-amber-200">
-              ★ Premium
+          {user && (isPaid ? (
+            <span className={`hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${
+              planName === 'Golden'
+                ? 'bg-gradient-to-r from-amber-400 to-yellow-400 shadow-amber-200'
+                : 'bg-gradient-to-r from-slate-400 to-slate-500 shadow-slate-200'
+            }`}>
+              ★ {planName}
             </span>
           ) : (
             <span className={`hidden sm:inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full border
               ${isDark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-              Freemium
+              {planName}
             </span>
           ))}
 

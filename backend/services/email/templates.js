@@ -3,25 +3,39 @@
 // notification type. They take plain data (no DB access) so they stay easy to
 // preview and test.
 //
-// Theming is role-based: brand emails use the lavender/indigo brand colour,
-// influencer emails use the teal creator colour — matching the in-app palette.
+// Theming is role-based and follows the IN-APP palette (not the marketing
+// site, which keeps its own teal/violet): brand emails are green, creator
+// emails are ruby. These are transactional emails about someone's account, so
+// they must look like the dashboard they link into.
 // ─────────────────────────────────────────────────────────────
 
 const { NICHE_LABELS } = require('../../utils/niches');
+const { getTierConfig } = require('../../utils/tiers');
+
+// Plans have names now (Free / Silver / Golden / Platinum), so emails must use
+// them instead of the old catch-all "Premium". Falls back to a capitalised
+// slug if an unknown tier ever reaches here rather than dropping the line.
+const tierLabel = (role, tier) => {
+  if (!tier) return null;
+  return getTierConfig(role, tier)?.label
+    || String(tier).charAt(0).toUpperCase() + String(tier).slice(1);
+};
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
 // Role palettes (top accent bar, logo chip, CTA button gradients).
 const THEMES = {
+  // Brand green (#228B22) and creator ruby (#E0115F) — the same two app
+  // palettes used across the dashboards.
   brand: {
-    bar:    'linear-gradient(90deg,#6B7FBB,#3D5087)',
-    logo:   'linear-gradient(135deg,#6B7FBB,#3D5087)',
-    button: 'linear-gradient(135deg,#3D5087,#6B7FBB)',
+    bar:    'linear-gradient(90deg,#3FA34D,#228B22)',
+    logo:   'linear-gradient(135deg,#3FA34D,#228B22)',
+    button: 'linear-gradient(135deg,#228B22,#1B6E1B)',
   },
   influencer: {
-    bar:    'linear-gradient(90deg,#7FA8AD,#27717E)',
-    logo:   'linear-gradient(135deg,#7FA8AD,#27717E)',
-    button: 'linear-gradient(135deg,#27717E,#5BA8B5)',
+    bar:    'linear-gradient(90deg,#F0417B,#E0115F)',
+    logo:   'linear-gradient(135deg,#F0417B,#E0115F)',
+    button: 'linear-gradient(135deg,#E0115F,#B00D4D)',
   },
 };
 const BRAND = THEMES.brand;
@@ -455,24 +469,29 @@ module.exports = {
   },
 
   // Premium subscription purchased/renewed via Razorpay (to the subscriber)
-  premiumUpgradeConfirmed({ role, billingCycle, amount, premiumUntil }) {
+  premiumUpgradeConfirmed({ role, billingCycle, tier, amount, premiumUntil }) {
     const theme = themeFor(role);
+    const plan = tierLabel(role, tier);
     const until = premiumUntil
       ? new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
       : null;
     return {
-      subject: 'Payment received — Premium is active',
+      subject: plan ? `Payment received — ${plan} is active` : 'Payment received — your plan is active',
       html: layout({
         theme,
-        heading: 'Welcome to Premium 🎉',
+        heading: plan ? `Welcome to ${plan} 🎉` : 'Your plan is active 🎉',
         bodyHtml:
-          para(`Your payment went through and Premium is now active on your account.`) +
+          para(`Your payment went through and ${plan || 'your plan'} is now active on your account.`) +
           details([
+            ['Plan', plan],
             ['Billing cycle', billingCycle === 'yearly' ? 'Yearly' : 'Monthly'],
             ['Amount paid', inr(amount)],
-            ['Expires', until],
+            ['Access until', until],
           ]) +
-          para('This receipt is for your records. This payment covers a single period and will not renew by itself — start a plan from your billing page to keep access after the date above.') +
+          // Only the one-time Order path sends this email (subscriptions send
+          // subscriptionCharged), so the no-renewal wording is accurate and
+          // must stay — telling a one-time buyer it renews would be false.
+          para('This receipt is for your records. This was a one-time payment covering a single period, so it will not renew by itself — start a plan from your billing page to keep access after the date above.') +
           button('Manage billing', `${APP_URL}/${role}/billing`, theme),
       }),
     };
@@ -496,7 +515,7 @@ module.exports = {
             ? 'Your payment went through and auto-renewal is now set up on your account.'
             : 'We charged your saved payment method for another billing cycle.') +
           details([
-            ['Plan', tier ? String(tier).charAt(0).toUpperCase() + String(tier).slice(1) : null],
+            ['Plan', tierLabel(role, tier)],
             ['Billing cycle', billingCycle === 'yearly' ? 'Yearly' : 'Monthly'],
             ['Amount paid', inr(amount)],
             ['Access until', fmt(premiumUntil)],
@@ -521,10 +540,10 @@ module.exports = {
         heading: immediate ? 'Plan cancelled' : 'Auto-renewal turned off',
         bodyHtml:
           para(immediate
-            ? 'Your plan has been cancelled and Premium access has ended. You will not be charged again.'
+            ? `Your plan has been cancelled and ${tierLabel(role, tier) || 'your paid'} access has ended. You will not be charged again.`
             : 'We have turned off auto-renewal, so you will not be charged again.') +
           details([
-            ['Plan', tier ? String(tier).charAt(0).toUpperCase() + String(tier).slice(1) : null],
+            ['Plan', tierLabel(role, tier)],
             ['Access until', until],
           ]) +
           para(immediate
@@ -551,11 +570,11 @@ module.exports = {
             ? 'We tried to renew your plan a few times and the payment did not go through, so automatic renewal has stopped.'
             : 'We could not collect this cycle\'s payment. We will try again shortly — no action is needed unless it keeps failing.') +
           details([
-            ['Plan', tier ? String(tier).charAt(0).toUpperCase() + String(tier).slice(1) : null],
+            ['Plan', tierLabel(role, tier)],
             ['Access until', until],
           ]) +
           para(halted
-            ? 'You keep Premium until the date above. To stay on Premium after that, start a new plan from your billing page.'
+            ? `You keep ${tierLabel(role, tier) || 'your plan'} until the date above. To stay on it after that, start a new plan from your billing page.`
             : 'Common causes are an expired card or insufficient balance.') +
           button('Update billing', `${APP_URL}/${role}/billing`, theme),
       }),

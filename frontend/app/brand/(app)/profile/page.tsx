@@ -7,6 +7,7 @@ import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
 import { INDUSTRIES, NICHE_STYLES as INDUSTRY_COLORS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
+import { normalizeTier, tierLabel } from '@/lib/tiers';
 
 // Structural check for an Indian GSTIN (mirrors the backend validator).
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -160,7 +161,9 @@ export default function BrandProfile() {
   );
 
   const displayName = user?.name || profile?.companyName || 'Your Brand';
-  const isPremium   = user?.plan === 'premium';
+  const planTier    = normalizeTier('brand', (user as { tier?: string } | null)?.tier);
+  const planName    = tierLabel('brand', planTier);
+  const isPremium   = planTier !== 'free';
   const industryChip = profile?.industry ? (INDUSTRY_COLORS[profile.industry] ?? INDUSTRY_COLORS.other) : null;
 
   const fieldClass = 'w-full px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#228B22]/25 focus:border-[#228B22] transition-all bg-white';
@@ -266,7 +269,7 @@ export default function BrandProfile() {
               <span className={`self-start mt-11 text-xs font-bold px-2.5 py-1 rounded-full border ${
                 isPremium ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-[#EAF7EA] dark:bg-[#14531D] text-[#228B22] dark:text-blue-300 border-[#228B22]/20 dark:border-blue-800/40'
               }`}>
-                {isPremium ? '★ Premium' : 'Freemium'}
+                {isPremium ? `★ ${planName}` : planName}
               </span>
             </div>
 

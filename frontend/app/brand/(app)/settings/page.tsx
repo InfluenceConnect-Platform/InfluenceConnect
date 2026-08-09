@@ -241,6 +241,7 @@ export default function BrandSettings() {
                       <AccountInfoSection
                         account={account}
                         accentColor="#228B22"
+                        role="brand"
                         onUpdate={updates => setAccount(prev => prev ? { ...prev, ...updates } : prev)}
                       />
                     </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useTheme } from '@/lib/useTheme';
+import { tierLabel } from '@/lib/tiers';
 
 interface AccountInfo {
   name: string;
@@ -11,6 +12,7 @@ interface AccountInfo {
   signupMethod: string;
   createdAt: string;
   plan: string;
+  tier?: string;
 }
 
 interface Props {
@@ -18,6 +20,9 @@ interface Props {
   accentColor: string; // '#228B22' for brand, '#E0115F' for creator
   onUpdate: (updates: Partial<AccountInfo>) => void;
   showPlan?: boolean;  // false for accounts without a plan (e.g. admin)
+  // Needed to name the tier — the ladders differ per role (brands stop at
+  // Golden, creators go on to Platinum). Only read when showPlan is true.
+  role?: 'brand' | 'influencer';
 }
 
 type FieldState = 'idle' | 'sending' | 'otp' | 'verifying' | 'done';
@@ -36,7 +41,7 @@ interface FieldMsg {
   text: string;
 }
 
-export default function AccountInfoSection({ account, accentColor, onUpdate, showPlan = true }: Props) {
+export default function AccountInfoSection({ account, accentColor, onUpdate, showPlan = true, role = 'influencer' }: Props) {
   const { isDark } = useTheme();
 
   const [name, setName] = useState(account.name);
@@ -373,7 +378,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
 
       <p className={`text-xs pt-2 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
         Member since {new Date(account.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}
-        {showPlan && <> · {account.plan === 'premium' ? '★ Premium' : 'Freemium'} plan</>}
+        {showPlan && <> · {tierLabel(role, account.tier)} plan</>}
       </p>
     </div>
   );

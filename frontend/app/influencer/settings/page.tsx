@@ -239,6 +239,7 @@ export default function InfluencerSettings() {
                       <AccountInfoSection
                         account={account}
                         accentColor="#E0115F"
+                        role="influencer"
                         onUpdate={updates => setAccount(prev => prev ? { ...prev, ...updates } : prev)}
                       />
                     </div>

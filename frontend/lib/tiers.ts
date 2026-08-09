@@ -224,6 +224,19 @@ export function normalizeTier(role: 'brand' | 'influencer', tier?: string | null
   return (tier && tier in table ? tier : 'free') as AnyTierKey;
 }
 
+/**
+ * Display name for a tier — "Free", "Silver", "Golden", "Platinum".
+ *
+ * Anything user-facing must use this rather than the legacy `plan` field
+ * ('freemium'/'premium'), which cannot tell Silver from Golden and shows a
+ * ₹399 brand the same "Premium" badge as a ₹499 one.
+ */
+export function tierLabel(role: 'brand' | 'influencer', tier?: string | null): string {
+  const key = normalizeTier(role as 'influencer', tier);
+  return (role === 'brand' ? BRAND_TIERS : INFLUENCER_TIERS)
+    .find(t => t.key === key)?.label ?? 'Free';
+}
+
 export function brandCaps(tier?: string | null): BrandCaps {
   return BRAND_CAPS[normalizeTier('brand', tier)];
 }

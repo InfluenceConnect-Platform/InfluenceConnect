@@ -9,7 +9,7 @@ import IdChip from '@/components/shared/IdChip';
 import { useTheme } from '@/lib/useTheme';
 import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import NichePicker from '@/components/shared/NichePicker';
-import { influencerCaps } from '@/lib/tiers';
+import { influencerCaps, normalizeTier, tierLabel } from '@/lib/tiers';
 import { cdnImg } from '@/lib/img';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
@@ -307,6 +307,9 @@ function InfluencerProfile() {
   // Custom public-profile URL — Silver+ only (see backend/utils/tiers.js).
   const [slugInput, setSlugInput] = useState('');
   const canCustomUrl = influencerCaps((profile?.userId as { tier?: string } | undefined)?.tier).customUrl;
+  // Name the tier rather than the legacy freemium/premium `plan` flag.
+  const profileTier = normalizeTier('influencer', (profile?.userId as { tier?: string } | undefined)?.tier);
+  const profilePlanName = tierLabel('influencer', profileTier);
   const [city, setCity] = useState('');
   const [area, setArea] = useState('');
   const [priceRangeMin, setPriceRangeMin] = useState('');
@@ -1281,11 +1284,11 @@ function InfluencerProfile() {
                     <p className="text-xs text-gray-400 mt-0.5">{profile?.userId?.email}</p>
                   </div>
                   <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
-                    profile?.userId?.plan === 'premium'
+                    profileTier !== 'free'
                       ? 'bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-[#3A2606] dark:to-[#241703] text-amber-700 dark:text-[#FCD34D] border-amber-200 dark:border-[#6B4E12]'
                       : 'bg-[#FCE4EC] text-[#7A0F3D] border-[#F0417B]/30'
                   }`}>
-                    {profile?.userId?.plan === 'premium' ? '★ Premium' : 'Freemium'}
+                    {profileTier !== 'free' ? `★ ${profilePlanName}` : profilePlanName}
                   </span>
                 </div>
 
