@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# generated QR assets — regenerate rather than commit
+/public/qr/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

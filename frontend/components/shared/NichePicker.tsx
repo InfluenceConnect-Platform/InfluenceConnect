@@ -114,7 +114,11 @@ export default function NichePicker({
               }`}
             >
               <span className="flex items-center gap-2 min-w-0">
-                <span className={`text-[13px] font-bold truncate ${dark ? 'text-slate-100' : 'text-gray-900'}`}>
+                {/* Category names are long ("Business, Wealth & Personal
+                    Finance") and the filter sidebar is narrow, so truncating
+                    left every one of them ending in "…" and unreadable. Wrap
+                    to as many lines as the name needs instead. */}
+                <span className={`text-[13px] font-bold leading-snug break-words ${dark ? 'text-slate-100' : 'text-gray-900'}`}>
                   {cat.label}
                 </span>
                 {pickedInCat > 0 && (
