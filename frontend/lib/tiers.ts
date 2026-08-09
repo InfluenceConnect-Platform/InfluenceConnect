@@ -64,6 +64,7 @@ export const INFLUENCER_TIERS: TierDef[] = [
       '2 portfolio uploads',
       '1 portfolio item visible to brands',
       '1 campaign invitation/month',
+      '1 campaign application/month',
       '3 messages per day',
       'Basic credibility score',
     ],
@@ -75,6 +76,7 @@ export const INFLUENCER_TIERS: TierDef[] = [
       '10 portfolio uploads',
       '3 portfolio items visible to brands',
       '3 campaign invitations/month',
+      '3 campaign applications/month',
       '5 messages per day',
       'Basic credibility score',
       'Public profile with custom URL',
@@ -88,6 +90,7 @@ export const INFLUENCER_TIERS: TierDef[] = [
       '20 portfolio uploads',
       '5 portfolio items visible to brands',
       '5 campaign invitations/month',
+      '5 campaign applications/month',
       '10 messages per day',
       'Advanced credibility score',
       'CSV earnings export',
@@ -104,6 +107,7 @@ export const INFLUENCER_TIERS: TierDef[] = [
       'Unlimited portfolio uploads',
       'All portfolio items visible to brands',
       'Unlimited campaign invitations',
+      'Unlimited campaign applications',
       'Unlimited daily messages',
       'Advanced credibility score',
       'CSV earnings export',
@@ -186,7 +190,7 @@ export const BRAND_CAPS: Record<BrandTierKey, BrandCaps> = {
 export const INFLUENCER_CAPS: Record<InfluencerTierKey, InfluencerCaps> = {
   free: {
     order: 0, maxPortfolioUploads: 2, visiblePortfolioItems: 1, invitationsPerMonth: 1,
-    maxMessagesPerDay: 3, maxApplicationsPerMonth: 3, credibilityDetail: 'basic',
+    maxMessagesPerDay: 3, maxApplicationsPerMonth: 1, credibilityDetail: 'basic',
     customUrl: false, campaignFilters: false, csvExport: false, earningsBreakdown: false, earlyAccess: false,
   },
   silver: {

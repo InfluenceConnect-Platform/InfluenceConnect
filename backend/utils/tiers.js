@@ -39,7 +39,7 @@ const INFLUENCER_TIERS = {
   free: {
     label: 'Free', order: 0, priceMonthly: 0,
     maxPortfolioUploads: 2, visiblePortfolioItems: 1, invitationsPerMonth: 1,
-    maxMessagesPerDay: 3, maxApplicationsPerMonth: 3, credibilityDetail: 'basic',
+    maxMessagesPerDay: 3, maxApplicationsPerMonth: 1, credibilityDetail: 'basic',
     customUrl: false, campaignFilters: false, csvExport: false, earningsBreakdown: false, earlyAccess: false,
   },
   silver: {
