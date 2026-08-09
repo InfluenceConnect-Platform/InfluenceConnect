@@ -2,6 +2,6 @@
   "rewrites": [{ "source": "/(.*)", "destination": "/index.js" }],
   "crons": [
     { "path": "/api/payments/reconcile", "schedule": "0 3 * * *" },
-    { "path": "/api/payments/autopay-renewals", "schedule": "0 */6 * * *" }
+    { "path": "/api/payments/autopay-renewals", "schedule": "0 2 * * *" }
   ]
 }
