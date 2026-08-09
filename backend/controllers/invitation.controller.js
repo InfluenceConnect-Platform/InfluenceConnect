@@ -5,7 +5,16 @@ const Deal = require('../models/Deal');
 const User = require('../models/User');
 const BrandProfile = require('../models/BrandProfile');
 const InfluencerProfile = require('../models/InfluencerProfile');
-const { getTierConfig } = require('../utils/tiers');
+const { getTierConfig, BRAND_TIERS } = require('../utils/tiers');
+
+// Cheapest brand tier that includes creator invitations. Derived rather than
+// hardcoded so the upsell can't drift if the entitlement moves between tiers.
+function firstTierWithInvites() {
+  const match = Object.values(BRAND_TIERS)
+    .sort((a, b) => a.order - b.order)
+    .find(t => t.canInvite);
+  return match ? match.label : 'a paid plan';
+}
 const notify = require('../services/email');
 
 // ─────────────────────────────────────────
@@ -15,10 +24,12 @@ const notify = require('../services/email');
 exports.sendInvitations = async (req, res) => {
   try {
     // Tier gate — proactive invitations aren't available on the Free tier.
+    // `tier_limit` is the code every other tier gate uses; this one said
+    // `premium_only`, a name from the pre-tier model that nothing handled.
     if (!getTierConfig('brand', req.user.tier).canInvite) {
       return res.status(403).json({
-        error: 'premium_only',
-        message: 'Upgrade your plan to invite influencers to your campaigns.'
+        error: 'tier_limit',
+        message: `Upgrade to ${firstTierWithInvites()} to invite creators to your campaigns.`
       });
     }
 

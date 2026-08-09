@@ -225,6 +225,11 @@ exports.getCampaigns = async (req, res) => {
       return res.json({
         campaigns: [],
         pagination: { total: 0, page: parseInt(page), pages: 0 },
+        // Echoed on this branch too so the response shape never varies. The UI
+        // hides the filter bar entirely while a profile is incomplete, so this
+        // is invisible today — but leaving it out meant a Silver+ creator got
+        // `canFilter: undefined` here, which reads as "upgrade to filter".
+        canFilter,
         profileIncomplete: true,
         missingFields,
       });
