@@ -61,7 +61,7 @@ exports.getOverviewStats = async (req, res) => {
     const recentSignupsRaw = await User.find()
       .sort({ createdAt: -1 })
       .limit(8)
-      .select('name email role plan status createdAt');
+      .select('name email role plan tier status createdAt');
 
     const recentInfIds   = recentSignupsRaw.filter(u => u.role === 'influencer').map(u => u._id);
     const recentBrandIds = recentSignupsRaw.filter(u => u.role === 'brand').map(u => u._id);
@@ -193,12 +193,14 @@ exports.getOverviewStats = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getAllUsers = async (req, res) => {
   try {
-    const { role, status, plan, page = 1, limit = 20, search } = req.query;
+    const { role, status, plan, tier, page = 1, limit = 20, search } = req.query;
 
     const query = {};
     if (role) query.role = role;
     if (status) query.status = status;
     if (plan) query.plan = plan;
+    // `tier` is the real subscription level now; `plan` is the legacy binary.
+    if (tier) query.tier = tier;
     if (search) {
       // Escape regex metacharacters so a raw user ID (with its hyphens) and any
       // pasted value are matched literally, not parsed as a pattern.
@@ -1097,11 +1099,40 @@ exports.reopenGstinRejection = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getSubscriptionOverview = async (req, res) => {
   try {
-    const [totalUsers, freemiumUsers, premium] = await Promise.all([
+    const Subscription = require('../models/Subscription');
+
+    const [totalUsers, freemiumUsers, premium, subAgg] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } }),
-      computePremiumRevenue()
+      computePremiumRevenue(),
+      // Health of the recurring book: who will actually renew, who has already
+      // cancelled but is still inside a paid period, and whose mandate is
+      // failing. Counting these is the difference between "revenue we have"
+      // and "revenue that will still be here next month".
+      Subscription.aggregate([
+        { $match: { status: { $in: ['created', 'authenticated', 'active', 'pending', 'halted'] } } },
+        {
+          $group: {
+            _id: null,
+            renewing:   { $sum: { $cond: [{ $and: [
+              { $in: ['$status', ['authenticated', 'active', 'pending']] },
+              { $eq: ['$cancelAtCycleEnd', false] }
+            ] }, 1, 0] } },
+            cancelling: { $sum: { $cond: [{ $eq: ['$cancelAtCycleEnd', true] }, 1, 0] } },
+            halted:     { $sum: { $cond: [{ $eq: ['$status', 'halted'] }, 1, 0] } },
+            pending:    { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
+            total:      { $sum: 1 },
+          }
+        }
+      ])
     ]);
+
+    const health = subAgg[0] || { renewing: 0, cancelling: 0, halted: 0, pending: 0, total: 0 };
+    delete health._id;
+
+    // Paying users with no Subscription record are on the one-time fallback
+    // (bought before recurring was enabled, or via the non-recurring path).
+    const onOneTime = Math.max(0, (premium.totalPremium || 0) - health.total);
 
     const { mrrTrend, ...premiumFields } = premium;
 
@@ -1109,7 +1140,8 @@ exports.getSubscriptionOverview = async (req, res) => {
       overview: {
         totalUsers,
         freemiumUsers,
-        ...premiumFields
+        ...premiumFields,
+        subscriptionHealth: { ...health, onOneTime },
       },
       mrrTrend
     });
@@ -1137,15 +1169,23 @@ exports.getSubscriptionPayments = async (req, res) => {
 
     const [payments, total] = await Promise.all([
       Payment.find(query)
-        .populate('userId', 'name email customId role plan premiumUntil')
+        .populate('userId', 'name email customId role plan tier premiumUntil')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
       Payment.countDocuments(query)
     ]);
 
+    // Subscription-sourced charges are keyed `sub_<subId>_<cycle>` by
+    // applyChargedCycle; one-time Orders carry a real Razorpay order id.
+    const decorated = payments.map(p => {
+      const o = p.toObject();
+      o.recurring = typeof o.razorpayOrderId === 'string' && o.razorpayOrderId.startsWith('sub_');
+      return o;
+    });
+
     res.json({
-      payments,
+      payments: decorated,
       pagination: { total, page, pages: Math.ceil(total / limit) || 1 }
     });
 

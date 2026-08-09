@@ -52,6 +52,17 @@ function PageLoader() {
   );
 }
 
+// Tier is the real subscription level; `plan` is the legacy binary kept in
+// sync with it. Show the tier so Silver/Golden/Platinum stay distinguishable.
+const TIER_STYLES: Record<string, string> = {
+  free:     'bg-gray-50 text-gray-500 border border-gray-200',
+  silver:   'bg-slate-100 text-slate-700 border border-slate-300',
+  golden:   'bg-amber-50 text-amber-700 border border-amber-200',
+  platinum: 'bg-violet-50 text-violet-700 border border-violet-200',
+};
+const tierOf = (u: { tier?: string; plan?: string }) =>
+  u.tier || (u.plan === 'premium' ? 'silver' : 'free');
+
 export default function AdminDashboard() {
   const router = useRouter();
   const toast = useToast();
@@ -383,12 +394,8 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${
-                          u.plan === 'premium'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-100'
-                            : 'bg-gray-50 text-gray-500 border border-gray-200'
-                        }`}>
-                          {u.plan}
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${TIER_STYLES[tierOf(u)] ?? TIER_STYLES.free}`}>
+                          {tierOf(u)}
                         </span>
                       </td>
                       <td className="px-4 py-3">

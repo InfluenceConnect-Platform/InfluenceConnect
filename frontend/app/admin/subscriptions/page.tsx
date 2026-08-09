@@ -263,6 +263,81 @@ export default function AdminSubscriptions() {
                 </div>
               </div>
 
+              {/* Tier mix — where the money actually comes from. The old view
+                  only knew "premium", which hid whether revenue was Silver
+                  volume or Golden/Platinum value. */}
+              <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-1">Tier mix</h3>
+                <p className="text-xs text-gray-400 mb-5">Paying users and monthly value by plan level.</p>
+                {(['influencer', 'brand'] as const).map(role => {
+                  const byTier = overview?.tierBreakdown?.[role] ?? {};
+                  const tiers = Object.keys(byTier);
+                  const roleTotal = tiers.reduce((sum, t) => sum + (byTier[t]?.users ?? 0), 0);
+                  if (!tiers.length) return null;
+                  return (
+                    <div key={role} className="mb-5 last:mb-0">
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2.5">
+                        {role === 'influencer' ? 'Creators' : 'Brands'}
+                      </p>
+                      <div className="flex flex-col gap-2">
+                        {tiers.map(t => {
+                          const row = byTier[t] ?? { users: 0, mrr: 0 };
+                          const pct = roleTotal ? Math.round((row.users / roleTotal) * 100) : 0;
+                          const color = t === 'platinum' ? '#8b5cf6' : t === 'golden' ? '#f59e0b' : '#64748b';
+                          return (
+                            <button
+                              key={t}
+                              onClick={() => router.push(`/admin/users?tier=${t}&role=${role}`)}
+                              className="group text-left rounded-lg -mx-2 px-2 py-1.5 hover:bg-gray-50 transition-colors cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[13px] font-semibold text-gray-700 capitalize">{t}</span>
+                                <span className="text-[12px] text-gray-500">
+                                  {row.users} {row.users === 1 ? 'user' : 'users'}
+                                  <span className="text-gray-300 mx-1.5">·</span>
+                                  <span className="font-semibold text-gray-700">₹{fmt(row.mrr)}/mo</span>
+                                </span>
+                              </div>
+                              <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Recurring health — the difference between revenue we have and
+                  revenue that will still be here next month. */}
+              <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-1">Auto-renewal health</h3>
+                <p className="text-xs text-gray-400 mb-5">Status of the recurring mandates behind that revenue.</p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {([
+                    { label: 'Renewing',       key: 'renewing',   tone: 'bg-green-50 text-green-700 border-green-200',   hint: 'Will charge again' },
+                    { label: 'Cancelling',     key: 'cancelling', tone: 'bg-amber-50 text-amber-700 border-amber-200',   hint: 'Ends at period end' },
+                    { label: 'Payment failing', key: 'halted',    tone: 'bg-red-50 text-red-700 border-red-200',         hint: 'Retries exhausted' },
+                    { label: 'One-time',       key: 'onOneTime',  tone: 'bg-gray-50 text-gray-600 border-gray-200',      hint: 'No mandate' },
+                  ] as const).map(c => (
+                    <div key={c.key} className={`rounded-xl border p-3 ${c.tone}`}>
+                      <p className="text-xl font-black tabular-nums leading-none">
+                        {overview?.subscriptionHealth?.[c.key] ?? 0}
+                      </p>
+                      <p className="text-[11px] font-bold mt-1.5">{c.label}</p>
+                      <p className="text-[10px] opacity-70 mt-0.5">{c.hint}</p>
+                    </div>
+                  ))}
+                </div>
+                {(overview?.subscriptionHealth?.halted ?? 0) > 0 && (
+                  <p className="text-[11px] text-red-600 mt-3 leading-relaxed">
+                    {overview.subscriptionHealth.halted} mandate{overview.subscriptionHealth.halted === 1 ? '' : 's'} stopped after failed retries — those users keep access until their paid period ends, then drop to free.
+                  </p>
+                )}
+              </div>
+
               {/* User breakdown */}
               <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
                 <h3 className="font-semibold text-gray-900 mb-5">User breakdown</h3>
@@ -270,7 +345,7 @@ export default function AdminSubscriptions() {
                   {[
                     { label: 'Total users',        value: overview?.totalUsers ?? 0,        bold: true,  href: '/admin/users' },
                     { label: 'Premium users',       value: overview?.totalPremium ?? 0,       bold: false, href: '/admin/users?plan=premium' },
-                    { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false, href: '/admin/users?plan=freemium' },
+                    { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false, href: '/admin/users?tier=free' },
                     { label: 'Premium creators',    value: overview?.premiumInfluencers ?? 0, bold: false, href: '/admin/users?plan=premium&role=influencer' },
                     { label: 'Premium brands',      value: overview?.premiumBrands ?? 0,      bold: false, href: '/admin/users?plan=premium&role=brand' },
                   ].map((item, i) => (
@@ -371,7 +446,7 @@ export default function AdminSubscriptions() {
                     <table className="w-full">
                       <thead>
                         <tr className="bg-gray-50/80 border-b border-gray-100">
-                          {['Date', 'User', 'Plan', 'Cycle', 'Amount', 'Status', 'ID', ''].map((h, i) => (
+                          {['Date', 'User', 'Tier', 'Type', 'Cycle', 'Amount', 'Status', 'ID', ''].map((h, i) => (
                             <th key={i} className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                               {h}
                             </th>
@@ -394,8 +469,31 @@ export default function AdminSubscriptions() {
                                 <p className="font-semibold text-gray-900">{p.userId?.name || '—'}</p>
                                 <p className="text-[11px] text-gray-400">{p.userId?.email || '—'}</p>
                               </td>
-                              <td className="px-5 py-3.5 text-[12px] text-gray-600 capitalize whitespace-nowrap">
-                                {capWord(p.role)}
+                              <td className="px-5 py-3.5 whitespace-nowrap">
+                                <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize border ${
+                                  p.tier === 'platinum' ? 'bg-violet-50 text-violet-700 border-violet-200'
+                                  : p.tier === 'golden' ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : p.tier === 'silver' ? 'bg-slate-100 text-slate-700 border-slate-300'
+                                  : 'bg-gray-50 text-gray-500 border-gray-200'
+                                }`}>
+                                  {p.tier ?? '—'}
+                                </span>
+                                <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{capWord(p.role)}</p>
+                              </td>
+                              <td className="px-5 py-3.5 whitespace-nowrap">
+                                {p.recurring ? (
+                                  <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-semibold border bg-green-50 text-green-700 border-green-200">
+                                    <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                                      <path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                                    </svg>
+                                    Renewal
+                                  </span>
+                                ) : (
+                                  <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold border bg-gray-50 text-gray-500 border-gray-200">
+                                    One-time
+                                  </span>
+                                )}
                               </td>
                               <td className="px-5 py-3.5 text-[12px] text-gray-600 capitalize whitespace-nowrap">
                                 {p.billingCycle}

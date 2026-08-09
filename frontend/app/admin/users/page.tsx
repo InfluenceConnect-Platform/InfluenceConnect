@@ -11,6 +11,18 @@ import IdChip from '@/components/shared/IdChip';
 import UserDetailDrawer from '@/components/shared/UserDetailDrawer';
 import { cdnImg } from '@/lib/img';
 
+// Tier is the real subscription level; `plan` is the legacy binary kept in
+// sync with it. Admin shows the tier so Silver/Golden/Platinum are
+// distinguishable at a glance.
+const TIER_STYLES: Record<string, string> = {
+  free:     'bg-gray-50 text-gray-500 border border-gray-200',
+  silver:   'bg-slate-100 text-slate-700 border border-slate-300',
+  golden:   'bg-amber-50 text-amber-700 border border-amber-200',
+  platinum: 'bg-violet-50 text-violet-700 border border-violet-200',
+};
+const tierOf = (u: { tier?: string; plan?: string }) =>
+  u.tier || (u.plan === 'premium' ? 'silver' : 'free');
+
 const ROLE_STYLES: Record<string, string> = {
   influencer: 'bg-teal-50 text-teal-700 border border-teal-100',
   brand:      'bg-blue-50 text-blue-700 border border-blue-100',
@@ -27,6 +39,7 @@ function AdminUsers() {
   const [search, setSearch]         = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [planFilter, setPlanFilter] = useState('');
+  const [tierFilter, setTierFilter] = useState('');
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
   const [pages, setPages]           = useState(1);
@@ -49,13 +62,14 @@ function AdminUsers() {
   useEffect(() => {
     setRoleFilter(searchParams.get('role') || '');
     setPlanFilter(searchParams.get('plan') || '');
+    setTierFilter(searchParams.get('tier') || '');
     setPage(1);
   }, [searchParams]);
 
   useEffect(() => {
     fetchUsers();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roleFilter, planFilter, page]);
+  }, [roleFilter, planFilter, tierFilter, page]);
 
   const fetchUsers = async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
@@ -63,6 +77,7 @@ function AdminUsers() {
       const params: Record<string, string | number> = { limit: 20, page };
       if (roleFilter) params.role = roleFilter;
       if (planFilter) params.plan = planFilter;
+      if (tierFilter) params.tier = tierFilter;
       if (search)     params.search = search;
       const response = await api.get('/api/admin/users', { params });
       setUsers(response.data.users);
@@ -79,7 +94,9 @@ function AdminUsers() {
 
   const handleSearch = () => { setPage(1); fetchUsers(); };
   const handleRoleFilter = (role: string) => { setRoleFilter(role); setPage(1); };
-  const handlePlanFilter = (plan: string) => { setPlanFilter(plan); setPage(1); };
+  // Selecting a tier clears the legacy plan filter — they'd otherwise AND
+  // together and silently return nothing (e.g. plan=freemium + tier=golden).
+  const handleTierFilter = (tier: string) => { setTierFilter(tier); setPlanFilter(''); setPage(1); };
 
   const showToast = (msg: string) => {
     toast.show(msg, /fail|error|cannot|unable|wrong/.test(msg.toLowerCase()) ? 'error' : 'success');
@@ -151,17 +168,23 @@ function AdminUsers() {
           </div>
           <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto shadow-sm">
             {[
-              { value: '',         label: 'All plans' },
-              { value: 'premium',  label: 'Premium' },
-              { value: 'freemium', label: 'Freemium' },
+              { value: '',         label: 'All tiers' },
+              { value: 'free',     label: 'Free' },
+              { value: 'silver',   label: 'Silver' },
+              { value: 'golden',   label: 'Golden' },
+              { value: 'platinum', label: 'Platinum' },
             ].map(f => (
               <button
                 key={f.value}
-                onClick={() => handlePlanFilter(f.value)}
+                onClick={() => handleTierFilter(f.value)}
                 className={`flex-shrink-0 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  planFilter === f.value
-                    ? f.value === 'premium'
+                  tierFilter === f.value
+                    ? f.value === 'golden'
                       ? 'bg-amber-500 text-white shadow-sm'
+                      : f.value === 'platinum'
+                      ? 'bg-violet-500 text-white shadow-sm'
+                      : f.value === 'silver'
+                      ? 'bg-slate-500 text-white shadow-sm'
                       : 'bg-[#3E4751] text-white shadow-sm'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
@@ -232,12 +255,8 @@ function AdminUsers() {
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${
-                          u.plan === 'premium'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-100'
-                            : 'bg-gray-50 text-gray-500 border border-gray-200'
-                        }`}>
-                          {u.plan}
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${TIER_STYLES[tierOf(u)] ?? TIER_STYLES.free}`}>
+                          {tierOf(u)}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
@@ -328,12 +347,8 @@ function AdminUsers() {
                           <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${ROLE_STYLES[u.role]}`}>
                             {u.role}
                           </span>
-                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${
-                            u.plan === 'premium'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-100'
-                              : 'bg-gray-50 text-gray-500 border border-gray-200'
-                          }`}>
-                            {u.plan}
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${TIER_STYLES[tierOf(u)] ?? TIER_STYLES.free}`}>
+                            {tierOf(u)}
                           </span>
                           <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize ${
                             u.status === 'active'     ? 'bg-green-50 text-green-700 border border-green-100'

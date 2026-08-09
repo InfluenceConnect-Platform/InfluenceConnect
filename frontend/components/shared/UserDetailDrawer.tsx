@@ -49,6 +49,17 @@ interface Props {
   onChanged: () => void;   // notify parent to refresh the table
 }
 
+// Tier is the real subscription level; `plan` is the legacy binary kept in
+// sync with it. Show the tier so Silver/Golden/Platinum stay distinguishable.
+const TIER_STYLES: Record<string, string> = {
+  free:     'bg-gray-50 text-gray-500 border border-gray-200',
+  silver:   'bg-slate-100 text-slate-700 border border-slate-300',
+  golden:   'bg-amber-50 text-amber-700 border border-amber-200',
+  platinum: 'bg-violet-50 text-violet-700 border border-violet-200',
+};
+const tierOf = (u: { tier?: string; plan?: string }) =>
+  u.tier || (u.plan === 'premium' ? 'silver' : 'free');
+
 export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) {
   const toast = useToast();
   const confirm = useConfirm();
@@ -262,9 +273,9 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-lg font-bold text-gray-900 truncate">{user.name || '—'}</h2>
-                    {user.plan === 'premium' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-gradient-to-r from-amber-400 to-yellow-500 text-white shadow-sm">
-                        ★ PREMIUM
+                    {tierOf(user) !== 'free' && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-gradient-to-r from-amber-400 to-yellow-500 text-white shadow-sm uppercase">
+                        ★ {tierOf(user)}
                       </span>
                     )}
                   </div>
@@ -285,11 +296,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                       : user.status === 'suspended' ? 'bg-red-50 text-red-700 border border-red-100'
                       : 'bg-amber-50 text-amber-700 border border-amber-100'
                     }>{cap(user.status)}</Badge>
-                    <Badge className={
-                      user.plan === 'premium'
-                        ? 'bg-amber-50 text-amber-700 border border-amber-100'
-                        : 'bg-gray-50 text-gray-500 border border-gray-200'
-                    }>{cap(user.plan)}</Badge>
+                    <Badge className={TIER_STYLES[tierOf(user)] ?? TIER_STYLES.free}>{cap(tierOf(user))}</Badge>
                   </div>
                 </div>
               </div>

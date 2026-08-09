@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const Payment = require('../models/Payment');
-const { PLAN_PRICE } = require('./planPricing');
+const { getTierConfig, TIERS_BY_ROLE } = require('./tiers');
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -23,7 +23,7 @@ async function computePremiumRevenue() {
   const now = new Date();
 
   const [premiumMembers, lifetimeAgg] = await Promise.all([
-    User.find({ plan: 'premium', premiumUntil: { $gt: now } }).select('role premiumStartedAt premiumUntil'),
+    User.find({ plan: 'premium', premiumUntil: { $gt: now } }).select('role tier premiumStartedAt premiumUntil'),
     // Total, all-time revenue actually collected — not tied to who's still active.
     Payment.aggregate([
       { $match: { status: 'paid' } },
@@ -47,7 +47,9 @@ async function computePremiumRevenue() {
   // Sum of every paid payment's monthly-equivalent value for this user.
   const monthlyEquivalentFor = (u) => {
     const payments = paymentsByUser[u._id.toString()];
-    if (!payments || payments.length === 0) return PLAN_PRICE[u.role] || 0;
+    if (!payments || payments.length === 0) {
+      return getTierConfig(u.role, u.tier)?.priceMonthly || 0;
+    }
     return payments.reduce((sum, p) => sum + (p.billingCycle === 'yearly' ? (p.amount / 100) / 12 : p.amount / 100), 0);
   };
 
@@ -65,6 +67,15 @@ async function computePremiumRevenue() {
   let brandMonthlyCount = 0, brandYearlyCount = 0;
   let premiumInfluencers = 0, premiumBrands = 0;
 
+  // Paying users and revenue split by tier, so admin can see whether the
+  // money is coming from Silver volume or Golden/Platinum value.
+  const tierBreakdown = { influencer: {}, brand: {} };
+  Object.keys(TIERS_BY_ROLE).forEach(role => {
+    Object.keys(TIERS_BY_ROLE[role]).forEach(tier => {
+      if (tier !== 'free') tierBreakdown[role][tier] = { users: 0, mrr: 0 };
+    });
+  });
+
   premiumMembers.forEach(u => {
     const monthlyEquivalent = monthlyEquivalentFor(u);
     const cycles = cyclesFor(u);
@@ -72,6 +83,12 @@ async function computePremiumRevenue() {
     // bucket, same as the previous fallback behavior.
     const hasMonthly = cycles.has('monthly') || cycles.size === 0;
     const hasYearly = cycles.has('yearly');
+
+    const tierKey = u.tier && u.tier !== 'free' ? u.tier : null;
+    if (tierKey && tierBreakdown[u.role] && tierBreakdown[u.role][tierKey]) {
+      tierBreakdown[u.role][tierKey].users += 1;
+      tierBreakdown[u.role][tierKey].mrr += monthlyEquivalent;
+    }
 
     if (u.role === 'influencer') {
       premiumInfluencers++;
@@ -86,6 +103,10 @@ async function computePremiumRevenue() {
     }
   });
 
+  Object.values(tierBreakdown).forEach(byTier =>
+    Object.values(byTier).forEach(t => { t.mrr = Math.round(t.mrr); })
+  );
+
   influencerMRR = Math.round(influencerMRR);
   brandMRR = Math.round(brandMRR);
   const mrr = influencerMRR + brandMRR;
@@ -97,7 +118,7 @@ async function computePremiumRevenue() {
   const allPremiumMembers = await User.find({
     plan: 'premium',
     premiumStartedAt: { $ne: null }
-  }).select('role premiumStartedAt');
+  }).select('role tier premiumStartedAt');
 
   const mrrTrend = [];
   for (let i = 5; i >= 0; i--) {
@@ -125,6 +146,7 @@ async function computePremiumRevenue() {
     influencerYearlyCount,
     brandMonthlyCount,
     brandYearlyCount,
+    tierBreakdown,
     mrrTrend
   };
 }
