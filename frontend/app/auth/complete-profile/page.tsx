@@ -175,7 +175,7 @@ function CompleteProfilePage() {
   };
 
   return (
-    <AuthLayout>
+    <AuthLayout role={isBrand ? 'brand' : 'influencer'}>
       <div className="w-full max-w-md">
         <div className="rounded-2xl overflow-hidden shadow-[0_2px_4px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.07),0_24px_56px_rgba(127,168,173,0.1)] border border-gray-200/80">
           {/* Gradient accent bar */}

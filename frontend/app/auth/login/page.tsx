@@ -280,7 +280,7 @@ function LoginForm({ role }: { role: Role }) {
   const p = PANEL[role];
 
   return (
-    <AuthLayout>
+    <AuthLayout role={role}>
       <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
 
         {/* ── Left panel — role-themed marketing copy ── */}

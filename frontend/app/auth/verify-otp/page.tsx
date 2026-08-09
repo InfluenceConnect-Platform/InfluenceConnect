@@ -224,7 +224,7 @@ export default function VerifyOTPPage() {
   };
 
   return (
-    <AuthLayout>
+    <AuthLayout role={isBrand ? 'brand' : 'influencer'}>
       <div className="w-full max-w-2xl">
 
         {/* Progress steps */}
