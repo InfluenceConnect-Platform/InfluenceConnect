@@ -198,7 +198,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 
 /* Infinite niche marquee — content must be duplicated once for a seamless loop */
-.anim-marquee { animation: marqueeX 55s linear infinite; }
+.anim-marquee { animation: marqueeX 45s linear infinite; }
 @keyframes marqueeXRev {
   from { transform: translateX(-50%); }
   to   { transform: translateX(0); }
