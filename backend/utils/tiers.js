@@ -10,23 +10,27 @@
 
 const Infinity_ = Infinity;
 
+// NOTE: shortlisting is deliberately available on every brand tier. The
+// client's doc lists only "accept, reject" for Free, but confirmed that was an
+// omission rather than an intended restriction — so there is no
+// applicationActions gate here, and none should be added back.
 const BRAND_TIERS = {
   free: {
     label: 'Free', order: 0, priceMonthly: 0,
     maxActiveCampaigns: 3, discoverPerDay: 5, maxMessagesPerDay: 5, maxFileMB: 10,
-    applicationActions: ['accept', 'reject'], prioritySupport: false, darkModePerk: false,
+    prioritySupport: false, darkModePerk: false,
     quickActions: false, earlyAccess: false, canInvite: false,
   },
   silver: {
     label: 'Silver', order: 1, priceMonthly: 399,
     maxActiveCampaigns: 5, discoverPerDay: 10, maxMessagesPerDay: 10, maxFileMB: 30,
-    applicationActions: ['shortlist', 'accept', 'reject'], prioritySupport: true, darkModePerk: true,
+    prioritySupport: true, darkModePerk: true,
     quickActions: true, earlyAccess: false, canInvite: true,
   },
   golden: {
     label: 'Golden', order: 2, priceMonthly: 499,
     maxActiveCampaigns: Infinity_, discoverPerDay: Infinity_, maxMessagesPerDay: Infinity_, maxFileMB: Infinity_,
-    applicationActions: ['shortlist', 'accept', 'reject'], prioritySupport: true, darkModePerk: true,
+    prioritySupport: true, darkModePerk: true,
     quickActions: true, earlyAccess: true, canInvite: true,
   },
 };

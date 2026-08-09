@@ -358,9 +358,26 @@ export default function BrandDashboard() {
           {/* Sidebar */}
           <div className="flex flex-col gap-4">
 
-            {/* Quick actions — 2×2 grid */}
+            {/* Quick actions — a Silver+ perk ("Quick actions at Dashboard" in
+                the client's tier sheet). Free brands see the upsell instead;
+                every destination is still reachable from the main nav, so this
+                gates the shortcut, not the functionality. */}
             <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm">
               <h3 className="font-bold text-gray-900 mb-4">Quick Actions</h3>
+              {!brandCaps((user as { tier?: string } | null)?.tier).quickActions ? (
+                <div className="rounded-xl border border-[#C8E6C9] bg-[#EAF7EA] px-4 py-3.5">
+                  <p className="text-[12.5px] font-semibold text-[#14531D] mb-1">
+                    Quick actions come with Silver
+                  </p>
+                  <p className="text-[11.5px] text-[#1B6E1B]/80 mb-2.5">
+                    One-tap shortcuts to your most common tasks, right here on the dashboard.
+                  </p>
+                  <Link href="/brand/billing"
+                    className="inline-block text-[11.5px] font-bold text-white bg-gradient-to-r from-[#3FA34D] to-[#228B22] px-3 py-1.5 rounded-lg hover:from-[#228B22] hover:to-[#1B6E1B] transition-all">
+                    Upgrade →
+                  </Link>
+                </div>
+              ) : (
               <div className="grid grid-cols-2 gap-2.5">
                 {[
                   {
@@ -400,6 +417,7 @@ export default function BrandDashboard() {
                   </Link>
                 ))}
               </div>
+              )}
             </div>
 
             {/* Upgrade card */}

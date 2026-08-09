@@ -525,9 +525,15 @@ function BrandDiscover() {
     if (!uid) return;
     setDirectSending(true);
     const results: string[] = [];
+    // A creator who has hit their monthly invitation cap still returns 200 with
+    // invited: 0 — counting the request as a send would tell the brand an
+    // invitation went out when none did.
+    let capBlocked = 0;
     for (const campaignId of selectedCampaignIds) {
       try {
         const res = await api.post('/api/invitations', { campaignId, influencerIds: [uid] });
+        if (res.data.capSkipped) capBlocked += 1;
+        if (!res.data.invited) continue;
         results.push(campaignId);
         // Track the new invitation ID so it shows as cancellable immediately
         const newInv = res.data.invitations?.[0];
@@ -537,6 +543,9 @@ function BrandDiscover() {
       } catch {
         // skip already-invited or errors silently
       }
+    }
+    if (results.length === 0 && capBlocked > 0) {
+      setToast(`${directInviteInfluencer.userId?.name || 'This creator'} has reached their invitation limit for this month.`);
     }
     if (results.length > 0) {
       setDirectInvitedMap(prev => {

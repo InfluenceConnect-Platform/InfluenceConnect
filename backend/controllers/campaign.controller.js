@@ -192,12 +192,22 @@ function computeCampaignMatch(profile, campaign) {
 exports.getCampaigns = async (req, res) => {
   try {
     const {
-      niche,
-      city,
-      platform,
+      niche: nicheParam,
+      city: cityParam,
+      platform: platformParam,
       page = 1,
       limit = 12
     } = req.query;
+
+    // Campaign search filters are a Silver+ feature (backend/utils/tiers.js —
+    // "Filters for campaigns searching" in the client's tier sheet). Ignore the
+    // params for Free rather than erroring, so a stale client degrades to the
+    // unfiltered list instead of breaking. Automatic relevance matching still
+    // applies to everyone — this only gates the manual filters.
+    const canFilter = getTierConfig('influencer', req.user.tier).campaignFilters;
+    const niche = canFilter ? nicheParam : undefined;
+    const city = canFilter ? cityParam : undefined;
+    const platform = canFilter ? platformParam : undefined;
 
     // Flip any overdue campaigns to 'expired' so they drop out of the browse list.
     await expireOverdueCampaigns();
@@ -300,6 +310,9 @@ exports.getCampaigns = async (req, res) => {
 
     res.json({
       campaigns: enriched,
+      // Echoed so the UI gates the filter bar on the same source of truth the
+      // server used, rather than a second copy of the tier rules.
+      canFilter,
       pagination: {
         total,
         page: parseInt(page),

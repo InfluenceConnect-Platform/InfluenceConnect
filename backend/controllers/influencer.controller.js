@@ -137,7 +137,7 @@ exports.getStatsHistory = async (req, res) => {
 // ─────────────────────────────────────────
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, bio, niche, subNiches, city, area, priceRangeMin, priceRangeMax, platforms } = req.body;
+    const { name, slug, bio, niche, subNiches, city, area, priceRangeMin, priceRangeMax, platforms } = req.body;
 
     const profile = await InfluencerProfile.findOne({ userId: req.userId });
     if (!profile) {
@@ -153,6 +153,35 @@ exports.updateProfile = async (req, res) => {
         return res.status(400).json({ error: 'Name cannot be empty.' });
       }
       await User.findByIdAndUpdate(req.userId, { name: trimmedName });
+    }
+
+    // Custom public-profile URL — a Silver+ feature ("Public profile with
+    // custom URL" in the client's tier sheet). Free creators keep the slug
+    // auto-generated at signup. Validated for shape and uniqueness because it
+    // is the public identifier other people link to.
+    if (slug !== undefined && String(slug).trim() !== profile.slug) {
+      const { getTierConfig } = require('../utils/tiers');
+      if (!getTierConfig('influencer', req.user.tier).customUrl) {
+        return res.status(403).json({
+          error: 'tier_limit',
+          message: 'A custom profile URL is available on Silver and above.',
+        });
+      }
+      const desired = String(slug).trim().toLowerCase();
+      if (!/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/.test(desired)) {
+        return res.status(400).json({
+          error: 'Use 3–40 characters: lowercase letters, numbers and hyphens, not starting or ending with a hyphen.',
+        });
+      }
+      // Reserved words that would collide with real routes.
+      if (['admin', 'api', 'auth', 'brand', 'influencer', 'login', 'signup', 'settings', 'billing'].includes(desired)) {
+        return res.status(400).json({ error: 'That URL is reserved. Please choose another.' });
+      }
+      const taken = await InfluencerProfile.findOne({ slug: desired, userId: { $ne: req.userId } }).select('_id');
+      if (taken) {
+        return res.status(409).json({ error: 'That URL is already taken. Please choose another.' });
+      }
+      profile.slug = desired;
     }
 
     // Update fields

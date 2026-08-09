@@ -51,7 +51,7 @@ exports.sendInvitations = async (req, res) => {
     const validInfluencers = await User.find({
       _id: { $in: ids },
       role: 'influencer'
-    }).select('_id');
+    }).select('_id tier');
     const validIds = validInfluencers.map(u => u._id.toString());
 
     // Skip anyone already invited to this campaign (unique index also guards this).
@@ -61,8 +61,31 @@ exports.sendInvitations = async (req, res) => {
     }).select('influencerId');
     const alreadyInvited = new Set(existing.map(i => i.influencerId.toString()));
 
+    // Per-tier cap on how many invitations a creator can RECEIVE in a calendar
+    // month (backend/utils/tiers.js — 1 free, 3 silver, 5 golden, unlimited
+    // platinum). The cap belongs to the recipient, not the sender, so a brand
+    // simply can't reach a creator who is already at their limit this month.
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const receivedCounts = await Invitation.aggregate([
+      { $match: { influencerId: { $in: validInfluencers.map(u => u._id) }, createdAt: { $gte: startOfMonth } } },
+      { $group: { _id: '$influencerId', count: { $sum: 1 } } }
+    ]);
+    const receivedThisMonth = new Map(receivedCounts.map(r => [r._id.toString(), r.count]));
+
+    const atInviteCap = new Set();
+    validInfluencers.forEach(u => {
+      const cap = getTierConfig('influencer', u.tier).invitationsPerMonth;
+      if (!Number.isFinite(cap)) return;
+      if ((receivedThisMonth.get(u._id.toString()) || 0) >= cap) {
+        atInviteCap.add(u._id.toString());
+      }
+    });
+
     const toCreate = validIds
-      .filter(id => !alreadyInvited.has(id))
+      .filter(id => !alreadyInvited.has(id) && !atInviteCap.has(id))
       .map(id => ({
         campaignId,
         brandId: req.userId,
@@ -93,12 +116,17 @@ exports.sendInvitations = async (req, res) => {
       });
     }
 
+    const capSkipped = atInviteCap.size;
     res.json({
       message: created.length
         ? `Invitation${created.length > 1 ? 's' : ''} sent to ${created.length} influencer${created.length > 1 ? 's' : ''}.`
-        : 'No new invitations sent.',
+          + (capSkipped ? ` ${capSkipped} creator${capSkipped > 1 ? 's have' : ' has'} reached their invitation limit for this month.` : '')
+        : capSkipped
+          ? `No invitations sent — ${capSkipped} creator${capSkipped > 1 ? 's have' : ' has'} reached their invitation limit for this month.`
+          : 'No new invitations sent.',
       invited: created.length,
       skipped: validIds.length - created.length,
+      capSkipped,
       invitations: created.map(inv => ({
         _id: inv._id.toString(),
         influencerId: inv.influencerId.toString(),
@@ -235,7 +263,25 @@ exports.getInfluencerInvitations = async (req, res) => {
       };
     });
 
-    res.json({ invitations: result });
+    // Monthly invitation allowance for this creator's tier, so the UI can show
+    // how much brand outreach they can still receive this month.
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const receivedThisMonth = await Invitation.countDocuments({
+      influencerId: req.userId,
+      createdAt: { $gte: startOfMonth },
+    });
+    const cap = getTierConfig('influencer', req.user.tier).invitationsPerMonth;
+
+    res.json({
+      invitations: result,
+      allowance: {
+        used: receivedThisMonth,
+        // Infinity doesn't survive JSON — null means unlimited.
+        limit: Number.isFinite(cap) ? cap : null,
+      },
+    });
   } catch (error) {
     console.error('Get influencer invitations error:', error);
     res.status(500).json({ error: 'Something went wrong.' });

@@ -9,6 +9,7 @@ import IdChip from '@/components/shared/IdChip';
 import { useTheme } from '@/lib/useTheme';
 import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import NichePicker from '@/components/shared/NichePicker';
+import { influencerCaps } from '@/lib/tiers';
 import { cdnImg } from '@/lib/img';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
@@ -303,6 +304,9 @@ function InfluencerProfile() {
   const [subNiches, setSubNiches] = useState<string[]>([]);
   // Expands the niche chip row on the profile summary card.
   const [showAllNiches, setShowAllNiches] = useState(false);
+  // Custom public-profile URL — Silver+ only (see backend/utils/tiers.js).
+  const [slugInput, setSlugInput] = useState('');
+  const canCustomUrl = influencerCaps((profile?.userId as { tier?: string } | undefined)?.tier).customUrl;
   const [city, setCity] = useState('');
   const [area, setArea] = useState('');
   const [priceRangeMin, setPriceRangeMin] = useState('');
@@ -340,6 +344,7 @@ function InfluencerProfile() {
         setBio(p.bio || '');
         setNiche(p.niche || []);
         setSubNiches(p.subNiches || []);
+        setSlugInput(p.slug || '');
         setCity(p.city || '');
         setArea(p.area || '');
         setPriceRangeMin(p.priceRangeMin?.toString() || '');
@@ -359,6 +364,7 @@ function InfluencerProfile() {
     setBio(profile.bio || '');
     setNiche(profile.niche || []);
     setSubNiches(profile.subNiches || []);
+    setSlugInput(profile.slug || '');
     setCity(profile.city || '');
     setArea(profile.area || '');
     setPriceRangeMin(profile.priceRangeMin?.toString() || '');
@@ -414,12 +420,13 @@ function InfluencerProfile() {
       await api.put('/api/influencer/profile', {
         name: trimmedName,
         bio, niche, subNiches, city, area: area.trim(),
+        ...(canCustomUrl && slugInput.trim() !== (profile?.slug || '') ? { slug: slugInput.trim() } : {}),
         priceRangeMin: parseInt(priceRangeMin) || 0,
         priceRangeMax: parseInt(priceRangeMax) || 0,
         platforms,
       });
       // Keep the cached user (top nav, avatar) in sync with the new name. The
-      // public profile slug is unaffected — it never changes after creation.
+      // public profile slug only changes when a Silver+ creator edits it.
       try {
         const stored = localStorage.getItem('user');
         if (stored) {
@@ -1402,6 +1409,40 @@ function InfluencerProfile() {
                       </svg>
                     </div>
                     <p className="text-xs text-gray-400 mt-1.5">Helps brands find you when they search by city.</p>
+                  </div>
+
+                  {/* Public profile URL — editable on Silver+ ("Public profile
+                      with custom URL"); Free keeps the auto-generated slug. */}
+                  <div>
+                    <label htmlFor="profile-slug" className="block text-xs font-semibold text-gray-700 mb-2">
+                      Public profile URL
+                      {!canCustomUrl && (
+                        <span className="ml-1.5 text-[10px] font-bold uppercase tracking-widest text-[#B00D4D]">Silver+</span>
+                      )}
+                    </label>
+                    <div className={`flex items-stretch rounded-xl border overflow-hidden ${
+                      canCustomUrl ? 'border-gray-200' : 'border-gray-200 bg-gray-50'
+                    }`}>
+                      <span className="flex items-center px-3 text-xs text-gray-400 bg-gray-50 border-r border-gray-200 select-none whitespace-nowrap">
+                        /brand/creator/
+                      </span>
+                      <input
+                        id="profile-slug"
+                        type="text"
+                        value={slugInput}
+                        disabled={!canCustomUrl}
+                        onChange={e => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        maxLength={40}
+                        placeholder="your-name"
+                        aria-describedby="profile-slug-help"
+                        className="flex-1 min-w-0 px-3 py-2.5 text-sm text-gray-900 font-mono focus:outline-none disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                    <p id="profile-slug-help" className="text-xs text-gray-400 mt-1.5">
+                      {canCustomUrl
+                        ? '3–40 characters: lowercase letters, numbers and hyphens. This is the link brands share.'
+                        : 'Your link is generated from your name. Upgrade to Silver to choose your own.'}
+                    </p>
                   </div>
 
                   {/* Niche — category ▸ niche ▸ sub-niche */}

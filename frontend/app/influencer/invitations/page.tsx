@@ -3,6 +3,7 @@
 import { useState, useEffect, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { limitLabel } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useToast } from '@/components/shared/Toast';
@@ -105,6 +106,8 @@ export default function InfluencerInvitations() {
   const [user, setUser] = useState<any>(null);
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  // How many invitations this creator's tier lets them receive this month.
+  const [allowance, setAllowance] = useState<{ used: number; limit: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string>('');
   const [expandedDesc, setExpandedDesc] = useState<Set<string>>(new Set());
@@ -132,6 +135,7 @@ export default function InfluencerInvitations() {
     try {
       const res = await api.get('/api/invitations/influencer');
       setInvitations(res.data.invitations || []);
+      setAllowance(res.data.allowance ?? null);
     } catch (error) {
       console.error('Fetch invitations error:', error);
     } finally {
@@ -192,6 +196,19 @@ export default function InfluencerInvitations() {
               {pendingCount > 0 && (
                 <div className="flex items-center gap-2 bg-amber-400/90 rounded-full px-3.5 py-1.5">
                   <span className="text-xs font-bold text-gray-900">{pendingCount} awaiting your response</span>
+                </div>
+              )}
+              {/* Monthly invitation allowance — how much brand outreach this
+                  tier can still receive. Unlimited tiers show nothing. */}
+              {allowance?.limit != null && (
+                <div className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 border ${
+                  allowance.used >= allowance.limit
+                    ? 'bg-white text-[#7A0F3D] border-white'
+                    : 'bg-white/10 border-white/15 text-white'
+                }`}>
+                  <span className="text-xs font-semibold">
+                    {allowance.used}/{limitLabel(allowance.limit)} invites this month
+                  </span>
                 </div>
               )}
             </div>

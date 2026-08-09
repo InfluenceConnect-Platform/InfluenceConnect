@@ -138,13 +138,15 @@ export type BrandTierKey = 'free' | 'silver' | 'golden';
 export type InfluencerTierKey = 'free' | 'silver' | 'golden' | 'platinum';
 export type AnyTierKey = BrandTierKey | InfluencerTierKey;
 
+// Shortlisting is intentionally available on every brand tier — the client's
+// doc listed only "accept, reject" for Free, but confirmed that was an
+// omission. No applicationActions gate exists on either side.
 export interface BrandCaps {
   order: number;
   maxActiveCampaigns: number;
   discoverPerDay: number;
   maxMessagesPerDay: number;
   maxFileMB: number;
-  applicationActions: ('shortlist' | 'accept' | 'reject')[];
   canInvite: boolean;
   prioritySupport: boolean;
   quickActions: boolean;
@@ -168,18 +170,15 @@ export interface InfluencerCaps {
 
 export const BRAND_CAPS: Record<BrandTierKey, BrandCaps> = {
   free: {
-    order: 0, maxActiveCampaigns: 3, discoverPerDay: 5, maxMessagesPerDay: 5, maxFileMB: 10,
-    applicationActions: ['accept', 'reject'], canInvite: false,
+    order: 0, maxActiveCampaigns: 3, discoverPerDay: 5, maxMessagesPerDay: 5, maxFileMB: 10, canInvite: false,
     prioritySupport: false, quickActions: false, earlyAccess: false,
   },
   silver: {
-    order: 1, maxActiveCampaigns: 5, discoverPerDay: 10, maxMessagesPerDay: 10, maxFileMB: 30,
-    applicationActions: ['shortlist', 'accept', 'reject'], canInvite: true,
+    order: 1, maxActiveCampaigns: 5, discoverPerDay: 10, maxMessagesPerDay: 10, maxFileMB: 30, canInvite: true,
     prioritySupport: true, quickActions: true, earlyAccess: false,
   },
   golden: {
-    order: 2, maxActiveCampaigns: Infinity, discoverPerDay: Infinity, maxMessagesPerDay: Infinity, maxFileMB: Infinity,
-    applicationActions: ['shortlist', 'accept', 'reject'], canInvite: true,
+    order: 2, maxActiveCampaigns: Infinity, discoverPerDay: Infinity, maxMessagesPerDay: Infinity, maxFileMB: Infinity, canInvite: true,
     prioritySupport: true, quickActions: true, earlyAccess: true,
   },
 };

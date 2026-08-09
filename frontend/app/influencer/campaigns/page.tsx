@@ -490,9 +490,28 @@ export default function InfluencerCampaigns() {
             </button>
           </div>
 
-          {/* Niche chips and the platform/clear controls are separate rows —
-              with 38 niches the platform select was getting swallowed at the
-              end of the wrap and read as just another niche chip. */}
+          {/* Campaign search filters are a Silver+ feature. Free creators keep
+              automatic relevance matching — only the manual filters are gated,
+              and the server ignores the params either way. */}
+          {!caps.campaignFilters ? (
+            <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
+              <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#F3B8CB] dark:border-[#7A0F3D]/50 bg-[#FCE4EC] dark:bg-[#3D0A20] px-4 py-3">
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#7A0F3D] dark:text-[#FFA8C6]">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  Search filters are part of Silver and above
+                </span>
+                <span className="text-[11.5px] text-[#B00D4D] dark:text-[#F5A8BF]">
+                  Your campaigns are still sorted by how well they match your profile.
+                </span>
+                <Link href="/influencer/billing"
+                  className="ml-auto text-[11.5px] font-bold text-white bg-gradient-to-r from-[#F0417B] to-[#E0115F] px-3 py-1.5 rounded-lg hover:from-[#E0115F] hover:to-[#B00D4D] transition-all">
+                  Upgrade →
+                </Link>
+              </div>
+            </div>
+          ) : (
           <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-400 mb-2">
               Niche
@@ -542,6 +561,7 @@ export default function InfluencerCampaigns() {
             )}
             </div>
           </div>
+          )}
         </div>
         )}
 
