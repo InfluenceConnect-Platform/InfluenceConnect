@@ -258,7 +258,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-[#E0115F]" />
                   )}
                   {hasDot && (
-                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 ${dotShadow}`} />
+                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#E0115F] ${dotShadow}`} />
                   )}
                 </Link>
               );
@@ -372,7 +372,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                       <span className={isActive ? activeIconCls : isDark ? 'text-slate-400' : 'text-gray-400'}>{item.icon}</span>
                       {item.label}
                     </span>
-                    {hasDot && <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />}
+                    {hasDot && <span className="w-2 h-2 rounded-full bg-[#E0115F] flex-shrink-0" />}
                   </Link>
                 );
               })}
@@ -431,7 +431,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                 <span className={isActive ? activeIconCls : ''}>{item.icon}</span>
                 {item.label}
                 {hasDot && (
-                  <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 ${dotShadow}`} />
+                  <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-[#E0115F] ${dotShadow}`} />
                 )}
               </Link>
             );

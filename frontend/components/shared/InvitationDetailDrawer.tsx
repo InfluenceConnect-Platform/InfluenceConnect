@@ -6,7 +6,7 @@ import IdChip from '@/components/shared/IdChip';
 import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 
-const NAVY = '#3D5087';
+const ACCENT = '#1B6E1B';   // brand forest green — this drawer is brand-only
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   pending:  { cls: 'bg-amber-50 text-amber-700 border border-amber-200', dot: 'bg-amber-400', label: 'Pending' },
@@ -22,14 +22,14 @@ const STATUS_HINT: Record<string, { text: string; box: string; icon: string }> =
 
 const LEVEL_BADGE: Record<string, string> = {
   starter:      'bg-gray-100 text-gray-600 border-gray-200',
-  growing:      'bg-teal-50 text-teal-700 border-teal-200',
+  growing:      'bg-emerald-50 text-emerald-700 border-emerald-200',
   professional: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   elite:        'bg-amber-50 text-amber-700 border-amber-200',
 };
 
 const AVATAR_GRADS = [
   'from-violet-500 to-purple-600',
-  'from-teal-500 to-cyan-600',
+  'from-[#3FA34D] to-[#1B6E1B]',
   'from-amber-500 to-orange-500',
   'from-indigo-500 to-blue-600',
   'from-pink-500 to-rose-500',
@@ -102,7 +102,7 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-[#1B6E1B] to-[#3FA34D] text-white flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -252,7 +252,7 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                 {inv.status === 'accepted' && (
                   <button
                     onClick={() => router.push(inv.dealId ? `/brand/messages?deal=${inv.dealId}` : '/brand/messages')}
-                    className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] transition-all cursor-pointer inline-flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-[#1B6E1B] to-[#3FA34D] hover:from-[#14531D] hover:to-[#228B22] transition-all cursor-pointer inline-flex items-center justify-center gap-2"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -291,7 +291,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <h3 className="text-[11px] font-bold uppercase tracking-widest mb-2.5" style={{ color: NAVY }}>
+      <h3 className="text-[11px] font-bold uppercase tracking-widest mb-2.5" style={{ color: ACCENT }}>
         {title}
       </h3>
       {children}

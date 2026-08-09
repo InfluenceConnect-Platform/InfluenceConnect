@@ -563,6 +563,7 @@ function LoginForm({ role }: { role: Role }) {
 
       {showForgotPw && (
         <ForgotPasswordModal
+          accent={{ main: t.main, mid: t.mid, dark: t.dark, darker: t.darker }}
           onClose={() => setShowForgotPw(false)}
           onSuccess={handleForgotPwSuccess}
         />

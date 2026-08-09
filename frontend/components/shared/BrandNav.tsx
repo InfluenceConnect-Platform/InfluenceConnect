@@ -247,7 +247,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
               const isCampaigns = item.href === '/brand/campaigns';
               const isActive    = pathname === item.href;
               const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
-              const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-blue-400';
+              const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-[#228B22]';
               return (
                 <Link
                   key={item.href}
@@ -364,7 +364,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
                 const isCampaigns = item.href === '/brand/campaigns';
                 const isActive    = pathname === item.href;
                 const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
-                const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-blue-400';
+                const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-[#228B22]';
                 return (
                   <Link
                     key={item.href}
@@ -429,7 +429,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
             const isCampaigns = item.href === '/brand/campaigns';
             const isActive    = pathname === item.href;
             const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
-            const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-blue-400';
+            const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-[#228B22]';
             return (
               <Link
                 key={item.href}

@@ -6,7 +6,7 @@ import { useToast } from '@/components/shared/Toast';
 import IdChip from '@/components/shared/IdChip';
 import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 
-const TEAL = '#1C4A52';
+const ACCENT = '#B00D4D';   // creator ruby — this drawer is influencer-only
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   applied:     { cls: 'bg-blue-50 text-blue-700 border border-blue-200',    dot: 'bg-blue-400',  label: 'Applied' },
@@ -89,7 +89,7 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-[#1C4A52] to-[#2d7a88] text-white flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-[#B00D4D] to-[#E0115F] text-white flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -140,7 +140,7 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
                 {campaign.niche?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {campaign.niche.map((n: string) => (
-                      <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-teal-50 text-teal-700 border-teal-100'}`}>
+                      <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-[#FCE4EC] text-[#7A0F3D] border-[#F3B8CB]'}`}>
                         {NICHE_LABELS[n] ?? n}
                       </span>
                     ))}
@@ -199,7 +199,7 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
                 {app.status === 'accepted' && (
                   <button
                     onClick={() => router.push(app.dealId ? `/influencer/messages?deal=${app.dealId}` : '/influencer/messages')}
-                    className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-[#1C4A52] to-[#2d7a88] hover:opacity-95 transition-opacity cursor-pointer inline-flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-[#B00D4D] to-[#E0115F] hover:opacity-95 transition-opacity cursor-pointer inline-flex items-center justify-center gap-2"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -237,9 +237,9 @@ export default function ApplicationDetailDrawer({ application, onClose, onWithdr
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-[#EEF4F5]/70 border border-[#DCE9EB] rounded-xl px-2.5 py-2.5 text-center">
+    <div className="bg-[#FCE4EC]/70 border border-[#F3B8CB] rounded-xl px-2.5 py-2.5 text-center">
       <p className="text-[10px] text-[#5D8A8F] font-semibold uppercase tracking-wide">{label}</p>
-      <p className="text-[12.5px] font-bold text-[#1C4A52] mt-1 leading-tight break-words">{value}</p>
+      <p className="text-[12.5px] font-bold text-[#B00D4D] mt-1 leading-tight break-words">{value}</p>
     </div>
   );
 }
@@ -247,7 +247,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <h3 className="text-[11px] font-bold uppercase tracking-widest mb-2.5" style={{ color: TEAL }}>
+      <h3 className="text-[11px] font-bold uppercase tracking-widest mb-2.5" style={{ color: ACCENT }}>
         {title}
       </h3>
       {children}

@@ -788,6 +788,7 @@ function MessagesPage() {
                   <PayoutPanel
                     dealId={selectedDeal._id}
                     role="influencer"
+                    accentColor="#E0115F"
                     open={payoutModalOpen}
                     onClose={() => setPayoutModalOpen(false)}
                     onStatusChange={p => handlePayoutStatusChange(selectedDeal._id, p)}

@@ -7,7 +7,12 @@ import { useTheme } from '@/lib/useTheme';
 interface ForgotPasswordModalProps {
   onClose: () => void;
   onSuccess: (email: string) => void;
+  /** Role palette so the modal matches the login card it opens from. */
+  accent?: { main: string; mid: string; dark: string; darker: string };
 }
+
+// Creator ruby by default; the brand login passes its forest-green ramp.
+const RUBY = { main: '#E0115F', mid: '#F0417B', dark: '#B00D4D', darker: '#7A0F3D' };
 
 type Step = 'email' | 'reset' | 'done';
 
@@ -18,7 +23,7 @@ function maskEmail(email: string): string {
   return `${visible}${'*'.repeat(Math.max(local.length - 2, 3))}@${domain}`;
 }
 
-export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswordModalProps) {
+export default function ForgotPasswordModal({ onClose, onSuccess, accent = RUBY }: ForgotPasswordModalProps) {
   const { isDark } = useTheme();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
@@ -161,21 +166,21 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
   const inputCls = `w-full px-4 py-3 text-sm border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 ${
     isDark
       ? 'text-slate-100 placeholder-slate-600 bg-[#0A1628] border-slate-700 hover:border-slate-600 focus:ring-[#7FA8AD]/25 focus:border-[#7FA8AD]'
-      : 'text-gray-900 placeholder-gray-400 bg-gray-50 border-gray-200 hover:border-gray-300 focus:ring-[#5D8A8F]/20 focus:border-[#5D8A8F]'
+      : 'text-gray-900 placeholder-gray-400 bg-gray-50 border-gray-200 hover:border-gray-300 focus:ring-[var(--ic-accent)]/25 focus:border-[var(--ic-accent)]'
   }`;
 
   const otpDigitCls = (digit: string) => {
     if (digit) {
       return isDark
         ? 'border-[#7FA8AD] bg-[#7FA8AD]/10 text-[#9FC8CD]'
-        : 'border-[#5D8A8F] bg-[#5D8A8F]/10 text-[#3D6B70]';
+        : 'border-[var(--ic-accent)] bg-[var(--ic-accent)]/10 text-[var(--ic-accent-dark)]';
     }
     return isDark
       ? 'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#7FA8AD] focus:bg-[#7FA8AD]/5'
-      : 'border-gray-200 bg-gray-50 text-gray-900 focus:border-[#5D8A8F] focus:bg-[#5D8A8F]/5';
+      : 'border-gray-200 bg-gray-50 text-gray-900 focus:border-[var(--ic-accent)] focus:bg-[var(--ic-accent)]/5';
   };
 
-  const actionBtnCls = `w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#5D8A8F] via-[#4E7A80] to-[#3D5087] hover:from-[#4A7A7F] hover:to-[#2B3B68] shadow-md hover:shadow-lg active:scale-[0.985] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`;
+  const actionBtnCls = `w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[var(--ic-accent-mid)] to-[var(--ic-accent)] hover:from-[var(--ic-accent)] hover:to-[var(--ic-accent-dark)] shadow-md hover:shadow-lg active:scale-[0.985] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`;
 
   return (
     <div
@@ -188,14 +193,20 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
       <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
 
       {/* Modal panel */}
-      <div className={`relative w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.5),0_16px_48px_rgba(0,0,0,0.4)] animate-in fade-in zoom-in-95 duration-200 transition-colors ${
+      <div
+        style={{
+          ['--ic-accent' as string]: accent.main,
+          ['--ic-accent-mid' as string]: accent.mid,
+          ['--ic-accent-dark' as string]: accent.dark,
+        }}
+        className={`relative w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.5),0_16px_48px_rgba(0,0,0,0.4)] animate-in fade-in zoom-in-95 duration-200 transition-colors ${
         isDark
           ? 'border border-slate-700/60 shadow-[0_0_0_1px_rgba(255,255,255,0.06)]'
           : 'border border-gray-200'
       }`}>
 
         {/* Gradient accent bar */}
-        <div className="h-[3px] bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#3D5087]" />
+        <div className="h-[3px] bg-gradient-to-r from-[var(--ic-accent-mid)] to-[var(--ic-accent)]" />
 
         <div className={`px-7 pt-6 pb-7 transition-colors ${isDark ? 'bg-[#0E1B2E]' : 'bg-white'}`}>
 
@@ -218,7 +229,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
           {step === 'email' && (
             <>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center flex-shrink-0 shadow-md">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ic-accent-mid)] to-[var(--ic-accent-dark)] flex items-center justify-center flex-shrink-0 shadow-md">
                   <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
@@ -307,7 +318,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
                     <button
                       onClick={handleResend}
                       disabled={resending}
-                      className="text-xs text-[#5D8A8F] font-semibold hover:text-[#4A7A7F] disabled:opacity-40 cursor-pointer transition-colors"
+                      className="text-xs text-[var(--ic-accent)] font-semibold hover:text-[var(--ic-accent-dark)] disabled:opacity-40 cursor-pointer transition-colors"
                     >
                       {resending ? 'Sending…' : 'Resend code'}
                     </button>

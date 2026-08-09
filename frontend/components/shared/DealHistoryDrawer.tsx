@@ -176,7 +176,7 @@ export default function DealHistoryDrawer({ deal, onClose }: Props) {
               <Section title="Niche">
                 <div className="flex flex-wrap gap-1.5">
                   {deal.niche.map(n => (
-                    <span key={n} className={`text-[11px] px-2.5 py-1 rounded-lg font-bold border ${NICHE_STYLES[n] || 'bg-teal-50 text-teal-700 border-teal-200'}`}>
+                    <span key={n} className={`text-[11px] px-2.5 py-1 rounded-lg font-bold border ${NICHE_STYLES[n] || 'bg-[#FCE4EC] text-[#7A0F3D] border-[#F3B8CB]'}`}>
                       {NICHE_LABELS[n] ?? n}
                     </span>
                   ))}

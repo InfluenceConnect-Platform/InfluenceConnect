@@ -179,7 +179,7 @@ export default function CampaignBriefDrawer({
           {/* Title + brand */}
           <div className={`px-5 pt-5 pb-4 rounded-2xl border ${card}`}>
             <div className="flex items-center gap-3 mb-3">
-              <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-white font-bold ${isDark ? 'bg-teal-700' : 'bg-teal-600'}`}>
+              <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-white font-bold ${isDark ? 'bg-[#B00D4D]' : 'bg-[#E0115F]'}`}>
                 {brandLogoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img loading="lazy" decoding="async" src={cdnImg(brandLogoUrl)} alt={resolvedBrand} className="w-full h-full object-cover" />
@@ -195,7 +195,7 @@ export default function CampaignBriefDrawer({
                     href={website.href}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className={`inline-flex items-center gap-1 mt-1 text-[11.5px] font-medium hover:underline ${isDark ? 'text-teal-300' : 'text-teal-700'}`}
+                    className={`inline-flex items-center gap-1 mt-1 text-[11.5px] font-medium hover:underline ${isDark ? 'text-[#FFA8C6]' : 'text-[#B00D4D]'}`}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -219,7 +219,7 @@ export default function CampaignBriefDrawer({
 
           {loading && (
             <div className="flex items-center justify-center gap-2 py-3">
-              <div className={`w-4 h-4 border-2 rounded-full animate-spin ${isDark ? 'border-teal-400 border-t-transparent' : 'border-teal-600 border-t-transparent'}`} />
+              <div className={`w-4 h-4 border-2 rounded-full animate-spin ${isDark ? 'border-[#F0417B] border-t-transparent' : 'border-[#E0115F] border-t-transparent'}`} />
               <span className={`text-[12px] ${labelClr}`}>Loading full brief…</span>
             </div>
           )}
@@ -267,7 +267,7 @@ export default function CampaignBriefDrawer({
             <Section label="Niche">
               <div className="flex flex-wrap gap-1.5">
                 {c.niche.map((n) => (
-                  <span key={n} className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${isDark ? 'bg-teal-900/30 text-teal-300' : 'bg-teal-50 text-teal-700'}`}>{NICHE_LABELS[n] ?? n}</span>
+                  <span key={n} className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${isDark ? 'bg-[#7A0F3D]/40 text-[#FFA8C6]' : 'bg-[#FCE4EC] text-[#7A0F3D]'}`}>{NICHE_LABELS[n] ?? n}</span>
                 ))}
               </div>
             </Section>

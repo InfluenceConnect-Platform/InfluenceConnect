@@ -27,8 +27,17 @@ interface PayoutPanelProps {
   canMarkPaid?: boolean;
   /** Fires after every load/submit/mark-paid so the parent can drive the composer lock + status strip without its own fetch. */
   onStatusChange?: (payout: Payout | null) => void;
-  accentColor?: string; // hex, defaults to teal to match the influencer theme
+  /** Role accent hex — ruby #E0115F for creators, forest green #228B22 for brands. */
+  accentColor?: string;
 }
+
+// Mixes a hex toward white so a role accent stays legible on dark surfaces.
+const lightenHex = (hex: string, amount: number) => {
+  const h = hex.replace('#', '');
+  const [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mix = (c: number) => Math.round(c + (255 - c) * amount);
+  return `#${[mix(r), mix(g), mix(b)].map(c => c.toString(16).padStart(2, '0')).join('')}`;
+};
 
 const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const ACCOUNT_NUMBER_PATTERN = /^\d{9,18}$/;
@@ -49,8 +58,10 @@ const XIcon = () => (
   </svg>
 );
 
-export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid = true, onStatusChange, accentColor = '#27717E' }: PayoutPanelProps) {
+export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid = true, onStatusChange, accentColor = '#E0115F' }: PayoutPanelProps) {
   const { isDark } = useTheme();
+  // Dark surfaces need a lighter tint of the same accent to stay readable.
+  const accentText = isDark ? lightenHex(accentColor, 0.55) : accentColor;
   const [payout, setPayout] = useState<Payout | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -245,7 +256,8 @@ export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid =
                     <a
                       href={downloadUrlFor({ url: payout.receiptUrl, fileName: payout.receiptFileName, type: 'raw', fileSize: 0, mimeType: '' })}
                       download={payout.receiptFileName || true}
-                      className={`self-start text-[12px] font-semibold underline underline-offset-2 cursor-pointer ${isDark ? 'text-teal-300' : 'text-[#27717E]'}`}
+                      className="self-start text-[12px] font-semibold underline underline-offset-2 cursor-pointer"
+                      style={{ color: accentText }}
                     >
                       View receipt
                     </a>
@@ -333,7 +345,8 @@ export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid =
                   <a
                     href={downloadUrlFor({ url: payout.receiptUrl, fileName: payout.receiptFileName, type: 'raw', fileSize: 0, mimeType: '' })}
                     download={payout.receiptFileName || true}
-                    className={`self-start text-[12px] font-semibold underline underline-offset-2 cursor-pointer ${isDark ? 'text-teal-300' : 'text-[#27717E]'}`}
+                    className="self-start text-[12px] font-semibold underline underline-offset-2 cursor-pointer"
+                      style={{ color: accentText }}
                   >
                     View receipt
                   </a>
