@@ -45,13 +45,13 @@ const INFLUENCER_TIERS = {
   silver: {
     label: 'Silver', order: 1, priceMonthly: 9,
     maxPortfolioUploads: 10, visiblePortfolioItems: 3, invitationsPerMonth: 3,
-    maxMessagesPerDay: 5, maxApplicationsPerMonth: 10, credibilityDetail: 'basic',
+    maxMessagesPerDay: 5, maxApplicationsPerMonth: 3, credibilityDetail: 'basic',
     customUrl: true, campaignFilters: true, csvExport: false, earningsBreakdown: false, earlyAccess: false,
   },
   golden: {
     label: 'Golden', order: 2, priceMonthly: 21,
     maxPortfolioUploads: 20, visiblePortfolioItems: 5, invitationsPerMonth: 5,
-    maxMessagesPerDay: 10, maxApplicationsPerMonth: 25, credibilityDetail: 'advanced',
+    maxMessagesPerDay: 10, maxApplicationsPerMonth: 5, credibilityDetail: 'advanced',
     customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, earlyAccess: true,
   },
   platinum: {
