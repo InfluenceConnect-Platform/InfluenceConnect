@@ -245,7 +245,7 @@ export default function InfluencerCampaigns() {
 
   const handleApply = async (campaignId: string) => {
     if (limitReachedApps) {
-      showToast('You have used all 5 free applications this month. Upgrade to Premium.', 'error');
+      showToast(`You have used all ${limitLabel(APPLICATION_LIMIT)} applications this month on your plan. Upgrade for more.`, 'error');
       return;
     }
     setApplying(campaignId);

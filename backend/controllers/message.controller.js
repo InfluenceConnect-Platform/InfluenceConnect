@@ -6,6 +6,26 @@ const notify = require('../services/email');
 
 const BLOCKED_PATTERN = /(\+?\d[\d\s\-()\u200c]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|insta(gram)?\b|insta\.me|face ?book|\bfb\b|fb\.com|whatsapp|wa\.me|telegram|t\.me|snap(chat)?\b|\bhandle\b|\busername\b)/i;
 
+// How many messages this user has SENT today, counted the same way everywhere.
+//
+// Two things this must get right, both of which the UI previously got wrong by
+// recomputing the number itself from one thread's message list:
+//   - system notices (deal accepted, payout paid, deal complete) carry the
+//     acting user's senderId but are not messages the user chose to send, so
+//     they never count against the allowance;
+//   - the allowance is per DAY across every deal, not per conversation.
+// Exported so getMessages/sendMessage can hand the authoritative number to the
+// client instead of the client guessing.
+async function countMessagesToday(userId) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Message.countDocuments({
+    senderId: userId,
+    system: { $ne: true },
+    createdAt: { $gte: today },
+  });
+}
+
 // ─────────────────────────────────────────
 // DOWNLOAD ATTACHMENT
 // Chat attachments live on Cloudinary as public "upload" resources, so this
@@ -85,7 +105,10 @@ exports.getMessages = async (req, res) => {
       dealId: m.dealId.toString(),
     }));
 
-    res.json({ messages: normalized });
+    // The daily allowance is a per-user, per-day figure that this thread's
+    // messages alone cannot describe — send the authoritative count so the UI
+    // never has to derive it.
+    res.json({ messages: normalized, messagesUsedToday: await countMessagesToday(req.userId) });
 
   } catch (error) {
     console.error('Get messages error:', error);
@@ -148,14 +171,7 @@ exports.sendMessage = async (req, res) => {
 
     // Per-tier daily message limit — see backend/utils/tiers.js
     if (Number.isFinite(tierConfig.maxMessagesPerDay)) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const messagesToday = await Message.countDocuments({
-        senderId: req.userId,
-        system: { $ne: true },
-        createdAt: { $gte: today }
-      });
+      const messagesToday = await countMessagesToday(req.userId);
 
       if (messagesToday >= tierConfig.maxMessagesPerDay) {
         return res.status(403).json({
@@ -226,7 +242,8 @@ exports.sendMessage = async (req, res) => {
         senderId: message.senderId.toString(),
         receiverId: message.receiverId.toString(),
         dealId: message.dealId.toString(),
-      }
+      },
+      messagesUsedToday: await countMessagesToday(req.userId),
     });
 
   } catch (error) {

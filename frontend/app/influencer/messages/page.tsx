@@ -262,6 +262,10 @@ function MessagesPage() {
       const response = await api.get(`/api/messages/${dealId}`);
       if (activeIdRef.current !== dealId) return;
       setMessages(response.data.messages || []);
+      // Server-owned: the allowance spans every deal and excludes the system
+      // notices this creator's own actions post. Without this the counter just
+      // started at 0 on each page load.
+      if (typeof response.data.messagesUsedToday === 'number') setMessagesUsed(response.data.messagesUsedToday);
     } catch { /* ignore */ }
   };
 
@@ -297,13 +301,13 @@ function MessagesPage() {
     nearBottomRef.current = true;
     const attachmentsToSend = pendingAttachments;
     try {
-      await api.post(`/api/messages/${selectedDeal._id}`, {
+      const res = await api.post(`/api/messages/${selectedDeal._id}`, {
         content: newMessage.trim(),
         attachments: attachmentsToSend,
       });
       setNewMessage('');
       setPendingAttachments([]);
-      setMessagesUsed(prev => prev + 1);
+      setMessagesUsed(prev => typeof res.data?.messagesUsedToday === 'number' ? res.data.messagesUsedToday : prev + 1);
       fetchMessages(selectedDeal._id);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };

@@ -324,11 +324,11 @@ function BrandMessages() {
       if (activeIdRef.current !== dealId) return;
       const msgs: Message[] = res.data.messages || [];
       setMessages(msgs);
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const usedToday = msgs.filter(m =>
-        m.senderId?.toString() === user?.id?.toString() && new Date(m.createdAt) >= today
-      ).length;
-      setMessagesUsed(usedToday);
+      // The server owns this number. Deriving it here counted the deal notices
+      // this brand's own actions posted (accept / payout paid / complete) and
+      // only ever saw one thread, so it read high on an active deal and low
+      // across several.
+      if (typeof res.data.messagesUsedToday === 'number') setMessagesUsed(res.data.messagesUsedToday);
     } catch { /* ignore */ }
   }, [user?.id]);
 
@@ -461,8 +461,9 @@ function BrandMessages() {
     try {
       const res = await api.post(`/api/messages/${selectedDeal._id}`, { content: optimistic.content, attachments: attachmentsToSend });
       setMessages(prev => prev.map(m => m._id === optimistic._id ? res.data.message : m));
-      setMessagesUsed(prev => prev + 1);
-      if (Number.isFinite(msgLimit) && messagesUsed + 1 >= msgLimit) setLimitReached(true);
+      const used = typeof res.data.messagesUsedToday === 'number' ? res.data.messagesUsedToday : messagesUsed + 1;
+      setMessagesUsed(used);
+      if (Number.isFinite(msgLimit) && used >= msgLimit) setLimitReached(true);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       setMessages(prev => prev.filter(m => m._id !== optimistic._id));
