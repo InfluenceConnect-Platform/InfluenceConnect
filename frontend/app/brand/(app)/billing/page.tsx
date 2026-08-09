@@ -8,12 +8,21 @@ import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import { useToast } from '@/components/shared/Toast';
 import { openRazorpayCheckout } from '@/lib/razorpay';
+import SubscriptionPanel from '@/components/shared/SubscriptionPanel';
 import { BRAND_TIERS, yearlyPrice } from '@/lib/tiers';
 
 const FAQS = [
   {
-    q: 'Can I cancel a plan purchase?',
-    a: 'Each purchase is a one-time payment, not a recurring subscription — there\'s nothing to cancel. It simply stays active until it expires, and your account automatically moves back to Free if you don\'t buy again. Turning on Autopay (in Settings) makes it renew automatically instead.',
+    q: 'Can I cancel?',
+    a: 'Yes, any time from this page — no fee, no need to contact us. If your plan renews automatically, cancelling stops future charges and you keep full access until the end of the period you have already paid for. You can also choose to end it immediately, but the remaining paid days are then forfeited. One-time purchases have nothing to cancel — they simply run out.',
+  },
+  {
+    q: 'Will I be charged automatically?',
+    a: 'Only if you switch on "Renew automatically" at checkout. One-time payment is the default. With automatic renewal you authorise a mandate through Razorpay, and Razorpay notifies you in advance of every renewal charge. Your next charge date is always shown at the top of this page.',
+  },
+  {
+    q: 'What if a renewal payment fails?',
+    a: 'Razorpay retries it. If it keeps failing, automatic renewal stops and we email you — you keep access until the end of the period you have already paid for, and can start a new plan any time.',
   },
   {
     q: 'What happens when my plan expires?',
@@ -84,6 +93,10 @@ export default function BrandBillingPage() {
   const [premiumUntil, setPremiumUntil] = useState<string | null>(null);
   const [accountEmail, setAccountEmail] = useState('');
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
+  // Auto-renew is opt-in: a one-time purchase stays the default so nobody is
+  // signed up to a recurring mandate without choosing it.
+  const [autoRenew, setAutoRenew] = useState(false);
+  const [subRefresh, setSubRefresh] = useState(0);
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
   useEffect(() => {
@@ -129,26 +142,40 @@ export default function BrandBillingPage() {
   const handleUpgrade = async (tierKey: string) => {
     setLoadingTier(tierKey);
     try {
-      const orderRes = await api.post('/api/payments/create-order', { billingCycle: billing, tier: tierKey });
-      const { orderId, amount, currency, keyId } = orderRes.data;
       const tierDef = BRAND_TIERS.find(t => t.key === tierKey)!;
+      const cycleLabel = billing === 'monthly' ? '30 days' : '365 days';
+
+      // Auto-renew uses Razorpay Subscriptions (a mandate is authorised at
+      // checkout); one-time uses a plain Order. They sign their success
+      // payloads differently, so each needs its own verify endpoint.
+      const endpoint = autoRenew ? '/api/payments/subscription' : '/api/payments/create-order';
+      const startRes = await api.post(endpoint, { billingCycle: billing, tier: tierKey });
+      const { orderId, subscriptionId, amount, currency, keyId } = startRes.data;
 
       await openRazorpayCheckout({
         key: keyId,
-        amount,
-        currency,
-        order_id: orderId,
+        // Razorpay derives the amount from the Plan for subscriptions —
+        // sending both would show the wrong price at checkout.
+        ...(autoRenew ? { subscription_id: subscriptionId } : { amount, currency, order_id: orderId }),
         name: 'Influence Connect',
-        description: `${tierDef.label} (${billing === 'monthly' ? '30 days' : '365 days'})`,
+        description: autoRenew
+          ? `${tierDef.label} — renews every ${billing === 'monthly' ? 'month' : 'year'}`
+          : `${tierDef.label} (${cycleLabel})`,
         prefill: { name: user?.name, email: accountEmail },
         theme: { color: '#228B22' },
         handler: async (response) => {
           try {
-            const verifyRes = await api.post('/api/payments/verify', response);
+            const verifyRes = await api.post(
+              autoRenew ? '/api/payments/subscription/verify' : '/api/payments/verify',
+              response,
+            );
             syncUserToStorage(verifyRes.data.user);
             setPremiumStartedAt(verifyRes.data.user.premiumStartedAt ?? null);
             setPremiumUntil(verifyRes.data.user.premiumUntil ?? null);
-            showToast(`🎉 Welcome to ${tierDef.label}! Your new features are unlocked.`);
+            showToast(autoRenew
+              ? `🎉 ${tierDef.label} is active and will renew automatically.`
+              : `🎉 Welcome to ${tierDef.label}! Your new features are unlocked.`);
+            setSubRefresh(n => n + 1);
           } catch (error: any) {
             showToast(error.response?.data?.error || 'Payment verification failed. Contact support if you were charged.');
           } finally {
@@ -158,7 +185,13 @@ export default function BrandBillingPage() {
         modal: { ondismiss: () => setLoadingTier(null) },
       });
     } catch (error: any) {
-      showToast(error.response?.data?.error || 'Upgrade failed. Please try again.');
+      const code = error.response?.data?.code;
+      if (code === 'RECURRING_UNAVAILABLE') {
+        setAutoRenew(false);
+        showToast('Auto-renewing plans are not available yet — switched to a one-time purchase.');
+      } else {
+        showToast(error.response?.data?.error || 'Upgrade failed. Please try again.');
+      }
       setLoadingTier(null);
     }
   };
@@ -210,6 +243,15 @@ export default function BrandBillingPage() {
           </div>
         )}
 
+        <SubscriptionPanel
+          key={subRefresh}
+          accent="#228B22"
+          accentDark="#14531D"
+          tierLabel={(t) => BRAND_TIERS.find(x => x.key === t)?.label ?? t}
+          notify={showToast}
+          onChanged={() => { setSubRefresh(n => n + 1); fetchAccount(); }}
+        />
+
         {/* Hero header */}
         <section className="relative overflow-hidden bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
@@ -256,6 +298,33 @@ export default function BrandBillingPage() {
             </div>
           </div>
         </section>
+
+        {/* Auto-renew choice — opt-in, so a one-time purchase stays the
+            default and nobody authorises a mandate without picking it. */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex items-center gap-3 flex-wrap justify-center px-4 py-3 rounded-2xl border bg-white dark:bg-[#0f1e31] border-gray-200 dark:border-slate-700/60 shadow-sm">
+            <span className="text-[12.5px] font-semibold text-gray-700 dark:text-slate-200">
+              Renew automatically
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={autoRenew}
+              aria-label="Renew my plan automatically"
+              onClick={() => setAutoRenew(v => !v)}
+              className="relative shrink-0 w-11 h-6 rounded-full transition-colors cursor-pointer"
+              style={{ backgroundColor: autoRenew ? '#228B22' : undefined }}
+            >
+              <span className={`absolute inset-0 rounded-full transition-colors ${autoRenew ? '' : 'bg-gray-300 dark:bg-slate-700'}`} />
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${autoRenew ? 'translate-x-5' : ''}`} />
+            </button>
+            <span className="text-[11.5px] text-gray-500 dark:text-slate-400 max-w-[19rem] leading-relaxed">
+              {autoRenew
+                ? 'You authorise a mandate at checkout. Cancel any time — you keep what you have paid for.'
+                : 'One-time payment. Access simply ends when the period runs out.'}
+            </span>
+          </div>
+        </div>
 
         {/* Plan cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">

@@ -11,6 +11,7 @@ const PREFIXES = {
   application: 'IC-APP',
   deal:        'IC-DEL',
   payment:     'IC-PAY',
+  subscription:'IC-SUB',
 };
 
 /**

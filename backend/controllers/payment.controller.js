@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const Subscription = require('../models/Subscription');
 const notify = require('../services/email');
 const applyTierUpgrade = require('../utils/applyPremiumUpgrade');
 const { BILLING_CYCLES, getPlanAmountPaise } = require('../utils/planPricing');
@@ -142,7 +143,73 @@ exports.verifyPayment = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
-// WEBHOOK  (server-to-server backstop — payment.captured / payment.failed)
+// Subscription webhook events. Razorpay drives the recurring schedule, so
+// these are the primary source of truth for renewals — not a backstop.
+//
+//   subscription.charged   — a cycle was paid; extend access + send receipt
+//   subscription.activated — mandate authorised and running
+//   subscription.pending   — a debit failed; Razorpay will retry
+//   subscription.halted    — retries exhausted; needs the user to act
+//   subscription.cancelled — ended (by us, or by the user at their bank)
+//   subscription.completed — ran out its booked cycles
+// ─────────────────────────────────────────
+async function handleSubscriptionEvent(event, payload) {
+  const entity = payload?.subscription?.entity;
+  const subId = entity?.id;
+  if (!subId) return;
+
+  const sub = await Subscription.findOne({ razorpaySubscriptionId: subId });
+  if (!sub) return;
+
+  const subCtrl = require('./subscription.controller');
+
+  if (event === 'subscription.charged') {
+    const paymentEntity = payload?.payment?.entity;
+    await subCtrl.applyChargedCycle(sub, {
+      remote: entity,
+      razorpayPaymentId: paymentEntity?.id,
+      method: paymentEntity?.method,
+    });
+    return;
+  }
+
+  if (event === 'subscription.halted' || event === 'subscription.pending') {
+    sub.lastFailedAt = new Date();
+    await subCtrl.syncSubscriptionFromRemote(sub, entity, { skipSave: true });
+    sub.status = event === 'subscription.halted' ? 'halted' : 'pending';
+    await sub.save();
+    await subCtrl.syncAutopayFlag(sub.userId);
+
+    const user = await User.findById(sub.userId);
+    if (user) {
+      notify.subscriptionPaymentFailed(user.email, {
+        role: user.role,
+        tier: sub.tier,
+        halted: event === 'subscription.halted',
+        // Access runs to the end of the period they already paid for.
+        accessUntil: user.premiumUntil,
+      });
+    }
+    return;
+  }
+
+  if (event === 'subscription.cancelled' || event === 'subscription.completed'
+      || event === 'subscription.expired') {
+    await subCtrl.syncSubscriptionFromRemote(sub, entity, { skipSave: true });
+    sub.status = event.split('.')[1];
+    if (!sub.endedAt) sub.endedAt = new Date();
+    await sub.save();
+    await subCtrl.syncAutopayFlag(sub.userId);
+    return;
+  }
+
+  // activated / authenticated / updated — just mirror the new state.
+  await subCtrl.syncSubscriptionFromRemote(sub, entity);
+  await subCtrl.syncAutopayFlag(sub.userId);
+}
+
+// ─────────────────────────────────────────
+// WEBHOOK  (server-to-server — payment.* backstop and subscription.* primary)
 // ─────────────────────────────────────────
 exports.webhook = async (req, res) => {
   try {
@@ -154,14 +221,22 @@ exports.webhook = async (req, res) => {
 
     if (event === 'payment.captured') {
       const entity = payload?.payment?.entity;
-      const payment = await Payment.findOne({ razorpayOrderId: entity?.order_id });
-      if (payment) await confirmPaymentAndUpgrade(payment, entity.id, '', entity.method);
+      // Subscription charges also emit payment.captured, but they carry no
+      // order_id of ours — they're handled by subscription.charged below.
+      if (entity?.order_id) {
+        const payment = await Payment.findOne({ razorpayOrderId: entity.order_id });
+        if (payment) await confirmPaymentAndUpgrade(payment, entity.id, '', entity.method);
+      }
     } else if (event === 'payment.failed') {
       const entity = payload?.payment?.entity;
-      await Payment.updateOne(
-        { razorpayOrderId: entity?.order_id, status: 'created' },
-        { status: 'failed' }
-      );
+      if (entity?.order_id) {
+        await Payment.updateOne(
+          { razorpayOrderId: entity.order_id, status: 'created' },
+          { status: 'failed' }
+        );
+      }
+    } else if (event && event.startsWith('subscription.')) {
+      await handleSubscriptionEvent(event, payload);
     }
 
     res.json({ received: true });
@@ -223,7 +298,14 @@ exports.reconcile = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
-// AUTOPAY TOGGLE
+// AUTOPAY TOGGLE  (legacy shim)
+//
+// Autopay is no longer a standalone flag — it is a consequence of holding a
+// Razorpay Subscription. Turning it OFF therefore means cancelling that
+// subscription at the end of the current cycle; turning it ON requires a
+// fresh mandate, which can only be authorised at checkout. This endpoint is
+// kept so older clients get a coherent answer instead of silently writing a
+// flag that nothing honours.
 // ─────────────────────────────────────────
 exports.setAutopay = async (req, res) => {
   try {
@@ -232,18 +314,20 @@ exports.setAutopay = async (req, res) => {
       return res.status(400).json({ error: 'enabled must be true or false.' });
     }
 
-    const user = await User.findById(req.userId);
-    if (!user) return res.status(404).json({ error: 'User not found.' });
-
-    // Autopay only makes sense once there's a paid tier to renew.
-    if (enabled && (!user.tier || user.tier === 'free')) {
-      return res.status(400).json({ error: 'Upgrade to a paid plan before enabling Autopay.' });
+    if (enabled) {
+      return res.status(409).json({
+        error: 'Auto-renewal has to be authorised at checkout. Choose an auto-renewing plan on the billing page.',
+        code: 'REQUIRES_CHECKOUT',
+      });
     }
 
-    user.autopay = enabled;
-    await user.save();
-
-    res.json({ message: enabled ? 'Autopay enabled.' : 'Autopay disabled.', autopay: user.autopay });
+    // enabled:false — delegate to the real cancellation path.
+    const { cancelForUser } = require('./subscription.controller');
+    const result = await cancelForUser(req.userId, {
+      immediate: false,
+      reason: 'Turned off from settings',
+    });
+    return res.status(result.status).json(result.body);
   } catch (error) {
     console.error('Set autopay error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
@@ -251,53 +335,53 @@ exports.setAutopay = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
-// AUTOPAY RENEWALS  (Vercel Cron scaffold — see vercel.json)
+// SUBSCRIPTION RECONCILE  (Vercel Cron — see vercel.json)
 //
-// SCAFFOLD ONLY: this identifies who is due for renewal but does not charge
-// anyone yet. Razorpay isn't configured for recurring billing on this
-// project — the createOrder/verifyPayment flow above only creates one-time
-// Orders, which can't be charged again server-side without the customer
-// present at checkout. Wiring a real charge here requires:
-//   1. Razorpay Subscriptions or an e-mandate ("Recurring Payments") set up
-//      on the merchant account (dashboard config, not code).
-//   2. Capturing a mandate/customer token at the ORIGINAL checkout — in
-//      createOrder, when billingCycle + tier + autopay:true is requested —
-//      since a one-time Order's payment method can't be reused later.
-//   3. Replacing the TODO below with an actual server-initiated charge
-//      against that stored token, then calling applyTierUpgrade + emailing
-//      a receipt exactly like confirmPaymentAndUpgrade does today.
-// Until then, this job only reports who *would* be renewed, so the rest of
-// the autopay plumbing (the toggle, the User.autopay field, this cron slot)
-// is proven out end-to-end before real money moves through it.
+// Razorpay raises recurring charges itself and reports them over
+// subscription.* webhooks, so this job does NOT charge anyone. It exists to
+// catch subscriptions whose webhook was lost: anything whose local period has
+// run out, or that we still think is mid-authorisation, is re-fetched from
+// Razorpay and re-synced. Safe to run repeatedly — applyChargedCycle is
+// idempotent on the Razorpay payment id.
 // ─────────────────────────────────────────
-const RENEWAL_WINDOW_MS = 24 * 60 * 60 * 1000; // flag renewals due within 24h
+const SUB_STALE_MS = 6 * 60 * 60 * 1000; // re-check anything unsynced for 6h
 
 exports.autopayRenewals = async (req, res) => {
-  // Vercel Cron sends `Authorization: Bearer $CRON_SECRET` — same gate as /reconcile.
   if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 
   try {
-    const dueUsers = await User.find({
-      autopay: true,
-      tier: { $ne: 'free' },
-      premiumUntil: { $lte: new Date(Date.now() + RENEWAL_WINDOW_MS), $gt: new Date() },
-    }).select('_id name email role tier premiumUntil');
+    const subCtrl = require('./subscription.controller');
+    const now = new Date();
 
-    // TODO(autopay): once Razorpay recurring is configured, replace this
-    // with real charges — see the scaffold comment above.
-    if (dueUsers.length) {
-      console.log(`[autopay] ${dueUsers.length} user(s) due for renewal:`, dueUsers.map(u => u._id.toString()));
+    const stale = await Subscription.find({
+      status: { $in: ['created', 'authenticated', 'active', 'pending'] },
+      $or: [
+        { currentEnd: { $lte: now } },       // period lapsed but no renewal seen
+        { chargeAt: { $lte: now } },         // charge was due and never reported
+        { updatedAt: { $lte: new Date(Date.now() - SUB_STALE_MS) } },
+      ],
+    }).limit(100);
+
+    let synced = 0;
+    let errored = 0;
+
+    for (const sub of stale) {
+      try {
+        const remote = await razorpay.fetchSubscription(sub.razorpaySubscriptionId);
+        await subCtrl.syncSubscriptionFromRemote(sub, remote);
+        await subCtrl.syncAutopayFlag(sub.userId);
+        synced += 1;
+      } catch (err) {
+        console.error(`[subscription-reconcile] ${sub.razorpaySubscriptionId}`, err.message);
+        errored += 1;
+      }
     }
 
-    res.json({
-      scaffold: true,
-      message: 'Autopay renewal charging is not yet wired to Razorpay recurring billing — see code comment in payment.controller.js.',
-      dueForRenewal: dueUsers.length,
-    });
+    res.json({ checked: stale.length, synced, errored });
   } catch (error) {
-    console.error('Autopay renewals sweep error:', error);
-    res.status(500).json({ error: 'Autopay renewal sweep failed.' });
+    console.error('Subscription reconcile sweep error:', error);
+    res.status(500).json({ error: 'Subscription reconcile sweep failed.' });
   }
 };

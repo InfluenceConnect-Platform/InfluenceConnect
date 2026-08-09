@@ -66,6 +66,10 @@ module.exports = {
   paymentRecordedBrand:        make('paymentRecordedBrand'),
   // Premium subscription purchased/renewed via Razorpay
   premiumUpgradeConfirmed:     make('premiumUpgradeConfirmed'),
+  // recurring billing (Razorpay Subscriptions)
+  subscriptionCharged:         make('subscriptionCharged'),
+  subscriptionCancelled:       make('subscriptionCancelled'),
+  subscriptionPaymentFailed:   make('subscriptionPaymentFailed'),
 
   // Campaign + invitations
   newCampaignToInfluencer:   make('newCampaignToInfluencer'),

@@ -57,7 +57,7 @@ const FAQ_ITEMS = [
   { q: 'How do influencers apply to my campaigns?', a: 'Once published, influencers on the platform can discover and apply. You\'ll see applications in the campaign detail view.' },
   { q: 'How does the Premium plan work?', a: 'Premium unlocks unlimited campaigns, priority discovery placement, and advanced analytics. You can upgrade anytime from the Billing section.' },
   { q: 'Can I message an influencer before accepting their application?', a: 'No — messaging unlocks only after you accept an influencer for a campaign. Once accepted, a conversation opens in the Messages tab.' },
-  { q: 'How do I cancel Premium?', a: 'Premium is a one-time payment, not a recurring subscription, so there\'s nothing to cancel. It simply stays active until it expires, and your account automatically moves back to Freemium.' },
+  { q: 'How do I cancel Premium?', a: 'Open the Billing page and use "Cancel plan" — no fee, and no need to contact us. If your plan renews automatically, cancelling stops future charges and you keep access until the end of the period you have already paid for. A one-time purchase has nothing to cancel: it simply expires and your account moves back to Freemium.' },
 ];
 
 export default function BrandSettings() {
@@ -90,15 +90,23 @@ export default function BrandSettings() {
 
   async function handleToggleAutopay() {
     if (!account) return;
-    const next = !account.autopay;
+    // Auto-renewal can only be switched ON at checkout, where the payment
+    // mandate is authorised — so this toggle only ever turns it OFF.
+    if (!account.autopay) {
+      router.push('/brand/billing');
+      return;
+    }
     setSavingAutopay(true);
     setAutopayMsg(null);
     try {
-      const res = await api.post('/api/payments/autopay', { enabled: next });
-      setAccount(prev => prev ? { ...prev, autopay: res.data.autopay } : prev);
+      const res = await api.post('/api/payments/subscription/cancel', {
+        immediate: false,
+        reason: 'Turned off from settings',
+      });
+      setAccount(prev => prev ? { ...prev, autopay: false } : prev);
       setAutopayMsg({ type: 'success', text: res.data.message });
     } catch (err: any) {
-      setAutopayMsg({ type: 'error', text: err.response?.data?.error || 'Could not update Autopay.' });
+      setAutopayMsg({ type: 'error', text: err.response?.data?.error || 'Could not update auto-renewal.' });
     } finally {
       setSavingAutopay(false);
     }
@@ -240,11 +248,13 @@ export default function BrandSettings() {
                     <div className={cardCls}>
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <div>
-                          <h2 className={`text-base font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Autopay</h2>
+                          <h2 className={`text-base font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Automatic renewal</h2>
                           <p className={`text-xs mt-1 max-w-md ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-                            {account.plan === 'premium'
-                              ? 'Automatically renew your current plan when it expires, instead of reverting to Free.'
-                              : 'Upgrade to a paid plan to enable Autopay.'}
+                            {account.autopay
+                              ? 'Your plan renews automatically. Turning this off stops future charges — you keep access until the end of the period you have already paid for.'
+                              : account.plan === 'premium'
+                              ? 'This plan does not renew by itself. To switch to automatic renewal, choose "Renew automatically" at checkout on the billing page.'
+                              : 'Upgrade to a paid plan to set up automatic renewal.'}
                           </p>
                         </div>
                         <button

@@ -5,7 +5,7 @@
 // platform actually operates: a marketplace that *connects* brands and
 // influencers but is not itself a party to the collaborations they agree.
 // Premium is a one-time, non-recurring payment (30 or 365 days of access,
-// no auto-renewal, no cancellation) billed through Razorpay; the platform
+// one-time or auto-renewing, cancellable) billed through Razorpay; the platform
 // never takes a cut of the deals users strike with each other.
 //
 // ⚠️  BEFORE GOING LIVE: replace the placeholders wrapped in 〔…〕 in
@@ -23,7 +23,7 @@ export const LEGAL_ENTITY = {
   grievanceOfficer: '〔Grievance Officer name〕',
   grievanceEmail: 'grievance@influenceconnect.in',
   website: 'influenceconnect.in',
-  lastUpdated: '8 July 2026',
+  lastUpdated: '9 August 2026',
 };
 
 export type LegalSlug = 'terms' | 'privacy' | 'refund';
@@ -202,35 +202,69 @@ const TERMS: LegalDoc = {
           `exclusive of applicable taxes unless stated otherwise.`
         ),
         p(
-          `Premium is billed through our payment partner, Razorpay, as a single one-time payment for a fixed period — 30 ` +
-          `days for the monthly option or 365 days for the yearly option. It is not a recurring subscription: we do not ` +
-          `store your card or bank details, and no further amount is ever charged automatically. Premium access ends ` +
-          `automatically at the end of the period you paid for, and your account then reverts to the Freemium plan. ` +
-          `(Payout details an Influencer chooses to share for a deal are handled separately, as described in Section 7 and ` +
-          `our Privacy Policy.)`
+          `Premium is billed through our payment partner, Razorpay. At checkout you choose one of two options, and the ` +
+          `option you choose is shown to you before you pay:`
+        ),
+        list([
+          `<strong>One-time purchase</strong> — a single payment for a fixed period (30 days for the monthly option, 365 days for the yearly option). Nothing further is ever charged. Access ends automatically at the end of that period and your account reverts to the Freemium plan.`,
+          `<strong>Automatic renewal</strong> — you authorise a recurring payment mandate with your bank or card issuer through Razorpay, and the same amount is charged automatically at the start of each new period (every 30 days or every 365 days) until you cancel.`,
+        ]),
+        p(
+          `Automatic renewal is never selected for you. It applies only if you actively choose it at checkout and complete ` +
+          `the mandate authorisation your bank or card issuer requires. The amount, the billing frequency, and the date of ` +
+          `the next charge are shown to you before you authorise the mandate and afterwards on your Billing page.`
         ),
         p(
-          `If you make a further Premium Purchase while an earlier one is still active, the new period is added to the end ` +
-          `of your current period rather than starting immediately — for example, purchasing 30 more days on the 15th day ` +
-          `of an active period extends your access by 30 days from its current expiry date, not from the date of the new ` +
-          `purchase.`
+          `Where you have chosen automatic renewal, Razorpay sends you advance notice of each upcoming debit as required ` +
+          `by the Reserve Bank of India's e-mandate framework, and any additional authentication your bank requires is ` +
+          `handled by Razorpay at the time of the charge. We never see or store your full card or bank credentials.`
         ),
         p(
-          `We may change our prices or plan features with reasonable prior notice. Any price change applies only to ` +
-          `Premium Purchases made after the change takes effect. Refunds are governed by our Refund & Cancellation Policy.`
+          `If a recurring charge fails, Razorpay may retry it. If it continues to fail, automatic renewal stops, and your ` +
+          `Premium access continues only until the end of the period you have already paid for. We will email you when ` +
+          `this happens.`
+        ),
+        p(
+          `If you make a further one-time Premium Purchase while an earlier period is still active, the new period is added ` +
+          `to the end of your current period rather than starting immediately — for example, purchasing 30 more days on ` +
+          `the 15th day of an active period extends your access by 30 days from its current expiry date, not from the date ` +
+          `of the new purchase.`
+        ),
+        p(
+          `We may change our prices or plan features with reasonable prior notice. A price change never alters the amount ` +
+          `of an existing automatic renewal without your consent: if the price of your plan changes, your existing mandate ` +
+          `continues at the amount you originally agreed until you cancel it and start a new plan at the new price. ` +
+          `Refunds are governed by our Refund & Cancellation Policy.`
         ),
       ],
     },
     {
       id: 'cancellation',
-      title: '9. No Cancellation; Refunds',
+      title: '9. Cancellation & Refunds',
       blocks: [
         p(
-          `Because Premium is a one-time, non-recurring payment rather than an auto-renewing subscription, there is no ` +
-          `ongoing charge to cancel. Your Premium access simply runs for the period you paid for and then ends on its own ` +
-          `— you are never billed again unless you choose to make another Premium Purchase. Refund ` +
-          `eligibility, exceptions, and processing timelines are set out in our Refund & Cancellation Policy, which forms ` +
-          `part of these Terms.`
+          `If you chose a <strong>one-time purchase</strong>, there is no ongoing charge to cancel. Your Premium access ` +
+          `runs for the period you paid for and then ends on its own — you are never billed again unless you choose to ` +
+          `buy again.`
+        ),
+        p(
+          `If you chose <strong>automatic renewal</strong>, you may cancel at any time, for any reason, without contacting ` +
+          `us and without any cancellation fee. You can do this yourself from the Billing page in your account. When you ` +
+          `cancel you choose what happens to the time you have already paid for:`
+        ),
+        list([
+          `<strong>Cancel at the end of the period (default)</strong> — no further amount is charged, and you keep full Premium access until the end of the period you have already paid for. Your account then moves to the Freemium plan.`,
+          `<strong>End immediately</strong> — Premium access stops straight away. The remainder of the period you have already paid for is forfeited and is not refunded, and this is stated clearly before you confirm.`,
+        ]),
+        p(
+          `Cancelling stops future charges only; it does not by itself entitle you to a refund of amounts already charged. ` +
+          `Refund eligibility, exceptions, and processing timelines are set out in our Refund & Cancellation Policy, which ` +
+          `forms part of these Terms.`
+        ),
+        p(
+          `You may also be able to cancel or revoke the payment mandate directly with your bank or card issuer. If you do, ` +
+          `future charges will stop, but your account status on the Platform may take a short time to reflect this, so we ` +
+          `recommend cancelling from your Billing page.`
         ),
       ],
     },
@@ -432,7 +466,7 @@ const PRIVACY: LegalDoc = {
           `Brand profiles: company/brand name, logo, and business information including GST details where provided.`,
           `Influencer profiles: social-media handles, niche/categories, audience and follower statistics, and portfolio information.`,
           `Communications: messages, campaign briefs, applications, offers, and support requests you send through the Platform, including files and media you attach to messages.`,
-          `Billing information: subscription plan and payment confirmations. Card and bank details used to pay your subscription are collected and processed directly by Razorpay — we do not store the payment instruments used for subscription billing.`,
+          `Billing information: your plan, billing cycle, payment confirmations and receipts. If you choose automatic renewal we also store the identifier of the recurring mandate created by Razorpay, its status, the date of the next scheduled charge, and (optionally) the reason you give when cancelling. Card and bank details are collected and processed directly by Razorpay — we never store your payment instrument or full card or bank credentials.`,
           `Payout details (Influencers): if you choose to submit payout details for an agreed deal, we collect your account holder name and, depending on the method you select, your bank account number and IFSC code or UPI ID. These are stored encrypted and are visible only to the Brand on that specific deal and to authorised Platform administrators (see "How We Protect Your Information").`,
           `Payment proof (Brands): when a Brand marks a deal as paid, we collect the transaction/UTR reference and payment receipt they upload.`,
         ]),
@@ -605,7 +639,7 @@ const PRIVACY: LegalDoc = {
 const REFUND: LegalDoc = {
   slug: 'refund',
   title: 'Refund & Cancellation Policy',
-  subtitle: 'Our policy on Premium one-time payments, refunds, and expiry.',
+  subtitle: 'Our policy on Premium billing, cancellation, and refunds.',
   lastUpdated: LEGAL_ENTITY.lastUpdated,
   intro:
     `This Refund & Cancellation Policy explains how one-time payments, expiry, and refunds work for Premium on the ` +
@@ -630,11 +664,18 @@ const REFUND: LegalDoc = {
       title: '2. Plans & Billing',
       blocks: [
         p(
-          `The Platform offers a free Freemium plan and a paid Premium plan. Premium is a one-time, non-recurring payment ` +
-          `made in advance, in Indian Rupees, through Razorpay — it is not a subscription and does not renew or charge you ` +
-          `automatically. A monthly Premium Purchase grants 30 days of access; a yearly Premium Purchase, offered at a ` +
-          `discount, grants 365 days of access. If you make a further Premium Purchase while an earlier one is still ` +
-          `active, the new period is added to the end of your current period rather than starting immediately.`
+          `The Platform offers a free Freemium plan and a paid Premium plan. Premium is paid in advance, in Indian Rupees, ` +
+          `through our payment partner Razorpay. A monthly plan grants 30 days of access; a yearly plan, offered at a ` +
+          `discount, grants 365 days.`
+        ),
+        p(`At checkout you choose one of two billing options:`),
+        list([
+          `<strong>One-time purchase</strong> — a single payment. Nothing further is ever charged, and access ends when the period runs out.`,
+          `<strong>Automatic renewal</strong> — you authorise a recurring mandate through Razorpay and the same amount is charged at the start of each new period until you cancel. This applies only if you actively choose it at checkout.`,
+        ]),
+        p(
+          `If you make a further one-time purchase while an earlier period is still active, the new period is added to the ` +
+          `end of your current period rather than starting immediately.`
         ),
       ],
     },
@@ -650,20 +691,27 @@ const REFUND: LegalDoc = {
     },
     {
       id: 'cancellation',
-      title: '4. No Cancellation; Automatic Expiry',
+      title: '4. Cancellation',
       blocks: [
+        p(`<strong>One-time purchases.</strong> There is no recurring charge to cancel. Your access runs for the period you paid for, your account then moves to the Freemium plan automatically, and you are never billed again unless you choose to buy again.`),
         p(
-          `Because Premium is a one-time payment and not a recurring subscription, there is nothing to cancel and no ` +
-          `"cancel" option is offered. Instead:`
+          `<strong>Automatically renewing plans.</strong> You can cancel at any time, for any reason, directly from the ` +
+          `Billing page in your account. You do not need to contact us, give a reason, or pay any cancellation fee. When ` +
+          `you cancel you choose one of the following:`
         ),
         list([
-          `Premium access simply runs for the period you paid for (30 or 365 days) and is never billed again automatically;`,
-          `at the end of that period, your account automatically moves to the Freemium plan; and`,
-          `you may make another Premium Purchase at any time, including before your current period ends, in which case the new period is added on top of your existing one.`,
+          `<strong>Cancel at the end of the current period (default and recommended)</strong> — no further amount is charged and you keep full Premium access until the end of the period you have already paid for. Nothing you have paid for is lost.`,
+          `<strong>End immediately</strong> — Premium access stops as soon as you confirm. The unused remainder of the current paid period is forfeited and is not refunded. This consequence is shown to you before you confirm.`,
         ]),
         p(
-          `Because there is no auto-renewal to stop, making a Premium Purchase does not, by itself, trigger a refund of ` +
-          `any current or prior period — see the refund rules below.`
+          `Cancelling stops future charges. It is not, by itself, a request for a refund of an amount already charged — ` +
+          `see the refund rules below. If you believe you were charged after cancelling, contact us and we will investigate ` +
+          `and refund any charge taken in error.`
+        ),
+        p(
+          `You may also cancel or revoke the mandate directly with your bank or card issuer. Future charges will stop, but ` +
+          `we may take a short time to see this, so we recommend cancelling from your Billing page so your account updates ` +
+          `immediately.`
         ),
       ],
     },
@@ -679,7 +727,8 @@ const REFUND: LegalDoc = {
         list([
           `a duplicate or accidental charge for the same or overlapping period;`,
           `a verified technical failure on our side that prevented you from accessing Premium features for a significant part of the paid period and that we were unable to resolve in reasonable time; or`,
-          `an unauthorised transaction that you report promptly and that we are able to verify.`,
+          `an unauthorised transaction that you report promptly and that we are able to verify; or`,
+          `a renewal charged after you had already cancelled, or charged despite a cancellation request we failed to action.`,
         ]),
         p(`Approved refunds are made to your original payment method through Razorpay.`),
       ],
@@ -691,7 +740,8 @@ const REFUND: LegalDoc = {
         p(`Except where required by law, we do not provide refunds:`),
         list([
           `simply because you did not use the Platform or the Premium features during the paid period;`,
-          `for the unused portion of a paid period, since Premium has no cancellation to trigger a partial refund;`,
+          `for the unused portion of a paid period where you chose to end an automatically renewing plan immediately rather than at the end of the period — this consequence is shown to you before you confirm;`,
+          `for a renewal charge you did not cancel before it was taken, where advance notice of the debit was sent to you;`,
           `where your account has been suspended or terminated for breach of our Terms; or`,
           `for any payment made directly between a Brand and an Influencer for a Collaboration.`,
         ]),
@@ -781,5 +831,5 @@ export const LEGAL_DOCS: Record<LegalSlug, LegalDoc> = {
 export const LEGAL_INDEX: { slug: LegalSlug; title: string; desc: string }[] = [
   { slug: 'terms', title: 'Terms & Conditions', desc: 'The agreement governing your use of Influence Connect.' },
   { slug: 'privacy', title: 'Privacy Policy', desc: 'How we collect, use, and protect your personal data.' },
-  { slug: 'refund', title: 'Refund & Cancellation Policy', desc: 'Our policy on Premium one-time payments, refunds, and expiry.' },
+  { slug: 'refund', title: 'Refund & Cancellation Policy', desc: 'How Premium billing, cancellation, and refunds work.' },
 ];

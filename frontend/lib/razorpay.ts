@@ -19,19 +19,29 @@ function loadCheckoutScript(): Promise<void> {
 }
 
 export interface RazorpayCheckoutResponse {
-  razorpay_order_id: string;
+  // Present for one-time Orders.
+  razorpay_order_id?: string;
+  // Present for auto-renewing Subscriptions.
+  razorpay_subscription_id?: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
 }
 
 export interface RazorpayCheckoutOptions {
   key: string;
-  amount: number;
-  currency: string;
-  order_id: string;
+  amount?: number;
+  currency?: string;
+  /** One-time purchase. Mutually exclusive with subscription_id. */
+  order_id?: string;
+  /**
+   * Auto-renewing purchase. Razorpay derives the amount from the Plan, so
+   * `amount` is ignored when this is set — passing both is what silently
+   * produces a checkout showing the wrong price.
+   */
+  subscription_id?: string;
   name?: string;
   description?: string;
-  prefill?: { name?: string; email?: string };
+  prefill?: { name?: string; email?: string; contact?: string };
   theme?: { color?: string };
   handler: (response: RazorpayCheckoutResponse) => void;
   modal?: { ondismiss?: () => void };

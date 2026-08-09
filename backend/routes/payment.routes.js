@@ -3,6 +3,13 @@ const router = express.Router();
 const authenticate = require('../middleware/auth.middleware');
 const { accountActionLimiter, webhookLimiter } = require('../middleware/rateLimit.middleware');
 const { createOrder, verifyPayment, webhook, reconcile, setAutopay, autopayRenewals } = require('../controllers/payment.controller');
+const {
+  createSubscription,
+  verifySubscription,
+  getMySubscription,
+  cancelSubscription,
+  resumeSubscription,
+} = require('../controllers/subscription.controller');
 
 // POST /api/payments/create-order
 router.post('/create-order', authenticate, accountActionLimiter, createOrder);
@@ -23,8 +30,24 @@ router.get('/reconcile', reconcile);
 router.post('/autopay', authenticate, accountActionLimiter, setAutopay);
 
 // GET /api/payments/autopay-renewals  (Vercel Cron only, gated by CRON_SECRET
-// — see vercel.json. Scaffold: identifies who's due, doesn't charge yet —
-// see the comment above autopayRenewals in payment.controller.js.)
+// — see vercel.json. Razorpay raises recurring charges itself; this only
+// re-syncs subscriptions whose webhook was lost.)
 router.get('/autopay-renewals', autopayRenewals);
+
+// ── Recurring billing (Razorpay Subscriptions) ──────────────────────────
+// POST /api/payments/subscription           start an auto-renewing plan
+router.post('/subscription', authenticate, accountActionLimiter, createSubscription);
+
+// POST /api/payments/subscription/verify    checkout success handler
+router.post('/subscription/verify', authenticate, accountActionLimiter, verifySubscription);
+
+// GET  /api/payments/subscription           current subscription for billing UI
+router.get('/subscription', authenticate, getMySubscription);
+
+// POST /api/payments/subscription/cancel    { immediate?, reason? }
+router.post('/subscription/cancel', authenticate, accountActionLimiter, cancelSubscription);
+
+// POST /api/payments/subscription/resume    guidance for re-enabling auto-renewal
+router.post('/subscription/resume', authenticate, accountActionLimiter, resumeSubscription);
 
 module.exports = router;

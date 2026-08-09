@@ -472,8 +472,92 @@ module.exports = {
             ['Amount paid', inr(amount)],
             ['Expires', until],
           ]) +
-          para('This receipt is for your records. Premium is a one-time purchase, not an auto-renewing subscription — it simply stays active until the date above.') +
+          para('This receipt is for your records. This was a one-time purchase — it simply stays active until the date above and will not renew by itself.') +
           button('Manage billing', `${APP_URL}/${role}/billing`, theme),
+      }),
+    };
+  },
+
+  // Recurring plan charged — first activation and every renewal after it.
+  subscriptionCharged({ role, billingCycle, tier, amount, premiumUntil, nextChargeAt, isFirstCharge }) {
+    const theme = themeFor(role);
+    const fmt = (d) => d
+      ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
+      : null;
+    return {
+      subject: isFirstCharge
+        ? 'Payment received — your plan is active'
+        : 'Payment received — your plan renewed',
+      html: layout({
+        theme,
+        heading: isFirstCharge ? 'Your plan is active 🎉' : 'Your plan renewed',
+        bodyHtml:
+          para(isFirstCharge
+            ? 'Your payment went through and auto-renewal is now set up on your account.'
+            : 'We charged your saved payment method for another billing cycle.') +
+          details([
+            ['Plan', tier ? String(tier).charAt(0).toUpperCase() + String(tier).slice(1) : null],
+            ['Billing cycle', billingCycle === 'yearly' ? 'Yearly' : 'Monthly'],
+            ['Amount paid', inr(amount)],
+            ['Access until', fmt(premiumUntil)],
+            ['Next charge', fmt(nextChargeAt)],
+          ]) +
+          para('You can cancel auto-renewal at any time from your billing page — you keep access until the end of the period you have already paid for.') +
+          button('Manage billing', `${APP_URL}/${role}/billing`, theme),
+      }),
+    };
+  },
+
+  // Auto-renewal switched off (or the plan ended immediately).
+  subscriptionCancelled({ role, tier, immediate, accessUntil }) {
+    const theme = themeFor(role);
+    const until = accessUntil
+      ? new Date(accessUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
+      : null;
+    return {
+      subject: immediate ? 'Your plan has been cancelled' : 'Auto-renewal is off',
+      html: layout({
+        theme,
+        heading: immediate ? 'Plan cancelled' : 'Auto-renewal turned off',
+        bodyHtml:
+          para(immediate
+            ? 'Your plan has been cancelled and Premium access has ended. You will not be charged again.'
+            : 'We have turned off auto-renewal, so you will not be charged again.') +
+          details([
+            ['Plan', tier ? String(tier).charAt(0).toUpperCase() + String(tier).slice(1) : null],
+            ['Access until', until],
+          ]) +
+          para(immediate
+            ? 'If this was a mistake, you can start a new plan at any time from your billing page.'
+            : 'You keep everything you have already paid for until the date above, after which your account moves to the free plan. You can turn auto-renewal back on before then.') +
+          button('Go to billing', `${APP_URL}/${role}/billing`, theme),
+      }),
+    };
+  },
+
+  // A recurring debit failed — Razorpay retries, then halts.
+  subscriptionPaymentFailed({ role, tier, halted, accessUntil }) {
+    const theme = themeFor(role);
+    const until = accessUntil
+      ? new Date(accessUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
+      : null;
+    return {
+      subject: halted ? 'Action needed — your plan could not renew' : 'We could not process your renewal',
+      html: layout({
+        theme,
+        heading: halted ? 'Your plan could not renew' : 'Renewal payment failed',
+        bodyHtml:
+          para(halted
+            ? 'We tried to renew your plan a few times and the payment did not go through, so automatic renewal has stopped.'
+            : 'We could not collect this cycle\'s payment. We will try again shortly — no action is needed unless it keeps failing.') +
+          details([
+            ['Plan', tier ? String(tier).charAt(0).toUpperCase() + String(tier).slice(1) : null],
+            ['Access until', until],
+          ]) +
+          para(halted
+            ? 'You keep Premium until the date above. To stay on Premium after that, start a new plan from your billing page.'
+            : 'Common causes are an expired card or insufficient balance.') +
+          button('Update billing', `${APP_URL}/${role}/billing`, theme),
       }),
     };
   },
