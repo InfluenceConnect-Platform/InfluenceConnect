@@ -57,7 +57,7 @@ const FAQ_ITEMS = [
   { q: 'How do influencers apply to my campaigns?', a: 'Once published, influencers on the platform can discover and apply. You\'ll see applications in the campaign detail view.' },
   { q: 'How does the Premium plan work?', a: 'Premium unlocks unlimited campaigns, priority discovery placement, and advanced analytics. You can upgrade anytime from the Billing section.' },
   { q: 'Can I message an influencer before accepting their application?', a: 'No — messaging unlocks only after you accept an influencer for a campaign. Once accepted, a conversation opens in the Messages tab.' },
-  { q: 'How do I cancel Premium?', a: 'Open the Billing page and use "Cancel plan" — no fee, and no need to contact us. If your plan renews automatically, cancelling stops future charges and you keep access until the end of the period you have already paid for. A one-time purchase has nothing to cancel: it simply expires and your account moves back to Freemium.' },
+  { q: 'How do I cancel Premium?', a: 'Open the Billing page and use "Cancel plan" — no fee, no reason needed, and no need to contact us. Plans renew until cancelled; cancelling stops future charges and you keep access until the end of the period you have already paid for.' },
 ];
 
 export default function BrandSettings() {
@@ -253,8 +253,8 @@ export default function BrandSettings() {
                             {account.autopay
                               ? 'Your plan renews automatically. Turning this off stops future charges — you keep access until the end of the period you have already paid for.'
                               : account.plan === 'premium'
-                              ? 'This plan does not renew by itself. To switch to automatic renewal, choose "Renew automatically" at checkout on the billing page.'
-                              : 'Upgrade to a paid plan to set up automatic renewal.'}
+                              ? 'Auto-renewal is off for this plan, so it will end when the current period runs out. Start a plan again from the billing page to resume automatic renewal.'
+                              : 'Paid plans renew automatically until you cancel. Choose a plan on the billing page to get started.'}
                           </p>
                         </div>
                         <button

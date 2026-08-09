@@ -13,11 +13,15 @@ import { INFLUENCER_TIERS, yearlyPrice } from '@/lib/tiers';
 const FAQS = [
   {
     q: 'Can I cancel?',
-    a: 'Yes, any time from this page — no fee, no need to contact us. If your plan renews automatically, cancelling stops future charges and you keep full access until the end of the period you have already paid for. You can also choose to end it immediately, but the remaining paid days are then forfeited. One-time purchases have nothing to cancel — they simply run out.',
+    a: 'Yes, any time from this page — no fee, no need to contact us, no reason required. Cancelling stops future charges and you keep full access until the end of the period you have already paid for. You can also choose to end it immediately, but the remaining paid days are then forfeited.',
   },
   {
     q: 'Will I be charged automatically?',
-    a: 'Only if you switch on "Renew automatically" at checkout. One-time payment is the default. With automatic renewal you authorise a mandate through Razorpay, and Razorpay notifies you in advance of every renewal charge. Your next charge date is always shown at the top of this page.',
+    a: 'Yes — plans renew until you cancel. Buying a plan authorises a mandate through Razorpay, which notifies you in advance of every renewal charge. Your next charge date is always shown at the top of this page.',
+  },
+  {
+    q: 'What happens if I switch plans?',
+    a: 'Your new plan starts when your current period ends, and the old one stops renewing at the same moment. You are never charged twice and you do not lose days you have already paid for.',
   },
   {
     q: 'What if a renewal payment fails?',
@@ -85,9 +89,6 @@ export default function BillingPage() {
   const [premiumUntil, setPremiumUntil] = useState<string | null>(null);
   const [accountEmail, setAccountEmail] = useState('');
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
-  // Auto-renew is opt-in: a one-time purchase stays the default so nobody is
-  // signed up to a recurring mandate without choosing it.
-  const [autoRenew, setAutoRenew] = useState(false);
   const [subRefresh, setSubRefresh] = useState(0);
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
 
@@ -133,40 +134,55 @@ export default function BillingPage() {
 
   const handleUpgrade = async (tierKey: string) => {
     setLoadingTier(tierKey);
+    // Plans are subscriptions: buying one authorises a mandate at checkout and
+    // it renews until cancelled. A one-time Order is only a fallback for when
+    // recurring isn't enabled on the Razorpay account yet, so nobody is ever
+    // blocked from paying.
+    let asSubscription = true;
     try {
       const tierDef = INFLUENCER_TIERS.find(t => t.key === tierKey)!;
-      const cycleLabel = billing === 'monthly' ? '30 days' : '365 days';
+      const cycleWord = billing === 'monthly' ? 'month' : 'year';
 
-      // Auto-renew uses Razorpay Subscriptions (a mandate is authorised at
-      // checkout); one-time uses a plain Order. They sign their success
-      // payloads differently, so each needs its own verify endpoint.
-      const endpoint = autoRenew ? '/api/payments/subscription' : '/api/payments/create-order';
-      const startRes = await api.post(endpoint, { billingCycle: billing, tier: tierKey });
-      const { orderId, subscriptionId, amount, currency, keyId } = startRes.data;
+      let startRes;
+      try {
+        startRes = await api.post('/api/payments/subscription', { billingCycle: billing, tier: tierKey });
+      } catch (err: any) {
+        if (err.response?.data?.code !== 'RECURRING_UNAVAILABLE') throw err;
+        asSubscription = false;
+        startRes = await api.post('/api/payments/create-order', { billingCycle: billing, tier: tierKey });
+      }
+
+      const { orderId, subscriptionId, amount, currency, keyId, startsAt, replacingPlan } = startRes.data;
 
       await openRazorpayCheckout({
         key: keyId,
         // Razorpay derives the amount from the Plan for subscriptions —
         // sending both would show the wrong price at checkout.
-        ...(autoRenew ? { subscription_id: subscriptionId } : { amount, currency, order_id: orderId }),
+        ...(asSubscription
+          ? { subscription_id: subscriptionId }
+          : { amount, currency, order_id: orderId }),
         name: 'Influence Connect',
-        description: autoRenew
-          ? `${tierDef.label} — renews every ${billing === 'monthly' ? 'month' : 'year'}`
-          : `${tierDef.label} (${cycleLabel})`,
+        description: asSubscription
+          ? `${tierDef.label} — ₹${tierDef.priceMonthly}/${cycleWord === 'month' ? 'mo' : 'yr'}, renews every ${cycleWord}`
+          : `${tierDef.label} (${billing === 'monthly' ? '30 days' : '365 days'})`,
         prefill: { name: user?.name, email: accountEmail },
         theme: { color: '#B00D4D' },
         handler: async (response) => {
           try {
             const verifyRes = await api.post(
-              autoRenew ? '/api/payments/subscription/verify' : '/api/payments/verify',
+              asSubscription ? '/api/payments/subscription/verify' : '/api/payments/verify',
               response,
             );
             syncUserToStorage(verifyRes.data.user);
             setPremiumStartedAt(verifyRes.data.user.premiumStartedAt ?? null);
             setPremiumUntil(verifyRes.data.user.premiumUntil ?? null);
-            showToast(autoRenew
-              ? `🎉 ${tierDef.label} is active and will renew automatically.`
-              : `🎉 Welcome to ${tierDef.label}! Your new features are unlocked.`);
+            showToast(
+              !asSubscription
+                ? `🎉 Welcome to ${tierDef.label}! This is a one-time purchase and won't renew.`
+                : startsAt
+                ? `✅ You'll move to ${tierDef.label} on ${new Date(startsAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}, when your ${replacingPlan ?? 'current'} plan ends.`
+                : `🎉 ${tierDef.label} is active. It renews every ${cycleWord} until you cancel.`
+            );
             setSubRefresh(n => n + 1);
           } catch (error: any) {
             showToast(error.response?.data?.error || 'Payment verification failed. Contact support if you were charged.');
@@ -178,12 +194,8 @@ export default function BillingPage() {
       });
     } catch (error: any) {
       const code = error.response?.data?.code;
-      if (code === 'RECURRING_UNAVAILABLE') {
-        setAutoRenew(false);
-        showToast('Auto-renewing plans are not available yet — switched to a one-time purchase.');
-      } else {
-        showToast(error.response?.data?.error || 'Upgrade failed. Please try again.');
-      }
+      if (code === 'ALREADY_ON_PLAN') showToast('You are already on this plan.');
+      else showToast(error.response?.data?.error || 'Checkout failed. Please try again.');
       setLoadingTier(null);
     }
   };
@@ -290,30 +302,20 @@ export default function BillingPage() {
           </div>
         </section>
 
-        {/* Auto-renew choice — opt-in, so a one-time purchase stays the
-            default and nobody authorises a mandate without picking it. */}
+        {/* Billing disclosure — auto-renewal is how plans work now, so it is
+            stated plainly rather than offered as a toggle. RBI e-mandate rules
+            still require the user to authorise the mandate at checkout. */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center gap-3 flex-wrap justify-center px-4 py-3 rounded-2xl border bg-white dark:bg-[#0f1e31] border-gray-200 dark:border-slate-700/60 shadow-sm">
-            <span className="text-[12.5px] font-semibold text-gray-700 dark:text-slate-200">
-              Renew automatically
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={autoRenew}
-              aria-label="Renew my plan automatically"
-              onClick={() => setAutoRenew(v => !v)}
-              className="relative shrink-0 w-11 h-6 rounded-full transition-colors cursor-pointer"
-              style={{ backgroundColor: autoRenew ? '#E0115F' : undefined }}
-            >
-              <span className={`absolute inset-0 rounded-full transition-colors ${autoRenew ? '' : 'bg-gray-300 dark:bg-slate-700'}`} />
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${autoRenew ? 'translate-x-5' : ''}`} />
-            </button>
-            <span className="text-[11.5px] text-gray-500 dark:text-slate-400 max-w-[19rem] leading-relaxed">
-              {autoRenew
-                ? 'You authorise a mandate at checkout. Cancel any time — you keep what you have paid for.'
-                : 'One-time payment. Access simply ends when the period runs out.'}
-            </span>
+          <div className="inline-flex items-start gap-2.5 px-4 py-3 rounded-2xl border bg-white dark:bg-[#0f1e31] border-gray-200 dark:border-slate-700/60 shadow-sm max-w-xl">
+            <svg className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#E0115F' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+              <path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+            </svg>
+            <p className="text-[12px] text-gray-600 dark:text-slate-300 leading-relaxed">
+              <strong className="text-gray-900 dark:text-slate-100">Plans renew automatically.</strong>{' '}
+              You&apos;ll be charged each {billing === 'monthly' ? 'month' : 'year'} until you cancel.
+              Cancel any time from this page — you keep access until the end of the period you&apos;ve paid for.
+            </p>
           </div>
         </div>
 

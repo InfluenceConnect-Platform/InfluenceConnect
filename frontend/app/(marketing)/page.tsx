@@ -98,7 +98,7 @@ const FEATURES = [
   },
   {
     title: 'Secure payments',
-    body: 'Billed safely through Razorpay. Pay once, or renew automatically and cancel any time from your billing page.',
+    body: 'Billed safely through Razorpay. Plans renew automatically — cancel any time from your billing page.',
     icon: <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
     tint: 'bg-gradient-to-br from-indigo-400 to-indigo-600 text-white shadow-md shadow-indigo-500/25',
     bar: 'from-indigo-400 to-indigo-600',
@@ -132,7 +132,7 @@ const FAQS = [
   },
   {
     q: 'What do paid plans cost?',
-    a: 'Creators can upgrade from ₹9/month (Silver) up to Platinum; brands from ₹399/month (Silver) up to Golden — 30 days at a time, with 20% off for 365 days. At checkout you choose a one-time payment or automatic renewal. One-time simply expires; automatic renewal can be cancelled any time from your billing page, and you keep what you have already paid for.',
+    a: 'Creators can upgrade from ₹9/month (Silver) up to Platinum; brands from ₹399/month (Silver) up to Golden — billed every 30 days, with 20% off for 365 days. Plans renew automatically until you cancel, which you can do any time from your billing page; you keep access until the end of the period you have already paid for.',
   },
   {
     q: 'Which platforms do creators come from?',

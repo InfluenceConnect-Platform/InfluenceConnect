@@ -7,18 +7,18 @@ import { pageMetadata, faqJsonLd } from '@/lib/seo';
 export const metadata = pageMetadata({
   title: 'Pricing — Free & Premium Plans | Influence Connect',
   description:
-    'Influence Connect pricing: free forever plans for creators and brands. Creators upgrade from ₹9/month, brands from ₹399/month — pay once or renew automatically, cancel any time, 20% off yearly.',
+    'Influence Connect pricing: free forever plans for creators and brands. Creators upgrade from ₹9/month, brands from ₹399/month — plans renew automatically, cancel any time, 20% off yearly.',
   path: '/pricing',
 });
 
 const FAQS = [
   {
     q: 'Can I cancel?',
-    a: 'Yes, any time, from the Billing page in your account — no fee and no need to contact us. If you chose automatic renewal, cancelling stops future charges and you keep full access until the end of the period you have already paid for. If you chose a one-time payment there is nothing to cancel: it simply runs out and your account moves back to the free plan.',
+    a: 'Yes, any time, from the Billing page in your account — no fee, no need to contact us, and no reason required. Cancelling stops future charges and you keep full access until the end of the period you have already paid for. You can also choose to end it immediately, but the remaining paid days are then forfeited.',
   },
   {
     q: 'Will I be charged automatically?',
-    a: 'Only if you choose it. One-time payment is the default at checkout. If you switch on "Renew automatically", you authorise a mandate with your bank or card through Razorpay and the same amount is charged at the start of each new period until you cancel. Razorpay notifies you in advance of every renewal charge.',
+    a: 'Yes — plans are subscriptions, so they renew until you cancel. When you buy, you authorise a mandate with your bank or card through Razorpay, and the same amount is charged at the start of each new period. This is shown before you pay, your bank asks you to approve the mandate, and Razorpay notifies you in advance of every renewal. Your next charge date is always on your billing page.',
   },
   {
     q: 'What happens when my Premium expires?',
@@ -26,7 +26,7 @@ const FAQS = [
   },
   {
     q: 'How is payment handled?',
-    a: 'Plans are billed securely through Razorpay in Indian Rupees, covering 30 days (monthly) or 365 days (yearly). At checkout you pick either a one-time payment or automatic renewal. Buying again while a plan is still active adds the new days on top of your current expiry date. We never store your card details.',
+    a: 'Plans are billed securely through Razorpay in Indian Rupees, covering 30 days (monthly) or 365 days (yearly), and renew automatically until cancelled. If you switch plans mid-cycle, the new plan starts when your current period ends, so you are never charged twice. We never store your card details.',
   },
   {
     q: 'Are there refunds?',

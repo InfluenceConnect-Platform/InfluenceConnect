@@ -19,6 +19,13 @@ export interface SubscriptionInfo {
   lastFailedAt: string | null;
 }
 
+export interface ScheduledChange {
+  tier: string;
+  billingCycle: 'monthly' | 'yearly';
+  amount: number;
+  startsAt: string;
+}
+
 interface Props {
   /** Role accent hex — ruby #E0115F for creators, forest green #228B22 for brands. */
   accent: string;
@@ -34,6 +41,7 @@ const fmt = (d: string | null) =>
 export default function SubscriptionPanel({ accent, accentDark, tierLabel, onChanged, notify }: Props) {
   const { isDark } = useTheme();
   const [sub, setSub] = useState<SubscriptionInfo | null>(null);
+  const [scheduled, setScheduled] = useState<ScheduledChange | null>(null);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [immediate, setImmediate] = useState(false);
@@ -44,8 +52,10 @@ export default function SubscriptionPanel({ accent, accentDark, tierLabel, onCha
     try {
       const res = await api.get('/api/payments/subscription');
       setSub(res.data.subscription);
+      setScheduled(res.data.scheduledChange ?? null);
     } catch {
       setSub(null);
+      setScheduled(null);
     } finally {
       setLoading(false);
     }
@@ -122,7 +132,7 @@ export default function SubscriptionPanel({ accent, accentDark, tierLabel, onCha
             </p>
           </div>
 
-          {!sub.cancelAtCycleEnd && (
+          {!sub.cancelAtCycleEnd && !scheduled && (
             <button
               onClick={() => setDialogOpen(true)}
               className={`shrink-0 text-xs font-bold px-3.5 py-2 rounded-lg border transition-colors cursor-pointer ${
@@ -135,6 +145,22 @@ export default function SubscriptionPanel({ accent, accentDark, tierLabel, onCha
             </button>
           )}
         </div>
+
+        {scheduled && (
+          <div
+            className="mt-4 flex items-start gap-2.5 rounded-xl border px-3.5 py-3"
+            style={{ borderColor: `${accent}40`, backgroundColor: `${accent}0D` }}
+          >
+            <svg className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accent }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            </svg>
+            <p className={`text-[12px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
+              Switching to <strong>{tierLabel?.(scheduled.tier) ?? scheduled.tier}</strong>{' '}
+              ({scheduled.billingCycle === 'yearly' ? 'yearly' : 'monthly'}, ₹{scheduled.amount.toLocaleString('en-IN')}) on{' '}
+              <strong>{fmt(scheduled.startsAt)}</strong>. Your current plan runs until then and is not charged again.
+            </p>
+          </div>
+        )}
       </section>
 
       {dialogOpen && (

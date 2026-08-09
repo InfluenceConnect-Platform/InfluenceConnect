@@ -117,14 +117,17 @@ const subscriptionSchema = new mongoose.Schema({
 
 subscriptionSchema.index({ userId: 1, createdAt: -1 });
 
-// A user may only have one subscription that is live at a time. Partial index
-// so cancelled/completed rows don't collide.
+// A user may have at most one subscription that is still going to renew.
+// Winding-down rows (cancelAtCycleEnd) are excluded so a scheduled plan switch
+// can coexist with the outgoing plan until its period ends — without that
+// exclusion, creating the replacement throws a duplicate-key error.
 subscriptionSchema.index(
   { userId: 1 },
   {
     unique: true,
     partialFilterExpression: {
-      status: { $in: ['created', 'authenticated', 'active', 'pending', 'halted'] }
+      status: { $in: ['created', 'authenticated', 'active', 'pending', 'halted'] },
+      cancelAtCycleEnd: false
     }
   }
 );

@@ -251,8 +251,8 @@ export default function InfluencerSettings() {
                             {account.autopay
                               ? 'Your plan renews automatically. Turning this off stops future charges — you keep access until the end of the period you have already paid for.'
                               : account.plan === 'premium'
-                              ? 'This plan does not renew by itself. To switch to automatic renewal, choose "Renew automatically" at checkout on the billing page.'
-                              : 'Upgrade to a paid plan to set up automatic renewal.'}
+                              ? 'Auto-renewal is off for this plan, so it will end when the current period runs out. Start a plan again from the billing page to resume automatic renewal.'
+                              : 'Paid plans renew automatically until you cancel. Choose a plan on the billing page to get started.'}
                           </p>
                         </div>
                         <button

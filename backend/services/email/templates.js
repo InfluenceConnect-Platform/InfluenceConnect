@@ -472,7 +472,7 @@ module.exports = {
             ['Amount paid', inr(amount)],
             ['Expires', until],
           ]) +
-          para('This receipt is for your records. This was a one-time purchase — it simply stays active until the date above and will not renew by itself.') +
+          para('This receipt is for your records. This payment covers a single period and will not renew by itself — start a plan from your billing page to keep access after the date above.') +
           button('Manage billing', `${APP_URL}/${role}/billing`, theme),
       }),
     };

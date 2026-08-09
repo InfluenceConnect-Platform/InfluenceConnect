@@ -84,12 +84,16 @@ async function createPlan({ period, interval, amountPaise, name, notes }) {
 // total_count is how many cycles Razorpay will attempt before completing the
 // subscription. There's no "forever" value, so we book a long horizon
 // (10 years) and let cancellation end it earlier.
-async function createSubscription({ planId, totalCount, notes, notifyEmail, notifyPhone }) {
+// startAt (unix seconds) defers the first charge — used when someone switches
+// plan mid-cycle so the new plan begins exactly when the old period ends,
+// instead of double-charging them or forfeiting days they already paid for.
+async function createSubscription({ planId, totalCount, notes, notifyEmail, notifyPhone, startAt }) {
   const instance = getInstance();
   return instance.subscriptions.create({
     plan_id: planId,
     total_count: totalCount,
     quantity: 1,
+    ...(startAt ? { start_at: startAt } : {}),
     // Razorpay sends its own mandate/pre-debit notifications to the customer,
     // which is what the RBI e-mandate framework requires ahead of each debit.
     customer_notify: 1,

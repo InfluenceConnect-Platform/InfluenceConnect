@@ -79,15 +79,19 @@ exports.createSubscription = async (req, res) => {
       return res.status(400).json({ error: 'No plan available for this account type.' });
     }
 
-    // One live subscription per user — they must cancel before starting another.
+    // A user has at most one live subscription. Rather than dead-ending an
+    // upgrade with "cancel first", switching plans schedules the new one to
+    // begin exactly when the current paid period ends and winds the old one
+    // down at the same moment — no double charge, no forfeited days.
     const existing = await Subscription.findOne({
       userId: req.userId,
       status: { $in: Subscription.LIVE_STATUSES },
     });
-    if (existing) {
+
+    if (existing && existing.tier === tier && existing.billingCycle === billingCycle && !existing.cancelAtCycleEnd) {
       return res.status(409).json({
-        error: 'You already have an active auto-renewing plan. Cancel it before starting a new one.',
-        code: 'SUBSCRIPTION_EXISTS',
+        error: 'You are already on this plan.',
+        code: 'ALREADY_ON_PLAN',
       });
     }
 
@@ -96,13 +100,44 @@ exports.createSubscription = async (req, res) => {
 
     const planId = await getOrCreatePlan({ role, tier, billingCycle, amountPaise });
 
+    // Defer the switch to the end of the period they've already paid for.
+    const switchAt = existing?.currentEnd && existing.currentEnd > new Date()
+      ? Math.floor(existing.currentEnd.getTime() / 1000)
+      : null;
+
     const subscription = await razorpay.createSubscription({
       planId,
       totalCount: TOTAL_COUNT[billingCycle],
       notes: { userId: req.userId.toString(), role, tier, billingCycle },
       notifyEmail: user.email,
       notifyPhone: user.mobile || undefined,
+      startAt: switchAt || undefined,
     });
+
+    // Stop the outgoing plan renewing. Done only after Razorpay accepted the
+    // replacement, so a failure here never leaves the user with neither.
+    // If it fails we roll the replacement back rather than leave an orphan
+    // subscription on Razorpay and two renewing plans on the account.
+    if (existing) {
+      try {
+        await razorpay.cancelSubscription(existing.razorpaySubscriptionId, true);
+        existing.cancelAtCycleEnd = true;
+        existing.cancelledAt = new Date();
+        existing.cancellationReason = `Switched to ${tier} (${billingCycle})`;
+        await existing.save();
+      } catch (err) {
+        console.error('Could not wind down previous subscription:', err);
+        try {
+          await razorpay.cancelSubscription(subscription.id, false);
+        } catch (rollbackErr) {
+          console.error('Rollback of replacement subscription failed:', rollbackErr);
+        }
+        return res.status(502).json({
+          error: 'Could not switch your plan. Nothing was charged — please try again.',
+          code: 'SWITCH_FAILED',
+        });
+      }
+    }
 
     await Subscription.create({
       userId: req.userId,
@@ -114,6 +149,7 @@ exports.createSubscription = async (req, res) => {
       razorpayPlanId: planId,
       status: subscription.status || 'created',
       totalCount: TOTAL_COUNT[billingCycle],
+      currentStart: switchAt ? new Date(switchAt * 1000) : null,
     });
 
     res.json({
@@ -121,6 +157,9 @@ exports.createSubscription = async (req, res) => {
       amount: amountPaise,
       currency: 'INR',
       keyId: process.env.RAZORPAY_KEY_ID,
+      // Tells the UI whether this starts now or replaces a running plan later.
+      startsAt: switchAt ? new Date(switchAt * 1000) : null,
+      replacingPlan: existing ? existing.tier : null,
     });
   } catch (error) {
     console.error('Create subscription error:', error);
@@ -285,12 +324,18 @@ exports.syncAutopayFlag = syncAutopayFlag;
 // ─────────────────────────────────────────
 exports.getMySubscription = async (req, res) => {
   try {
-    const sub = await Subscription.findOne({
+    const live = await Subscription.find({
       userId: req.userId,
       status: { $in: Subscription.LIVE_STATUSES },
     }).sort({ createdAt: -1 });
 
-    if (!sub) return res.json({ subscription: null });
+    if (!live.length) return res.json({ subscription: null });
+
+    // When a switch is scheduled there are two live rows: the plan currently
+    // being paid for, and its replacement waiting to start. Show the current
+    // one as the subscription and describe the replacement separately.
+    const scheduled = live.find(x => x.currentStart && x.currentStart > new Date() && x.paidCount === 0) || null;
+    const sub = live.find(x => x !== scheduled) || live[0];
 
     res.json({
       subscription: {
@@ -307,6 +352,12 @@ exports.getMySubscription = async (req, res) => {
         paidCount: sub.paidCount,
         lastFailedAt: sub.lastFailedAt,
       },
+      scheduledChange: scheduled ? {
+        tier: scheduled.tier,
+        billingCycle: scheduled.billingCycle,
+        amount: scheduled.amount / 100,
+        startsAt: scheduled.currentStart,
+      } : null,
     });
   } catch (error) {
     console.error('Get subscription error:', error);
