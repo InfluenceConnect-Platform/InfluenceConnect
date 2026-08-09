@@ -12,6 +12,7 @@ import NichePicker from '@/components/shared/NichePicker';
 import { NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import MarqueeText from '@/components/shared/MarqueeText';
+import { brandCaps } from '@/lib/tiers';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
@@ -166,6 +167,10 @@ function BrandCampaigns() {
   // user is read from localStorage after mount (reading it in the initializer
   // would make the BrandNav plan badge differ between SSR and hydration).
   const [user, setUser] = useState<any>(null);
+  // Shortlisting is Silver+ (see lib/tiers.ts). `user` is null until mount, so
+  // this is false on the first render and the button appears once the tier is
+  // known — the server re-checks anyway.
+  const canShortlist = brandCaps((user as { tier?: string } | null)?.tier).canShortlist;
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [applications, setApplications] = useState<any[]>([]);
@@ -529,7 +534,9 @@ function BrandCampaigns() {
       showToast(`Application ${status}.`);
       if (selectedCampaign) fetchApplications(selectedCampaign._id);
     } catch (error: any) {
-      showToast(error.response?.data?.error || 'Failed to update status.');
+      // `message` first so a tier_limit 403 reads as its explanation rather
+      // than the raw "tier_limit" slug.
+      showToast(error.response?.data?.message || error.response?.data?.error || 'Failed to update status.');
     }
   };
 
@@ -917,7 +924,7 @@ function BrandCampaigns() {
               </button>
             </div>
             <div className="overflow-y-auto flex-1">
-              <ApplicationsList applications={applications} onUpdateStatus={handleUpdateStatus} />
+              <ApplicationsList applications={applications} onUpdateStatus={handleUpdateStatus} canShortlist={canShortlist} />
             </div>
           </div>
         </div>
@@ -1307,7 +1314,7 @@ function BrandCampaigns() {
                     )}
                   </div>
                 </div>
-                <ApplicationsList applications={applications} onUpdateStatus={handleUpdateStatus} />
+                <ApplicationsList applications={applications} onUpdateStatus={handleUpdateStatus} canShortlist={canShortlist} />
               </>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center px-6">
@@ -1333,9 +1340,11 @@ function BrandCampaigns() {
 function ApplicationsList({
   applications,
   onUpdateStatus,
+  canShortlist,
 }: {
   applications: any[];
   onUpdateStatus: (id: string, status: string) => void;
+  canShortlist: boolean;
 }) {
   const STATUS_STYLES: Record<string, string> = {
     applied:     'bg-blue-50 text-blue-700 border border-blue-100',
@@ -1455,13 +1464,17 @@ function ApplicationsList({
           )}
 
           {app.status === 'applied' && (
-            <div className="grid grid-cols-3 gap-2">
+            /* Free brands get accept/reject only — shortlisting is Silver+, so
+               the grid drops to two columns rather than showing a dead button. */
+            <div className={`grid ${canShortlist ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
+              {canShortlist && (
               <button
                 onClick={() => onUpdateStatus(app._id, 'shortlisted')}
                 className="py-2 text-xs font-semibold bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/35 dark:to-orange-900/25 border border-amber-200 dark:border-amber-700/50 rounded-lg hover:from-amber-100 hover:to-orange-100 dark:hover:from-amber-900/50 dark:hover:to-orange-900/40 transition-all cursor-pointer text-amber-700 dark:text-amber-300"
               >
                 Shortlist
               </button>
+              )}
               <button
                 onClick={() => onUpdateStatus(app._id, 'accepted')}
                 className="py-2 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all cursor-pointer"

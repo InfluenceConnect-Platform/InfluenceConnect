@@ -145,15 +145,16 @@ export type BrandTierKey = 'free' | 'silver' | 'golden';
 export type InfluencerTierKey = 'free' | 'silver' | 'golden' | 'platinum';
 export type AnyTierKey = BrandTierKey | InfluencerTierKey;
 
-// Shortlisting is intentionally available on every brand tier — the client's
-// doc listed only "accept, reject" for Free, but confirmed that was an
-// omission. No applicationActions gate exists on either side.
+// Shortlisting is Silver+ — the client's tier sheet lists "(accept, reject)"
+// for Free and "(shortlist, accept, reject)" for Silver. Free brands keep
+// accept and reject; only the intermediate 'shortlisted' status is gated.
 export interface BrandCaps {
   order: number;
   maxActiveCampaigns: number;
   discoverPerDay: number;
   maxMessagesPerDay: number;
   maxFileMB: number;
+  canShortlist: boolean;
   canInvite: boolean;
   prioritySupport: boolean;
   darkModePerk: boolean;
@@ -179,15 +180,15 @@ export interface InfluencerCaps {
 
 export const BRAND_CAPS: Record<BrandTierKey, BrandCaps> = {
   free: {
-    order: 0, maxActiveCampaigns: 3, discoverPerDay: 5, maxMessagesPerDay: 5, maxFileMB: 10, canInvite: false,
+    order: 0, maxActiveCampaigns: 3, discoverPerDay: 5, maxMessagesPerDay: 5, maxFileMB: 10, canShortlist: false, canInvite: false,
     prioritySupport: false, darkModePerk: false, quickActions: false, earlyAccess: false,
   },
   silver: {
-    order: 1, maxActiveCampaigns: 5, discoverPerDay: 10, maxMessagesPerDay: 10, maxFileMB: 30, canInvite: true,
+    order: 1, maxActiveCampaigns: 5, discoverPerDay: 10, maxMessagesPerDay: 10, maxFileMB: 30, canShortlist: true, canInvite: true,
     prioritySupport: true, darkModePerk: true, quickActions: true, earlyAccess: false,
   },
   golden: {
-    order: 2, maxActiveCampaigns: Infinity, discoverPerDay: Infinity, maxMessagesPerDay: Infinity, maxFileMB: Infinity, canInvite: true,
+    order: 2, maxActiveCampaigns: Infinity, discoverPerDay: Infinity, maxMessagesPerDay: Infinity, maxFileMB: Infinity, canShortlist: true, canInvite: true,
     prioritySupport: true, darkModePerk: true, quickActions: true, earlyAccess: true,
   },
 };

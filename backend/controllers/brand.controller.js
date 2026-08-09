@@ -566,6 +566,15 @@ exports.updateApplicationStatus = async (req, res) => {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
+    // Shortlisting is Silver+ — see backend/utils/tiers.js. Free brands can
+    // still accept and reject, so this gates only the middle step.
+    if (status === 'shortlisted' && !getTierConfig('brand', req.user.tier).canShortlist) {
+      return res.status(403).json({
+        error: 'tier_limit',
+        message: 'Shortlisting applicants is available on Silver and Golden. You can still accept or reject.'
+      });
+    }
+
     const application = await Application.findById(applicationId)
       .populate('campaignId');
 
