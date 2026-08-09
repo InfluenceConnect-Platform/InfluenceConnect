@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
+import { canUseDarkMode } from '@/lib/tiers';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { cdnImg } from '@/lib/img';
 
@@ -91,7 +92,7 @@ interface InfluencerNavProps {
 export default function InfluencerNav({ user: userProp, profilePicUrl }: InfluencerNavProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isDark } = useTheme();
+  const { isDark, setTheme } = useTheme();
   const confirm = useConfirm();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -134,6 +135,14 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   }, [profilePicUrl]);
 
   const user = userProp ?? localUser;
+  // Dark mode is a paid perk (influencer — see backend/utils/tiers.js). Anyone who
+  // has 'dark' stored from a previous plan is put back to light, otherwise a
+  // downgrade would silently keep a feature they no longer pay for.
+  const darkAllowed = canUseDarkMode('influencer', (user as { tier?: string } | null)?.tier);
+  useEffect(() => {
+    if (!darkAllowed && isDark) setTheme('light');
+  }, [darkAllowed, isDark, setTheme]);
+
   const isPremium = user?.plan === 'premium';
   // Prefer the freshly-passed prop (e.g. just uploaded on the profile page),
   // otherwise fall back to the cached value from a previous page.
@@ -268,7 +277,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
 
         {/* Right — theme toggle, settings, plan badge, logout, avatar */}
         <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
-          <ThemeToggle />
+          <ThemeToggle enabled={darkAllowed} upgradeHref="/influencer/billing" />
 
           <Link
             href="/influencer/settings"

@@ -40,25 +40,29 @@ const INFLUENCER_TIERS = {
     label: 'Free', order: 0, priceMonthly: 0,
     maxPortfolioUploads: 2, visiblePortfolioItems: 1, invitationsPerMonth: 1,
     maxMessagesPerDay: 3, maxApplicationsPerMonth: 1, credibilityDetail: 'basic',
-    customUrl: false, campaignFilters: false, csvExport: false, earningsBreakdown: false, earlyAccess: false,
+    customUrl: false, campaignFilters: false, csvExport: false, earningsBreakdown: false,
+    darkModePerk: false, earlyAccess: false,
   },
   silver: {
     label: 'Silver', order: 1, priceMonthly: 9,
     maxPortfolioUploads: 10, visiblePortfolioItems: 3, invitationsPerMonth: 3,
     maxMessagesPerDay: 5, maxApplicationsPerMonth: 3, credibilityDetail: 'basic',
-    customUrl: true, campaignFilters: true, csvExport: false, earningsBreakdown: false, earlyAccess: false,
+    customUrl: true, campaignFilters: true, csvExport: false, earningsBreakdown: false,
+    darkModePerk: false, earlyAccess: false,
   },
   golden: {
     label: 'Golden', order: 2, priceMonthly: 21,
     maxPortfolioUploads: 20, visiblePortfolioItems: 5, invitationsPerMonth: 5,
     maxMessagesPerDay: 10, maxApplicationsPerMonth: 5, credibilityDetail: 'advanced',
-    customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, earlyAccess: true,
+    customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true,
+    darkModePerk: true, earlyAccess: true,
   },
   platinum: {
     label: 'Platinum', order: 3, priceMonthly: 29,
     maxPortfolioUploads: Infinity_, visiblePortfolioItems: Infinity_, invitationsPerMonth: Infinity_,
     maxMessagesPerDay: Infinity_, maxApplicationsPerMonth: Infinity_, credibilityDetail: 'advanced',
-    customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, earlyAccess: true,
+    customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true,
+    darkModePerk: true, earlyAccess: true,
   },
 };
 

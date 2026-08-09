@@ -50,6 +50,7 @@ export const BRAND_TIERS: TierDef[] = [
       'Unlimited daily messages',
       'Unlimited file transfers',
       'Unlimited creator profile views',
+      'Light & dark mode',
       'Everything in Free & Silver',
       'Early access to new features',
     ],
@@ -97,6 +98,7 @@ export const INFLUENCER_TIERS: TierDef[] = [
       'Earnings by category breakdown',
       'Detailed monthly earnings chart',
       'Public profile with custom URL',
+      'Light & dark mode',
       'Early access to new features',
     ],
   },
@@ -114,6 +116,7 @@ export const INFLUENCER_TIERS: TierDef[] = [
       'Earnings by category breakdown',
       'Detailed monthly earnings chart',
       'Public profile with custom URL',
+      'Light & dark mode',
       'Early access to new features',
     ],
   },
@@ -153,6 +156,7 @@ export interface BrandCaps {
   maxFileMB: number;
   canInvite: boolean;
   prioritySupport: boolean;
+  darkModePerk: boolean;
   quickActions: boolean;
   earlyAccess: boolean;
 }
@@ -169,21 +173,22 @@ export interface InfluencerCaps {
   campaignFilters: boolean;
   csvExport: boolean;
   earningsBreakdown: boolean;
+  darkModePerk: boolean;
   earlyAccess: boolean;
 }
 
 export const BRAND_CAPS: Record<BrandTierKey, BrandCaps> = {
   free: {
     order: 0, maxActiveCampaigns: 3, discoverPerDay: 5, maxMessagesPerDay: 5, maxFileMB: 10, canInvite: false,
-    prioritySupport: false, quickActions: false, earlyAccess: false,
+    prioritySupport: false, darkModePerk: false, quickActions: false, earlyAccess: false,
   },
   silver: {
     order: 1, maxActiveCampaigns: 5, discoverPerDay: 10, maxMessagesPerDay: 10, maxFileMB: 30, canInvite: true,
-    prioritySupport: true, quickActions: true, earlyAccess: false,
+    prioritySupport: true, darkModePerk: true, quickActions: true, earlyAccess: false,
   },
   golden: {
     order: 2, maxActiveCampaigns: Infinity, discoverPerDay: Infinity, maxMessagesPerDay: Infinity, maxFileMB: Infinity, canInvite: true,
-    prioritySupport: true, quickActions: true, earlyAccess: true,
+    prioritySupport: true, darkModePerk: true, quickActions: true, earlyAccess: true,
   },
 };
 
@@ -191,22 +196,22 @@ export const INFLUENCER_CAPS: Record<InfluencerTierKey, InfluencerCaps> = {
   free: {
     order: 0, maxPortfolioUploads: 2, visiblePortfolioItems: 1, invitationsPerMonth: 1,
     maxMessagesPerDay: 3, maxApplicationsPerMonth: 1, credibilityDetail: 'basic',
-    customUrl: false, campaignFilters: false, csvExport: false, earningsBreakdown: false, earlyAccess: false,
+    customUrl: false, campaignFilters: false, csvExport: false, earningsBreakdown: false, darkModePerk: false, earlyAccess: false,
   },
   silver: {
     order: 1, maxPortfolioUploads: 10, visiblePortfolioItems: 3, invitationsPerMonth: 3,
     maxMessagesPerDay: 5, maxApplicationsPerMonth: 3, credibilityDetail: 'basic',
-    customUrl: true, campaignFilters: true, csvExport: false, earningsBreakdown: false, earlyAccess: false,
+    customUrl: true, campaignFilters: true, csvExport: false, earningsBreakdown: false, darkModePerk: false, earlyAccess: false,
   },
   golden: {
     order: 2, maxPortfolioUploads: 20, visiblePortfolioItems: 5, invitationsPerMonth: 5,
     maxMessagesPerDay: 10, maxApplicationsPerMonth: 5, credibilityDetail: 'advanced',
-    customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, earlyAccess: true,
+    customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, darkModePerk: true, earlyAccess: true,
   },
   platinum: {
     order: 3, maxPortfolioUploads: Infinity, visiblePortfolioItems: Infinity, invitationsPerMonth: Infinity,
     maxMessagesPerDay: Infinity, maxApplicationsPerMonth: Infinity, credibilityDetail: 'advanced',
-    customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, earlyAccess: true,
+    customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, darkModePerk: true, earlyAccess: true,
   },
 };
 
@@ -237,6 +242,15 @@ export function tierAtLeast(
   const floor = table[minimum as keyof typeof table];
   if (!current || !floor) return false;
   return current.order >= floor.order;
+}
+
+/**
+ * Dark mode is a paid perk in the client's tier sheet — brand Silver+ and
+ * creator Golden+. It is gated inside the two role apps only; the marketing
+ * site, auth pages, legal pages and admin have no tier and keep the toggle.
+ */
+export function canUseDarkMode(role: 'brand' | 'influencer', tier?: string | null): boolean {
+  return role === 'brand' ? brandCaps(tier).darkModePerk : influencerCaps(tier).darkModePerk;
 }
 
 /** "3" / "Unlimited" — for limit copy that must not print "Infinity". */

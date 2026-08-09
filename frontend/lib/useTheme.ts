@@ -15,12 +15,15 @@ interface ThemeContextValue {
   theme: Theme;
   isDark: boolean;
   toggle: () => void;
+  /** Set explicitly — used to force light when a tier loses the dark-mode perk. */
+  setTheme: (next: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
   theme: 'light',
   isDark: false,
   toggle: () => {},
+  setTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -35,16 +38,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, []);
 
-  const toggle = () => {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark';
+  // Persists and applies in one step so callers can't leave the stored value
+  // and the <html> class disagreeing.
+  const setThemeExplicit = (next: Theme) => {
     setTheme(next);
     try { localStorage.setItem(STORAGE_KEY, next); } catch {}
     applyTheme(next);
   };
 
+  const toggle = () => setThemeExplicit(theme === 'dark' ? 'light' : 'dark');
+
   return createElement(
     ThemeContext.Provider,
-    { value: { theme, isDark: theme === 'dark', toggle } },
+    { value: { theme, isDark: theme === 'dark', toggle, setTheme: setThemeExplicit } },
     children
   );
 }

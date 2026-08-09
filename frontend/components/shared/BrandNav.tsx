@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
+import { canUseDarkMode } from '@/lib/tiers';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { cdnImg } from '@/lib/img';
 
@@ -91,7 +92,7 @@ interface BrandNavProps {
 export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: BrandNavProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isDark } = useTheme();
+  const { isDark, setTheme } = useTheme();
   const confirm = useConfirm();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [fetchedLogoUrl, setFetchedLogoUrl] = useState(cachedBrandLogoUrl ?? '');
@@ -129,6 +130,14 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   }, []);
 
   const user = mounted ? (userProp ?? localUser) : null;
+  // Dark mode is a paid perk (brand — see backend/utils/tiers.js). Anyone who
+  // has 'dark' stored from a previous plan is put back to light, otherwise a
+  // downgrade would silently keep a feature they no longer pay for.
+  const darkAllowed = canUseDarkMode('brand', (user as { tier?: string } | null)?.tier);
+  useEffect(() => {
+    if (!darkAllowed && isDark) setTheme('light');
+  }, [darkAllowed, isDark, setTheme]);
+
   const isPremium = user?.plan === 'premium';
 
   useEffect(() => {
@@ -274,7 +283,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
 
         {/* Right — theme toggle, settings, plan badge, logout, avatar */}
         <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
-          <ThemeToggle />
+          <ThemeToggle enabled={darkAllowed} upgradeHref="/brand/billing" />
 
           <Link
             href="/brand/settings"
