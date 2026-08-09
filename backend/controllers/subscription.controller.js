@@ -64,6 +64,11 @@ async function syncAutopayFlag(userId) {
 // CREATE SUBSCRIPTION  (auto-renewing checkout)
 // ─────────────────────────────────────────
 exports.createSubscription = async (req, res) => {
+  // Hoisted so the catch below can tell "this user has a plan running" from
+  // "this is a fresh purchase" — only the latter may fall back to a one-time
+  // order, since charging a one-off on top of a live subscription would
+  // double-bill them.
+  let existing = null;
   try {
     const { billingCycle, tier } = req.body;
     const role = req.user.role;
@@ -83,7 +88,7 @@ exports.createSubscription = async (req, res) => {
     // upgrade with "cancel first", switching plans schedules the new one to
     // begin exactly when the current paid period ends and winds the old one
     // down at the same moment — no double charge, no forfeited days.
-    const existing = await Subscription.findOne({
+    existing = await Subscription.findOne({
       userId: req.userId,
       status: { $in: Subscription.LIVE_STATUSES },
     });
@@ -162,18 +167,30 @@ exports.createSubscription = async (req, res) => {
       replacingPlan: existing ? existing.tier : null,
     });
   } catch (error) {
-    console.error('Create subscription error:', error);
-    // Razorpay rejects subscription calls outright when Recurring Payments
-    // isn't enabled on the account — surface that instead of a generic 500 so
-    // it's obvious this is dashboard config, not a code bug.
-    const desc = error?.error?.description || error?.description || '';
-    if (/subscription|recurring|not enabled|not activated/i.test(desc)) {
+    // Log Razorpay's own words — the generic Error message alone never says
+    // whether this was auth, config, or a bad plan.
+    const desc = error?.error?.description || error?.description || error?.message || '';
+    console.error('Create subscription error:', desc, error);
+
+    // Setting up a subscription is entirely upstream work: create/reuse a Plan,
+    // then create the Subscription. Every way that can fail — Recurring not
+    // enabled on the account, bad or missing API keys, Razorpay down — is a
+    // reason to let the buyer pay the one-time way instead of dead-ending them.
+    //
+    // This used to be gated on the error description matching a list of words,
+    // which meant any wording Razorpay didn't phrase as expected fell through
+    // to a generic 500 and blocked the purchase outright. The client cannot
+    // act on that, so the default is now the recoverable answer.
+    if (!existing) {
       return res.status(503).json({
-        error: 'Auto-renewing plans are not available yet. You can still buy a one-time plan.',
+        error: 'Auto-renewing plans are not available right now. You can still buy a one-time plan.',
         code: 'RECURRING_UNAVAILABLE',
       });
     }
-    res.status(500).json({ error: 'Could not start checkout. Please try again.' });
+
+    // With a plan already running, a one-time order on top would double-charge,
+    // so this one genuinely has to stop here.
+    res.status(500).json({ error: 'Could not change your plan right now. Nothing was charged — please try again.' });
   }
 };
 

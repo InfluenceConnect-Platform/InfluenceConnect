@@ -4,7 +4,24 @@ const Razorpay = require('razorpay');
 // Test vs. live mode is inferred entirely from the key prefix
 // (rzp_test_... vs rzp_live_...) by Razorpay itself — nothing here branches
 // on environment, so going live later is purely an env var swap.
+// Thrown when the keys simply aren't set on this deployment. Without this the
+// SDK throws "key_id is mandatory", which reaches the user as an anonymous
+// "please try again" and looks identical to Razorpay rejecting the request —
+// two very different problems with very different fixes.
+class RazorpayNotConfiguredError extends Error {
+  constructor() {
+    super('Razorpay is not configured: set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.');
+    this.name = 'RazorpayNotConfiguredError';
+    this.code = 'PAYMENTS_NOT_CONFIGURED';
+  }
+}
+
+function isConfigured() {
+  return !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+}
+
 function getInstance() {
+  if (!isConfigured()) throw new RazorpayNotConfiguredError();
   return new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -129,6 +146,8 @@ function verifySubscriptionSignature({ paymentId, subscriptionId, signature }) {
 }
 
 module.exports = {
+  isConfigured,
+  RazorpayNotConfiguredError,
   createOrder,
   verifyPaymentSignature,
   verifyWebhookSignature,

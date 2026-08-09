@@ -147,7 +147,13 @@ export default function BillingPage() {
       try {
         startRes = await api.post('/api/payments/subscription', { billingCycle: billing, tier: tierKey });
       } catch (err: any) {
-        if (err.response?.data?.code !== 'RECURRING_UNAVAILABLE') throw err;
+        // See the brand billing page — fall back to the one-time order on any
+        // server-side failure, not just the one error code, so a Razorpay
+        // config problem can't block the purchase outright.
+        const status = err.response?.status;
+        const recoverable = err.response?.data?.code === 'RECURRING_UNAVAILABLE'
+          || status === undefined || status >= 500;
+        if (!recoverable) throw err;
         asSubscription = false;
         startRes = await api.post('/api/payments/create-order', { billingCycle: billing, tier: tierKey });
       }

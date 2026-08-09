@@ -53,7 +53,17 @@ exports.createOrder = async (req, res) => {
       keyId: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
-    console.error('Create order error:', error);
+    const desc = error?.error?.description || error?.description || error?.message || '';
+    console.error('Create order error:', desc, error);
+    // This is the last payment path there is — if it fails there's nothing to
+    // fall back to, so say which kind of failure it was rather than sending
+    // everyone to "try again" for a problem retrying cannot fix.
+    if (error?.code === 'PAYMENTS_NOT_CONFIGURED') {
+      return res.status(503).json({
+        error: 'Payments are not set up on this environment yet. Please contact support.',
+        code: 'PAYMENTS_NOT_CONFIGURED',
+      });
+    }
     res.status(500).json({ error: 'Could not start checkout. Please try again.' });
   }
 };

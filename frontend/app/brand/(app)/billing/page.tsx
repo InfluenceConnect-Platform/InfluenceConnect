@@ -155,7 +155,16 @@ export default function BrandBillingPage() {
       try {
         startRes = await api.post('/api/payments/subscription', { billingCycle: billing, tier: tierKey });
       } catch (err: any) {
-        if (err.response?.data?.code !== 'RECURRING_UNAVAILABLE') throw err;
+        // Fall back to the one-time order whenever starting the subscription
+        // failed for a server-side reason. Matching only RECURRING_UNAVAILABLE
+        // meant any other 5xx (or a backend too old to know that code) blocked
+        // the purchase entirely instead of degrading to the path that works.
+        // Real 4xx business answers — invalid tier, ALREADY_ON_PLAN — still
+        // propagate, since retrying those as an order would be wrong.
+        const status = err.response?.status;
+        const recoverable = err.response?.data?.code === 'RECURRING_UNAVAILABLE'
+          || status === undefined || status >= 500;
+        if (!recoverable) throw err;
         asSubscription = false;
         startRes = await api.post('/api/payments/create-order', { billingCycle: billing, tier: tierKey });
       }
