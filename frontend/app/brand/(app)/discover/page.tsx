@@ -444,6 +444,18 @@ function BrandDiscover() {
   const [directCampaigns, setDirectCampaigns] = useState<Campaign[]>([]);
   const [directCampaignsLoading, setDirectCampaignsLoading] = useState(false);
   const [selectedCampaignIds, setSelectedCampaignIds] = useState<Set<string>>(new Set());
+  // Cards whose full niche list is shown — the "+N" chip was previously inert,
+  // so the extra niches were unreachable from the grid.
+  const [expandedNiches, setExpandedNiches] = useState<Set<string>>(new Set());
+  const toggleNicheExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();   // the whole card is clickable — don't open the drawer
+    e.preventDefault();
+    setExpandedNiches(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
   const [directSending, setDirectSending] = useState(false);
   // influencerUserId -> Set of campaignIds they've been invited to this session
   const [directInvitedMap, setDirectInvitedMap] = useState<Record<string, Set<string>>>({});
@@ -1245,25 +1257,36 @@ function BrandDiscover() {
 
                         {/* Niche pills */}
                         <div className="flex flex-wrap gap-1.5 mb-4 min-h-[24px]">
-                          {influencer.niche?.slice(0, 3).map((n: string) => (
+                          {(expandedNiches.has(influencer._id)
+                            ? influencer.niche
+                            : influencer.niche?.slice(0, 3)
+                          )?.map((n: string) => (
                             <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-blue-50 text-blue-700 border-blue-200'}`}>
                               {NICHE_LABELS[n] ?? n}
                             </span>
                           ))}
                           {influencer.niche?.length > 3 && (
-                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
-                              +{influencer.niche.length - 3}
-                            </span>
+                            <button
+                              type="button"
+                              onClick={e => toggleNicheExpand(influencer._id, e)}
+                              aria-expanded={expandedNiches.has(influencer._id)}
+                              aria-label={expandedNiches.has(influencer._id)
+                                ? 'Show fewer niches'
+                                : `Show ${influencer.niche.length - 3} more niches`}
+                              className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-300 font-medium border border-gray-200 dark:border-slate-600 hover:bg-[#EAF7EA] dark:hover:bg-slate-600/60 hover:text-[#14531D] dark:hover:text-slate-100 hover:border-[#228B22]/40 transition-colors cursor-pointer"
+                            >
+                              {expandedNiches.has(influencer._id) ? '↑ less' : `+${influencer.niche.length - 3}`}
+                            </button>
                           )}
                         </div>
 
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-1.5 mb-4">
-                          <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800/40 rounded-xl p-2 text-center">
-                            <p className="text-sm font-black text-teal-900 dark:text-teal-300">
+                          <div className="bg-[#EAF7EA] dark:bg-[#14531D]/40 border border-[#C8E6C9] dark:border-[#228B22]/40 rounded-xl p-2 text-center">
+                            <p className="text-sm font-black text-[#14531D] dark:text-[#86D992]">
                               {primary ? `${(primary.followers / 1000).toFixed(1)}k` : '—'}
                             </p>
-                            <p className="text-[9px] font-bold uppercase tracking-wide text-teal-600/80 dark:text-teal-400/80 mt-0.5">Followers</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wide text-[#1B6E1B]/80 dark:text-[#86D992]/80 mt-0.5">Followers</p>
                           </div>
                           <div className="bg-sky-50 dark:bg-sky-900/30 border border-sky-100 dark:border-sky-800/40 rounded-xl p-2 text-center">
                             <p className="text-sm font-black text-sky-900 dark:text-sky-300">

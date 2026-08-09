@@ -490,7 +490,14 @@ export default function InfluencerCampaigns() {
             </button>
           </div>
 
-          <div className={`${showFilters ? 'flex' : 'hidden'} lg:flex flex-wrap items-center gap-2`}>
+          {/* Niche chips and the platform/clear controls are separate rows —
+              with 38 niches the platform select was getting swallowed at the
+              end of the wrap and read as just another niche chip. */}
+          <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-400 mb-2">
+              Niche
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
             {NICHES.map(niche => (
               <button key={niche} onClick={() => toggleNiche(niche)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 cursor-pointer ${
@@ -501,10 +508,17 @@ export default function InfluencerCampaigns() {
                 {NICHE_LABELS[niche] ?? niche}
               </button>
             ))}
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700/50 flex flex-wrap items-center gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-400 mr-1">
+                Platform
+              </p>
             <div className="relative">
               <select
                 value={selectedPlatform}
                 onChange={e => setSelectedPlatform(e.target.value)}
+                aria-label="Filter by platform"
                 className={`pl-3 pr-7 py-1.5 text-xs border rounded-full focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 capitalize font-semibold appearance-none cursor-pointer transition-all duration-150 ${
                   selectedPlatform !== 'any'
                     ? 'border-[#F0417B] bg-[#FCE4EC] text-[#7A0F3D]'
@@ -526,6 +540,7 @@ export default function InfluencerCampaigns() {
                 Clear all
               </button>
             )}
+            </div>
           </div>
         </div>
         )}

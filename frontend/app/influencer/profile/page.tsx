@@ -301,6 +301,8 @@ function InfluencerProfile() {
   const [bio, setBio] = useState('');
   const [niche, setNiche] = useState<string[]>([]);
   const [subNiches, setSubNiches] = useState<string[]>([]);
+  // Expands the niche chip row on the profile summary card.
+  const [showAllNiches, setShowAllNiches] = useState(false);
   const [city, setCity] = useState('');
   const [area, setArea] = useState('');
   const [priceRangeMin, setPriceRangeMin] = useState('');
@@ -1290,14 +1292,22 @@ function InfluencerProfile() {
                       <MapPinIcon />{profile.area ? (profile.city ? `${profile.area} · near ${profile.city}` : profile.area) : profile.city}
                     </span>
                   )}
-                  {(profile?.niche || []).slice(0, 3).map((n: string, idx: number) => {
+                  {(showAllNiches ? (profile?.niche || []) : (profile?.niche || []).slice(0, 3)).map((n: string, idx: number) => {
                     const chipColors = ['bg-rose-100 text-rose-700','bg-blue-100 text-blue-700','bg-amber-100 text-amber-700'];
                     return (
                       <span key={n} className={`text-xs px-2.5 py-1 rounded-full font-semibold ${chipColors[idx % chipColors.length]}`}>{NICHE_LABELS[n] ?? n}</span>
                     );
                   })}
                   {(profile?.niche?.length || 0) > 3 && (
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">+{profile.niche.length - 3}</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAllNiches(v => !v)}
+                      aria-expanded={showAllNiches}
+                      aria-label={showAllNiches ? 'Show fewer niches' : `Show ${profile.niche.length - 3} more niches`}
+                      className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-medium border border-gray-200 hover:bg-[#FCE4EC] hover:text-[#7A0F3D] hover:border-[#F0417B]/40 transition-colors cursor-pointer"
+                    >
+                      {showAllNiches ? '↑ less' : `+${profile.niche.length - 3}`}
+                    </button>
                   )}
                   {(profile?.priceRangeMin || profile?.priceRangeMax) && (
                     <span className="inline-flex items-center text-xs px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full font-semibold border border-amber-200/60">
