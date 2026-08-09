@@ -53,7 +53,12 @@ exports.getOverviewStats = async (req, res) => {
       Campaign.countDocuments({ status: { $in: ['active', 'in-progress'] } }),
       Deal.countDocuments(),
       Deal.countDocuments({ status: 'completed' }),
-      User.countDocuments({ plan: 'premium' }),
+      // Must match computePremiumRevenue's definition of "premium": still
+      // within the paid period. `plan` alone goes stale, because it is only
+      // corrected on the user's next request (auth.middleware), so someone who
+      // lapsed and never came back stayed counted here while the Subscriptions
+      // page correctly excluded them — two admin pages disagreeing.
+      User.countDocuments({ plan: 'premium', premiumUntil: { $gt: new Date() } }),
       BrandProfile.countDocuments({ gstinStatus: 'pending' })
     ]);
 
@@ -77,8 +82,7 @@ exports.getOverviewStats = async (req, res) => {
       avatarUrl: recentAvatarMap.get(String(u._id)) || ''
     }));
 
-    // Active Premium revenue (one-time purchases, not recurring — see applyPremiumUpgrade.js).
-    // Shares computePremiumRevenue with the Subscriptions page so the two
+    // Active recurring revenue. Shares computePremiumRevenue with the Subscriptions page so the two
     // dashboards can never disagree on what "Premium revenue" means, and so
     // this card gets its own real trend instead of borrowing GMV's.
     const premium = await computePremiumRevenue();
@@ -171,7 +175,19 @@ exports.getOverviewStats = async (req, res) => {
         mrr,
         influencerMRR,
         brandMRR,
-        freemiumUsers: await User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } })
+        // Same "not currently paying" definition as the Subscriptions page, so
+        // freemiumUsers + premiumUsers reconciles exactly to memberUsers.
+        freemiumUsers: await User.countDocuments({
+          role: { $in: ['brand', 'influencer'] },
+          $or: [
+            { plan: { $ne: 'premium' } },
+            { premiumUntil: null },
+            { premiumUntil: { $lte: new Date() } },
+          ],
+        }),
+        // Brand + creator accounts only. `totalUsers` includes admins, so it is
+        // the wrong denominator for the freemium/premium split.
+        memberUsers: totalInfluencers + totalBrands
       },
       recentSignups,
       signupTrend,
@@ -193,7 +209,7 @@ exports.getOverviewStats = async (req, res) => {
 // ─────────────────────────────────────────
 exports.getAllUsers = async (req, res) => {
   try {
-    const { role, status, plan, tier, page = 1, limit = 20, search } = req.query;
+    const { role, status, plan, tier, billing, page = 1, limit = 20, search } = req.query;
 
     const query = {};
     if (role) query.role = role;
@@ -201,6 +217,25 @@ exports.getAllUsers = async (req, res) => {
     if (plan) query.plan = plan;
     // `tier` is the real subscription level now; `plan` is the legacy binary.
     if (tier) query.tier = tier;
+
+    // `billing` uses the same "currently paying" definition as the revenue
+    // figures (computePremiumRevenue), so the Subscriptions page cards and the
+    // list they link into always agree. `plan=premium` alone does not: it
+    // still matches members whose period has expired but who have not made a
+    // request since, so the drill-down returned more rows than the card.
+    if (billing === 'premium') {
+      query.plan = 'premium';
+      query.premiumUntil = { $gt: new Date() };
+    } else if (billing === 'free') {
+      query.$and = [
+        ...(query.$and || []),
+        { $or: [
+          { plan: { $ne: 'premium' } },
+          { premiumUntil: null },
+          { premiumUntil: { $lte: new Date() } },
+        ] },
+      ];
+    }
     if (search) {
       // Escape regex metacharacters so a raw user ID (with its hyphens) and any
       // pasted value are matched literally, not parsed as a pattern.
@@ -991,6 +1026,14 @@ exports.updateGSTINStatus = async (req, res) => {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
+    // Read the prior GSTIN state before overwriting it — the auto-reactivate
+    // below must only undo a suspension that this flow itself caused.
+    const priorProfile = await BrandProfile.findById(brandProfileId).select('gstinStatus');
+    if (!priorProfile) {
+      return res.status(404).json({ error: 'Brand profile not found' });
+    }
+    const wasRejected = priorProfile.gstinStatus === 'rejected';
+
     const profile = await BrandProfile.findByIdAndUpdate(brandProfileId, {
       gstinStatus: status,
       gstinVerified: status === 'verified'
@@ -1005,9 +1048,12 @@ exports.updateGSTINStatus = async (req, res) => {
       await User.findByIdAndUpdate(profile.userId._id, { status: 'suspended' });
     }
 
-    // Approving a brand that was previously suspended (e.g. an earlier rejection
-    // was a mistake) reactivates their account in the same action.
-    if (status === 'verified' && profile.userId && profile.userId.status === 'suspended') {
+    // Approving a brand whose GSTIN had been REJECTED reactivates the account,
+    // since the rejection is what suspended it (e.g. it was a mistake).
+    // Scoped to `wasRejected` deliberately: a brand suspended for abuse or a
+    // policy breach must stay suspended, and without this check approving a
+    // pending GSTIN would silently reinstate them.
+    if (status === 'verified' && wasRejected && profile.userId && profile.userId.status === 'suspended') {
       await User.findByIdAndUpdate(profile.userId._id, { status: 'active' });
     }
 
@@ -1103,7 +1149,19 @@ exports.getSubscriptionOverview = async (req, res) => {
 
     const [totalUsers, freemiumUsers, premium, subAgg] = await Promise.all([
       User.countDocuments(),
-      User.countDocuments({ role: { $in: ['brand', 'influencer'] }, plan: { $ne: 'premium' } }),
+      // "Not currently paying" — the complement of computePremiumRevenue's
+      // premium set, so freemium + premium reconciles to all brand/creator
+      // accounts. Filtering on `plan` alone left lapsed members (plan still
+      // 'premium', period expired) in neither bucket, so the two numbers on
+      // this page silently failed to add up.
+      User.countDocuments({
+        role: { $in: ['brand', 'influencer'] },
+        $or: [
+          { plan: { $ne: 'premium' } },
+          { premiumUntil: null },
+          { premiumUntil: { $lte: new Date() } },
+        ],
+      }),
       computePremiumRevenue(),
       // Health of the recurring book: who will actually renew, who has already
       // cancelled but is still inside a paid period, and whose mandate is

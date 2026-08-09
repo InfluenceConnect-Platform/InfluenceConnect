@@ -150,6 +150,11 @@ export default function AdminDashboard() {
     trend?: { current: number; previous: number } | null;
   };
 
+  // Brand + creator accounts, the correct denominator for the subscription
+  // mix. Falls back to the two parts summed if the API predates memberUsers.
+  const memberUsers: number = stats?.memberUsers
+    ?? ((stats?.freemiumUsers ?? 0) + (stats?.premiumUsers ?? 0));
+
   const STAT_CARDS: StatCard[] = [
     {
       label: 'Total Users',
@@ -447,16 +452,19 @@ export default function AdminDashboard() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-900 text-sm">Subscription mix</h3>
-                <span className="text-xs text-gray-400">{stats?.totalUsers ?? 0} users</span>
+                {/* Brand + creator accounts only. Dividing by totalUsers put
+                    admins in the denominator, so the two bars never filled the
+                    track even when every member was accounted for. */}
+                <span className="text-xs text-gray-400">{memberUsers} members</span>
               </div>
               <div className="flex h-2.5 rounded-full overflow-hidden bg-gray-100 mb-3">
                 <div
                   className="bg-[#3E4751] transition-all duration-500"
-                  style={{ width: `${stats?.totalUsers ? ((stats.freemiumUsers / stats.totalUsers) * 100) : 0}%` }}
+                  style={{ width: `${memberUsers ? ((stats!.freemiumUsers / memberUsers) * 100) : 0}%` }}
                 />
                 <div
                   className="bg-amber-400 transition-all duration-500"
-                  style={{ width: `${stats?.totalUsers ? ((stats.premiumUsers / stats.totalUsers) * 100) : 0}%` }}
+                  style={{ width: `${memberUsers ? ((stats!.premiumUsers / memberUsers) * 100) : 0}%` }}
                 />
               </div>
               <div className="flex items-center gap-4">

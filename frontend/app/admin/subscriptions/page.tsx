@@ -287,7 +287,7 @@ export default function AdminSubscriptions() {
                           return (
                             <button
                               key={t}
-                              onClick={() => router.push(`/admin/users?tier=${t}&role=${role}`)}
+                              onClick={() => router.push(`/admin/users?tier=${t}&role=${role}&billing=premium`)}
                               className="group text-left rounded-lg -mx-2 px-2 py-1.5 hover:bg-gray-50 transition-colors cursor-pointer"
                             >
                               <div className="flex items-center justify-between mb-1">
@@ -344,10 +344,10 @@ export default function AdminSubscriptions() {
                 <div className="flex flex-col gap-1">
                   {[
                     { label: 'Total users',        value: overview?.totalUsers ?? 0,        bold: true,  href: '/admin/users' },
-                    { label: 'Premium users',       value: overview?.totalPremium ?? 0,       bold: false, href: '/admin/users?plan=premium' },
-                    { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false, href: '/admin/users?tier=free' },
-                    { label: 'Premium creators',    value: overview?.premiumInfluencers ?? 0, bold: false, href: '/admin/users?plan=premium&role=influencer' },
-                    { label: 'Premium brands',      value: overview?.premiumBrands ?? 0,      bold: false, href: '/admin/users?plan=premium&role=brand' },
+                    { label: 'Premium users',       value: overview?.totalPremium ?? 0,       bold: false, href: '/admin/users?billing=premium' },
+                    { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false, href: '/admin/users?billing=free' },
+                    { label: 'Premium creators',    value: overview?.premiumInfluencers ?? 0, bold: false, href: '/admin/users?billing=premium&role=influencer' },
+                    { label: 'Premium brands',      value: overview?.premiumBrands ?? 0,      bold: false, href: '/admin/users?billing=premium&role=brand' },
                   ].map((item, i) => (
                     <button
                       key={i}

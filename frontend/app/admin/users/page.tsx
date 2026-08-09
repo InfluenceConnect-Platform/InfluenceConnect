@@ -40,6 +40,10 @@ function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState('');
   const [planFilter, setPlanFilter] = useState('');
   const [tierFilter, setTierFilter] = useState('');
+  // "Currently paying" / "not currently paying" — matches the revenue figures
+  // on the Subscriptions page, which `plan` alone does not (it counts lapsed
+  // members until their next request).
+  const [billingFilter, setBillingFilter] = useState('');
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
   const [pages, setPages]           = useState(1);
@@ -63,13 +67,14 @@ function AdminUsers() {
     setRoleFilter(searchParams.get('role') || '');
     setPlanFilter(searchParams.get('plan') || '');
     setTierFilter(searchParams.get('tier') || '');
+    setBillingFilter(searchParams.get('billing') || '');
     setPage(1);
   }, [searchParams]);
 
   useEffect(() => {
     fetchUsers();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roleFilter, planFilter, tierFilter, page]);
+  }, [roleFilter, planFilter, tierFilter, billingFilter, page]);
 
   const fetchUsers = async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
@@ -78,6 +83,7 @@ function AdminUsers() {
       if (roleFilter) params.role = roleFilter;
       if (planFilter) params.plan = planFilter;
       if (tierFilter) params.tier = tierFilter;
+      if (billingFilter) params.billing = billingFilter;
       if (search)     params.search = search;
       const response = await api.get('/api/admin/users', { params });
       setUsers(response.data.users);
@@ -93,7 +99,27 @@ function AdminUsers() {
   useLiveData(() => { fetchUsers({ silent: true }); });
 
   const handleSearch = () => { setPage(1); fetchUsers(); };
-  const handleRoleFilter = (role: string) => { setRoleFilter(role); setPage(1); };
+  // Tier chips must match the role being filtered: brands stop at Golden,
+  // only creators have Platinum, and admins have no tier at all. Showing
+  // Platinum under Brands offered a filter that can never match anything.
+  const tierChoices = roleFilter === 'brand'
+    ? ['free', 'silver', 'golden']
+    : roleFilter === 'admin'
+      ? []
+      : ['free', 'silver', 'golden', 'platinum'];
+
+  const handleRoleFilter = (role: string) => {
+    setRoleFilter(role);
+    // Drop a tier that the new role doesn't have, otherwise switching to
+    // Brands while Platinum is active silently returns an empty list.
+    const allowed = role === 'brand'
+      ? ['free', 'silver', 'golden']
+      : role === 'admin'
+        ? []
+        : ['free', 'silver', 'golden', 'platinum'];
+    if (tierFilter && !allowed.includes(tierFilter)) setTierFilter('');
+    setPage(1);
+  };
   // Selecting a tier clears the legacy plan filter — they'd otherwise AND
   // together and silently return nothing (e.g. plan=freemium + tier=golden).
   const handleTierFilter = (tier: string) => { setTierFilter(tier); setPlanFilter(''); setPage(1); };
@@ -166,13 +192,23 @@ function AdminUsers() {
               </button>
             ))}
           </div>
+          {(billingFilter || planFilter) && (
+            <button
+              onClick={() => { setBillingFilter(''); setPlanFilter(''); setPage(1); }}
+              title="Clear the billing filter applied from the Subscriptions page"
+              className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer shadow-sm"
+            >
+              {billingFilter === 'premium' ? 'Currently paying'
+                : billingFilter === 'free' ? 'Not paying'
+                : `Plan: ${planFilter}`}
+              <span className="text-emerald-500">✕</span>
+            </button>
+          )}
+          {tierChoices.length > 0 && (
           <div className="flex bg-white border border-gray-200 rounded-xl p-1 gap-0.5 overflow-x-auto shadow-sm">
             {[
-              { value: '',         label: 'All tiers' },
-              { value: 'free',     label: 'Free' },
-              { value: 'silver',   label: 'Silver' },
-              { value: 'golden',   label: 'Golden' },
-              { value: 'platinum', label: 'Platinum' },
+              { value: '', label: 'All tiers' },
+              ...tierChoices.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) })),
             ].map(f => (
               <button
                 key={f.value}
@@ -193,6 +229,7 @@ function AdminUsers() {
               </button>
             ))}
           </div>
+          )}
         </div>
 
         <div className="bg-white border border-gray-200/70 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)] overflow-hidden anim-fade-up anim-delay-2">

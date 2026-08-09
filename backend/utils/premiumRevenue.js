@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const Subscription = require('../models/Subscription');
 const { getTierConfig, TIERS_BY_ROLE } = require('./tiers');
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -10,15 +11,23 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 // approximation that silently disagreed with each other and ignored yearly
 // billing entirely).
 //
-// Revenue is derived from EVERY paid Payment a currently-premium user holds,
-// normalizing each one to a monthly-equivalent and summing them — not from
-// picking a single "representative" payment. Purchases stack additively onto
-// premiumUntil rather than replacing each other (see applyPremiumUpgrade.js),
-// so a user can genuinely hold both an active yearly purchase and a monthly
-// top-up bought on top of it; neither cycle is favored over the other, both
-// are counted, because both were actually paid. Falls back to the flat
-// PLAN_PRICE only for premium grants with no matching paid record at all
-// (e.g. legacy/manual).
+// MRR is what recurs NOW, per paying user — not the sum of everything they
+// have ever paid.
+//
+// This previously summed every paid Payment a premium user held. That was
+// defensible under the old one-time model, where each purchase bought extra
+// days that genuinely stacked. It is badly wrong under subscriptions: every
+// renewal writes another paid Payment (see recordSubscriptionCharge), so a
+// ₹399 Silver brand who had renewed six times counted as ₹2,394 of MRR. The
+// number inflated with tenure, so the longer the platform ran the more
+// fictional the revenue dashboard became.
+//
+// Order of authority per user:
+//   1. their live Subscription's `amount` — the amount that will actually be
+//      charged again, which is the definition of recurring revenue;
+//   2. otherwise their MOST RECENT paid Payment — covers the one-time fallback
+//      purchase and legacy one-time buyers, counting only the current period;
+//   3. otherwise the tier's list price — legacy/manual grants with no payment.
 async function computePremiumRevenue() {
   const now = new Date();
 
@@ -32,34 +41,59 @@ async function computePremiumRevenue() {
   ]);
   const lifetimeRevenue = Math.round((lifetimeAgg[0]?.total || 0) / 100);
 
-  const premiumUserIds = premiumMembers.map(u => u._id);
-  const paidPayments = await Payment.find({
-    status: 'paid',
-    userId: { $in: premiumUserIds }
-  }).select('userId billingCycle amount');
+  // Anyone who has ever been premium — needed for the 6-month trend below, and
+  // fetched here so the payment/subscription maps cover historical members too.
+  // Otherwise the trend priced lapsed members at list price while the headline
+  // priced current ones from real payments, and the two disagreed.
+  const everPremiumMembers = await User.find({
+    premiumStartedAt: { $ne: null }
+  }).select('role tier premiumStartedAt premiumUntil');
 
-  const paymentsByUser = {};
+  const premiumUserIds = [...new Set(
+    [...premiumMembers, ...everPremiumMembers].map(u => u._id.toString())
+  )];
+  const [paidPayments, liveSubs] = await Promise.all([
+    // Newest first so the first row per user is their current period.
+    Payment.find({ status: 'paid', userId: { $in: premiumUserIds } })
+      .sort({ createdAt: -1 })
+      .select('userId billingCycle amount createdAt'),
+    Subscription.find({
+      userId: { $in: premiumUserIds },
+      status: { $in: Subscription.LIVE_STATUSES },
+    }).select('userId billingCycle amount'),
+  ]);
+
+  // Latest paid payment per user.
+  const latestPaymentByUser = new Map();
   paidPayments.forEach(p => {
     const key = p.userId.toString();
-    (paymentsByUser[key] || (paymentsByUser[key] = [])).push(p);
+    if (!latestPaymentByUser.has(key)) latestPaymentByUser.set(key, p);
+  });
+  const subByUser = new Map();
+  liveSubs.forEach(s => {
+    const key = s.userId.toString();
+    if (!subByUser.has(key)) subByUser.set(key, s);
   });
 
-  // Sum of every paid payment's monthly-equivalent value for this user.
+  const toMonthly = (amountPaise, billingCycle) =>
+    billingCycle === 'yearly' ? (amountPaise / 100) / 12 : amountPaise / 100;
+
+  // The single recurring source of truth for this user — see the note above.
+  const sourceFor = (u) =>
+    subByUser.get(u._id.toString()) || latestPaymentByUser.get(u._id.toString()) || null;
+
   const monthlyEquivalentFor = (u) => {
-    const payments = paymentsByUser[u._id.toString()];
-    if (!payments || payments.length === 0) {
-      return getTierConfig(u.role, u.tier)?.priceMonthly || 0;
-    }
-    return payments.reduce((sum, p) => sum + (p.billingCycle === 'yearly' ? (p.amount / 100) / 12 : p.amount / 100), 0);
+    const src = sourceFor(u);
+    if (!src) return getTierConfig(u.role, u.tier)?.priceMonthly || 0;
+    return toMonthly(src.amount, src.billingCycle);
   };
 
-  // Which billing cycles this user actually has an active paid payment for —
-  // can be both, so a user can count toward both the monthly and yearly
-  // subscriber tallies at once.
+  // The cycle this user is actually billed on. A user sits in exactly one
+  // bucket now — under subscriptions they cannot be on monthly and yearly at
+  // the same time, since switching plans replaces the old subscription.
   const cyclesFor = (u) => {
-    const payments = paymentsByUser[u._id.toString()];
-    if (!payments || payments.length === 0) return new Set();
-    return new Set(payments.map(p => p.billingCycle));
+    const src = sourceFor(u);
+    return src ? new Set([src.billingCycle]) : new Set();
   };
 
   let influencerMRR = 0, brandMRR = 0;
@@ -115,20 +149,20 @@ async function computePremiumRevenue() {
   // ── Cumulative active Premium revenue over the last 6 months ──
   // Same normalized-monthly-value logic, applied at each month-end for
   // whoever had already upgraded by then (based on premiumStartedAt).
-  const allPremiumMembers = await User.find({
-    plan: 'premium',
-    premiumStartedAt: { $ne: null }
-  }).select('role tier premiumStartedAt');
-
+  // Each month-end is evaluated on both ends: the member had started by then
+  // AND had not yet lapsed. The old version filtered on `plan: 'premium'` only
+  // and tested just the start date, so lapsed members were counted forever and
+  // the line could only ever rise — a revenue trend that structurally could
+  // not show churn.
   const mrrTrend = [];
   for (let i = 5; i >= 0; i--) {
     // Last millisecond of the month i months ago.
     const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
     let monthMrr = 0;
-    allPremiumMembers.forEach(u => {
-      if (new Date(u.premiumStartedAt) <= monthEnd) {
-        monthMrr += monthlyEquivalentFor(u);
-      }
+    everPremiumMembers.forEach(u => {
+      const started = new Date(u.premiumStartedAt) <= monthEnd;
+      const stillActive = u.premiumUntil && new Date(u.premiumUntil) > monthEnd;
+      if (started && stillActive) monthMrr += monthlyEquivalentFor(u);
     });
     mrrTrend.push({ month: MONTHS[(now.getMonth() - i + 12) % 12], value: Math.round(monthMrr) });
   }
