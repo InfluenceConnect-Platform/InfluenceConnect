@@ -268,56 +268,56 @@ export default function EarningsPage() {
           </div>
 
           {/* Active deals */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#FCE4EC] to-pink-100 border border-[#F0417B]/25 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#FFF1F5] dark:from-[#3D0A20] to-[#FCE4EC] dark:to-[#2A0716] border border-[#F6C6D8] dark:border-[#7A1F44] rounded-2xl p-4 sm:p-5 shadow-sm">
             <div className="flex items-start justify-between mb-4">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Active Deals</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#6B7280] dark:text-[#CBD5E1] leading-tight pr-2">Active Deals</p>
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                 </svg>
               </div>
             </div>
-            <p className="text-3xl sm:text-4xl font-black text-[#7A0F3D] leading-none mb-2 tabular-nums">
+            <p className="text-3xl sm:text-4xl font-black text-[#8A0F42] dark:text-[#FF8FB8] leading-none mb-2 tabular-nums">
               {summary?.activeDeals || 0}
             </p>
-            <p className="text-[11px] text-[#B00D4D]/80 font-semibold truncate">
+            <p className="text-[11px] text-[#C41055] dark:text-[#FFB3CE] font-semibold truncate">
               ₹{(summary?.pendingPayout || 0).toLocaleString()} pending
             </p>
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-[#F0417B] to-[#E0115F] opacity-10 pointer-events-none" />
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-[#F0417B] to-[#E0115F] opacity-10 dark:opacity-25 pointer-events-none" />
           </div>
 
           {/* Deals done */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#FCE4EC] to-rose-100 border border-[#B00D4D]/20 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#FFF1F2] dark:from-[#3A0A14] to-[#FFDDE1] dark:to-[#24050C] border border-[#F6C7CC] dark:border-[#7A2230] rounded-2xl p-4 sm:p-5 shadow-sm">
             <div className="flex items-start justify-between mb-4">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Deals Done</p>
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#B00D4D] to-[#7A0F3D] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#6B7280] dark:text-[#CBD5E1] leading-tight pr-2">Deals Done</p>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#881337] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
               </div>
             </div>
-            <p className="text-3xl sm:text-4xl font-black text-[#7A0F3D] leading-none mb-2 tabular-nums">
+            <p className="text-3xl sm:text-4xl font-black text-[#881337] dark:text-[#FDA4AF] leading-none mb-2 tabular-nums">
               {summary?.dealsCompleted || 0}
             </p>
-            <p className="text-[11px] text-[#B00D4D]/80 font-semibold">All time</p>
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-[#B00D4D] to-[#7A0F3D] opacity-10 pointer-events-none" />
+            <p className="text-[11px] text-[#BE123C] dark:text-[#FCB8C0] font-semibold">All time</p>
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-[#E11D48] to-[#881337] opacity-10 dark:opacity-25 pointer-events-none" />
           </div>
 
           {/* Avg deal value */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200/70 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#FFFBEB] dark:from-[#3A2606] to-[#FEF0C7] dark:to-[#241703] border border-[#F3DFA8] dark:border-[#6B4E12] rounded-2xl p-4 sm:p-5 shadow-sm">
             <div className="flex items-start justify-between mb-4">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Avg Deal Value</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#6B7280] dark:text-[#CBD5E1] leading-tight pr-2">Avg Deal Value</p>
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
                 </svg>
               </div>
             </div>
-            <p className="text-3xl sm:text-4xl font-black text-amber-900 leading-none mb-2 tabular-nums">
+            <p className="text-3xl sm:text-4xl font-black text-[#78350F] dark:text-[#FCD34D] leading-none mb-2 tabular-nums">
               ₹{(summary?.avgDealValue || 0).toLocaleString()}
             </p>
-            <p className="text-[11px] text-amber-600/80 font-semibold">Per campaign</p>
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 opacity-10 pointer-events-none" />
+            <p className="text-[11px] text-[#B45309] dark:text-[#FBBF24] font-semibold">Per campaign</p>
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 opacity-10 dark:opacity-25 pointer-events-none" />
           </div>
 
         </section>
@@ -352,7 +352,7 @@ export default function EarningsPage() {
                             className={`w-full rounded-t-lg transition-all duration-200 cursor-pointer relative ${
                               isMax
                                 ? 'bg-gradient-to-t from-[#7A0F3D] to-[#F0417B] shadow-sm'
-                                : 'bg-gradient-to-t from-rose-200 to-cyan-100 group-hover:from-[#E0115F] group-hover:to-[#F0417B]'
+                                : 'bg-gradient-to-t from-[#F6C6D8] to-[#FCE4EC] dark:from-[#7A1F44] dark:to-[#3D0A20] group-hover:from-[#E0115F] group-hover:to-[#F0417B]'
                             }`}
                             style={{ height: `${pct}%` }}
                           >

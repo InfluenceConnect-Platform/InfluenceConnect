@@ -580,7 +580,7 @@ function BrandMessages() {
                   <ChatBubbleIcon size={28} />
                 </div>
                 <p className={`text-[14px] font-bold mb-1.5 ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>No conversations</p>
-                <p className={`text-[12px] leading-relaxed max-w-[200px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                <p className={`text-[12px] leading-relaxed max-w-[200px] ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                   {search
                     ? 'No matches found.'
                     : 'Accept an influencer application to start a conversation.'}
@@ -651,21 +651,21 @@ function BrandMessages() {
                             </span>
                             {deal.lastMessage && (
                               <span className={`text-[10.5px] ml-2 flex-shrink-0 font-medium ${
-                                hasActivity ? isDark ? 'text-green-400' : 'text-green-600' : isDark ? 'text-slate-500' : 'text-gray-400'
+                                hasActivity ? isDark ? 'text-green-400' : 'text-green-600' : isDark ? 'text-slate-400' : 'text-gray-400'
                               }`}>
                                 {formatRelativeTime(deal.lastMessage.createdAt)}
                               </span>
                             )}
                           </div>
-                          <p className={`text-[11.5px] truncate mb-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{deal.campaignId?.title}</p>
+                          <p className={`text-[11.5px] truncate mb-0.5 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>{deal.campaignId?.title}</p>
                           {hasPendingOffer && !isActive ? (
                             <p className="text-[11px] text-amber-600 font-semibold truncate">New offer — tap to respond</p>
                           ) : deal.lastMessage ? (
-                            <p className={`text-[11px] truncate ${hasUnread && !isActive ? isDark ? 'text-slate-200 font-semibold' : 'text-gray-700 font-semibold' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                            <p className={`text-[11px] truncate ${hasUnread && !isActive ? isDark ? 'text-slate-200 font-semibold' : 'text-gray-700 font-semibold' : isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                               {previewText(deal.lastMessage)}
                             </p>
                           ) : (
-                            <p className={`text-[11px] italic ${isDark ? 'text-slate-600' : 'text-gray-300'}`}>No messages yet — say hi!</p>
+                            <p className={`text-[11px] italic ${isDark ? 'text-slate-400' : 'text-gray-300'}`}>No messages yet — say hi!</p>
                           )}
                         </div>
 
@@ -755,7 +755,7 @@ function BrandMessages() {
                     <p className={`text-[15px] font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedDeal.influencerId?.name}</p>
                   )}
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className={`text-[11px] truncate ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
+                    <p className={`text-[11px] truncate ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
                     {selectedDeal.customId && <IdChip id={selectedDeal.customId} size="xs" tone={isDark ? 'dark' : 'subtle'} />}
                   </div>
                 </div>
@@ -900,7 +900,7 @@ function BrandMessages() {
                     </div>
                     <div>
                       <p className={`text-[15px] font-bold mb-1.5 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Start the conversation</p>
-                      <p className={`text-[12px] max-w-[220px] leading-relaxed ${isDark ? 'text-slate-500' : 'text-gray-400/90'}`}>
+                      <p className={`text-[12px] max-w-[220px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-gray-400/90'}`}>
                         Kick things off by sharing campaign details or a welcome message with{' '}
                         <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>{selectedDeal.influencerId?.name}</span>.
                       </p>
@@ -1024,7 +1024,7 @@ function BrandMessages() {
                                       </span>
                                       <span className="min-w-0 flex-1 text-left">
                                         <span className="block text-[12.5px] font-semibold truncate">{att.fileName || 'File'}</span>
-                                        <span className={`block text-[10.5px] ${isMine ? 'text-white/70' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>{formatFileSize(att.fileSize)}</span>
+                                        <span className={`block text-[10.5px] ${isMine ? 'text-white/70' : isDark ? 'text-slate-400' : 'text-gray-400'}`}>{formatFileSize(att.fileSize)}</span>
                                       </span>
                                       <span className={isMine ? 'text-white/80' : isDark ? 'text-slate-400' : 'text-gray-400'}><DownloadIcon /></span>
                                     </a>
@@ -1045,7 +1045,7 @@ function BrandMessages() {
                             )}
                             {isLast && (
                               <div className={`flex items-center gap-1 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
-                                <span className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-gray-400/70'}`}>{formatTime(msg.createdAt)}</span>
+                                <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-400/70'}`}>{formatTime(msg.createdAt)}</span>
                                 {isMine && <span className="text-[#6B7FC4]"><CheckDoubleIcon /></span>}
                               </div>
                             )}
@@ -1133,12 +1133,12 @@ function BrandMessages() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-[12.5px] font-semibold ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Chat locked</p>
-                      <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                      <p className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                         {payoutMissing ? 'Waiting for the creator to submit payout details.' : 'Agree on a price above to unlock messaging.'}
                       </p>
                     </div>
                     <div className={`hidden sm:block px-3 py-2 border rounded-xl opacity-40 cursor-not-allowed w-[140px] flex-shrink-0 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-                      <span className={`text-[12px] truncate block ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Type a message…</span>
+                      <span className={`text-[12px] truncate block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Type a message…</span>
                     </div>
                   </div>
                 </div>
@@ -1252,7 +1252,7 @@ function BrandMessages() {
                   <ChatBubbleIcon size={38} />
                 </div>
                 <h3 className={`text-[17px] font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>Deal conversations</h3>
-                <p className={`text-[13px] max-w-[250px] leading-relaxed mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                <p className={`text-[13px] max-w-[250px] leading-relaxed mb-6 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                   Select a creator from the sidebar to view and continue your conversation.
                 </p>
                 <div className={`flex items-center gap-2 text-[11.5px] px-4 py-2.5 rounded-xl border ${isDark ? 'text-green-300 bg-green-900/20 border-green-800/30' : 'text-green-700 bg-green-50 border-green-200/50'}`}>

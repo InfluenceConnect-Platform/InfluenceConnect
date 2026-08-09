@@ -597,21 +597,21 @@ function MessagesPage() {
                             </span>
                             {lastMsg && (
                               <span className={`text-[10.5px] ml-2 flex-shrink-0 font-medium ${
-                                hasActivity ? isDark ? 'text-rose-400' : 'text-rose-600' : isDark ? 'text-slate-500' : 'text-gray-400'
+                                hasActivity ? isDark ? 'text-rose-400' : 'text-rose-600' : isDark ? 'text-slate-400' : 'text-gray-400'
                               }`}>
                                 {formatRelativeTime(lastMsg.createdAt)}
                               </span>
                             )}
                           </div>
-                          <p className={`text-[11.5px] truncate mb-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{deal.campaignId?.title}</p>
+                          <p className={`text-[11.5px] truncate mb-0.5 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>{deal.campaignId?.title}</p>
                           {hasPendingOffer && !isActive ? (
                             <p className="text-[11px] text-amber-600 font-semibold truncate">New offer — tap to respond</p>
                           ) : lastMsg ? (
-                            <p className={`text-[11px] truncate ${hasUnread && !isActive ? isDark ? 'text-slate-200 font-semibold' : 'text-gray-700 font-semibold' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                            <p className={`text-[11px] truncate ${hasUnread && !isActive ? isDark ? 'text-slate-200 font-semibold' : 'text-gray-700 font-semibold' : isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                               {previewText(lastMsg)}
                             </p>
                           ) : (
-                            <p className={`text-[11px] italic ${isDark ? 'text-slate-600' : 'text-gray-300'}`}>No messages yet</p>
+                            <p className={`text-[11px] italic ${isDark ? 'text-slate-400' : 'text-gray-300'}`}>No messages yet</p>
                           )}
                         </div>
 
@@ -701,7 +701,7 @@ function MessagesPage() {
                   ) : (
                     <p className={`text-[15px] font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedDeal.brandId?.name}</p>
                   )}
-                  <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
+                  <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>{selectedDeal.campaignId?.title}</p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -825,7 +825,7 @@ function MessagesPage() {
                     </div>
                     <div>
                       <p className={`text-[15px] font-bold mb-1.5 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Start the conversation</p>
-                      <p className={`text-[12px] max-w-[220px] leading-relaxed ${isDark ? 'text-slate-500' : 'text-gray-400/90'}`}>
+                      <p className={`text-[12px] max-w-[220px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-gray-400/90'}`}>
                         Introduce yourself and discuss campaign details with{' '}
                         <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>{selectedDeal.brandId?.name}</span>.
                       </p>
@@ -956,7 +956,7 @@ function MessagesPage() {
                                       </span>
                                       <span className="min-w-0 flex-1 text-left">
                                         <span className="block text-[12.5px] font-semibold truncate">{att.fileName || 'File'}</span>
-                                        <span className={`block text-[10.5px] ${isMine ? 'text-white/70' : isDark ? 'text-slate-500' : 'text-gray-400'}`}>{formatFileSize(att.fileSize)}</span>
+                                        <span className={`block text-[10.5px] ${isMine ? 'text-white/70' : isDark ? 'text-slate-400' : 'text-gray-400'}`}>{formatFileSize(att.fileSize)}</span>
                                       </span>
                                       <span className={isMine ? 'text-white/80' : isDark ? 'text-slate-400' : 'text-gray-400'}><DownloadIcon /></span>
                                     </a>
@@ -977,7 +977,7 @@ function MessagesPage() {
                             )}
                             {isLast && (
                               <div className={`flex items-center gap-1 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
-                                <span className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-gray-400/70'}`}>{formatTime(msg.createdAt)}</span>
+                                <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-gray-400/70'}`}>{formatTime(msg.createdAt)}</span>
                                 {isMine && <span className="text-[#F0417B]"><CheckDoubleIcon /></span>}
                               </div>
                             )}
@@ -987,7 +987,7 @@ function MessagesPage() {
                           {isMine && (
                             <div className={`w-7 h-7 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center mb-0.5 ${
                               isLast ? 'opacity-100' : 'opacity-0'
-                            } bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0]`}>
+                            } bg-gradient-to-br from-[#FCE4EC] to-[#F3B8CB]`}>
                               {profilePicUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img loading="lazy" decoding="async" src={cdnImg(profilePicUrl)} alt="" className="w-full h-full object-cover" />
@@ -1066,7 +1066,7 @@ function MessagesPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-[12.5px] font-semibold ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Chat locked</p>
-                      <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                      <p className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                         {payoutMissing ? 'Submit your payout details to unlock messaging.' : 'Agree on a price above to unlock messaging.'}
                       </p>
                     </div>
@@ -1079,7 +1079,7 @@ function MessagesPage() {
                       </button>
                     ) : (
                       <div className={`hidden sm:block px-3 py-2 border rounded-xl opacity-40 cursor-not-allowed w-[140px] flex-shrink-0 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-                        <span className={`text-[12px] truncate block ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Type a message…</span>
+                        <span className={`text-[12px] truncate block ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Type a message…</span>
                       </div>
                     )}
                   </div>
@@ -1196,7 +1196,7 @@ function MessagesPage() {
                   <ChatBubbleIcon size={38} />
                 </div>
                 <h3 className={`text-[17px] font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>Your messages</h3>
-                <p className={`text-[13px] max-w-[250px] leading-relaxed mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                <p className={`text-[13px] max-w-[250px] leading-relaxed mb-6 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                   Select a conversation from the sidebar to start chatting with a brand.
                 </p>
                 <div className={`flex items-center gap-2 text-[11.5px] px-4 py-2.5 rounded-xl border ${isDark ? 'text-rose-300 bg-rose-900/20 border-rose-800/30' : 'text-rose-700 bg-rose-50 border-rose-200/50'}`}>

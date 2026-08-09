@@ -56,7 +56,7 @@ export default function MarketingNav() {
             <span className="text-sm font-bold tracking-tight block leading-none transition-colors text-gray-900 dark:text-slate-100">
               Influence Connect
             </span>
-            <span className="text-[0.6rem] font-medium tracking-wide uppercase transition-colors text-gray-500 dark:text-slate-500">
+            <span className="text-[0.6rem] font-medium tracking-wide uppercase transition-colors text-gray-500 dark:text-slate-400">
               Creator · Brand Platform
             </span>
           </div>

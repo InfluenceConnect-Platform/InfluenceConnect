@@ -124,7 +124,7 @@ export default function CampaignBriefDrawer({
 
   const surface = isDark ? 'bg-[#0B1725]' : 'bg-[#F7F8FA]';
   const card = isDark ? 'bg-[#0F1C2E] border-slate-700/50' : 'bg-white border-gray-100';
-  const labelClr = isDark ? 'text-slate-500' : 'text-gray-400';
+  const labelClr = isDark ? 'text-slate-400' : 'text-gray-400';
   const valueClr = isDark ? 'text-slate-200' : 'text-gray-800';
   const headingClr = isDark ? 'text-white' : 'text-gray-900';
 

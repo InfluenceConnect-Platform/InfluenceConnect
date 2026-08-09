@@ -270,7 +270,7 @@ export default function AdminDashboard() {
           {STAT_CARDS.map((s, i) => (
             <SpotlightCard
               key={i}
-              className={`group bg-gradient-to-br from-white via-white ${s.wash} rounded-2xl border border-gray-200/70 p-4 sm:p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] ${s.glow} hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}
+              className={`group bg-gradient-to-br from-white via-white dark:from-[#0f1e31] dark:via-[#0f1e31] ${s.wash} rounded-2xl border border-gray-200/70 dark:border-slate-700/60 p-4 sm:p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] ${s.glow} hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}
             >
               <div className="flex items-start justify-between mb-4">
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider leading-tight pt-1">{s.label}</p>

@@ -344,7 +344,7 @@ export default function BrandBillingPage() {
 
         {/* FAQ */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-5 sm:px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50/60 to-white flex items-center gap-3">
+          <div className="px-5 sm:px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50/60 to-white dark:from-emerald-900/25 dark:to-[#0f1e31] flex items-center gap-3">
             <div className="w-1 h-7 rounded-full bg-gradient-to-b from-[#228B22] to-[#1B6E1B]" />
             <h3 className="font-bold text-gray-900">Frequently asked questions</h3>
           </div>

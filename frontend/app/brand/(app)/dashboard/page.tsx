@@ -427,7 +427,7 @@ export default function BrandDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200/80 rounded-2xl p-5 shadow-sm">
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-[#3A2606] dark:to-[#241703] border border-amber-200/80 dark:border-[#6B4E12] rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-400 flex items-center justify-center shadow-sm">
                     <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">

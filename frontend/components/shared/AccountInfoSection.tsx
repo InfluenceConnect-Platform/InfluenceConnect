@@ -254,7 +254,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
               <p className={`text-xs transition-colors ${
                 emailExpiryTimer === 0 ? 'text-red-400' :
                 emailExpiryTimer < 60 ? 'text-amber-400' :
-                isDark ? 'text-slate-500' : 'text-gray-400'
+                isDark ? 'text-slate-400' : 'text-gray-400'
               }`}>
                 {emailExpiryTimer === 0
                   ? 'Code expired — go back and request a new one'
@@ -331,7 +331,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
               <p className={`text-xs transition-colors ${
                 mobileExpiryTimer === 0 ? 'text-red-400' :
                 mobileExpiryTimer < 60 ? 'text-amber-400' :
-                isDark ? 'text-slate-500' : 'text-gray-400'
+                isDark ? 'text-slate-400' : 'text-gray-400'
               }`}>
                 {mobileExpiryTimer === 0
                   ? 'Code expired — go back and request a new one'
@@ -371,7 +371,7 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
         {mobileMsg && msgBanner(mobileMsg)}
       </div>
 
-      <p className={`text-xs pt-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+      <p className={`text-xs pt-2 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
         Member since {new Date(account.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}
         {showPlan && <> · {account.plan === 'premium' ? '★ Premium' : 'Freemium'} plan</>}
       </p>

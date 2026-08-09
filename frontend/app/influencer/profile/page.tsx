@@ -635,7 +635,7 @@ function InfluencerProfile() {
                   <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? 'bg-amber-500' : 'bg-[#E0115F]'} animate-pulse`} />
                   {isEditing ? 'Editing' : 'Live preview'}
                 </span>
-                <span className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                <span className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                   </svg>
@@ -1157,7 +1157,7 @@ function InfluencerProfile() {
         {profile && (
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5 md:mb-6">
             <div className="relative group">
-              <div className="h-36 sm:h-44 w-full overflow-hidden bg-gradient-to-r from-[#FCE4EC] to-[#F3B8CB]">
+              <div className="h-36 sm:h-44 w-full overflow-hidden bg-gradient-to-r from-[#FCE4EC] to-[#F3B8CB] dark:from-[#3D0A20] dark:to-[#2A0716]">
                 {profile.coverPhotoUrl ? (
                   <img loading="lazy" decoding="async" src={cdnImg(profile.coverPhotoUrl, 1600)} alt="Cover" className="w-full h-full object-cover" />
                 ) : (
@@ -1283,7 +1283,7 @@ function InfluencerProfile() {
                   </div>
                   <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
                     profile?.userId?.plan === 'premium'
-                      ? 'bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 border-amber-200'
+                      ? 'bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-[#3A2606] dark:to-[#241703] text-amber-700 dark:text-[#FCD34D] border-amber-200 dark:border-[#6B4E12]'
                       : 'bg-[#FCE4EC] text-[#7A0F3D] border-[#F0417B]/30'
                   }`}>
                     {profile?.userId?.plan === 'premium' ? '★ Premium' : 'Freemium'}

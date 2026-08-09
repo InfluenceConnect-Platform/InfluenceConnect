@@ -1111,7 +1111,7 @@ function BrandCampaigns() {
                   <div className="p-5">
                   {/* Info cards row */}
                   <div className="grid grid-cols-2 gap-2 mb-2.5">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-sky-100 via-sky-50 to-white border border-sky-300/60 border-l-[3px] border-l-sky-500 shadow-sm">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-sky-100 via-sky-50 to-white dark:from-sky-900/45 dark:via-sky-900/25 dark:to-[#0f1e31] border border-sky-300/60 dark:border-sky-700/50 border-l-[3px] border-l-sky-500 shadow-sm">
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <span className="w-5 h-5 rounded-md bg-sky-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41 11 22.99l-9-9L11 5.42V2h9v9l.59.41z"/><circle cx="16.5" cy="6.5" r="1"/></svg>
@@ -1128,7 +1128,7 @@ function BrandCampaigns() {
                         <p className="text-xs font-semibold text-sky-400">No niche</p>
                       )}
                     </div>
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-teal-100 via-teal-50 to-white border border-teal-300/60 border-l-[3px] border-l-teal-500 shadow-sm">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-teal-100 via-teal-50 to-white dark:from-teal-900/45 dark:via-teal-900/25 dark:to-[#0f1e31] border border-teal-300/60 dark:border-teal-700/50 border-l-[3px] border-l-teal-500 shadow-sm">
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <span className="w-5 h-5 rounded-md bg-teal-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="13" y2="11"/></svg>
@@ -1141,14 +1141,14 @@ function BrandCampaigns() {
 
                   {/* Stat cards row */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-100 via-blue-50 to-white border border-blue-300/60 border-t-[3px] border-t-blue-500 shadow-sm text-center">
+                    <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-100 via-blue-50 to-white dark:from-blue-900/45 dark:via-blue-900/25 dark:to-[#0f1e31] border border-blue-300/60 dark:border-blue-700/50 border-t-[3px] border-t-blue-500 shadow-sm text-center">
                       {campaign.newApplicants > 0 && (
                         <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white" />
                       )}
                       <p className="text-base font-black text-blue-900 leading-none mb-1">{campaign.applicantCount ?? 0}</p>
                       <p className="text-[10px] font-semibold text-blue-600">Applicants</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-100 via-emerald-50 to-white border border-emerald-300/60 border-t-[3px] border-t-emerald-500 shadow-sm text-center">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-100 via-emerald-50 to-white dark:from-emerald-900/45 dark:via-emerald-900/25 dark:to-[#0f1e31] border border-emerald-300/60 dark:border-emerald-700/50 border-t-[3px] border-t-emerald-500 shadow-sm text-center">
                       <p className="text-[11px] font-black text-emerald-900 leading-none mb-1 truncate">
                         {(campaign.budgetMin > 0 || campaign.budgetMax > 0)
                           ? `₹${(campaign.budgetMin||0).toLocaleString('en-IN')}–${(campaign.budgetMax||0).toLocaleString('en-IN')}`
@@ -1156,13 +1156,13 @@ function BrandCampaigns() {
                       </p>
                       <p className="text-[10px] font-semibold text-emerald-700">Budget</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-100 via-rose-50 to-white border border-rose-300/60 border-t-[3px] border-t-rose-500 shadow-sm text-center">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-100 via-rose-50 to-white dark:from-rose-900/45 dark:via-rose-900/25 dark:to-[#0f1e31] border border-rose-300/60 dark:border-rose-700/50 border-t-[3px] border-t-rose-500 shadow-sm text-center">
                       <p className="text-[11px] font-black text-rose-900 leading-none mb-1 truncate">
                         {followerRangeLabel(campaign.minFollowers, campaign.maxFollowers) ?? 'Any'}
                       </p>
                       <p className="text-[10px] font-semibold text-rose-600">Followers</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-100 via-amber-50 to-white border border-amber-300/60 border-t-[3px] border-t-amber-500 shadow-sm text-center">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-100 via-amber-50 to-white dark:from-amber-900/45 dark:via-amber-900/25 dark:to-[#0f1e31] border border-amber-300/60 dark:border-amber-700/50 border-t-[3px] border-t-amber-500 shadow-sm text-center">
                       <p className="text-[11px] font-black text-amber-900 leading-none mb-1">
                         {campaign.deadline
                           ? new Date(campaign.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })
@@ -1299,7 +1299,7 @@ function BrandCampaigns() {
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center px-6">
                 <div className="w-14 h-14 rounded-2xl bg-[#F4F6FB] dark:bg-slate-800/60 border border-gray-100 dark:border-slate-700 flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-gray-300 dark:text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-6 h-6 text-gray-300 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -1307,7 +1307,7 @@ function BrandCampaigns() {
                   </svg>
                 </div>
                 <p className="text-sm font-semibold text-gray-600 dark:text-slate-400 mb-1">Select a campaign</p>
-                <p className="text-xs text-gray-400 dark:text-slate-600">Click any campaign to see its applications here</p>
+                <p className="text-xs text-gray-400 dark:text-slate-400">Click any campaign to see its applications here</p>
               </div>
             )}
           </div>
@@ -1445,7 +1445,7 @@ function ApplicationsList({
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => onUpdateStatus(app._id, 'shortlisted')}
-                className="py-2 text-xs font-semibold bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg hover:from-amber-100 hover:to-orange-100 transition-all cursor-pointer text-amber-700"
+                className="py-2 text-xs font-semibold bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/35 dark:to-orange-900/25 border border-amber-200 dark:border-amber-700/50 rounded-lg hover:from-amber-100 hover:to-orange-100 dark:hover:from-amber-900/50 dark:hover:to-orange-900/40 transition-all cursor-pointer text-amber-700 dark:text-amber-300"
               >
                 Shortlist
               </button>

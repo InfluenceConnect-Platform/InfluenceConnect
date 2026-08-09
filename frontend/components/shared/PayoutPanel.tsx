@@ -219,7 +219,7 @@ export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid =
           ) : (
             <div className="flex flex-col gap-3">
               <div>
-                <p className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                <p className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                   {payout.method === 'bank' ? 'Bank transfer' : 'UPI'}
                 </p>
                 {payout.method === 'bank' ? (
@@ -443,7 +443,7 @@ export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid =
                 </button>
               )}
             </div>
-            <p className={`text-[10.5px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+            <p className={`text-[10.5px] ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
               Encrypted and only visible to you and the brand.
             </p>
           </div>

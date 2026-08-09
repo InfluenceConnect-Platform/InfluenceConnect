@@ -227,7 +227,7 @@ export default function InfluencerSettings() {
                   <div className="space-y-5">
                     <div className={cardCls}>
                       <h2 className={`text-base font-bold mb-1 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Account Information</h2>
-                      <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Each field has its own Update button. Email and phone changes require OTP verification.</p>
+                      <p className={`text-xs mb-6 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Each field has its own Update button. Email and phone changes require OTP verification.</p>
                       <AccountInfoSection
                         account={account}
                         accentColor="#E0115F"
@@ -239,7 +239,7 @@ export default function InfluencerSettings() {
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <div>
                           <h2 className={`text-base font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Autopay</h2>
-                          <p className={`text-xs mt-1 max-w-md ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                          <p className={`text-xs mt-1 max-w-md ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                             {account.plan === 'premium'
                               ? 'Automatically renew your current plan when it expires, instead of reverting to Free.'
                               : 'Upgrade to a paid plan to enable Autopay.'}
@@ -266,7 +266,7 @@ export default function InfluencerSettings() {
                 {activeSection === 'security' && (
                   <div className={cardCls}>
                     <h2 className={`text-base font-bold mb-1 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Change Password</h2>
-                    <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                    <p className={`text-xs mb-6 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                       {account?.signupMethod === 'google' ? 'Your account uses Google sign-in and does not have a separate password.' : "Use a strong password you don't use elsewhere."}
                     </p>
 
@@ -310,7 +310,7 @@ export default function InfluencerSettings() {
                   <div className="space-y-5">
                     <div className={cardCls}>
                       <h2 className={`text-base font-bold mb-1 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Help & Support</h2>
-                      <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Frequently asked questions and contact options.</p>
+                      <p className={`text-xs mb-6 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Frequently asked questions and contact options.</p>
 
                       <div className="space-y-2">
                         {FAQ_ITEMS.map((item, i) => (
@@ -320,7 +320,7 @@ export default function InfluencerSettings() {
                               className={`w-full flex items-center justify-between px-4 py-3.5 text-left text-sm font-semibold transition-colors cursor-pointer ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-gray-50 text-gray-800'}`}
                             >
                               {item.q}
-                              <svg className={`w-4 h-4 flex-shrink-0 ml-3 transition-transform ${openFaq === i ? 'rotate-180' : ''} ${isDark ? 'text-slate-500' : 'text-gray-400'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                              <svg className={`w-4 h-4 flex-shrink-0 ml-3 transition-transform ${openFaq === i ? 'rotate-180' : ''} ${isDark ? 'text-slate-400' : 'text-gray-400'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
                             </button>
                             {openFaq === i && (
                               <div className={`px-4 pb-4 text-sm leading-relaxed ${isDark ? 'text-slate-400 border-t border-slate-800' : 'text-gray-600 border-t border-gray-100'}`}>
@@ -334,7 +334,7 @@ export default function InfluencerSettings() {
 
                     <div className={cardCls}>
                       <h3 className={`text-sm font-bold mb-3 ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>Still need help?</h3>
-                      <p className={`text-xs mb-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Our team typically responds within 24 hours.</p>
+                      <p className={`text-xs mb-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Our team typically responds within 24 hours.</p>
                       <a
                         href="mailto:support@influenceconnect.in"
                         className="inline-flex items-center gap-2 bg-[#E0115F] hover:bg-[#B00D4D] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all"
@@ -349,7 +349,7 @@ export default function InfluencerSettings() {
                 {activeSection === 'legal' && (
                   <div className={cardCls}>
                     <h2 className={`text-base font-bold mb-1 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Legal</h2>
-                    <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Review our policies and agreements.</p>
+                    <p className={`text-xs mb-6 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Review our policies and agreements.</p>
                     <LegalSection />
                   </div>
                 )}
@@ -357,7 +357,7 @@ export default function InfluencerSettings() {
                 {activeSection === 'danger' && (
                   <div className={`${cardCls} border-red-500/30`}>
                     <h2 className="text-base font-bold mb-1 text-red-500">Danger Zone</h2>
-                    <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Irreversible actions. Proceed with caution.</p>
+                    <p className={`text-xs mb-6 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>Irreversible actions. Proceed with caution.</p>
 
                     {deleteMsg && (
                       <div className={`text-xs px-3.5 py-2.5 rounded-xl mb-4 ${deleteMsg.type === 'success' ? (isDark ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800/50' : 'bg-emerald-50 text-emerald-700 border border-emerald-200') : (isDark ? 'bg-red-900/30 text-red-400 border border-red-800/50' : 'bg-red-50 text-red-600 border border-red-200')}`}>

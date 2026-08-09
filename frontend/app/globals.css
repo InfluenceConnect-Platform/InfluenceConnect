@@ -330,13 +330,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .dark [class~="border-gray-200"] { border-color: rgba(30, 58, 95, 0.55); }
 .dark [class~="border-gray-100"] { border-color: rgba(22, 42, 68, 0.55); }
 
-/* Text */
-.dark [class~="text-gray-900"] { color: #f1f5f9; }
-.dark [class~="text-gray-800"] { color: #e2e8f0; }
-.dark [class~="text-gray-700"] { color: #cbd5e1; }
-.dark [class~="text-gray-600"] { color: #94a3b8; }
-.dark [class~="text-gray-500"] { color: #64748b; }
-.dark [class~="text-gray-400"] { color: #94a3b8; }
+/* Text — a strictly monotonic dark ramp. The previous mapping sent
+   gray-500 to #64748b (3.5:1 on our card surfaces, below the 4.5:1
+   minimum) and made it DIMMER than gray-400, inverting the light-mode
+   hierarchy. Every step below clears 4.5:1 on both #0B1725 and #0f1e31
+   and gets progressively dimmer as the number falls. */
+.dark [class~="text-gray-900"] { color: #f1f5f9; }  /* 16.5:1 */
+.dark [class~="text-gray-800"] { color: #e2e8f0; }  /* 14.6:1 */
+.dark [class~="text-gray-700"] { color: #cbd5e1; }  /* 12.2:1 */
+.dark [class~="text-gray-600"] { color: #aab8c8; }  /*  8.9:1 */
+.dark [class~="text-gray-500"] { color: #94a3b8; }  /*  7.0:1 */
+.dark [class~="text-gray-400"] { color: #8090a5; }  /*  5.5:1 */
 
 /* Amber/green tinted backgrounds (GST icon, status boxes) */
 .dark [class~="bg-amber-100"] { background-color: rgba(120, 80, 10, 0.35); }

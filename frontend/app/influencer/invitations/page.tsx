@@ -221,7 +221,7 @@ export default function InfluencerInvitations() {
               </svg>
             </div>
             <p className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">No invitations yet</p>
-            <p className="text-xs text-gray-400 dark:text-slate-500">When a brand invites you to a campaign, it will show up here.</p>
+            <p className="text-xs text-gray-400 dark:text-slate-400">When a brand invites you to a campaign, it will show up here.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -305,7 +305,7 @@ export default function InfluencerInvitations() {
                           const expanded = expandedDesc.has(inv._id);
                           return (
                             <div className="mt-1.5">
-                              <p className={`text-[11px] text-gray-400 dark:text-slate-500 leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
+                              <p className={`text-[11px] text-gray-400 dark:text-slate-400 leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
                                 {inv.brandDescription}
                               </p>
                               <button
@@ -359,7 +359,7 @@ export default function InfluencerInvitations() {
                         <p className={`text-[13px] font-bold leading-tight ${urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#7A0F3D]'}`}>
                           {days === null ? '—' : days < 0 ? 'Closed' : days === 0 ? 'Today!' : `${days}d left`}
                         </p>
-                        {deadline && <p className="text-[10px] text-gray-400 dark:text-slate-500">{formatDate(campaign!.deadline!)}</p>}
+                        {deadline && <p className="text-[10px] text-gray-400 dark:text-slate-400">{formatDate(campaign!.deadline!)}</p>}
                       </div>
                     </div>
 
@@ -367,13 +367,13 @@ export default function InfluencerInvitations() {
                     <div className="flex flex-col gap-1.5 mb-4">
                       {campaign?.deliverables && (
                         <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-slate-400">
-                          <span className="text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0">▸</span>
+                          <span className="text-gray-300 dark:text-slate-400 mt-0.5 flex-shrink-0">▸</span>
                           <span><strong className="text-gray-600 dark:text-slate-300">Deliverables:</strong> {campaign.deliverables}</span>
                         </div>
                       )}
                       {(campaign?.minFollowers ?? 0) > 0 && (
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
-                          <svg className="text-gray-300 dark:text-slate-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg className="text-gray-300 dark:text-slate-400 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                           </svg>
                           <span>Min. <strong className="text-gray-600 dark:text-slate-300">{formatFollowers(campaign!.minFollowers!)}</strong> followers required</span>
@@ -381,7 +381,7 @@ export default function InfluencerInvitations() {
                       )}
                       {cities.length > 0 && (
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
-                          <svg className="text-gray-300 dark:text-slate-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg className="text-gray-300 dark:text-slate-400 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                           </svg>
                           <span>{cities.join(', ')}</span>
@@ -396,7 +396,7 @@ export default function InfluencerInvitations() {
                           <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{NICHE_LABELS[n] ?? n}</span>
                         ))}
                       </div>
-                      <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-slate-500">Received {formatDate(inv.createdAt)}</span>
+                      <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-slate-400">Received {formatDate(inv.createdAt)}</span>
                     </div>
 
                     {/* ── Brand note ── */}
@@ -457,7 +457,7 @@ export default function InfluencerInvitations() {
                       </div>
                     ) : (
                       <div className="pt-4 border-t border-gray-100 dark:border-slate-700/60">
-                        <p className="text-xs text-gray-400 dark:text-slate-500">You declined this invitation.</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-400">You declined this invitation.</p>
                       </div>
                     )}
                   </div>

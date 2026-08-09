@@ -237,7 +237,7 @@ export default function VerifyOTPPage() {
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </span>
-            <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>Account created</span>
+            <span className={`transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Account created</span>
           </div>
           <div className={`w-8 h-px transition-colors ${isDark ? 'bg-slate-700' : 'bg-gray-300'}`} />
           <div className="flex items-center gap-1.5">
@@ -249,7 +249,7 @@ export default function VerifyOTPPage() {
             <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold transition-colors ${
               isDark ? 'bg-slate-800 border-slate-700 text-slate-600' : 'bg-gray-100 border-gray-300 text-gray-400'
             }`}>3</span>
-            <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>Complete profile</span>
+            <span className={`transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Complete profile</span>
           </div>
         </div>
 
@@ -285,7 +285,7 @@ export default function VerifyOTPPage() {
                   </svg>
                 </div>
                 <div>
-                  <div className={`text-[0.65rem] uppercase tracking-wider font-bold transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>Email code</div>
+                  <div className={`text-[0.65rem] uppercase tracking-wider font-bold transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Email code</div>
                   <div className={`text-sm font-semibold font-mono transition-colors ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
                     {pendingEmail?.replace(/(.{2}).*(@.*)/, '$1***$2') || 'your email'}
                   </div>
@@ -307,6 +307,7 @@ export default function VerifyOTPPage() {
                   ref={el => { emailRefs.current[i] = el; }}
                   type="text"
                   inputMode="numeric"
+                  autoComplete={i === 0 ? 'one-time-code' : 'off'}
                   maxLength={1}
                   value={digit}
                   onChange={e => handleInput(i, e.target.value, emailOTP, setEmailOTP, emailRefs)}
@@ -322,7 +323,7 @@ export default function VerifyOTPPage() {
               <p className={`text-xs mb-2 transition-colors ${
                 emailExpiryTimer === 0 ? 'text-red-400' :
                 emailExpiryTimer < 60 ? 'text-amber-400' :
-                isDark ? 'text-slate-500' : 'text-gray-400'
+                isDark ? 'text-slate-400' : 'text-gray-400'
               }`}>
                 {emailExpiryTimer === 0
                   ? 'Code expired — request a new one'
@@ -330,7 +331,7 @@ export default function VerifyOTPPage() {
               </p>
             )}
             <div className="flex items-center justify-between text-xs">
-              <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
+              <span className={`transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                 {emailTimer > 0 ? `Resend in 0:${String(emailTimer).padStart(2, '0')}` : ''}
               </span>
               <button
@@ -362,7 +363,7 @@ export default function VerifyOTPPage() {
                   </svg>
                 </div>
                 <div>
-                  <div className={`text-[0.65rem] uppercase tracking-wider font-bold transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>Mobile code</div>
+                  <div className={`text-[0.65rem] uppercase tracking-wider font-bold transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Mobile code</div>
                   <div className={`text-sm font-semibold font-mono transition-colors ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
                     +91 {pendingMobile?.replace(/(\d{2})\d+(\d{2})/, '$1***$2') || 'your mobile'}
                   </div>
@@ -384,6 +385,7 @@ export default function VerifyOTPPage() {
                   ref={el => { mobileRefs.current[i] = el; }}
                   type="text"
                   inputMode="numeric"
+                  autoComplete={i === 0 ? 'one-time-code' : 'off'}
                   maxLength={1}
                   value={digit}
                   onChange={e => handleInput(i, e.target.value, mobileOTP, setMobileOTP, mobileRefs)}
@@ -399,7 +401,7 @@ export default function VerifyOTPPage() {
               <p className={`text-xs mb-2 transition-colors ${
                 mobileExpiryTimer === 0 ? 'text-red-400' :
                 mobileExpiryTimer < 60 ? 'text-amber-400' :
-                isDark ? 'text-slate-500' : 'text-gray-400'
+                isDark ? 'text-slate-400' : 'text-gray-400'
               }`}>
                 {mobileExpiryTimer === 0
                   ? 'Code expired — request a new one'
@@ -407,7 +409,7 @@ export default function VerifyOTPPage() {
               </p>
             )}
             <div className="flex items-center justify-between text-xs">
-              <span className={`transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
+              <span className={`transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                 {mobileTimer > 0 ? `Resend in 0:${String(mobileTimer).padStart(2, '0')}` : ''}
               </span>
               <button
@@ -448,7 +450,7 @@ export default function VerifyOTPPage() {
           </div>
         )}
         {error && (
-          <div className={`mb-4 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
+          <div role="alert" className={`mb-4 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
             isDark ? 'bg-red-900/30 border-red-700/40 text-red-300' : 'bg-red-50 border-red-200 text-red-600'
           }`}>
             <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -463,7 +465,7 @@ export default function VerifyOTPPage() {
           {emailVerified && mobileVerified ? 'Both verified — Continue →' : 'Verify codes →'}
         </Button>
 
-        <p className={`text-xs text-center mt-4 transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
+        <p className={`text-xs text-center mt-4 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
           Wrong email or mobile?{' '}
           <a href="/auth/signup" className={`${TH.link} font-semibold transition-colors`}>
             Go back and edit

@@ -656,7 +656,7 @@ export default function InfluencerCampaigns() {
                         </div>
                         {campaign.brandDescription && (
                           <div className="mt-1.5">
-                            <p className={`text-[11px] text-gray-400 dark:text-slate-500 leading-relaxed ${expandedDesc.has(campaign._id) ? '' : 'line-clamp-2'}`}>
+                            <p className={`text-[11px] text-gray-400 dark:text-slate-400 leading-relaxed ${expandedDesc.has(campaign._id) ? '' : 'line-clamp-2'}`}>
                               {campaign.brandDescription}
                             </p>
                             {campaign.brandDescription.length > 100 && (
@@ -745,19 +745,19 @@ export default function InfluencerCampaigns() {
                         }`}>
                           {deadlinePassed ? 'Closed' : days === 0 ? 'Today!' : `${days}d left`}
                         </p>
-                        <p className="text-[10px] text-gray-400 dark:text-slate-500">{formatDate(campaign.deadline)}</p>
+                        <p className="text-[10px] text-gray-400 dark:text-slate-400">{formatDate(campaign.deadline)}</p>
                       </div>
                     </div>
 
                     {/* Deliverables + min followers */}
                     <div className="flex flex-col gap-1.5 mb-4">
                       <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-slate-400">
-                        <span className="text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0">▸</span>
+                        <span className="text-gray-300 dark:text-slate-400 mt-0.5 flex-shrink-0">▸</span>
                         <span className="leading-relaxed"><strong className="text-gray-600 dark:text-slate-300">Deliverables:</strong> {campaign.deliverables}</span>
                       </div>
                       {campaign.minFollowers > 0 && (
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
-                          <svg className="text-gray-300 dark:text-slate-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg className="text-gray-300 dark:text-slate-400 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                           </svg>
@@ -765,7 +765,7 @@ export default function InfluencerCampaigns() {
                         </div>
                       )}
                       <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
-                        <svg className="text-gray-300 dark:text-slate-600 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg className="text-gray-300 dark:text-slate-400 flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                           <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
@@ -818,7 +818,7 @@ export default function InfluencerCampaigns() {
                           Invited ✓
                         </Link>
                       ) : deadlinePassed ? (
-                        <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-gray-100 dark:bg-slate-700/50 text-gray-400 dark:text-slate-500 rounded-xl cursor-not-allowed font-semibold">
+                        <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-gray-100 dark:bg-slate-700/50 text-gray-400 dark:text-slate-400 rounded-xl cursor-not-allowed font-semibold">
                           Closed
                         </button>
                       ) : !isPremium && applicationsUsed >= FREEMIUM_LIMIT ? (

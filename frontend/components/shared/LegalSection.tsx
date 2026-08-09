@@ -23,10 +23,10 @@ export default function LegalSection() {
           >
             <div className="min-w-0 pr-3">
               <p className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>{item.title}</p>
-              <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{item.desc}</p>
+              <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>{item.desc}</p>
             </div>
             <svg
-              className={`w-4 h-4 flex-shrink-0 ml-3 transition-transform group-hover:translate-x-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+              className={`w-4 h-4 flex-shrink-0 ml-3 transition-transform group-hover:translate-x-0.5 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}
               viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             >
               <polyline points="9 18 15 12 9 6" />
@@ -35,7 +35,7 @@ export default function LegalSection() {
         ))}
       </div>
 
-      <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>
+      <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
         Last updated {LEGAL_ENTITY.lastUpdated}. Questions? Email{' '}
         <a href={`mailto:${LEGAL_ENTITY.email}`} className={`font-medium ${isDark ? 'text-[#7FA8AD]' : 'text-[#3D5087]'} hover:underline`}>
           {LEGAL_ENTITY.email}

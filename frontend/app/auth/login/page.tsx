@@ -336,7 +336,7 @@ function LoginForm({ role }: { role: Role }) {
               </div>
               <div>
                 <p className={`text-sm font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{p.trustTitle}</p>
-                <p className={`text-[0.7rem] font-medium transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{p.trustSubtitle}</p>
+                <p className={`text-[0.7rem] font-medium transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{p.trustSubtitle}</p>
               </div>
             </div>
             <div className={`space-y-2.5 pt-3.5 border-t transition-colors ${isDark ? 'border-slate-700/50' : 'border-gray-200'}`}>
@@ -406,7 +406,7 @@ function LoginForm({ role }: { role: Role }) {
 
             <div className="flex items-center gap-3 mb-5">
               <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
-              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>or</span>
+              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>or</span>
               <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
             </div>
 

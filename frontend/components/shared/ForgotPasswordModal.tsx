@@ -225,12 +225,12 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
                 </div>
                 <div>
                   <h2 id="fp-modal-title" className={`text-base font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Forgot your password?</h2>
-                  <p className={`text-xs mt-0.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>No worries — we&apos;ll email you a reset code.</p>
+                  <p className={`text-xs mt-0.5 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>No worries — we&apos;ll email you a reset code.</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5 mb-5">
-                <label className={`text-[0.7rem] font-bold uppercase tracking-widest transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>Email address</label>
+                <label className={`text-[0.7rem] font-bold uppercase tracking-widest transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Email address</label>
                 <input
                   type="email"
                   autoFocus
@@ -283,7 +283,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
 
               {/* OTP boxes */}
               <div className="mb-5">
-                <label className={`text-[0.7rem] font-bold uppercase tracking-widest mb-2.5 block transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>Reset code</label>
+                <label className={`text-[0.7rem] font-bold uppercase tracking-widest mb-2.5 block transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Reset code</label>
                 <div className="flex gap-2" onPaste={handleOtpPaste}>
                   {otp.map((digit, i) => (
                     <input
@@ -302,7 +302,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
 
                 <div className="flex justify-end mt-2.5">
                   {resendTimer > 0 ? (
-                    <span className={`text-xs transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>Resend in {resendTimer}s</span>
+                    <span className={`text-xs transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Resend in {resendTimer}s</span>
                   ) : (
                     <button
                       onClick={handleResend}
@@ -317,7 +317,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
                   <p className={`text-xs mt-1.5 transition-colors ${
                     expiryTimer === 0 ? 'text-red-400' :
                     expiryTimer < 60 ? 'text-amber-400' :
-                    isDark ? 'text-slate-600' : 'text-gray-400'
+                    isDark ? 'text-slate-400' : 'text-gray-400'
                   }`}>
                     {expiryTimer === 0
                       ? 'Code expired — request a new one above'
@@ -329,7 +329,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
               {/* New password */}
               <div className="flex flex-col gap-4 mb-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className={`text-[0.7rem] font-bold uppercase tracking-widest transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>New password</label>
+                  <label className={`text-[0.7rem] font-bold uppercase tracking-widest transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>New password</label>
                   <div className="relative">
                     <input
                       type={showNewPw ? 'text' : 'password'}
@@ -338,7 +338,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
                       onChange={e => { setNewPassword(e.target.value); setError(''); }}
                       className={`${inputCls} pr-10`}
                     />
-                    <button type="button" tabIndex={-1} onClick={() => setShowNewPw(v => !v)} className={`absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'}`}>
+                    <button type="button" aria-label={showNewPw ? 'Hide password' : 'Show password'} aria-pressed={showNewPw} onClick={() => setShowNewPw(v => !v)} className={`absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'}`}>
                       {showNewPw ? <EyeOff /> : <Eye />}
                     </button>
                   </div>
@@ -346,7 +346,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className={`text-[0.7rem] font-bold uppercase tracking-widest transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>Confirm new password</label>
+                  <label className={`text-[0.7rem] font-bold uppercase tracking-widest transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Confirm new password</label>
                   <div className="relative">
                     <input
                       type={showConfirmPw ? 'text' : 'password'}
@@ -362,7 +362,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
                           : `${inputCls} pr-10`
                       }`}
                     />
-                    <button type="button" tabIndex={-1} onClick={() => setShowConfirmPw(v => !v)} className={`absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'}`}>
+                    <button type="button" aria-label={showConfirmPw ? 'Hide password' : 'Show password'} aria-pressed={showConfirmPw} onClick={() => setShowConfirmPw(v => !v)} className={`absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'}`}>
                       {showConfirmPw ? <EyeOff /> : <Eye />}
                     </button>
                   </div>
@@ -413,7 +413,7 @@ export default function ForgotPasswordModal({ onClose, onSuccess }: ForgotPasswo
 
 function ErrorBanner({ message, isDark }: { message: string; isDark: boolean }) {
   return (
-    <div className={`mb-4 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
+    <div role="alert" className={`mb-4 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
       isDark ? 'bg-red-900/30 border-red-700/40 text-red-300' : 'bg-red-50 border-red-200 text-red-600'
     }`}>
       <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -472,7 +472,7 @@ function PasswordStrength({ password }: { password: string }) {
           <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i < score ? colors[score - 1] : 'bg-gray-200 dark:bg-slate-700'}`} />
         ))}
       </div>
-      <p className={`text-[0.7rem] font-semibold ${textColors[score - 1] || 'text-gray-400 dark:text-slate-600'}`}>
+      <p className={`text-[0.7rem] font-semibold ${textColors[score - 1] || 'text-gray-400 dark:text-slate-400'}`}>
         {score === 0 ? 'Enter a password' : labels[score - 1]}
       </p>
     </div>

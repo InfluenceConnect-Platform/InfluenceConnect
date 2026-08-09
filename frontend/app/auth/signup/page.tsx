@@ -166,7 +166,8 @@ function SignupPage() {
     return errors;
   };
 
-  const handleSignup = async () => {
+  const handleSignup = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     const errors = validate();
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) { setError(''); return; }
@@ -251,7 +252,7 @@ function SignupPage() {
                 isDark ? 'bg-slate-800/60 border-slate-700/50' : 'bg-white/70 border-gray-200'
               }`}>
                 <div className={`text-xl font-bold ${statValueColor(s.tint)}`}>{s.value}</div>
-                <div className={`text-xs font-semibold mt-0.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{s.label}</div>
+                <div className={`text-xs font-semibold mt-0.5 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -282,7 +283,7 @@ function SignupPage() {
               </div>
               <div>
                 <span className={`text-sm font-bold tracking-tight block leading-none transition-colors ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Influence Connect</span>
-                <span className={`text-[0.65rem] font-medium tracking-wide uppercase transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Creator · Brand Platform</span>
+                <span className={`text-[0.65rem] font-medium tracking-wide uppercase transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Creator · Brand Platform</span>
               </div>
             </div>
 
@@ -292,7 +293,7 @@ function SignupPage() {
             </p>
 
             {/* Role picker */}
-            <label className={`text-[0.7rem] font-bold uppercase tracking-widest block mb-2.5 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-600'}`}>
+            <label className={`text-[0.7rem] font-bold uppercase tracking-widest block mb-2.5 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
               I am signing up as
             </label>
             <div className="grid grid-cols-2 gap-3 mb-5">
@@ -330,7 +331,7 @@ function SignupPage() {
                         </svg>
                       )}
                     </div>
-                    <div className={`text-xs ${isActive ? 'text-white/80' : isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                    <div className={`text-xs ${isActive ? 'text-white/80' : isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                       {ROLE_META[r].sub}
                     </div>
                   </button>
@@ -338,17 +339,22 @@ function SignupPage() {
               })}
             </div>
 
+            {/* A real <form> so password managers offer to save the new
+                credentials and Enter submits natively. */}
+            <form onSubmit={handleSignup} noValidate>
             {/* Form fields */}
             <div className="flex flex-col gap-3">
-              <Input dark={isDark} label={ROLE_META[role].fields.name.label} placeholder={ROLE_META[role].fields.name.placeholder} helper={ROLE_META[role].fields.name.helper} value={name} onChange={handleNameChange} error={fieldErrors.name} />
-              <Input dark={isDark} label={ROLE_META[role].fields.email.label} type="email" placeholder={ROLE_META[role].fields.email.placeholder} helper={ROLE_META[role].fields.email.helper} value={email} onChange={handleEmailChange} error={fieldErrors.email} />
-              <Input dark={isDark} label={ROLE_META[role].fields.mobile.label} type="tel" placeholder={ROLE_META[role].fields.mobile.placeholder} helper={ROLE_META[role].fields.mobile.helper} value={mobile} onChange={handleMobileChange} prefix="+91" error={fieldErrors.mobile} />
-              <Input dark={isDark} label={ROLE_META[role].fields.password.label} type="password" placeholder={ROLE_META[role].fields.password.placeholder} value={password} onChange={handlePasswordChange} showPasswordToggle error={fieldErrors.password} />
+              <Input dark={isDark} accent={ROLE_COLOR[role].main} name="name" autoComplete="name" label={ROLE_META[role].fields.name.label} placeholder={ROLE_META[role].fields.name.placeholder} helper={ROLE_META[role].fields.name.helper} value={name} onChange={handleNameChange} error={fieldErrors.name} />
+              <Input dark={isDark} accent={ROLE_COLOR[role].main} name="email" autoComplete="email" label={ROLE_META[role].fields.email.label} type="email" placeholder={ROLE_META[role].fields.email.placeholder} helper={ROLE_META[role].fields.email.helper} value={email} onChange={handleEmailChange} error={fieldErrors.email} />
+              <Input dark={isDark} accent={ROLE_COLOR[role].main} name="tel" autoComplete="tel-national" label={ROLE_META[role].fields.mobile.label} type="tel" placeholder={ROLE_META[role].fields.mobile.placeholder} helper={ROLE_META[role].fields.mobile.helper} value={mobile} onChange={handleMobileChange} prefix="+91" error={fieldErrors.mobile} />
+              <Input dark={isDark} accent={ROLE_COLOR[role].main} name="new-password" autoComplete="new-password" label={ROLE_META[role].fields.password.label} type="password" placeholder={ROLE_META[role].fields.password.placeholder} value={password} onChange={handlePasswordChange} showPasswordToggle error={fieldErrors.password} />
 
               {role === 'brand' && (
                 <div className="flex flex-col gap-2">
                   <Input
                     dark={isDark}
+                    accent={ROLE_COLOR[role].main}
+                    name="gstin"
                     label="GST number (GSTIN)"
                     placeholder="e.g. 22AAAAA0000A1Z5"
                     value={gstin}
@@ -372,7 +378,7 @@ function SignupPage() {
             </div>
 
             {error && (
-              <div className={`mt-3 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
+              <div role="alert" className={`mt-3 p-3.5 border rounded-xl text-sm flex items-start gap-2.5 ${
                 isDark ? 'bg-red-900/30 border-red-700/40 text-red-300' : 'bg-red-50 border-red-200 text-red-600'
               }`}>
                 <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -397,14 +403,15 @@ function SignupPage() {
             </div>
 
             <div className="mt-4">
-              <Button type="button" fullWidth loading={loading} onClick={handleSignup} colorScheme={role}>
+              <Button type="submit" fullWidth loading={loading} colorScheme={role}>
                 Continue to verification →
               </Button>
             </div>
+            </form>
 
             <div className="flex items-center gap-3 my-4">
               <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
-              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>or</span>
+              <span className={`text-[0.7rem] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>or</span>
               <div className={`flex-1 h-px transition-colors ${isDark ? 'bg-slate-700/80' : 'bg-gray-200'}`} />
             </div>
 
@@ -426,7 +433,7 @@ function SignupPage() {
               Continue with Google
             </button>
 
-            <p className={`text-[0.72rem] text-center mt-5 transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
+            <p className={`text-[0.72rem] text-center mt-5 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
               Already have an account?{' '}
               <Link
                 href={`/auth/login?role=${role}`}

@@ -35,7 +35,7 @@ export function AdminShell({
     <div className="min-h-screen bg-[#F6F8FB] relative overflow-x-clip">
       {/* Ambient colour wash behind the top of the page */}
       <div className="absolute inset-x-0 top-0 h-[460px] overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#ECF2F3] via-[#F3F5F9] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#ECF2F3] via-[#F3F5F9] dark:from-[#0f1e31] dark:via-[#0B1725] to-transparent" />
         <div className="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-[#7FA8AD]/[0.17] blur-3xl anim-blob" />
         <div className="absolute -top-40 left-1/2 -translate-x-1/3 w-[420px] h-[420px] rounded-full bg-indigo-300/[0.10] blur-3xl" />
         <div className="absolute -top-24 -right-28 w-[400px] h-[400px] rounded-full bg-amber-300/[0.13] blur-3xl anim-blob" style={{ animationDelay: '4s' }} />

@@ -219,6 +219,7 @@ function CompleteProfilePage() {
                     <input
                       type="tel"
                       inputMode="numeric"
+                      autoComplete="tel-national"
                       maxLength={10}
                       placeholder="98765 43210"
                       value={mobile}
@@ -310,6 +311,7 @@ function CompleteProfilePage() {
                       ref={el => { otpRefs.current[i] = el; }}
                       type="text"
                       inputMode="numeric"
+                      autoComplete={i === 0 ? 'one-time-code' : 'off'}
                       maxLength={1}
                       value={digit}
                       onChange={e => handleOtpChange(i, e.target.value)}
@@ -386,7 +388,7 @@ function StepDot({ active, done, label, doneCls, activeCls }: { active: boolean;
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 flex items-start gap-2">
+    <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 flex items-start gap-2">
       <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>

@@ -79,7 +79,7 @@ export default function LegalDocument({ doc }: { doc: LegalDoc }) {
 
       <main className="mx-auto max-w-5xl px-5 pb-20 pt-8 sm:px-8 sm:pt-12">
         {/* ── Breadcrumb ── */}
-        <nav className={`mb-6 flex items-center gap-1.5 text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+        <nav className={`mb-6 flex items-center gap-1.5 text-xs ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
           <Link href="/" className="transition-colors hover:underline">Home</Link>
           <span>/</span>
           <span>Legal</span>
@@ -93,7 +93,7 @@ export default function LegalDocument({ doc }: { doc: LegalDoc }) {
             {doc.title}
           </h1>
           <p className={`mt-2 max-w-2xl text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{doc.subtitle}</p>
-          <p className={`mt-3 text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+          <p className={`mt-3 text-xs ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
             Last updated: {doc.lastUpdated}
           </p>
         </div>
@@ -102,7 +102,7 @@ export default function LegalDocument({ doc }: { doc: LegalDoc }) {
           {/* ── Table of contents (desktop) ── */}
           <aside className="hidden lg:block">
             <div className="sticky top-24">
-              <p className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+              <p className={`mb-3 text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                 On this page
               </p>
               <nav className="space-y-1">
@@ -157,10 +157,10 @@ export default function LegalDocument({ doc }: { doc: LegalDoc }) {
                   >
                     <div className="min-w-0 pr-3">
                       <p className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>{d.title}</p>
-                      <p className={`mt-0.5 truncate text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{d.desc}</p>
+                      <p className={`mt-0.5 truncate text-xs ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>{d.desc}</p>
                     </div>
                     <svg
-                      className={`h-4 w-4 flex-shrink-0 transition-transform group-hover:translate-x-0.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                      className={`h-4 w-4 flex-shrink-0 transition-transform group-hover:translate-x-0.5 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}
                       viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                     >
                       <polyline points="9 18 15 12 9 6" />
@@ -169,7 +169,7 @@ export default function LegalDocument({ doc }: { doc: LegalDoc }) {
                 ))}
               </div>
 
-              <div className={`mt-8 flex flex-col gap-1 text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+              <div className={`mt-8 flex flex-col gap-1 text-xs ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
                 <p>
                   Questions? Email us at{' '}
                   <a href={`mailto:${LEGAL_ENTITY.email}`} className={`font-medium ${isDark ? 'text-[#7FA8AD]' : 'text-[#3D5087]'} hover:underline`}>

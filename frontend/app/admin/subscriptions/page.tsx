@@ -184,7 +184,7 @@ export default function AdminSubscriptions() {
                   icon: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
                 },
               ] as { label: string; value: number; format?: (n: number) => string; color: string; bg: string; wash: string; icon: React.ReactNode }[]).map((s, i) => (
-                <SpotlightCard key={i} className={`bg-gradient-to-br from-white via-white ${s.wash} border border-gray-200/80 rounded-2xl p-4 shadow-sm hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}>
+                <SpotlightCard key={i} className={`bg-gradient-to-br from-white via-white dark:from-[#0f1e31] dark:via-[#0f1e31] ${s.wash} border border-gray-200/80 dark:border-slate-700/60 rounded-2xl p-4 shadow-sm hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}>
                   <div className="flex items-start justify-between mb-3">
                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider pt-1">{s.label}</p>
                     <span className={`w-8 h-8 rounded-lg border ${s.bg} ${s.color} flex items-center justify-center flex-shrink-0`}>

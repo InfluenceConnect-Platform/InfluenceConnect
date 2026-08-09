@@ -71,7 +71,7 @@ function ToastCard({ toast, onClose }: { toast: ToastItem; onClose: () => void }
       <button
         onClick={onClose}
         aria-label="Dismiss"
-        className="flex-shrink-0 -mr-1 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors cursor-pointer"
+        className="flex-shrink-0 -mr-1 text-gray-400 hover:text-gray-600 dark:text-slate-400 dark:hover:text-slate-300 transition-colors cursor-pointer"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />

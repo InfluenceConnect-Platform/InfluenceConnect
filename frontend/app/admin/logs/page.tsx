@@ -242,7 +242,7 @@ export default function AdminLogs() {
         {/* Stat chips */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {STAT_CARDS.map((s, i) => (
-            <SpotlightCard key={i} className={`bg-gradient-to-br from-white via-white ${s.wash} rounded-2xl border border-gray-200/70 p-4 sm:p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}>
+            <SpotlightCard key={i} className={`bg-gradient-to-br from-white via-white dark:from-[#0f1e31] dark:via-[#0f1e31] ${s.wash} rounded-2xl border border-gray-200/70 dark:border-slate-700/60 p-4 sm:p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] hover:shadow-[0_12px_28px_rgba(16,24,40,0.08)] hover:-translate-y-0.5 transition-all duration-200 anim-fade-up anim-delay-${i + 1}`}>
               <div className="flex items-start justify-between mb-3">
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider leading-tight pt-1">{s.label}</p>
                 <span className={`w-9 h-9 rounded-xl bg-gradient-to-br ${s.gradient} text-white flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-white/20`}>
