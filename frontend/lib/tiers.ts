@@ -67,7 +67,6 @@ export const INFLUENCER_TIERS: TierDef[] = [
       '1 campaign invitation/month',
       '1 campaign application/month',
       '3 messages per day',
-      'Basic credibility score',
     ],
   },
   {
@@ -79,7 +78,6 @@ export const INFLUENCER_TIERS: TierDef[] = [
       '3 campaign invitations/month',
       '3 campaign applications/month',
       '5 messages per day',
-      'Basic credibility score',
       'Public profile with custom URL',
       'Filters for campaign searching',
     ],
@@ -93,7 +91,6 @@ export const INFLUENCER_TIERS: TierDef[] = [
       '5 campaign invitations/month',
       '5 campaign applications/month',
       '10 messages per day',
-      'Advanced credibility score',
       'CSV earnings export',
       'Earnings by category breakdown',
       'Detailed monthly earnings chart',
@@ -111,7 +108,6 @@ export const INFLUENCER_TIERS: TierDef[] = [
       'Unlimited campaign invitations',
       'Unlimited campaign applications',
       'Unlimited daily messages',
-      'Advanced credibility score',
       'CSV earnings export',
       'Earnings by category breakdown',
       'Detailed monthly earnings chart',
@@ -169,7 +165,6 @@ export interface InfluencerCaps {
   invitationsPerMonth: number;
   maxMessagesPerDay: number;
   maxApplicationsPerMonth: number;
-  credibilityDetail: 'basic' | 'advanced';
   customUrl: boolean;
   campaignFilters: boolean;
   csvExport: boolean;
@@ -196,22 +191,22 @@ export const BRAND_CAPS: Record<BrandTierKey, BrandCaps> = {
 export const INFLUENCER_CAPS: Record<InfluencerTierKey, InfluencerCaps> = {
   free: {
     order: 0, maxPortfolioUploads: 2, visiblePortfolioItems: 1, invitationsPerMonth: 1,
-    maxMessagesPerDay: 3, maxApplicationsPerMonth: 1, credibilityDetail: 'basic',
+    maxMessagesPerDay: 3, maxApplicationsPerMonth: 1,
     customUrl: false, campaignFilters: false, csvExport: false, earningsBreakdown: false, darkModePerk: false, earlyAccess: false,
   },
   silver: {
     order: 1, maxPortfolioUploads: 10, visiblePortfolioItems: 3, invitationsPerMonth: 3,
-    maxMessagesPerDay: 5, maxApplicationsPerMonth: 3, credibilityDetail: 'basic',
+    maxMessagesPerDay: 5, maxApplicationsPerMonth: 3,
     customUrl: true, campaignFilters: true, csvExport: false, earningsBreakdown: false, darkModePerk: false, earlyAccess: false,
   },
   golden: {
     order: 2, maxPortfolioUploads: 20, visiblePortfolioItems: 5, invitationsPerMonth: 5,
-    maxMessagesPerDay: 10, maxApplicationsPerMonth: 5, credibilityDetail: 'advanced',
+    maxMessagesPerDay: 10, maxApplicationsPerMonth: 5,
     customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, darkModePerk: true, earlyAccess: true,
   },
   platinum: {
     order: 3, maxPortfolioUploads: Infinity, visiblePortfolioItems: Infinity, invitationsPerMonth: Infinity,
-    maxMessagesPerDay: Infinity, maxApplicationsPerMonth: Infinity, credibilityDetail: 'advanced',
+    maxMessagesPerDay: Infinity, maxApplicationsPerMonth: Infinity,
     customUrl: true, campaignFilters: true, csvExport: true, earningsBreakdown: true, darkModePerk: true, earlyAccess: true,
   },
 };

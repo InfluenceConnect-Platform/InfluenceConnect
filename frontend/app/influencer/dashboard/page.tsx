@@ -573,7 +573,7 @@ export default function InfluencerDashboard() {
                   <h4 className="font-extrabold text-white text-[15px] mb-1">Unlock every feature</h4>
                   <p className="text-rose-200/70 text-xs mb-4 leading-relaxed">Silver, Golden and Platinum show more of your work and lift every limit.</p>
                   <ul className="space-y-2 mb-5">
-                    {['More portfolio items visible to brands', 'More campaign invitations & messages', 'Advanced credibility score'].map(f => (
+                    {['More portfolio items visible to brands', 'More campaign invitations & messages', 'Earnings analytics & CSV export'].map(f => (
                       <li key={f} className="flex items-center gap-2 text-xs text-rose-100/90">
                         <svg className="w-3.5 h-3.5 text-[#F5A8BF] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
