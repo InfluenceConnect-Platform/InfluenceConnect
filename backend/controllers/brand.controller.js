@@ -987,8 +987,13 @@ exports.discoverInfluencers = async (req, res) => {
 exports.getInfluencerBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
+    // Deliberately no `email`. The whole populated user is spread into the
+    // response below, so selecting it here would ship a creator's email address
+    // to any brand that opens their profile — before any deal exists — which
+    // contradicts the contact-privacy promise on the marketing site and the
+    // moderated-chat design. The public route already selects only these fields.
     const profile = await InfluencerProfile.findOne({ slug })
-      .populate('userId', 'name email plan tier');
+      .populate('userId', 'name plan tier');
 
     if (!profile) {
       return res.status(404).json({ error: 'Influencer not found.' });

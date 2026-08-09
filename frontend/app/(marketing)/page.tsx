@@ -120,15 +120,15 @@ const BRAND_STEPS = [
 const FAQS = [
   {
     q: 'Is Influence Connect free to use?',
-    a: 'Yes. Both creators and brands start on a free plan — creators can apply to campaigns and brands can run campaigns without paying anything. Premium plans unlock higher limits and advanced analytics.',
+    a: 'Yes. Both creators and brands start on a free plan — creators can apply to campaigns and brands can run campaigns without paying anything. Paid plans raise or remove the limits on campaigns, discovery, messaging and portfolio visibility, and add earnings analytics for creators.',
   },
   {
     q: 'How are brands verified?',
-    a: 'Every brand must provide a valid GSTIN during signup, and accounts are verified via email and mobile OTP. Unverified brands cannot post campaigns.',
+    a: 'Every brand must provide a valid GSTIN during signup, and every account is verified by email and mobile OTP. Our team then reviews each GSTIN manually, and verified brands carry a GST Verified badge that creators can see on campaigns and profiles.',
   },
   {
     q: 'Is my contact information safe?',
-    a: 'Yes. All negotiation happens in our built-in chat with automatic contact-detail moderation. Your phone number and email stay private until a deal is agreed between both sides.',
+    a: 'Yes. All negotiation happens in our built-in chat, which automatically blocks phone numbers, email addresses and social handles from being shared. We never show your phone number or email address to the other party at any stage — not before a deal and not after one.',
   },
   {
     q: 'What do paid plans cost?',

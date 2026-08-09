@@ -33,7 +33,7 @@ const FAQS = [
   },
   {
     q: 'Can I upgrade or downgrade later?',
-    a: 'Yes — switching plans buys the new tier starting now; any remaining time on your current plan carries forward.',
+    a: 'Yes, any time from this page. The new plan starts when your current paid period ends and the old one stops renewing at the same moment, so you are never charged twice and never lose days you have already paid for.',
   },
   {
     q: 'Does Influence Connect take a cut of my earnings?',
@@ -319,7 +319,7 @@ export default function BillingPage() {
             </svg>
             <p className="text-[12px] text-gray-600 dark:text-slate-300 leading-relaxed">
               <strong className="text-gray-900 dark:text-slate-100">Plans renew automatically.</strong>{' '}
-              You&apos;ll be charged each {billing === 'monthly' ? 'month' : 'year'} until you cancel.
+              You&apos;ll be charged each {billing === 'monthly' ? 'month' : 'year'}  until you cancel.
               Cancel any time from this page — you keep access until the end of the period you&apos;ve paid for.
             </p>
           </div>

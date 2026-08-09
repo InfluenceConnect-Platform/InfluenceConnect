@@ -331,7 +331,7 @@ export default function BrandBillingPage() {
             </svg>
             <p className="text-[12px] text-gray-600 dark:text-slate-300 leading-relaxed">
               <strong className="text-gray-900 dark:text-slate-100">Plans renew automatically.</strong>{' '}
-              You&apos;ll be charged each {billing === 'monthly' ? 'month' : 'year'} until you cancel.
+              You&apos;ll be charged each {billing === 'monthly' ? 'month' : 'year'}  until you cancel.
               Cancel any time from this page — you keep access until the end of the period you&apos;ve paid for.
             </p>
           </div>

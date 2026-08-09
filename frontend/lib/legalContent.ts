@@ -318,8 +318,9 @@ const TERMS: LegalDoc = {
       title: '13. Third-Party Services',
       blocks: [
         p(
-          `The Platform integrates with or links to third-party services such as Razorpay (payments), Google (sign-in), and ` +
-          `email/SMS delivery providers. Your use of those services is subject to their own terms and policies. We are not ` +
+          `The Platform integrates with or links to third-party services such as Razorpay (payments), Cloudinary (hosting and ` +
+          `delivery of uploaded images, files, and receipts), Google (sign-in), and email/SMS delivery providers. Your ` +
+          `use of those services is subject to their own terms and policies. We are not ` +
           `responsible for the content, availability, or practices of any third-party service.`
         ),
       ],
@@ -462,7 +463,7 @@ const PRIVACY: LegalDoc = {
         { type: 'sub', text: 'Information you provide' },
         list([
           `Account details: name, email address, mobile number, and password.`,
-          `Brand profiles: company/brand name, logo, and business information including GST details where provided.`,
+          `Brand profiles: company/brand name, logo, industry, website, and GST identification number (GSTIN). A valid GSTIN is required to register a Brand account and is manually reviewed by our team.`,
           `Influencer profiles: social-media handles, niche/categories, audience and follower statistics, and portfolio information.`,
           `Communications: messages, campaign briefs, applications, offers, and support requests you send through the Platform, including files and media you attach to messages.`,
           `Billing information: your plan, billing cycle, payment confirmations and receipts. If you choose automatic renewal we also store the identifier of the recurring mandate created by Razorpay, its status, the date of the next scheduled charge, and (optionally) the reason you give when cancelling. Card and bank details are collected and processed directly by Razorpay — we never store your payment instrument or full card or bank credentials.`,
