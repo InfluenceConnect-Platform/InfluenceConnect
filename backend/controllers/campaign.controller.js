@@ -1,4 +1,5 @@
 const Campaign = require('../models/Campaign');
+const { NICHE_LABELS, SUB_NICHE_LABELS } = require('../utils/niches');
 const Application = require('../models/Application');
 const Deal = require('../models/Deal');
 const InfluencerProfile = require('../models/InfluencerProfile');
@@ -99,16 +100,33 @@ function computeCampaignMatch(profile, campaign) {
   const platformNames = platforms.map(p => p.name);
   const reasons = [];
 
-  // Niche overlap
+  // Niche overlap. Sub-niches refine this score but never gate visibility:
+  // they're an optional field, so hard-filtering on them would hide campaigns
+  // from every creator who simply hasn't filled them in.
+  const subNiches = profile.subNiches ?? [];
   let nicheQ = 1, niche = 'na';
   const cNiche = campaign.niche ?? [];
+  const cSub = campaign.subNiches ?? [];
+  let subNicheMatched = [];
   if (cNiche.length === 0) {
     niche = 'open';
   } else if (niches.length > 0) {
     const matched = cNiche.filter(n => niches.includes(n));
     nicheQ = matched.length / cNiche.length;
     niche = matched.length === cNiche.length ? 'full' : matched.length > 0 ? 'partial' : 'none';
-    if (matched.length) reasons.push(`Niche: ${matched.join(', ')}`);
+    if (matched.length) reasons.push(`Niche: ${matched.map(n => NICHE_LABELS[n] ?? n).join(', ')}`);
+
+    // Sub-niche agreement lifts nicheQ toward 1 — a creator who matches the
+    // campaign's exact speciality should outrank one who only shares the
+    // broader niche. Campaigns that set no sub-niches are unaffected.
+    if (cSub.length > 0 && matched.length > 0) {
+      subNicheMatched = cSub.filter(sn => subNiches.includes(sn));
+      const subQ = subNicheMatched.length / cSub.length;
+      nicheQ = nicheQ * (0.7 + 0.3 * subQ);
+      if (subNicheMatched.length) {
+        reasons.push(`Specialises in ${subNicheMatched.map(sn => SUB_NICHE_LABELS[sn] ?? sn).join(', ')}`);
+      }
+    }
   }
 
   // Platform overlap
@@ -165,7 +183,7 @@ function computeCampaignMatch(profile, campaign) {
     0.30 * nicheQ + 0.20 * cityQ + 0.15 * platformQ + 0.20 * followersQ + 0.15 * budgetQ
   ));
 
-  return { score, niche, city, platform, followers, budget, reasons };
+  return { score, niche, city, platform, followers, budget, reasons, subNicheMatched };
 }
 
 // ─────────────────────────────────────────
@@ -187,7 +205,7 @@ exports.getCampaigns = async (req, res) => {
     // Fetch this influencer's profile for automatic relevance matching
     // (niche, budget vs price card, platforms, follower range).
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('bio niche priceRangeMin priceRangeMax platforms city');
+      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city');
 
     // Campaigns only mean something once we know enough about the creator to
     // judge fit — an incomplete profile sees no campaigns rather than every
@@ -361,7 +379,7 @@ exports.applyToCampaign = async (req, res) => {
     // Profile must be complete before applying — mirrors the gate on browsing
     // campaigns, in case this is hit directly rather than via the browse list.
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('bio niche priceRangeMin priceRangeMax platforms city');
+      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city');
     const missingFields = getMissingProfileFields(influencerProfile);
     if (missingFields.length > 0) {
       return res.status(403).json({
@@ -558,7 +576,7 @@ exports.getNewSinceCount = async (req, res) => {
 
     // Count only campaigns relevant to this influencer, matching the browse list.
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('bio niche priceRangeMin priceRangeMax platforms city');
+      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city');
     if (!isInfluencerProfileComplete(influencerProfile)) return res.json({ count: 0 });
 
     const and = buildProfileMatchConditions(influencerProfile);

@@ -177,10 +177,21 @@ exports.updateProfile = async (req, res) => {
 // ─────────────────────────────────────────
 // CREATE CAMPAIGN
 // ─────────────────────────────────────────
+const { SUB_NICHE_TO_NICHE } = require('../utils/niches');
+
+// A campaign's sub-niches must sit under one of its selected niches, or the
+// targeting is meaningless (and the Campaign schema enum would still accept
+// it). Silently drop orphans rather than 400 — the picker only offers valid
+// combinations, so an orphan means a stale client, not a user error.
+function normalizeSubNiches(niche, subNiches) {
+  if (!Array.isArray(subNiches) || !Array.isArray(niche)) return [];
+  return subNiches.filter(s => niche.includes(SUB_NICHE_TO_NICHE[s]));
+}
+
 exports.createCampaign = async (req, res) => {
   try {
     const {
-      title, description, niche, deliverables,
+      title, description, niche, subNiches, deliverables,
       budgetMin, budgetMax, deadline,
       targetCity, targetPlatforms, minFollowers, maxFollowers,
       status: requestedStatus
@@ -220,6 +231,7 @@ exports.createCampaign = async (req, res) => {
       title: title.trim(),
       description: description?.trim() || '',
       niche: niche || [],
+      subNiches: normalizeSubNiches(niche || [], subNiches),
       deliverables: deliverables?.trim() || '',
       budgetMin: budgetMin || 0,
       budgetMax: budgetMax || 0,
@@ -366,7 +378,7 @@ exports.updateCampaign = async (req, res) => {
       });
     }
 
-    const { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms, minFollowers, maxFollowers, status } = req.body;
+    const { title, description, niche, subNiches, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms, minFollowers, maxFollowers, status } = req.body;
     const normalizedPlatforms = Array.isArray(targetPlatforms) ? targetPlatforms : [];
 
     // Republishing an EXPIRED campaign → active. All fields are editable; the
@@ -403,7 +415,7 @@ exports.updateCampaign = async (req, res) => {
 
       const republished = await Campaign.findByIdAndUpdate(
         campaignId,
-        { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers, status: 'active' },
+        { title, description, niche, subNiches: normalizeSubNiches(niche, subNiches), deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers, status: 'active' },
         { new: true }
       );
       // Back on the market → notify matching influencers
@@ -432,7 +444,7 @@ exports.updateCampaign = async (req, res) => {
       }
     }
 
-    const updateFields = { title, description, niche, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers };
+    const updateFields = { title, description, niche, subNiches: normalizeSubNiches(niche, subNiches), deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers };
     if (status === 'active' || status === 'draft') updateFields.status = status;
 
     const updated = await Campaign.findByIdAndUpdate(

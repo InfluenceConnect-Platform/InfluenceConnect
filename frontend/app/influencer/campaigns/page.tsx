@@ -10,7 +10,7 @@ import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import ApplicationDetailDrawer from '@/components/shared/ApplicationDetailDrawer';
-import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
+import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS , SUB_NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import { levelBadgeCls } from '@/lib/levelBadge';
 
@@ -53,6 +53,7 @@ interface Campaign {
     followers: string;
     budget: string;
     reasons: string[];
+    subNicheMatched?: string[];
   };
 }
 
@@ -779,6 +780,17 @@ export default function InfluencerCampaigns() {
                         {(expandedNiches.has(campaign._id) ? campaign.niche : campaign.niche.slice(0, 2)).map((n: string) => (
                           <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold border ${NICHE_COLORS[n] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                             {NICHE_LABELS[n] ?? n}
+                          </span>
+                        ))}
+                        {/* Sub-niches the creator actually matches — the reason
+                            this campaign ranks where it does. */}
+                        {(campaign.match?.subNicheMatched ?? []).slice(0, 2).map((sn: string) => (
+                          <span
+                            key={sn}
+                            title="Your sub-niche matches this campaign's targeting"
+                            className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-[#FCE4EC] text-[#7A0F3D] border border-[#F3B8CB] dark:bg-[#7A0F3D]/40 dark:text-[#FFA8C6] dark:border-[#7A0F3D]"
+                          >
+                            ★ {SUB_NICHE_LABELS[sn] ?? sn}
                           </span>
                         ))}
                         {campaign.niche.length > 2 && (

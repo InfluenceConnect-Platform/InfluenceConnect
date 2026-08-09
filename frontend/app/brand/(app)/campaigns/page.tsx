@@ -8,7 +8,8 @@ import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
-import { NICHES, NICHE_LABELS } from '@/lib/niches';
+import NichePicker from '@/components/shared/NichePicker';
+import { NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import MarqueeText from '@/components/shared/MarqueeText';
 
@@ -183,6 +184,7 @@ function BrandCampaigns() {
     title: '',
     description: '',
     niche: [] as string[],
+    subNiches: [] as string[],
     deliverables: '',
     budgetMin: '',
     budgetMax: '',
@@ -291,7 +293,7 @@ function BrandCampaigns() {
   };
 
   const resetForm = () => setForm({
-    title: '', description: '', niche: [],
+    title: '', description: '', niche: [], subNiches: [],
     deliverables: '', budgetMin: '', budgetMax: '',
     deadline: '', targetCity: ['all'],
     targetPlatforms: [], minFollowers: '', maxFollowers: '',
@@ -370,6 +372,7 @@ function BrandCampaigns() {
         title: campaign.title,
         description: campaign.description,
         niche: campaign.niche,
+        subNiches: campaign.subNiches ?? [],
         deliverables: campaign.deliverables,
         budgetMin: campaign.budgetMin,
         budgetMax: campaign.budgetMax,
@@ -398,6 +401,7 @@ function BrandCampaigns() {
       title: campaign.title ?? '',
       description: campaign.description ?? '',
       niche: campaign.niche ?? [],
+      subNiches: campaign.subNiches ?? [],
       deliverables: campaign.deliverables ?? '',
       budgetMin: campaign.budgetMin?.toString() ?? '',
       budgetMax: campaign.budgetMax?.toString() ?? '',
@@ -707,26 +711,26 @@ function BrandCampaigns() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className={labelClass}>Niche</label>
-                  <div className="flex flex-wrap gap-2">
-                    {NICHES.map(n => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => setForm(p => ({
-                          ...p,
-                          niche: p.niche.includes(n) ? p.niche.filter(x => x !== n) : [...p.niche, n],
-                        }))}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                          form.niche.includes(n)
-                            ? 'bg-gradient-to-r from-[#228B22] to-[#3FA34D] border-transparent text-white shadow-sm'
-                            : 'bg-white border-gray-200 text-gray-600 hover:border-[#228B22]/50 hover:bg-blue-50/50'
-                        }`}
-                      >
-                        {NICHE_LABELS[n] ?? n}
-                      </button>
-                    ))}
-                  </div>
+                  <label className={labelClass}>Niche &amp; sub-niche targeting</label>
+                  <NichePicker
+                    niches={form.niche}
+                    onNichesChange={next => setForm(p => ({
+                      ...p,
+                      niche: next,
+                      subNiches: p.subNiches.filter(sn => next.includes(SUB_NICHE_TO_NICHE[sn])),
+                    }))}
+                    subNiches={form.subNiches}
+                    onSubNichesChange={next => setForm(p => ({ ...p, subNiches: next }))}
+                    accent="#228B22"
+                    accentDark="#14531D"
+                    accentTint="#EAF7EA"
+                    accentBorder="#C8E6C9"
+                    idPrefix="create"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-2">
+                    Niches decide who sees this campaign. Sub-niches are optional — they don&apos;t
+                    narrow who sees it, they rank creators with that exact speciality higher.
+                  </p>
                 </div>
               </div>
             </div>
@@ -857,17 +861,26 @@ function BrandCampaigns() {
                   </div>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className={labelClass}>Niche</label>
-                  <div className="flex flex-wrap gap-2">
-                    {NICHES.map(n => (
-                      <button key={n} type="button"
-                        onClick={() => setForm(p => ({ ...p, niche: p.niche.includes(n) ? p.niche.filter(x => x !== n) : [...p.niche, n] }))}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                          form.niche.includes(n) ? 'bg-gradient-to-r from-[#228B22] to-[#3FA34D] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#228B22]/50 hover:bg-blue-50/50'
-                        }`}
-                      >{NICHE_LABELS[n] ?? n}</button>
-                    ))}
-                  </div>
+                  <label className={labelClass}>Niche &amp; sub-niche targeting</label>
+                  <NichePicker
+                    niches={form.niche}
+                    onNichesChange={next => setForm(p => ({
+                      ...p,
+                      niche: next,
+                      subNiches: p.subNiches.filter(sn => next.includes(SUB_NICHE_TO_NICHE[sn])),
+                    }))}
+                    subNiches={form.subNiches}
+                    onSubNichesChange={next => setForm(p => ({ ...p, subNiches: next }))}
+                    accent="#228B22"
+                    accentDark="#14531D"
+                    accentTint="#EAF7EA"
+                    accentBorder="#C8E6C9"
+                    idPrefix="edit"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-2">
+                    Niches decide who sees this campaign. Sub-niches are optional — they don&apos;t
+                    narrow who sees it, they rank creators with that exact speciality higher.
+                  </p>
                 </div>
               </div>
             </div>

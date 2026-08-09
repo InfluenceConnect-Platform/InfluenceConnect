@@ -7,7 +7,8 @@ import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import IdChip from '@/components/shared/IdChip';
 import { useTheme } from '@/lib/useTheme';
-import { NICHES, NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, NICHE_SUBNICHES, SUB_NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
+import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
+import NichePicker from '@/components/shared/NichePicker';
 import { cdnImg } from '@/lib/img';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
@@ -369,17 +370,6 @@ function InfluencerProfile() {
     setIsEditing(false);
     setError('');
   };
-
-  const toggleNiche = (n: string) =>
-    setNiche(prev => {
-      const next = prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n];
-      // Drop any selected sub-niches whose parent niche just got deselected.
-      setSubNiches(subs => subs.filter(s => next.includes(SUB_NICHE_TO_NICHE[s])));
-      return next;
-    });
-
-  const toggleSubNiche = (s: string) =>
-    setSubNiches(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
   const updatePlatform = (index: number, field: string, value: string | number) => {
     const updated = [...platforms];
@@ -1404,45 +1394,29 @@ function InfluencerProfile() {
                     <p className="text-xs text-gray-400 mt-1.5">Helps brands find you when they search by city.</p>
                   </div>
 
-                  {/* Niche */}
+                  {/* Niche — category ▸ niche ▸ sub-niche */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-2">
-                      Niche <span className="text-gray-400 font-normal">— pick all that apply</span>
+                      Niche <span className="text-gray-400 font-normal">— open a category, then pick the niches and sub-niches you create for</span>
                     </label>
-                    <div className="flex flex-wrap gap-2">
-                      {NICHES.map(n => (
-                        <button key={n} type="button" onClick={() => toggleNiche(n)}
-                          className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 border cursor-pointer ${
-                            niche.includes(n)
-                              ? 'bg-gradient-to-r from-[#F0417B] to-[#E0115F] border-transparent text-white shadow-sm'
-                              : 'bg-white border-gray-200 text-gray-500 hover:border-[#F0417B]/50 hover:bg-rose-50/50 hover:text-[#7A0F3D]'
-                          }`}>
-                          {NICHE_LABELS[n] ?? n}
-                        </button>
-                      ))}
-                    </div>
+                    <NichePicker
+                      niches={niche}
+                      onNichesChange={next => {
+                        setNiche(next);
+                        setSubNiches(subs => subs.filter(sn => next.includes(SUB_NICHE_TO_NICHE[sn])));
+                      }}
+                      subNiches={subNiches}
+                      onSubNichesChange={setSubNiches}
+                      accent="#E0115F"
+                      accentDark="#7A0F3D"
+                      accentTint="#FCE4EC"
+                      accentBorder="#F3B8CB"
+                      idPrefix="profile"
+                    />
+                    <p className="text-xs text-gray-400 mt-2">
+                      Sub-niches are optional, but they help brands running specialised campaigns find you first.
+                    </p>
                   </div>
-
-                  {/* Sub-niches — only offered for the niches selected above */}
-                  {niche.length > 0 && (
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-2">
-                        Sub-niches <span className="text-gray-400 font-normal">— optional, for finer targeting</span>
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {niche.flatMap(n => NICHE_SUBNICHES[n] ?? []).map(s => (
-                          <button key={s} type="button" onClick={() => toggleSubNiche(s)}
-                            className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-150 border cursor-pointer ${
-                              subNiches.includes(s)
-                                ? 'bg-[#FCE4EC] border-[#F0417B]/40 text-[#7A0F3D]'
-                                : 'bg-white border-gray-200 text-gray-500 hover:border-[#F0417B]/40 hover:text-[#7A0F3D]'
-                            }`}>
-                            {SUB_NICHE_LABELS[s] ?? s}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Pricing */}
                   <div>

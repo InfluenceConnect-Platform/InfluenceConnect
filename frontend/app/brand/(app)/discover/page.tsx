@@ -6,7 +6,8 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 import { useToast } from '@/components/shared/Toast';
-import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS, NICHE_SUBNICHES, SUB_NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
+import NichePicker from '@/components/shared/NichePicker';
+import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import { levelBadgeCls } from '@/lib/levelBadge';
 
@@ -149,61 +150,36 @@ function FilterPanel({
       </div>
 
       <div className="p-5">
-        {/* Niche */}
+        {/* Niche ▸ sub-niche — same category ▸ niche ▸ sub-niche taxonomy the
+            creators tag themselves with, so filters line up with profiles. */}
         <div className="mb-5">
           <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-gradient-to-br from-sky-500 to-blue-600 flex-shrink-0" />
-            Niche
+            <span className="w-3 h-3 rounded bg-gradient-to-br from-[#228B22] to-[#1B6E1B] flex-shrink-0" />
+            Niche &amp; sub-niche
           </p>
-          <div className="flex flex-col gap-2">
-            {NICHES.map(n => (
-              <div key={n} role="checkbox" aria-checked={selectedNiches.includes(n)} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleNiche(n)}>
-                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-                  selectedNiches.includes(n)
-                    ? 'border-0 bg-gradient-to-br from-[#228B22] to-[#1B6E1B] shadow-sm'
-                    : 'border-gray-300 group-hover:border-[#228B22]'
-                }`}>
-                  {selectedNiches.includes(n) && (
-                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  )}
-                </div>
-                <span className={`text-sm transition-colors ${selectedNiches.includes(n) ? 'text-[#228B22] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{NICHE_LABELS[n] ?? n}</span>
-              </div>
-            ))}
-          </div>
+          <NichePicker
+            niches={selectedNiches}
+            /* The panel is handed toggles, not setters, and NichePicker only
+               ever changes one entry per interaction — so the diff below is
+               exact and the parent keeps ownership of orphan cleanup. */
+            onNichesChange={next => {
+              const changed = next.find(n => !selectedNiches.includes(n))
+                ?? selectedNiches.find(n => !next.includes(n));
+              if (changed) toggleNiche(changed);
+            }}
+            subNiches={selectedSubNiches}
+            onSubNichesChange={next => {
+              const changed = next.find(n => !selectedSubNiches.includes(n))
+                ?? selectedSubNiches.find(n => !next.includes(n));
+              if (changed) toggleSubNiche(changed);
+            }}
+            accent="#228B22"
+            accentDark="#14531D"
+            accentTint="#EAF7EA"
+            accentBorder="#C8E6C9"
+            idPrefix="discover"
+          />
         </div>
-
-        {/* Sub-niche — only offered once at least one niche above is picked */}
-        {selectedNiches.length > 0 && (
-          <>
-            <div className="mb-5">
-              <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-gradient-to-br from-[#F0417B] to-[#E0115F] flex-shrink-0" />
-                Sub-niche
-              </p>
-              <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
-                {selectedNiches.flatMap(n => NICHE_SUBNICHES[n] ?? []).map(s => (
-                  <div key={s} role="checkbox" aria-checked={selectedSubNiches.includes(s)} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleSubNiche(s)}>
-                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-                      selectedSubNiches.includes(s)
-                        ? 'border-0 bg-gradient-to-br from-[#F0417B] to-[#E0115F] shadow-sm'
-                        : 'border-gray-300 group-hover:border-[#F0417B]'
-                    }`}>
-                      {selectedSubNiches.includes(s) && (
-                        <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                      )}
-                    </div>
-                    <span className={`text-sm transition-colors ${selectedSubNiches.includes(s) ? 'text-[#E0115F] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{SUB_NICHE_LABELS[s] ?? s}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
 
         <div className="h-px bg-gray-100 mb-5" />
 
