@@ -311,7 +311,7 @@ export default function CreatorProfilePage() {
         </button>
         <button onClick={() => router.push('/brand/billing')}
           className="px-5 py-2.5 bg-[#228B22] hover:bg-[#1B6E1B] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer">
-          Upgrade to Premium
+          Upgrade plan
         </button>
       </div>
     </div>

@@ -36,9 +36,10 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Premium is a one-time purchase with no auto-renewal and no cancel
-    // button — this is the one place a logged-in user's plan is guaranteed
-    // to pass through, so it doubles as where expiry is enforced.
+    // Plans are auto-renewing subscriptions (cancellable from Billing), but a
+    // lapsed or cancelled one still has to stop granting access. This is the
+    // one place every logged-in request passes through, so expiry is enforced
+    // here — dropping both `plan` and `tier` back to free together.
     if (user.plan === 'premium' && user.premiumUntil && user.premiumUntil <= new Date()) {
       user.plan = 'freemium';
       user.tier = 'free';

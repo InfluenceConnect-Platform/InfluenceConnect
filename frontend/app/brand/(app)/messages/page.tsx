@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { brandCaps } from '@/lib/tiers';
+import { brandCaps, upgradeCta } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
@@ -233,6 +233,8 @@ function BrandMessages() {
   // "Shared files up to 10/30 MB" — checked before uploading, and again by the
   // server on send. See backend/utils/tiers.js.
   const fileLimitMB = brandCaps((user as { tier?: string } | null)?.tier).maxFileMB;
+  // Names the tier that actually raises the cap — unlimited is Golden, not Silver.
+  const msgUpgradeCta = upgradeCta('brand', 'maxMessagesPerDay', (user as { tier?: string } | null)?.tier);
   const limitHit = Number.isFinite(msgLimit) && messagesUsed >= msgLimit;
   const dealClosed = selectedDeal?.status === 'completed' || selectedDeal?.status === 'cancelled';
   const negotiationPending = !dealClosed && selectedDeal?.negotiationStatus !== 'agreed';
@@ -705,8 +707,8 @@ function BrandMessages() {
                   <LockIcon />
                 </div>
                 <div className="flex-1 min-w-0 relative">
-                  <p className="text-[12px] font-bold text-white">Unlimited messages</p>
-                  <p className="text-[11px] text-green-200/80">Upgrade to Premium</p>
+                  <p className="text-[12px] font-bold text-white">More daily messages</p>
+                  <p className="text-[11px] text-green-200/80">{msgUpgradeCta}</p>
                 </div>
                 <Link href="/brand/billing"
                   className="text-[11px] font-bold text-[#1B6E1B] bg-white hover:bg-green-50 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
@@ -1099,7 +1101,7 @@ function BrandMessages() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-bold text-amber-800">Message limit reached</p>
-                    <p className="text-[11px] text-amber-600">Upgrade to Premium for unlimited messaging.</p>
+                    <p className="text-[11px] text-amber-600">{msgUpgradeCta} for more daily messages.</p>
                   </div>
                   <Link href="/brand/billing"
                     className="flex-shrink-0 text-[12px] font-bold text-white bg-amber-500 hover:bg-amber-600 px-3.5 py-1.5 rounded-xl transition-all duration-150 cursor-pointer active:scale-95">

@@ -93,7 +93,7 @@ const TERMS: LegalDoc = {
           `"Influencer" or "Creator" means an individual or entity offering content-creation or promotional services through the Platform.`,
           `"User", "you", or "your" means any Brand, Influencer, or visitor who accesses the Platform.`,
           `"Collaboration" or "Deal" means any arrangement, campaign, or transaction agreed directly between a Brand and an Influencer.`,
-          `"Premium Purchase" means a one-time, non-recurring payment that unlocks Premium features for a fixed period (30 days for a monthly purchase, 365 days for a yearly purchase), as described on the Billing page.`,
+          `"Paid Plan" (also referred to as a "Premium" plan) means any of the paid subscription tiers offered on the Billing page — currently Silver and Golden for Brands, and Silver, Golden and Platinum for Creators. A Paid Plan is a recurring subscription that renews automatically until cancelled, as set out in clause 8. Where a recurring mandate cannot be set up, the Billing page may instead offer an equivalent one-time payment covering a single fixed period (30 days for monthly, 365 days for yearly), which does not renew.`,
           `"Content" means any text, images, links, briefs, profiles, messages, or other material submitted to or displayed on the Platform.`,
         ]),
       ],

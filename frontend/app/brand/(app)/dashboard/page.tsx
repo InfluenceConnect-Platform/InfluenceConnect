@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { brandCaps, limitLabel, normalizeTier, BRAND_TIERS } from '@/lib/tiers';
+import { brandCaps, limitLabel, normalizeTier, upgradeCta, BRAND_TIERS } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import BrandNav from '@/components/shared/BrandNav';
 import IdChip from '@/components/shared/IdChip';
@@ -78,6 +78,9 @@ export default function BrandDashboard() {
 
   // Active-campaign allowance for THIS tier (free 3, silver 5, golden ∞).
   const campaignLimit = brandCaps((user as { tier?: string } | null)?.tier).maxActiveCampaigns;
+  // Only Golden is unlimited, so the old "upgrade for unlimited campaigns"
+  // overpromised to anyone upgrading from Free to Silver (3 → 5).
+  const campaignUpgradeCta = upgradeCta('brand', 'maxActiveCampaigns', (user as { tier?: string } | null)?.tier);
   const campaignCapped = Number.isFinite(campaignLimit);
   const atCampaignCap = campaignCapped && (stats?.activeCampaigns ?? 0) >= campaignLimit;
   const currentTierKey = normalizeTier('brand', (user as { tier?: string } | null)?.tier);
@@ -242,7 +245,7 @@ export default function BrandDashboard() {
                 </svg>
               </div>
               <p className="text-sm text-amber-800">
-                <strong>Freemium limit reached.</strong> Upgrade to create unlimited campaigns.
+                <strong>Campaign limit reached.</strong> {campaignUpgradeCta} to run more campaigns at once.
               </p>
             </div>
             <Link href="/brand/billing" className="flex-shrink-0 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all self-start sm:self-auto">

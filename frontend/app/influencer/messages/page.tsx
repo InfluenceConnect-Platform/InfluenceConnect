@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { influencerCaps, limitLabel } from '@/lib/tiers';
+import { influencerCaps, limitLabel, upgradeCta } from '@/lib/tiers';
 import { useLiveData } from '@/lib/useLiveData';
 import OfferPanel, { Offer } from '@/components/shared/OfferPanel';
 import PayoutPanel, { Payout } from '@/components/shared/PayoutPanel';
@@ -175,6 +175,9 @@ function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [blocked, setBlocked] = useState(false);
   const [messagesUsed, setMessagesUsed] = useState(0);
+  // Names the tier that actually raises the cap — "Premium" is not a plan, and
+  // unlimited messaging is Platinum for creators, not the next tier up.
+  const msgUpgradeCta = upgradeCta('influencer', 'maxMessagesPerDay', (user as { tier?: string } | null)?.tier);
   const [search, setSearch] = useState('');
   const [showChat, setShowChat] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -651,8 +654,8 @@ function MessagesPage() {
                   <LockIcon />
                 </div>
                 <div className="flex-1 min-w-0 relative">
-                  <p className="text-[12px] font-bold text-white">Unlimited messages</p>
-                  <p className="text-[11px] text-rose-200/80">Upgrade to Premium</p>
+                  <p className="text-[12px] font-bold text-white">More daily messages</p>
+                  <p className="text-[11px] text-rose-200/80">{msgUpgradeCta}</p>
                 </div>
                 <Link href="/influencer/billing"
                   className="text-[11px] font-bold text-[#7A0F3D] bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
@@ -1033,7 +1036,7 @@ function MessagesPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-bold text-amber-800">Message limit reached</p>
-                    <p className="text-[11px] text-amber-600">Upgrade to Premium for unlimited messaging.</p>
+                    <p className="text-[11px] text-amber-600">{msgUpgradeCta} for more daily messages.</p>
                   </div>
                   <Link href="/influencer/billing"
                     className="flex-shrink-0 text-[12px] font-bold text-white bg-amber-500 hover:bg-amber-600 px-3.5 py-1.5 rounded-xl transition-all duration-150 cursor-pointer active:scale-95">

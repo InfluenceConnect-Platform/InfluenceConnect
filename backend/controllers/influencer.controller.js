@@ -465,7 +465,6 @@ exports.getEarnings = async (req, res) => {
         avgDealValue
       },
       monthlyTrend: caps.earningsBreakdown ? trend : [],
-      categoryBreakdown: [],
       dealHistory,
       // Echoed so the UI gates on the same source of truth the server used.
       capabilities: {

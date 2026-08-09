@@ -258,6 +258,56 @@ export function tierAtLeast(
   return current.order >= floor.order;
 }
 
+type CapField = keyof BrandCaps | keyof InfluencerCaps;
+
+/**
+ * The cheapest tier above `tier` that actually improves `field` — e.g.
+ * upgradeTargetFor('brand', 'canInvite', 'free') === 'Silver'.
+ *
+ * Upsell copy must never hardcode a plan name. "Upgrade to Premium" was wrong
+ * in two ways at once: Premium stopped being a plan when tiers landed, and it
+ * hid which plan actually unlocks the thing (invites start at Silver, but
+ * unlimited messaging only at Golden for brands and Platinum for creators).
+ * Returns null when nothing higher improves it, so callers can fall back to
+ * neutral wording instead of promising an upgrade that changes nothing.
+ */
+export function upgradeTargetFor(
+  role: 'brand' | 'influencer',
+  field: CapField,
+  tier?: string | null,
+): string | null {
+  const caps = role === 'brand' ? BRAND_CAPS : INFLUENCER_CAPS;
+  const defs = role === 'brand' ? BRAND_TIERS : INFLUENCER_TIERS;
+  const currentKey = normalizeTier(role as 'influencer', tier);
+  const table = caps as unknown as Record<string, Record<string, unknown>>;
+  const current = table[currentKey];
+  const ordered = Object.entries(table)
+    .sort((a, b) => (a[1].order as number) - (b[1].order as number));
+
+  for (const [key, cfg] of ordered) {
+    if ((cfg.order as number) <= (current.order as number)) continue;
+    const now = current[field];
+    const next = cfg[field];
+    const better = typeof next === 'boolean'
+      ? next && !now
+      : typeof next === 'number' && typeof now === 'number'
+        ? next > now
+        : next !== now;
+    if (better) return defs.find(d => d.key === key)?.label ?? key;
+  }
+  return null;
+}
+
+/** "Upgrade to Silver" / "Upgrade your plan" when nothing higher helps. */
+export function upgradeCta(
+  role: 'brand' | 'influencer',
+  field: CapField,
+  tier?: string | null,
+): string {
+  const target = upgradeTargetFor(role, field, tier);
+  return target ? `Upgrade to ${target}` : 'Upgrade your plan';
+}
+
 /**
  * Dark mode is a paid perk in the client's tier sheet — brand Silver+ and
  * creator Golden+. It is gated inside the two role apps only; the marketing

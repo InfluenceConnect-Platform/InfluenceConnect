@@ -57,7 +57,7 @@ const FAQ_ITEMS = [
   { q: 'How does the deal negotiation work?', a: 'After applying, brands can send you a deal offer. You can accept, reject, or counter-offer directly in the Messages section.' },
   { q: 'When and how do I get paid?', a: 'Payment terms are agreed upon in the deal. Once deliverables are marked complete and approved by the brand, payment is released per your agreement.' },
   { q: 'Can I work with multiple brands at once?', a: 'Yes — there is no limit on the number of active campaigns you can participate in simultaneously.' },
-  { q: 'How do I grow my visibility on the platform?', a: 'Complete your profile fully, connect your social accounts, and maintain a high response rate. Premium brands filter by engagement metrics so keeping your stats updated helps.' },
+  { q: 'How do I grow my visibility on the platform?', a: 'Complete your profile fully, connect your social accounts, and maintain a high response rate. Brands on paid plans filter by engagement metrics, so keeping your stats updated helps.' },
 ];
 
 export default function InfluencerSettings() {

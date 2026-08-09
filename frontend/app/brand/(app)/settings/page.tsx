@@ -55,9 +55,9 @@ const SECTIONS: { id: Section; label: string; icon: React.ReactNode }[] = [
 const FAQ_ITEMS = [
   { q: 'How do I create a campaign?', a: 'Go to Campaigns → New Campaign. Fill in the details, set your budget and deliverables, then publish.' },
   { q: 'How do influencers apply to my campaigns?', a: 'Once published, influencers on the platform can discover and apply. You\'ll see applications in the campaign detail view.' },
-  { q: 'How does the Premium plan work?', a: 'Premium unlocks unlimited campaigns, priority discovery placement, and advanced analytics. You can upgrade anytime from the Billing section.' },
+  { q: 'How do the paid plans work?', a: 'Silver (₹399/mo) raises your limits to 5 active campaigns, 10 creator profiles a day and 10 messages a day, and adds shortlisting, direct creator invites, dashboard quick actions, dark mode and 30 MB file sharing. Golden (₹499/mo) makes campaigns, discovery, messaging and file sharing unlimited. You can upgrade anytime from the Billing section.' },
   { q: 'Can I message an influencer before accepting their application?', a: 'No — messaging unlocks only after you accept an influencer for a campaign. Once accepted, a conversation opens in the Messages tab.' },
-  { q: 'How do I cancel Premium?', a: 'Open the Billing page and use "Cancel plan" — no fee, no reason needed, and no need to contact us. Plans renew until cancelled; cancelling stops future charges and you keep access until the end of the period you have already paid for.' },
+  { q: 'How do I cancel my plan?', a: 'Open the Billing page and use "Cancel plan" — no fee, no reason needed, and no need to contact us. Plans renew until cancelled; cancelling stops future charges and you keep access until the end of the period you have already paid for.' },
 ];
 
 export default function BrandSettings() {

@@ -12,7 +12,7 @@ import NichePicker from '@/components/shared/NichePicker';
 import { NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import MarqueeText from '@/components/shared/MarqueeText';
-import { brandCaps } from '@/lib/tiers';
+import { brandCaps, upgradeCta } from '@/lib/tiers';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
@@ -503,12 +503,13 @@ function BrandCampaigns() {
     }
   };
 
-  // Invite influencers to a campaign — Premium-only. Sends the brand to
-  // Discover in "invite mode" scoped to this campaign.
-  const isPremium = user?.plan === 'premium';
+  // Inviting creators is a Silver+ perk (canInvite in backend/utils/tiers.js).
+  // Sends the brand to Discover in "invite mode" scoped to this campaign.
+  const canInvite = brandCaps((user as { tier?: string } | null)?.tier).canInvite;
+  const inviteCta = upgradeCta('brand', 'canInvite', (user as { tier?: string } | null)?.tier);
   const handleInvite = (campaign: any) => {
-    if (!isPremium) {
-      showToast('Upgrade to Premium to invite influencers.');
+    if (!canInvite) {
+      showToast(`${inviteCta} to invite creators.`);
       router.push('/brand/billing');
       return;
     }
@@ -1221,7 +1222,7 @@ function BrandCampaigns() {
                     )}
                   </div>
 
-                  {/* Invite strip — published campaigns (Premium feature) */}
+                  {/* Invite strip — published campaigns (Silver+ canInvite) */}
                   {(campaign.status === 'active' || campaign.status === 'in-progress') && (
                     <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex items-center justify-between gap-2">
                       <p className="hidden sm:flex text-[10px] text-gray-400 font-medium items-center gap-1">
@@ -1229,14 +1230,14 @@ function BrandCampaigns() {
                       </p>
                       <button
                         onClick={e => { e.stopPropagation(); handleInvite(campaign); }}
-                        title={isPremium ? 'Invite influencers to this campaign' : 'Premium feature — upgrade to invite influencers'}
+                        title={canInvite ? 'Invite creators to this campaign' : `${inviteCta} to invite creators`}
                         className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#1B6E1B] hover:to-[#228B22] px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-sm"
                       >
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
                         </svg>
                         Invite Influencers
-                        {!isPremium && (
+                        {!canInvite && (
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                           </svg>

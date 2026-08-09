@@ -10,6 +10,7 @@ import NichePicker from '@/components/shared/NichePicker';
 import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import { levelBadgeCls } from '@/lib/levelBadge';
+import { brandCaps, upgradeTargetFor } from '@/lib/tiers';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
@@ -430,7 +431,10 @@ function BrandDiscover() {
   const inviteCampaignId = searchParams.get('inviteCampaign') || '';
   const inviteCampaignTitle = searchParams.get('campaignTitle') || '';
   const inviteMode = !!inviteCampaignId;
-  const isPremium = user?.plan === 'premium';
+  // Inviting is Silver+ (canInvite). The old `plan === 'premium'` check
+  // happened to line up, but its copy named a plan that no longer exists.
+  const canInvite = brandCaps((user as { tier?: string } | null)?.tier).canInvite;
+  const inviteTarget = upgradeTargetFor('brand', 'canInvite', (user as { tier?: string } | null)?.tier);
   // userId -> 'pending' | 'accepted' | 'rejected' for influencers already invited to this campaign.
   const [invitedStatus, setInvitedStatus] = useState<Record<string, string>>({});
   // userId -> invitationId (_id) — needed to cancel pending invites
@@ -967,9 +971,9 @@ function BrandDiscover() {
                 <p className="text-[11px] text-blue-200/80 font-semibold uppercase tracking-wider leading-none">Inviting creators to</p>
                 <p className="text-sm font-bold truncate">{inviteCampaignTitle || 'your campaign'}</p>
               </div>
-              {!isPremium && (
+              {!canInvite && (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-400/90 text-gray-900">
-                  ★ Premium required
+                  ★ {inviteTarget ?? 'Paid plan'} required
                 </span>
               )}
             </div>
@@ -1382,7 +1386,7 @@ function BrandDiscover() {
                                   >
                                     View profile
                                   </Link>
-                                  {isPremium ? (
+                                  {canInvite ? (
                                     <button
                                       onClick={() => openDirectInvite(influencer)}
                                       className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#14531D] hover:to-[#228B22] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md cursor-pointer"
