@@ -145,8 +145,8 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             href="/"
             className={`inline-flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm font-medium px-2.5 sm:px-3.5 py-1.5 rounded-full border transition-colors ${
               isDark
-                ? 'border-slate-700 text-slate-300 hover:bg-slate-800/60'
-                : 'border-gray-200 text-gray-600 hover:bg-gray-100'
+                ? 'border-[#7FA8AD]/30 bg-[#7FA8AD]/10 text-[#9FC5C9] hover:bg-[#7FA8AD]/20'
+                : 'border-[#C9DCDE] bg-[#EEF4F5] text-[#3D6B70] hover:bg-[#DCEBEC]'
             }`}
           >
             <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

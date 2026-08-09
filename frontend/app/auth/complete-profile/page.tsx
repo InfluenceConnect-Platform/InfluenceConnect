@@ -46,6 +46,33 @@ function CompleteProfilePage() {
 
   const isBrand = role === 'brand';
 
+  // Theme this screen the same way verify-otp/page.tsx does: forest green for
+  // brands, ruby for creators. Written as full literal class strings (not
+  // template-interpolated) so Tailwind's JIT scanner picks them up at build time.
+  const CX = isBrand
+    ? {
+        accentBar: 'from-[#3FA34D] via-[#228B22] to-[#14531D]',
+        iconWrap:  'bg-[#EAF7EA] border-[#C8E6C9]',
+        icon:      'text-[#228B22]',
+        focusRing: 'focus:ring-[#3FA34D] focus:border-[#3FA34D]',
+        otpFilled: 'border-[#3FA34D] bg-[#EAF7EA]',
+        button:    'bg-[#3FA34D] hover:bg-[#228B22]',
+        link:      'text-[#228B22]',
+        stepDone:  'bg-[#3FA34D] text-white',
+        stepActive:'bg-[#3FA34D] text-white ring-4 ring-[#EAF7EA]',
+      }
+    : {
+        accentBar: 'from-[#F0417B] via-[#E0115F] to-[#B00D4D]',
+        iconWrap:  'bg-[#FCE4EC] border-[#F3B8CB]',
+        icon:      'text-[#E0115F]',
+        focusRing: 'focus:ring-[#F0417B] focus:border-[#F0417B]',
+        otpFilled: 'border-[#F0417B] bg-[#FCE4EC]',
+        button:    'bg-[#F0417B] hover:bg-[#E0115F]',
+        link:      'text-[#E0115F]',
+        stepDone:  'bg-[#F0417B] text-white',
+        stepActive:'bg-[#F0417B] text-white ring-4 ring-[#FCE4EC]',
+      };
+
   // Countdown timer for resend
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -152,23 +179,23 @@ function CompleteProfilePage() {
       <div className="w-full max-w-md">
         <div className="rounded-2xl overflow-hidden shadow-[0_2px_4px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.07),0_24px_56px_rgba(127,168,173,0.1)] border border-gray-200/80">
           {/* Gradient accent bar */}
-          <div className="h-[3px] bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#3D5087]" />
+          <div className={`h-[3px] bg-gradient-to-r ${CX.accentBar}`} />
 
           <div className="bg-white p-8">
 
             {/* Step indicator */}
             <div className="flex items-center gap-2 mb-6">
-              <StepDot active={step === 'phone'} done={step === 'otp'} label="1" />
+              <StepDot active={step === 'phone'} done={step === 'otp'} label="1" doneCls={CX.stepDone} activeCls={CX.stepActive} />
               <div className="flex-1 h-px bg-gray-200" />
-              <StepDot active={step === 'otp'} done={false} label="2" />
+              <StepDot active={step === 'otp'} done={false} label="2" doneCls={CX.stepDone} activeCls={CX.stepActive} />
             </div>
 
             {step === 'phone' ? (
               <>
                 {/* Header */}
                 <div className="mb-6">
-                  <div className="w-11 h-11 rounded-xl bg-[#EEF4F5] border border-[#dce9ea] flex items-center justify-center mb-4">
-                    <svg className="w-5 h-5 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center mb-4 ${CX.iconWrap}`}>
+                    <svg className={`w-5 h-5 ${CX.icon}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.73a16 16 0 0 0 6 6l1.06-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
                     </svg>
                   </div>
@@ -197,7 +224,7 @@ function CompleteProfilePage() {
                       value={mobile}
                       onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                       onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
-                      className="w-full px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 rounded-r-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#7FA8AD] focus:border-[#7FA8AD] hover:border-gray-300 transition-all"
+                      className={`w-full px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 border border-gray-200 rounded-r-lg bg-white focus:outline-none focus:ring-2 hover:border-gray-300 transition-all ${CX.focusRing}`}
                     />
                   </div>
                   <p className="text-xs text-gray-500">A verification code will be sent to this number</p>
@@ -213,7 +240,7 @@ function CompleteProfilePage() {
                       placeholder="e.g. 22AAAAA0000A1Z5"
                       value={gstin}
                       onChange={e => setGstin(e.target.value.toUpperCase())}
-                      className="w-full px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 font-mono tracking-wider border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#7FA8AD] focus:border-[#7FA8AD] hover:border-gray-300 transition-all"
+                      className={`w-full px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 font-mono tracking-wider border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 hover:border-gray-300 transition-all ${CX.focusRing}`}
                     />
                     <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[0.72rem] leading-relaxed text-amber-800">
                       <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -229,7 +256,7 @@ function CompleteProfilePage() {
                 <button
                   onClick={handleSendOtp}
                   disabled={loading || mobile.replace(/\s/g, '').length < 10 || (isBrand && !GSTIN_REGEX.test(gstin.replace(/\s+/g, '').toUpperCase()))}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm text-white bg-[#7FA8AD] hover:bg-[#5D8A8F] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer"
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer ${CX.button}`}
                 >
                   {loading ? (
                     <>
@@ -246,8 +273,8 @@ function CompleteProfilePage() {
               <>
                 {/* OTP step */}
                 <div className="mb-6">
-                  <div className="w-11 h-11 rounded-xl bg-[#EEF4F5] border border-[#dce9ea] flex items-center justify-center mb-4">
-                    <svg className="w-5 h-5 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center mb-4 ${CX.iconWrap}`}>
+                    <svg className={`w-5 h-5 ${CX.icon}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                     </svg>
                   </div>
@@ -259,7 +286,7 @@ function CompleteProfilePage() {
                     <span className="font-semibold text-gray-700">+91 {mobile}</span>.{' '}
                     <button
                       onClick={() => { setStep('phone'); setOtp(['','','','','','']); setError(''); }}
-                      className="text-[#5D8A8F] hover:underline text-xs font-medium cursor-pointer"
+                      className={`hover:underline text-xs font-medium cursor-pointer ${CX.link}`}
                     >
                       Change
                     </button>
@@ -289,9 +316,9 @@ function CompleteProfilePage() {
                       onKeyDown={e => handleOtpKeyDown(i, e)}
                       className={`
                         w-11 h-12 text-center text-xl font-bold text-gray-900 border rounded-xl
-                        focus:outline-none focus:ring-2 focus:ring-[#7FA8AD] focus:border-[#7FA8AD]
+                        focus:outline-none focus:ring-2 ${CX.focusRing}
                         transition-all duration-150
-                        ${digit ? 'border-[#7FA8AD] bg-[#EEF4F5]' : 'border-gray-200 bg-white hover:border-gray-300'}
+                        ${digit ? CX.otpFilled : 'border-gray-200 bg-white hover:border-gray-300'}
                       `}
                     />
                   ))}
@@ -302,7 +329,7 @@ function CompleteProfilePage() {
                 <button
                   onClick={handleVerify}
                   disabled={loading || otp.join('').length < 6}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm text-white bg-[#7FA8AD] hover:bg-[#5D8A8F] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer mb-4"
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer mb-4 ${CX.button}`}
                 >
                   {loading ? (
                     <>
@@ -322,7 +349,7 @@ function CompleteProfilePage() {
                   ) : (
                     <button
                       onClick={handleResend}
-                      className="text-[#5D8A8F] font-semibold hover:underline cursor-pointer"
+                      className={`font-semibold hover:underline cursor-pointer ${CX.link}`}
                     >
                       Resend OTP
                     </button>
@@ -342,11 +369,11 @@ function CompleteProfilePage() {
   );
 }
 
-function StepDot({ active, done, label }: { active: boolean; done: boolean; label: string }) {
+function StepDot({ active, done, label, doneCls, activeCls }: { active: boolean; done: boolean; label: string; doneCls: string; activeCls: string }) {
   return (
     <div className={`
       w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all
-      ${done ? 'bg-[#7FA8AD] text-white' : active ? 'bg-[#7FA8AD] text-white ring-4 ring-[#EEF4F5]' : 'bg-gray-100 text-gray-400'}
+      ${done ? doneCls : active ? activeCls : 'bg-gray-100 text-gray-400'}
     `}>
       {done ? (
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

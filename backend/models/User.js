@@ -84,11 +84,24 @@ const userSchema = new mongoose.Schema({
     default: 'email'
   },
 
-  // Subscription
+  // Subscription — `tier` is the real source of truth (values depend on
+  // role: brand = free/silver/golden, influencer = free/silver/golden/platinum,
+  // see backend/utils/tiers.js). `plan` is kept in sync automatically for the
+  // handful of call sites that only need to know "any paid tier or not".
+  tier: {
+    type: String,
+    default: 'free'
+  },
+
   plan: {
     type: String,
     enum: ['freemium', 'premium'],
     default: 'freemium'
+  },
+
+  autopay: {
+    type: Boolean,
+    default: false
   },
 
   premiumStartedAt: {

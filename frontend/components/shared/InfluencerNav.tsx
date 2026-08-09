@@ -57,7 +57,7 @@ const NAV_ITEMS = [
     href: '/influencer/earnings',
     icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        <path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/>
       </svg>
     ),
   },
@@ -199,7 +199,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
     if (!ok) return;
     localStorage.clear();
     localStorage.clear();
-    router.push('/auth/login');
+    router.push('/auth/login?role=influencer');
   };
 
   // Reusable dark/light class sets
@@ -207,13 +207,13 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
 
   const activeItemCls = isDark
     ? 'bg-[#1a2e32] text-slate-200'
-    : 'bg-[#EEF4F5] text-[#2A3E42]';
+    : 'bg-[#FCE4EC] text-[#7A0F3D]';
 
   const inactiveItemCls = isDark
     ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'
     : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50';
 
-  const activeIconCls = isDark ? 'text-[#7FA8AD]' : 'text-[#5D8A8F]';
+  const activeIconCls = isDark ? 'text-[#F0417B]' : 'text-[#E0115F]';
 
   return (
     <>
@@ -226,11 +226,11 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
         {/* Left — logo + nav links */}
         <div className="flex items-center gap-6 lg:gap-8 min-w-0">
           <Link href="/influencer/dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3d7178] flex items-center justify-center text-white font-black text-[13px] shadow-md group-hover:shadow-[#7FA8AD]/40 transition-shadow duration-200">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#F0417B] to-[#7A0F3D] flex items-center justify-center text-white font-black text-[13px] shadow-md group-hover:shadow-[#F0417B]/40 transition-shadow duration-200">
               IC
             </div>
             <span className={`font-extrabold text-[15px] tracking-tight hidden sm:block ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
-              Influence<span className={isDark ? 'text-[#9DC4C9]' : 'text-[#5D8A8F]'}>Connect</span>
+              Influence<span className={isDark ? 'text-[#F5A8BF]' : 'text-[#E0115F]'}>Connect</span>
             </span>
           </Link>
 
@@ -255,10 +255,10 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                   </span>
                   {item.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-[#5D8A8F]" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-[#E0115F]" />
                   )}
                   {hasDot && (
-                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ${dotShadow}`} />
+                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 ${dotShadow}`} />
                   )}
                 </Link>
               );
@@ -275,7 +275,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
             title="Account Settings"
             className={`hidden sm:flex items-center justify-center w-8 h-8 rounded-xl transition-all cursor-pointer ${
               pathname === '/influencer/settings'
-                ? isDark ? 'bg-[#5D8A8F]/20 text-[#9DC4C9]' : 'bg-[#5D8A8F]/10 text-[#5D8A8F]'
+                ? isDark ? 'bg-[#E0115F]/20 text-[#F5A8BF]' : 'bg-[#E0115F]/10 text-[#E0115F]'
                 : isDark ? 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
             }`}
           >
@@ -315,7 +315,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
             href="/influencer/profile"
             title={user?.name ?? 'Profile'}
             className={`relative w-9 h-9 rounded-full overflow-hidden ring-2 shadow-sm transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#FDE5DC] to-[#f5c4b0] cursor-pointer
-              ${isDark ? 'ring-slate-700 hover:ring-[#7FA8AD]' : 'ring-gray-200 hover:ring-[#7FA8AD]'}`}
+              ${isDark ? 'ring-slate-700 hover:ring-[#F0417B]' : 'ring-gray-200 hover:ring-[#F0417B]'}`}
           >
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -372,7 +372,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                       <span className={isActive ? activeIconCls : isDark ? 'text-slate-600' : 'text-gray-400'}>{item.icon}</span>
                       {item.label}
                     </span>
-                    {hasDot && <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />}
+                    {hasDot && <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />}
                   </Link>
                 );
               })}
@@ -431,7 +431,7 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
                 <span className={isActive ? activeIconCls : ''}>{item.icon}</span>
                 {item.label}
                 {hasDot && (
-                  <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ${dotShadow}`} />
+                  <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 ${dotShadow}`} />
                 )}
               </Link>
             );

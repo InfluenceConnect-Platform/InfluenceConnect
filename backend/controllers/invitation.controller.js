@@ -5,6 +5,7 @@ const Deal = require('../models/Deal');
 const User = require('../models/User');
 const BrandProfile = require('../models/BrandProfile');
 const InfluencerProfile = require('../models/InfluencerProfile');
+const { getTierConfig } = require('../utils/tiers');
 const notify = require('../services/email');
 
 // ─────────────────────────────────────────
@@ -13,11 +14,11 @@ const notify = require('../services/email');
 // Body: { campaignId, influencerIds: [userId, ...], message? }
 exports.sendInvitations = async (req, res) => {
   try {
-    // Premium gate — proactive invitations are a Premium-only feature.
-    if (req.user.plan !== 'premium') {
+    // Tier gate — proactive invitations aren't available on the Free tier.
+    if (!getTierConfig('brand', req.user.tier).canInvite) {
       return res.status(403).json({
         error: 'premium_only',
-        message: 'Upgrade to Premium to invite influencers to your campaigns.'
+        message: 'Upgrade your plan to invite influencers to your campaigns.'
       });
     }
 
@@ -214,7 +215,7 @@ exports.getInfluencerInvitations = async (req, res) => {
     // Attach full brand profile details for each invitation.
     const brandIds = invitations.map(i => i.brandId?._id || i.brandId);
     const brandProfiles = await BrandProfile.find({ userId: { $in: brandIds } })
-      .select('userId logoUrl companyName description website industry gstinVerified');
+      .select('userId logoUrl companyName description website industry gstinVerified score level');
     const profByBrand = new Map(brandProfiles.map(b => [b.userId.toString(), b]));
 
     const result = invitations.map(inv => {
@@ -229,6 +230,8 @@ exports.getInfluencerInvitations = async (req, res) => {
         brandWebsite:       bProf?.website || '',
         brandIndustry:      bProf?.industry || '',
         brandGstinVerified: bProf?.gstinVerified || false,
+        brandScore:         bProf?.score ?? 0,
+        brandLevel:         bProf?.level || 'starter',
       };
     });
 

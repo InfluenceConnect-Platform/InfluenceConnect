@@ -3,92 +3,52 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Reveal from '@/components/marketing/Reveal';
+import { BRAND_TIERS, INFLUENCER_TIERS, yearlyPrice } from '@/lib/tiers';
 
-/* Prices mirror the in-app billing pages (influencer/billing, brand/billing). */
-const CREATOR_MONTHLY = 299;
-const BRAND_MONTHLY = 1499;
-const yearly = (m: number) => Math.round(m * 12 * 0.8);
-const yearlyPerMonth = (m: number) => Math.round(yearly(m) / 12);
+/* Full tier breakdown for both audiences — pulls from the same source of
+   truth as the in-app billing pages (frontend/lib/tiers.ts), so marketing
+   copy can never drift from what's actually enforced. */
 
-interface Plan {
-  audience: string;
-  accent: string;        // tailwind text class
-  gradient: string;      // CTA gradient classes
-  border: string;
-  wash: string;          // card background gradient tint
-  topBar: string;        // gradient strip across the card's top edge
-  monthly: number;
-  free: string[];
-  premium: string[];
-}
-
-const PLANS: Plan[] = [
-  {
-    audience: 'Creators',
-    accent: 'text-[#5D8A8F]',
-    gradient: 'from-[#5D8A8F] to-[#4A7A7F] hover:from-[#4A7A7F] hover:to-[#3D6B70]',
-    border: 'border-[#5D8A8F]/25',
-    wash: 'to-[#5D8A8F]/[0.06]',
-    topBar: 'from-[#7FA8AD] via-[#5D8A8F] to-emerald-500',
-    monthly: CREATOR_MONTHLY,
-    free: [
-      'Public profile with custom URL',
-      'Unlimited portfolio uploads (3 visible to brands)',
-      '5 campaign applications per month',
-      'Basic credibility score',
-      '10 messages per day',
-    ],
-    premium: [
-      'Unlimited campaign applications',
-      'All portfolio items visible to brands',
-      'Unlimited daily messages',
-      'Detailed monthly earnings chart',
-      'Earnings by category + CSV export',
-      'Early access to new features',
-    ],
-  },
-  {
-    audience: 'Brands',
-    accent: 'text-[#7C3AED]',
-    gradient: 'from-[#7C3AED] to-[#5B21B6] hover:from-[#6D28D9] hover:to-[#4C1D95]',
-    border: 'border-[#7C3AED]/25',
-    wash: 'to-[#7C3AED]/[0.06]',
-    topBar: 'from-[#8B5CF6] via-[#7C3AED] to-blue-600',
-    monthly: BRAND_MONTHLY,
-    free: [
-      'Up to 2 active campaigns',
-      'Creator discovery — 10 profiles/day',
-      'Search & filter creators (niche, platform, location, budget)',
-      'Application management (shortlist, accept, reject)',
-      'Campaign performance dashboard',
-      '10 messages per day',
-    ],
-    premium: [
-      'Unlimited active campaigns',
-      'Unlimited creator profile views',
-      'Unlimited daily messages',
-      'Priority support',
-      'All Freemium features included',
-    ],
-  },
+const AUDIENCES = [
+  { key: 'creators' as const, label: 'For Creators', role: 'influencer', tiers: INFLUENCER_TIERS, accent: '#E0115F', accentDark: '#7A0F3D' },
+  { key: 'brands' as const, label: 'For Brands', role: 'brand', tiers: BRAND_TIERS, accent: '#228B22', accentDark: '#14531D' },
 ];
 
-function Check({ muted = false }: { muted?: boolean }) {
+function Check({ color }: { color: string }) {
   return (
-    <svg
-      className={`w-4 h-4 flex-shrink-0 mt-0.5 ${muted ? 'text-gray-400' : 'text-emerald-500'}`}
-      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-    >
+    <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12"/>
     </svg>
   );
 }
 
 export default function PricingSection() {
+  const [audience, setAudience] = useState<'creators' | 'brands'>('creators');
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
+
+  const current = AUDIENCES.find(a => a.key === audience)!;
+  const popularKey = 'golden'; // both audiences' "most popular" tier
 
   return (
     <div>
+      {/* Audience toggle */}
+      <div className="flex items-center justify-center mb-6">
+        <div className="inline-flex p-1 rounded-xl bg-gray-100 border border-gray-200">
+          {AUDIENCES.map(a => (
+            <button
+              key={a.key}
+              onClick={() => setAudience(a.key)}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                audience === a.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+              style={audience === a.key ? { color: a.accent } : undefined}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Billing toggle */}
       <div className="flex items-center justify-center gap-1 mb-4">
         <div className="inline-flex p-1 rounded-xl bg-gray-100 border border-gray-200">
@@ -113,70 +73,70 @@ export default function PricingSection() {
         Save 20% with yearly billing — 2 months free
       </p>
 
-      {/* Plan cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {PLANS.map((plan, i) => (
-          <Reveal key={plan.audience} delay={i * 130} className={`bg-gradient-to-br from-white ${plan.wash} dark:from-[#0E1B2E] border-2 ${plan.border} rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300`}>
-            <div aria-hidden className={`h-1.5 bg-gradient-to-r ${plan.topBar}`} />
-            <div className="p-8 pb-6 border-b border-gray-100">
-              <p className={`text-xs font-bold uppercase tracking-widest ${plan.accent} mb-3`}>
-                {plan.audience}
-              </p>
-              <div className="flex items-baseline gap-1.5">
-                {/* key remounts the span so the price pops when the toggle flips */}
-                <span key={billing} className="anim-pop text-5xl font-bold text-gray-900 tracking-tight tabular-nums">
-                  ₹{(billing === 'monthly' ? plan.monthly : yearlyPerMonth(plan.monthly)).toLocaleString('en-IN')}
+      {/* Tier cards — full breakdown for the selected audience */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${current.tiers.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-5`}>
+        {current.tiers.map((t, i) => {
+          const isFree = t.key === 'free';
+          const isPopular = t.key === popularKey;
+          const displayPrice = billing === 'monthly' ? t.priceMonthly : Math.round(yearlyPrice(t.priceMonthly) / 12);
+
+          return (
+            <Reveal key={`${audience}-${t.key}`} delay={i * 90}>
+            <div
+              className={`relative bg-white dark:bg-[#0E1B2E] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full ${
+                isPopular ? 'border-2' : 'border border-gray-200'
+              }`}
+              style={isPopular ? { borderColor: current.accent } : undefined}
+            >
+              {isPopular && (
+                <span
+                  className="absolute top-3 right-3 z-10 text-[10px] font-bold text-white px-2 py-1 rounded-full"
+                  style={{ backgroundColor: current.accent }}
+                >
+                  Popular
                 </span>
-                <span className="text-sm text-gray-500 font-medium">/ month</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-2 h-4">
-                {billing === 'yearly'
-                  ? `₹${yearly(plan.monthly).toLocaleString('en-IN')} one-time payment for 365 days`
-                  : 'One-time payment for 30 days'}
-              </p>
-            </div>
-
-            <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">
-                  Free plan
-                </p>
-                <ul className="flex flex-col gap-3">
-                  {plan.free.map(item => (
-                    <li key={item} className="flex gap-2.5 text-sm text-gray-600 leading-snug">
-                      <Check muted /> {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className={`text-xs font-bold uppercase tracking-widest ${plan.accent} mb-4`}>
-                  Premium adds
-                </p>
-                <ul className="flex flex-col gap-3">
-                  {plan.premium.map(item => (
-                    <li key={item} className="flex gap-2.5 text-sm text-gray-700 font-medium leading-snug">
-                      <Check /> {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className="px-8 pb-8">
-              <Link
-                href={`/auth/signup?role=${plan.audience === 'Creators' ? 'influencer' : 'brand'}`}
-                className={`w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r ${plan.gradient} shadow-md hover:shadow-lg active:scale-[0.98] transition-all`}
+              )}
+              <div
+                className="px-6 pt-6 pb-5 border-b border-gray-100 dark:border-white/5"
+                style={isFree ? undefined : { background: `linear-gradient(135deg, ${current.accent}, ${current.accentDark})` }}
               >
-                Start free as a {plan.audience === 'Creators' ? 'creator' : 'brand'}
-              </Link>
-              <p className="text-center text-[0.7rem] text-gray-400 mt-3">
-                No card required for the free plan · Premium billed via Razorpay
-              </p>
+                <p className={`text-[11px] font-bold uppercase tracking-widest mb-2 ${isFree ? '' : 'text-white/70'}`} style={isFree ? { color: current.accent } : undefined}>
+                  {t.label}
+                </p>
+                <div className="flex items-baseline gap-1">
+                  <span key={billing} className={`anim-pop text-3xl font-bold tracking-tight tabular-nums ${isFree ? 'text-gray-900 dark:text-slate-100' : 'text-white'}`}>
+                    ₹{displayPrice.toLocaleString('en-IN')}
+                  </span>
+                  <span className={`text-xs font-medium ${isFree ? 'text-gray-400' : 'text-white/70'}`}>{isFree ? '/ forever' : '/ mo'}</span>
+                </div>
+                <p className={`text-xs mt-1.5 leading-relaxed ${isFree ? 'text-gray-500' : 'text-white/80'}`}>{t.tagline}</p>
+              </div>
+
+              <div className="p-6 flex-1 flex flex-col">
+                <ul className="flex flex-col gap-2.5 mb-6 flex-1">
+                  {t.features.map(f => (
+                    <li key={f} className="flex gap-2 text-[12.5px] text-gray-600 dark:text-slate-400 leading-snug">
+                      <Check color={current.accent} /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={`/auth/signup?role=${current.role}`}
+                  className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
+                  style={{ background: `linear-gradient(135deg, ${current.accent}, ${current.accentDark})` }}
+                >
+                  {isFree ? `Start free as a ${audience === 'creators' ? 'creator' : 'brand'}` : `Choose ${t.label}`}
+                </Link>
+              </div>
             </div>
-          </Reveal>
-        ))}
+            </Reveal>
+          );
+        })}
       </div>
+
+      <p className="text-center text-[0.7rem] text-gray-400 mt-6">
+        No card required for the free plan · Paid tiers billed via Razorpay, one-time by default (Autopay optional)
+      </p>
     </div>
   );
 }

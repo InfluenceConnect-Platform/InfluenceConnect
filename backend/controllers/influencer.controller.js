@@ -81,7 +81,7 @@ exports.getMyProfile = async (req, res) => {
   try {
     const profile = await InfluencerProfile
       .findOne({ userId: req.userId })
-      .populate('userId', 'name email mobile plan premiumUntil customId');
+      .populate('userId', 'name email mobile plan tier premiumUntil customId');
 
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
@@ -93,8 +93,9 @@ exports.getMyProfile = async (req, res) => {
     res.json({
       profile,
       primaryPlatform: primary,
-      visiblePortfolio: profile.getVisiblePortfolio(isPremium),
-      isPremium
+      visiblePortfolio: profile.getVisiblePortfolio(req.user.tier),
+      isPremium,
+      tier: req.user.tier
     });
 
   } catch (error) {
@@ -136,7 +137,7 @@ exports.getStatsHistory = async (req, res) => {
 // ─────────────────────────────────────────
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, bio, niche, city, area, priceRangeMin, priceRangeMax, platforms } = req.body;
+    const { name, bio, niche, subNiches, city, area, priceRangeMin, priceRangeMax, platforms } = req.body;
 
     const profile = await InfluencerProfile.findOne({ userId: req.userId });
     if (!profile) {
@@ -157,6 +158,7 @@ exports.updateProfile = async (req, res) => {
     // Update fields
     if (bio !== undefined)          profile.bio = bio;
     if (niche !== undefined)        profile.niche = niche;
+    if (subNiches !== undefined)    profile.subNiches = subNiches;
     if (city !== undefined)         profile.city = city;
     if (area !== undefined)         profile.area = area;
     if (priceRangeMin !== undefined) profile.priceRangeMin = priceRangeMin;
@@ -202,13 +204,13 @@ exports.getPublicProfile = async (req, res) => {
 
     const profile = await InfluencerProfile
       .findOne({ slug })
-      .populate('userId', 'name plan');
+      .populate('userId', 'name plan tier');
 
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
     }
 
-    const visiblePortfolio = profile.getVisiblePortfolio(profile.userId?.plan === 'premium');
+    const visiblePortfolio = profile.getVisiblePortfolio(profile.userId?.tier);
     const primary = profile.getPrimaryPlatform();
 
     res.json({

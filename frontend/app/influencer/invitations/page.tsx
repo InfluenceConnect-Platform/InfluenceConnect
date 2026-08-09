@@ -9,20 +9,21 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
+import { levelBadgeCls } from '@/lib/levelBadge';
 
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   pending:  { cls: 'bg-amber-50 text-amber-700 border border-amber-200', dot: 'bg-amber-400', label: 'Pending' },
-  accepted: { cls: 'bg-green-50 text-green-700 border border-green-200', dot: 'bg-green-500', label: 'Accepted' },
+  accepted: { cls: 'bg-[#FCE4EC] text-[#7A0F3D] border border-[#F3B8CB]', dot: 'bg-[#E0115F]', label: 'Accepted' },
   rejected: { cls: 'bg-red-50 text-red-600 border border-red-200',       dot: 'bg-red-400',   label: 'Declined' },
 };
 
 const BRAND_GRADS = [
-  'from-violet-500 to-purple-600',
-  'from-teal-500 to-cyan-600',
+  'from-blue-500 to-blue-700',
+  'from-rose-500 to-cyan-600',
   'from-amber-500 to-orange-500',
-  'from-indigo-500 to-blue-600',
+  'from-[#B00D4D] to-[#7A0F3D]',
   'from-pink-500 to-rose-500',
-  'from-emerald-500 to-green-600',
+  'from-[#B00D4D] to-[#7A0F3D]',
 ];
 
 const formatDate = (d: string) =>
@@ -78,6 +79,8 @@ interface Invitation {
   brandWebsite?: string;
   brandIndustry?: string;
   brandGstinVerified?: boolean;
+  brandScore?: number;
+  brandLevel?: string;
   brandId?: { _id: string; name: string };
   campaignId?: {
     _id: string;
@@ -115,8 +118,8 @@ export default function InfluencerInvitations() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=influencer'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login?role=influencer'); return; }
     setUser(JSON.parse(stored));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchInvitations();
@@ -173,13 +176,13 @@ export default function InfluencerInvitations() {
       <main className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#0d3138] via-[#0e8a92] to-[#38c9b9] rounded-2xl px-6 sm:px-8 py-7 mb-5 shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#3D0A20] via-[#B00D4D] to-[#F0417B] rounded-2xl px-6 sm:px-8 py-7 mb-5 shadow-lg">
           <div className="absolute -top-12 -right-12 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-12 -left-8 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
           <div className="relative">
-            <p className="text-teal-100/80 text-xs font-semibold uppercase tracking-widest mb-2">Campaign opportunities</p>
+            <p className="text-rose-100/80 text-xs font-semibold uppercase tracking-widest mb-2">Campaign opportunities</p>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Invitations</h1>
-            <p className="text-teal-50/70 text-sm mt-1.5">
+            <p className="text-rose-50/70 text-sm mt-1.5">
               Brands that invited you to collaborate. Accept to open a deal and start chatting — or decline.
             </p>
             <div className="flex flex-wrap gap-2.5 mt-4">
@@ -211,8 +214,8 @@ export default function InfluencerInvitations() {
             ))}
           </div>
         ) : invitations.length === 0 ? (
-          <div className="border-2 border-dashed border-teal-100 dark:border-slate-700 rounded-2xl p-16 text-center bg-white/60 dark:bg-[#0f1e31]/60">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3d7178] to-[#5D8A8F] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
+          <div className="border-2 border-dashed border-rose-100 dark:border-slate-700 rounded-2xl p-16 text-center bg-white/60 dark:bg-[#0f1e31]/60">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7A0F3D] to-[#E0115F] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
@@ -242,7 +245,7 @@ export default function InfluencerInvitations() {
                   className="bg-white dark:bg-[#0f1e31] border border-gray-200/80 dark:border-slate-700/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                 >
                   {/* Accent strip */}
-                  <div className={`h-1 w-full ${inv.status === 'accepted' ? 'bg-gradient-to-r from-emerald-400 to-green-500' : inv.status === 'rejected' ? 'bg-gradient-to-r from-gray-300 to-gray-400' : urgency ? 'bg-gradient-to-r from-red-400 to-rose-500' : soonish ? 'bg-gradient-to-r from-amber-400 to-orange-400' : 'bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD]'}`} />
+                  <div className={`h-1 w-full ${inv.status === 'accepted' ? 'bg-gradient-to-r from-[#F0417B] to-[#B00D4D]' : inv.status === 'rejected' ? 'bg-gradient-to-r from-gray-300 to-gray-400' : urgency ? 'bg-gradient-to-r from-red-400 to-rose-500' : soonish ? 'bg-gradient-to-r from-amber-400 to-orange-400' : 'bg-gradient-to-r from-[#E0115F] to-[#F0417B]'}`} />
 
                   <div className="p-4 sm:p-5">
 
@@ -258,8 +261,13 @@ export default function InfluencerInvitations() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-[13px] font-bold text-gray-900 dark:text-slate-100 truncate">{brandName}</p>
+                          {inv.brandLevel && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full capitalize flex-shrink-0 ${levelBadgeCls(inv.brandLevel)}`}>
+                              {inv.brandLevel} · {inv.brandScore ?? 0}
+                            </span>
+                          )}
                           {inv.brandGstinVerified && (
-                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-[#7A0F3D] bg-[#FCE4EC] border border-[#F3B8CB] px-1.5 py-0.5 rounded-full flex-shrink-0">
                               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                               GST
                             </span>
@@ -285,7 +293,7 @@ export default function InfluencerInvitations() {
                           ))}
                           {inv.brandWebsite && (
                             <a href={inv.brandWebsite.startsWith('http') ? inv.brandWebsite : `https://${inv.brandWebsite}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                              className="flex items-center gap-1 text-[11px] text-[#3D5087] dark:text-[#7FA8AD] hover:underline font-medium">
+                              className="flex items-center gap-1 text-[11px] text-[#E0115F] dark:text-[#F0417B] hover:underline font-medium">
                               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
                               </svg>
@@ -302,7 +310,7 @@ export default function InfluencerInvitations() {
                               </p>
                               <button
                                 onClick={e => { e.stopPropagation(); toggleDesc(inv._id); }}
-                                className="text-[10px] font-semibold text-[#3D5087] dark:text-blue-400 hover:underline mt-0.5 cursor-pointer"
+                                className="text-[10px] font-semibold text-[#E0115F] dark:text-blue-400 hover:underline mt-0.5 cursor-pointer"
                               >
                                 {expanded ? 'View less' : 'View more'}
                               </button>
@@ -324,7 +332,7 @@ export default function InfluencerInvitations() {
                           </p>
                           <button
                             onClick={e => { e.stopPropagation(); toggleDesc(key); }}
-                            className="text-[11px] font-semibold text-[#3D5087] dark:text-blue-400 hover:underline mt-0.5 cursor-pointer"
+                            className="text-[11px] font-semibold text-[#E0115F] dark:text-blue-400 hover:underline mt-0.5 cursor-pointer"
                           >
                             {expanded ? 'View less' : 'View more'}
                           </button>
@@ -334,21 +342,21 @@ export default function InfluencerInvitations() {
 
                     {/* ── Budget + Deadline ── */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
-                      <div className="bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/10 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3">
-                        <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
-                        <p className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 leading-tight">
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800/40 rounded-xl p-3">
+                        <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
+                        <p className="text-[13px] font-bold text-amber-900 dark:text-amber-300 leading-tight">
                           {hasBudget ? `₹${(campaign?.budgetMin || 0).toLocaleString('en-IN')}` : 'Open'}
                         </p>
-                        {hasBudget && <p className="text-[10px] text-emerald-600/60 dark:text-emerald-400/50">– ₹{(campaign?.budgetMax || 0).toLocaleString('en-IN')}</p>}
+                        {hasBudget && <p className="text-[10px] text-amber-600/60 dark:text-amber-400/50">– ₹{(campaign?.budgetMax || 0).toLocaleString('en-IN')}</p>}
                       </div>
-                      <div className={`rounded-xl p-3 border ${urgency ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/40' : soonish ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40' : 'bg-[#EEF4F5] dark:bg-[#0d2d33]/60 border-[#7FA8AD]/20'}`}>
-                        <div className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider mb-0.5 ${urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#5D8A8F]'}`}>
+                      <div className={`rounded-xl p-3 border ${urgency ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/40' : soonish ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40' : 'bg-[#FCE4EC] dark:bg-[#7A0F3D]/60 border-[#F0417B]/20'}`}>
+                        <div className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider mb-0.5 ${urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#E0115F]'}`}>
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                           </svg>
                           Deadline
                         </div>
-                        <p className={`text-[13px] font-bold leading-tight ${urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#2A3E42]'}`}>
+                        <p className={`text-[13px] font-bold leading-tight ${urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#7A0F3D]'}`}>
                           {days === null ? '—' : days < 0 ? 'Closed' : days === 0 ? 'Today!' : `${days}d left`}
                         </p>
                         {deadline && <p className="text-[10px] text-gray-400 dark:text-slate-500">{formatDate(campaign!.deadline!)}</p>}
@@ -419,7 +427,7 @@ export default function InfluencerInvitations() {
                         <button
                           onClick={() => respond(inv, 'accept')}
                           disabled={acting === inv._id}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all shadow-sm disabled:opacity-60 cursor-pointer"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-[#E0115F] to-[#B00D4D] hover:from-[#B00D4D] hover:to-[#7A0F3D] transition-all shadow-sm disabled:opacity-60 cursor-pointer"
                         >
                           {acting === inv._id
                             ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -438,11 +446,11 @@ export default function InfluencerInvitations() {
                     ) : inv.status === 'accepted' ? (
                       <div className="pt-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between gap-2">
                         <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-                          <svg width="13" height="13" className="text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          <svg width="13" height="13" className="text-[#E0115F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                           Deal created — collaborate in Messages.
                         </p>
                         <button onClick={() => router.push(inv.dealId ? `/influencer/messages?deal=${inv.dealId}` : '/influencer/messages')}
-                          className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#3d7178] to-[#5D8A8F] hover:from-[#2f6168] hover:to-[#4d767b] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer">
+                          className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#7A0F3D] to-[#E0115F] hover:from-[#E0115F] hover:to-[#B00D4D] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                           Go to Messages
                         </button>

@@ -246,7 +246,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   inset: -1px;
   border-radius: inherit;
   padding: 1.5px;
-  background: conic-gradient(from var(--glow-angle), #7FA8AD, #7C3AED, #FB923C, #5BA8B5, #7FA8AD);
+  background: conic-gradient(from var(--glow-angle), #F0417B, #228B22, #FB923C, #F0417B, #F0417B);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -396,18 +396,25 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .dark [class~="bg-white\/60"]  { background-color: rgba(255, 255, 255, 0.05); }
 .dark [class~="bg-gray-50\/60"]{ background-color: rgba(255, 255, 255, 0.03); }
 
-/* ── Marketing-site palette (teal/violet/orange) dark overrides ──────
-   The marketing pages share the platform teal but add violet/orange
-   accents. Teal hexes are already covered by the rules above; these
-   handle the marketing-only hexes.                                   */
-.dark [class*="text-[#4A7A7F]"] { color: #5eead4; }
-.dark [class*="text-[#3D6B70]"] { color: #5eead4; }
-.dark [class*="text-[#7C3AED]"] { color: #C4B5FD; }
-.dark [class*="text-[#6D28D9]"] { color: #C4B5FD; }
-.dark [class*="text-[#5B21B6]"] { color: #C4B5FD; }
-.dark [class*="bg-[#F5F3FF]"] { background-color: rgba(76, 29, 149, 0.35); }
-.dark [class*="border-[#C9DCDE]"] { border-color: rgba(93, 138, 143, 0.45); }
-.dark [class*="border-[#DDD6FE]"] { border-color: rgba(139, 92, 246, 0.35); }
+/* ── Brand identity palette dark overrides ────────────────────────────
+   Brand side (dashboards + marketing brand sections) = forest green
+   #228B22 family. Influencer side (dashboards + marketing creator
+   sections) = ruby red #E0115F family. Literal hexes repeat inline
+   across app/brand/**, app/influencer/**, app/(marketing)/** — see
+   [[brand-palette-rebrand]] memory for the full mapping.             */
+.dark [class*="text-[#228B22]"] { color: #86D992; }
+.dark [class*="text-[#3FA34D]"] { color: #8FE39A; }
+.dark [class*="text-[#1B6E1B]"] { color: #86D992; }
+.dark [class*="text-[#14531D]"] { color: #86D992; }
+.dark [class*="bg-[#EAF7EA]"]   { background-color: rgba(20, 83, 29, 0.35); }
+.dark [class*="border-[#C8E6C9]"] { border-color: rgba(63, 163, 77, 0.40); }
+
+.dark [class*="text-[#E0115F]"] { color: #FF8FB8; }
+.dark [class*="text-[#F0417B]"] { color: #FFA8C6; }
+.dark [class*="text-[#7A0F3D]"] { color: #FF8FB8; }
+.dark [class*="text-[#B00D4D]"] { color: #FF8FB8; }
+.dark [class*="bg-[#FCE4EC]"]   { background-color: rgba(122, 15, 61, 0.35); }
+.dark [class*="border-[#F3B8CB]"] { border-color: rgba(224, 17, 95, 0.40); }
 
 /* ── Hover-state cascade overrides ────────────────────────────────────
    The rules above only match un-prefixed classes, so `hover:bg-gray-50`

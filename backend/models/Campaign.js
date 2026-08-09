@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const generateId = require('../utils/generateId');
-const { NICHES } = require('../utils/niches');
+const { NICHES, SUB_NICHES } = require('../utils/niches');
 
 const campaignSchema = new mongoose.Schema({
   // Human-readable public ID (IC-CAM-000001). Auto-generated on first save.
@@ -33,6 +33,12 @@ const campaignSchema = new mongoose.Schema({
   niche: [{
     type: String,
     enum: NICHES
+  }],
+
+  // Optional finer targeting within the selected niches — see InfluencerProfile.subNiches.
+  subNiches: [{
+    type: String,
+    enum: SUB_NICHES
   }],
 
   deliverables: {

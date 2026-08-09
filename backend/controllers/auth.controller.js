@@ -348,7 +348,8 @@ exports.verifyOTP = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
-          plan: user.plan
+          plan: user.plan,
+          tier: user.tier
         }
       });
     }
@@ -447,7 +448,7 @@ exports.resendOTP = async (req, res) => {
 // ─────────────────────────────────────────
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     // Find user
     const user = await User.findOne({ email });
@@ -518,6 +519,16 @@ exports.login = async (req, res) => {
       await user.save();
     }
 
+    // Role-themed login pages (brand vs. creator) pass which portal the user
+    // picked — checked only AFTER the password is verified, so a wrong-role
+    // guess can't be used to probe which role an email is registered as.
+    if (role && ['brand', 'influencer'].includes(role) && user.role !== role) {
+      return res.status(404).json({
+        error: `No ${role} account was found with this email.`,
+        code: 'ROLE_MISMATCH',
+      });
+    }
+
     // Generate token
     const token = generateToken(user._id);
 
@@ -548,7 +559,8 @@ exports.login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        plan: user.plan
+        plan: user.plan,
+        tier: user.tier
       }
     });
 
@@ -820,17 +832,23 @@ exports.upgradePlan = async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
-    applyPremiumUpgrade(user, 365); // dev bypass — 1 year, no payment involved
+    const { isValidTier } = require('../utils/tiers');
+    const requested = req.body?.tier;
+    const topTier = user.role === 'brand' ? 'golden' : 'platinum';
+    const tier = requested && isValidTier(user.role, requested) ? requested : topTier;
+
+    applyPremiumUpgrade(user, tier, 365); // dev bypass — 1 year, no payment involved
     await user.save();
 
     res.json({
-      message: 'Plan upgraded to Premium.',
+      message: `Plan upgraded to ${tier}.`,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         plan: user.plan,
+        tier: user.tier,
         premiumStartedAt: user.premiumStartedAt,
         premiumUntil: user.premiumUntil,
       },
@@ -853,18 +871,20 @@ exports.downgradePlan = async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
     user.plan = 'freemium';
+    user.tier = 'free';
     user.premiumStartedAt = null;
     user.premiumUntil = null;
     await user.save();
 
     res.json({
-      message: 'Plan downgraded to Freemium.',
+      message: 'Plan downgraded to Free.',
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         plan: user.plan,
+        tier: user.tier,
       },
     });
   } catch (error) {
@@ -888,6 +908,8 @@ exports.getAccountInfo = async (req, res) => {
       mobile: user.mobile,
       role: user.role,
       plan: user.plan,
+      tier: user.tier,
+      autopay: user.autopay,
       premiumStartedAt: user.premiumStartedAt,
       premiumUntil: user.premiumUntil,
       signupMethod: user.signupMethod,

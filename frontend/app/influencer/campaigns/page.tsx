@@ -12,6 +12,7 @@ import { useConfirm } from '@/components/shared/ConfirmModal';
 import ApplicationDetailDrawer from '@/components/shared/ApplicationDetailDrawer';
 import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
+import { levelBadgeCls } from '@/lib/levelBadge';
 
 const PLATFORMS = ['any', 'instagram', 'youtube', 'facebook'];
 const SORT_OPTIONS = [
@@ -43,6 +44,8 @@ interface Campaign {
   brandIndustry?: string;
   brandDescription?: string;
   brandGstinVerified?: boolean;
+  brandScore?: number;
+  brandLevel?: string;
   match?: {
     score: number;
     niche: string;
@@ -57,18 +60,18 @@ interface Campaign {
 const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }> = {
   applied:     { cls: 'bg-blue-50 text-blue-700 border border-blue-200',   dot: 'bg-blue-400',   label: 'Applied' },
   shortlisted: { cls: 'bg-amber-50 text-amber-700 border border-amber-200', dot: 'bg-amber-400',  label: 'Shortlisted' },
-  accepted:    { cls: 'bg-green-50 text-green-700 border border-green-200', dot: 'bg-green-500',  label: 'Accepted' },
+  accepted:    { cls: 'bg-[#FCE4EC] text-[#7A0F3D] border border-[#F3B8CB]', dot: 'bg-[#E0115F]',  label: 'Accepted' },
   rejected:    { cls: 'bg-red-50 text-red-600 border border-red-200',       dot: 'bg-red-400',    label: 'Rejected' },
   'on-hold':   { cls: 'bg-gray-50 text-gray-500 border border-gray-200',    dot: 'bg-gray-400',   label: 'Under Review' },
 };
 
 const BRAND_GRADS = [
-  'from-violet-500 to-purple-600',
-  'from-teal-500 to-cyan-600',
+  'from-blue-500 to-blue-700',
+  'from-rose-500 to-cyan-600',
   'from-amber-500 to-orange-500',
-  'from-indigo-500 to-blue-600',
+  'from-[#B00D4D] to-[#7A0F3D]',
   'from-pink-500 to-rose-500',
-  'from-emerald-500 to-green-600',
+  'from-[#B00D4D] to-[#7A0F3D]',
 ];
 
 // Brand logos for campaign target platforms (simple-icons paths, viewBox 0 0 24 24).
@@ -99,9 +102,9 @@ const formatFollowers = (n: number) => {
 // Visual tone for the relevance match badge, by score.
 const matchTone = (score: number) =>
   score >= 85
-    ? { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800/50', label: 'Great match' }
+    ? { cls: 'bg-[#FCE4EC] text-[#7A0F3D] border-[#F3B8CB] dark:bg-[#7A0F3D]/30 dark:text-[#FFA8C6] dark:border-[#7A0F3D]/50', label: 'Great match' }
     : score >= 70
-    ? { cls: 'bg-teal-50 text-[#2A6E76] border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-800/50', label: 'Good match' }
+    ? { cls: 'bg-rose-50 text-[#B00D4D] border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800/50', label: 'Good match' }
     : { cls: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800/50', label: 'Fair match' };
 
 const daysUntil = (dateStr: string) => Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000);
@@ -155,8 +158,8 @@ export default function InfluencerCampaigns() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=influencer'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login?role=influencer'); return; }
     setUser(JSON.parse(stored));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchCampaigns();
@@ -292,7 +295,7 @@ export default function InfluencerCampaigns() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* ── Hero ── */}
-        <section className="relative bg-gradient-to-br from-[#04141a] via-[#0b5e6c] to-[#1fb8a8] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
+        <section className="relative bg-gradient-to-br from-[#2E0818] via-[#7A0F3D] to-[#F0417B] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -306,7 +309,7 @@ export default function InfluencerCampaigns() {
 
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div>
-              <p className="text-teal-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
+              <p className="text-rose-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
                 Browse opportunities
               </p>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
@@ -314,14 +317,14 @@ export default function InfluencerCampaigns() {
               </h1>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
-                  <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-3 h-3 text-[#F5A8BF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                   </svg>
                   {loading ? '…' : profileIncomplete ? 'Complete your profile' : `${sortedCampaigns.length} campaign${sortedCampaigns.length !== 1 ? 's' : ''} available`}
                 </span>
                 {appliedIds.length > 0 && (
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
-                    <svg className="w-3 h-3 text-teal-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className="w-3 h-3 text-rose-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
                     {appliedIds.length} applied
@@ -359,8 +362,8 @@ export default function InfluencerCampaigns() {
 
         {/* ── Profile-incomplete gate ── */}
         {!loading && profileIncomplete && (
-          <div className="rounded-2xl border border-[#7FA8AD]/30 bg-gradient-to-br from-[#EEF4F5] to-white dark:from-[#0d2d33]/40 dark:to-[#0f1e31] px-6 py-8 mb-6 shadow-sm text-center">
-            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 text-[#5D8A8F] flex items-center justify-center mx-auto mb-4 shadow-sm border border-[#7FA8AD]/20">
+          <div className="rounded-2xl border border-[#F0417B]/30 bg-gradient-to-br from-[#FCE4EC] to-white dark:from-[#7A0F3D]/40 dark:to-[#0f1e31] px-6 py-8 mb-6 shadow-sm text-center">
+            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 text-[#E0115F] flex items-center justify-center mx-auto mb-4 shadow-sm border border-[#F0417B]/20">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 7-7h2a7 7 0 0 1 7 7v1"/>
               </svg>
@@ -381,7 +384,7 @@ export default function InfluencerCampaigns() {
               ))}
             </div>
             <Link href="/influencer/profile"
-              className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm">
+              className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-[#F0417B] to-[#E0115F] hover:from-[#E0115F] hover:to-[#B00D4D] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm">
               Complete my profile
             </Link>
           </div>
@@ -392,20 +395,20 @@ export default function InfluencerCampaigns() {
           <div className={`flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl px-5 py-4 mb-6 border shadow-sm ${
             applicationsUsed >= FREEMIUM_LIMIT
               ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/40'
-              : 'bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 border-teal-200 dark:border-teal-800/40'
+              : 'bg-gradient-to-br from-rose-50 to-cyan-50 dark:from-rose-900/20 dark:to-cyan-900/20 border-rose-200 dark:border-rose-800/40'
           }`}>
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm text-white ${
                 applicationsUsed >= FREEMIUM_LIMIT
                   ? 'bg-gradient-to-br from-red-400 to-rose-500'
-                  : 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F]'
+                  : 'bg-gradient-to-br from-[#F0417B] to-[#E0115F]'
               }`}>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-bold mb-1 ${applicationsUsed >= FREEMIUM_LIMIT ? 'text-red-800 dark:text-red-300' : 'text-[#2A3E42] dark:text-slate-100'}`}>
+                <p className={`text-sm font-bold mb-1 ${applicationsUsed >= FREEMIUM_LIMIT ? 'text-red-800 dark:text-red-300' : 'text-[#7A0F3D] dark:text-slate-100'}`}>
                   {applicationsUsed >= FREEMIUM_LIMIT
                     ? 'Monthly limit reached — upgrade to keep applying'
                     : `${applicationsUsed} of ${FREEMIUM_LIMIT} free applications used this month`}
@@ -414,7 +417,7 @@ export default function InfluencerCampaigns() {
                   <div className="flex-1 h-1.5 bg-black/10 dark:bg-white/15 rounded-full overflow-hidden ring-1 ring-inset ring-black/5 dark:ring-white/10">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
-                        applicationsUsed >= FREEMIUM_LIMIT ? 'bg-red-500' : 'bg-[#5D8A8F] dark:bg-[#7FA8AD]'
+                        applicationsUsed >= FREEMIUM_LIMIT ? 'bg-red-500' : 'bg-[#E0115F] dark:bg-[#F0417B]'
                       }`}
                       style={{ width: `${Math.min((applicationsUsed / FREEMIUM_LIMIT) * 100, 100)}%` }}
                     />
@@ -424,7 +427,7 @@ export default function InfluencerCampaigns() {
               </div>
             </div>
             <Link href="/influencer/billing"
-              className="flex-shrink-0 self-start sm:self-auto inline-flex items-center gap-1.5 text-xs bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white px-4 py-2.5 rounded-xl font-bold transition-all shadow-sm">
+              className="flex-shrink-0 self-start sm:self-auto inline-flex items-center gap-1.5 text-xs bg-[#F0417B] hover:bg-[#E0115F] text-white px-4 py-2.5 rounded-xl font-bold transition-all shadow-sm">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"/>
               </svg>
@@ -449,7 +452,7 @@ export default function InfluencerCampaigns() {
                 placeholder="Search campaigns…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all shadow-sm"
+                className="w-full pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all shadow-sm"
               />
               {search && (
                 <button onClick={() => setSearch('')}
@@ -465,7 +468,7 @@ export default function InfluencerCampaigns() {
               onClick={() => setShowFilters(v => !v)}
               className={`lg:hidden relative flex items-center gap-1.5 px-3.5 py-2.5 border rounded-xl text-sm font-semibold transition-all shadow-sm cursor-pointer ${
                 showFilters || activeFilterCount > 0
-                  ? 'border-[#7FA8AD] bg-[#EEF4F5] text-[#2A3E42]'
+                  ? 'border-[#F0417B] bg-[#FCE4EC] text-[#7A0F3D]'
                   : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -474,7 +477,7 @@ export default function InfluencerCampaigns() {
               </svg>
               Filters
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#7FA8AD] text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#F0417B] text-white text-[10px] font-bold flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -486,8 +489,8 @@ export default function InfluencerCampaigns() {
               <button key={niche} onClick={() => toggleNiche(niche)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-150 cursor-pointer ${
                   selectedNiches.includes(niche)
-                    ? 'bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] border-transparent text-white shadow-sm'
-                    : 'bg-white border-gray-200 text-gray-500 hover:border-[#7FA8AD]/50 hover:bg-teal-50/50 hover:text-[#2A3E42]'
+                    ? 'bg-gradient-to-r from-[#F0417B] to-[#E0115F] border-transparent text-white shadow-sm'
+                    : 'bg-white border-gray-200 text-gray-500 hover:border-[#F0417B]/50 hover:bg-rose-50/50 hover:text-[#7A0F3D]'
                 }`}>
                 {NICHE_LABELS[niche] ?? niche}
               </button>
@@ -496,9 +499,9 @@ export default function InfluencerCampaigns() {
               <select
                 value={selectedPlatform}
                 onChange={e => setSelectedPlatform(e.target.value)}
-                className={`pl-3 pr-7 py-1.5 text-xs border rounded-full focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 capitalize font-semibold appearance-none cursor-pointer transition-all duration-150 ${
+                className={`pl-3 pr-7 py-1.5 text-xs border rounded-full focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 capitalize font-semibold appearance-none cursor-pointer transition-all duration-150 ${
                   selectedPlatform !== 'any'
-                    ? 'border-[#7FA8AD] bg-[#EEF4F5] text-[#2A3E42]'
+                    ? 'border-[#F0417B] bg-[#FCE4EC] text-[#7A0F3D]'
                     : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
                 }`}
               >
@@ -524,12 +527,12 @@ export default function InfluencerCampaigns() {
         {/* ── Campaign grid ── */}
         {profileIncomplete ? null : loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#F0417B] border-t-transparent rounded-full animate-spin" />
             <p className="text-sm text-gray-400">Finding the best campaigns for you…</p>
           </div>
         ) : sortedCampaigns.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-            <div className="w-16 h-16 rounded-2xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-[#FCE4EC] text-[#F0417B] flex items-center justify-center mx-auto mb-4">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
               </svg>
@@ -540,7 +543,7 @@ export default function InfluencerCampaigns() {
             </p>
             {activeFilterCount > 0 && (
               <button onClick={clearAllFilters}
-                className="text-sm bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm cursor-pointer">
+                className="text-sm bg-[#F0417B] hover:bg-[#E0115F] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm cursor-pointer">
                 Clear filters
               </button>
             )}
@@ -563,17 +566,17 @@ export default function InfluencerCampaigns() {
                 <div
                   key={campaign._id}
                   className={`rounded-2xl border shadow-sm flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
-                    alreadyApplied ? 'bg-gradient-to-br from-white to-green-50/40 dark:from-[#0f1e31] dark:to-emerald-900/10 border-green-200 dark:border-emerald-800/40' :
+                    alreadyApplied ? 'bg-gradient-to-br from-white to-[#FCE4EC]/60 dark:from-[#0f1e31] dark:to-[#7A0F3D]/10 border-[#F3B8CB] dark:border-[#7A0F3D]/40' :
                     urgency        ? 'bg-gradient-to-br from-white to-red-50/40 dark:from-[#0f1e31] dark:to-red-900/10 border-red-200 dark:border-red-800/40' :
-                    'bg-white dark:bg-[#0f1e31] border-gray-200 dark:border-slate-700/60 hover:border-[#7FA8AD]/50 dark:hover:border-[#7FA8AD]/40'
+                    'bg-white dark:bg-[#0f1e31] border-gray-200 dark:border-slate-700/60 hover:border-[#F0417B]/50 dark:hover:border-[#F0417B]/40'
                   }`}
                 >
                   {/* Accent strip */}
                   <div className={`h-1 w-full rounded-t-2xl ${
-                    alreadyApplied ? 'bg-gradient-to-r from-emerald-400 to-green-500' :
+                    alreadyApplied ? 'bg-gradient-to-r from-[#F0417B] to-[#B00D4D]' :
                     urgency        ? 'bg-gradient-to-r from-red-400 to-rose-500' :
                     soonish        ? 'bg-gradient-to-r from-amber-400 to-orange-400' :
-                    'bg-gradient-to-r from-[#7FA8AD] via-[#5BA8B5] to-[#9fc5c9]'
+                    'bg-gradient-to-r from-[#F0417B] via-[#F0417B] to-[#F3B8CB]'
                   }`} />
 
                   <div className="p-4 sm:p-5 flex flex-col flex-1">
@@ -590,20 +593,25 @@ export default function InfluencerCampaigns() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-[13px] font-bold text-gray-900 dark:text-slate-100 truncate">{brandName}</p>
+                          {campaign.brandLevel && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full capitalize flex-shrink-0 ${levelBadgeCls(campaign.brandLevel)}`}>
+                              {campaign.brandLevel} · {campaign.brandScore ?? 0}
+                            </span>
+                          )}
                           {campaign.brandGstinVerified && (
-                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-[#7A0F3D] bg-[#FCE4EC] border border-[#F3B8CB] px-1.5 py-0.5 rounded-full flex-shrink-0">
                               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                               GST Verified
                             </span>
                           )}
                           {alreadyApplied && (
-                            <span className="flex items-center gap-1 text-[11px] font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                            <span className="flex items-center gap-1 text-[11px] font-bold text-[#B00D4D] bg-[#FCE4EC] border border-[#F3B8CB] px-2 py-0.5 rounded-full flex-shrink-0">
                               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                               Applied
                             </span>
                           )}
                           {isInvited && (
-                            <span className="flex items-center gap-1 text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                            <span className="flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full flex-shrink-0">
                               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
                               Invited
                             </span>
@@ -611,7 +619,7 @@ export default function InfluencerCampaigns() {
                         </div>
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           {campaign.brandIndustry && campaign.brandIndustry !== 'other' && (
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#EEF4F5] text-[#2A3E42] border border-[#7FA8AD]/30">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FCE4EC] text-[#7A0F3D] border border-[#F0417B]/30">
                               {NICHE_LABELS[campaign.brandIndustry] ?? campaign.brandIndustry}
                             </span>
                           )}
@@ -621,7 +629,7 @@ export default function InfluencerCampaigns() {
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={e => e.stopPropagation()}
-                              className="flex items-center gap-1 text-[11px] text-[#3D5087] dark:text-[#7FA8AD] hover:text-[#2B3B68] dark:hover:text-[#9DC4C9] font-medium hover:underline transition-colors"
+                              className="flex items-center gap-1 text-[11px] text-[#E0115F] dark:text-[#F0417B] hover:text-[#7A0F3D] dark:hover:text-[#F5A8BF] font-medium hover:underline transition-colors"
                             >
                               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -654,7 +662,7 @@ export default function InfluencerCampaigns() {
                             {campaign.brandDescription.length > 100 && (
                               <button
                                 onClick={e => toggleDescExpand(campaign._id, e)}
-                                className="text-[10px] font-semibold text-[#5D8A8F] dark:text-teal-400 hover:underline mt-0.5 cursor-pointer"
+                                className="text-[10px] font-semibold text-[#E0115F] dark:text-rose-400 hover:underline mt-0.5 cursor-pointer"
                               >
                                 {expandedDesc.has(campaign._id) ? 'View less ↑' : 'View more ↓'}
                               </button>
@@ -700,7 +708,7 @@ export default function InfluencerCampaigns() {
                           {campaign.description.length > 100 && (
                             <button
                               onClick={e => toggleCampDescExpand(campaign._id, e)}
-                              className="text-[11px] font-semibold text-[#5D8A8F] dark:text-teal-400 hover:underline mt-1 cursor-pointer"
+                              className="text-[11px] font-semibold text-[#E0115F] dark:text-rose-400 hover:underline mt-1 cursor-pointer"
                             >
                               {expandedCampDesc.has(campaign._id) ? 'View less ↑' : 'View more ↓'}
                             </button>
@@ -711,21 +719,21 @@ export default function InfluencerCampaigns() {
 
                     {/* Stats row */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
-                      <div className="bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/10 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3">
-                        <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
-                        <p className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 leading-tight">
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800/40 rounded-xl p-3">
+                        <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-semibold uppercase tracking-wider mb-0.5">Budget</p>
+                        <p className="text-[13px] font-bold text-amber-900 dark:text-amber-300 leading-tight">
                           ₹{campaign.budgetMin.toLocaleString()}
                         </p>
-                        <p className="text-[10px] text-emerald-600/60 dark:text-emerald-400/50">– ₹{campaign.budgetMax.toLocaleString()}</p>
+                        <p className="text-[10px] text-amber-600/60 dark:text-amber-400/50">– ₹{campaign.budgetMax.toLocaleString()}</p>
                       </div>
                       <div className={`rounded-xl p-3 border ${
                         deadlinePassed ? 'bg-gray-50 dark:bg-slate-800/40 border-gray-100 dark:border-slate-700/40' :
                         urgency        ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/40' :
                         soonish        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40' :
-                        'bg-[#EEF4F5] dark:bg-[#0d2d33]/60 border-[#7FA8AD]/20 dark:border-[#7FA8AD]/20'
+                        'bg-[#FCE4EC] dark:bg-[#7A0F3D]/60 border-[#F0417B]/20 dark:border-[#F0417B]/20'
                       }`}>
                         <div className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider mb-0.5 ${
-                          deadlinePassed ? 'text-gray-400' : urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#5D8A8F]'
+                          deadlinePassed ? 'text-gray-400' : urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#E0115F]'
                         }`}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
@@ -733,7 +741,7 @@ export default function InfluencerCampaigns() {
                           Deadline
                         </div>
                         <p className={`text-[13px] font-bold leading-tight ${
-                          deadlinePassed ? 'text-gray-400' : urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#2A3E42]'
+                          deadlinePassed ? 'text-gray-400' : urgency ? 'text-red-600' : soonish ? 'text-amber-600' : 'text-[#7A0F3D]'
                         }`}>
                           {deadlinePassed ? 'Closed' : days === 0 ? 'Today!' : `${days}d left`}
                         </p>
@@ -776,7 +784,7 @@ export default function InfluencerCampaigns() {
                         {campaign.niche.length > 2 && (
                           <button
                             onClick={e => toggleNicheExpand(campaign._id, e)}
-                            className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600 hover:bg-[#EEF4F5] dark:hover:bg-slate-600/60 hover:text-[#2A3E42] dark:hover:text-slate-200 transition-colors cursor-pointer"
+                            className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600 hover:bg-[#FCE4EC] dark:hover:bg-slate-600/60 hover:text-[#7A0F3D] dark:hover:text-slate-200 transition-colors cursor-pointer"
                           >
                             {expandedNiches.has(campaign._id) ? '↑ less' : `+${campaign.niche.length - 2}`}
                           </button>
@@ -791,7 +799,7 @@ export default function InfluencerCampaigns() {
                             {campaign.targetCity.length > 1 && (
                               <button
                                 onClick={e => toggleCityExpand(campaign._id, e)}
-                                className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600 hover:bg-[#EEF4F5] dark:hover:bg-slate-600/60 hover:text-[#2A3E42] dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 dark:bg-slate-700/60 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600 hover:bg-[#FCE4EC] dark:hover:bg-slate-600/60 hover:text-[#7A0F3D] dark:hover:text-slate-200 transition-colors cursor-pointer"
                               >
                                 {expandedCities.has(campaign._id) ? '↑ less' : `+${campaign.targetCity.length - 1}`}
                               </button>
@@ -801,12 +809,12 @@ export default function InfluencerCampaigns() {
                       </div>
 
                       {alreadyApplied ? (
-                        <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-green-50 dark:bg-emerald-900/30 text-green-600 dark:text-emerald-400 border border-green-200 dark:border-emerald-800/50 rounded-xl cursor-not-allowed font-semibold">
+                        <button disabled className="flex-shrink-0 text-xs px-4 py-2 bg-[#FCE4EC] dark:bg-[#7A0F3D]/30 text-[#B00D4D] dark:text-[#FFA8C6] border border-[#F3B8CB] dark:border-[#7A0F3D]/50 rounded-xl cursor-not-allowed font-semibold">
                           Applied ✓
                         </button>
                       ) : isInvited ? (
                         <Link href="/influencer/invitations" title="You've been invited — respond from your Invitations"
-                          className="flex-shrink-0 text-xs px-4 py-2 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 border border-violet-200 dark:border-violet-800/50 rounded-xl font-semibold text-center hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">
+                          className="flex-shrink-0 text-xs px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-xl font-semibold text-center hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
                           Invited ✓
                         </Link>
                       ) : deadlinePassed ? (
@@ -815,14 +823,14 @@ export default function InfluencerCampaigns() {
                         </button>
                       ) : !isPremium && applicationsUsed >= FREEMIUM_LIMIT ? (
                         <Link href="/influencer/billing"
-                          className="flex-shrink-0 text-xs px-4 py-2 bg-[#7FA8AD] hover:bg-[#5D8A8F] text-white rounded-xl font-bold transition-all duration-150 cursor-pointer text-center shadow-sm">
+                          className="flex-shrink-0 text-xs px-4 py-2 bg-[#F0417B] hover:bg-[#E0115F] text-white rounded-xl font-bold transition-all duration-150 cursor-pointer text-center shadow-sm">
                           Upgrade
                         </Link>
                       ) : (
                         <button
                           onClick={() => handleApply(campaign._id)}
                           disabled={isApplying}
-                          className="flex-shrink-0 text-xs px-4 py-2 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white rounded-xl font-bold transition-all duration-150 disabled:opacity-60 cursor-pointer shadow-sm hover:shadow-md">
+                          className="flex-shrink-0 text-xs px-4 py-2 bg-gradient-to-r from-[#F0417B] to-[#E0115F] hover:from-[#E0115F] hover:to-[#B00D4D] text-white rounded-xl font-bold transition-all duration-150 disabled:opacity-60 cursor-pointer shadow-sm hover:shadow-md">
                           {isApplying ? (
                             <span className="flex items-center gap-1.5">
                               <span className="w-3 h-3 border border-white/50 border-t-white rounded-full animate-spin" />
@@ -843,7 +851,7 @@ export default function InfluencerCampaigns() {
         <section className="mt-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-[#7FA8AD] to-[#5D8A8F]" />
+              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-[#F0417B] to-[#E0115F]" />
               <div>
                 <h2 className="text-lg font-bold text-gray-900">My Applications</h2>
                 <p className="text-xs text-gray-400 mt-0.5">Track your submitted campaign applications</p>
@@ -901,7 +909,7 @@ function MyApplications() {
   if (loading) {
     return (
       <div className="bg-white border border-gray-200/80 rounded-2xl p-8 flex items-center justify-center gap-3 shadow-sm">
-        <div className="w-5 h-5 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-[#F0417B] border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-gray-400">Loading applications…</p>
       </div>
     );
@@ -910,7 +918,7 @@ function MyApplications() {
   if (applications.length === 0) {
     return (
       <div className="bg-white border border-gray-200/80 rounded-2xl p-12 text-center shadow-sm">
-        <div className="w-12 h-12 rounded-2xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-3">
+        <div className="w-12 h-12 rounded-2xl bg-[#FCE4EC] text-[#F0417B] flex items-center justify-center mx-auto mb-3">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
           </svg>
@@ -943,7 +951,7 @@ function MyApplications() {
                 <tr
                   key={i}
                   onClick={() => setSelectedApp(app)}
-                  className="border-b border-gray-50 hover:bg-[#EEF4F5]/30 transition-colors cursor-pointer"
+                  className="border-b border-gray-50 hover:bg-[#FCE4EC]/30 transition-colors cursor-pointer"
                 >
                   <td className="px-5 py-4 text-sm font-bold text-gray-900 max-w-[200px] truncate">
                     {app.campaignId?.title || 'Campaign'}

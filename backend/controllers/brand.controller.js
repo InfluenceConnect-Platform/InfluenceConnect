@@ -9,9 +9,7 @@ const ProfileView = require('../models/ProfileView');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const { postDealNotice } = require('../utils/dealNotice');
 
-// Freemium brands can open this many distinct influencer profiles per day.
-// Re-opening one already seen today is free (deduped). Premium = unlimited.
-const FREE_DAILY_PROFILE_VIEWS = 10;
+const { getTierConfig } = require('../utils/tiers');
 const notify = require('../services/email');
 const { getAdminEmails } = require('../utils/getAdminEmails');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
@@ -145,6 +143,9 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
+    profile.score = profile.calculateScore();
+    profile.level = profile.calculateLevel();
+
     await profile.save();
 
     if (gstinResubmitted) {
@@ -200,15 +201,15 @@ exports.createCampaign = async (req, res) => {
       if (!budgetMax || isNaN(budgetMax) || Number(budgetMax) <= 0) return res.status(400).json({ error: 'Budget max must be a positive number.' });
     }
 
-    // Freemium limit only applies to active campaigns
+    // Per-tier limit only applies to active campaigns — see backend/utils/tiers.js
     if (!isDraft) {
-      const isPremium = req.user.plan === 'premium';
-      if (!isPremium) {
+      const maxActiveCampaigns = getTierConfig('brand', req.user.tier).maxActiveCampaigns;
+      if (Number.isFinite(maxActiveCampaigns)) {
         const activeCampaigns = await Campaign.countDocuments({ brandId: req.userId, status: 'active' });
-        if (activeCampaigns >= 2) {
+        if (activeCampaigns >= maxActiveCampaigns) {
           return res.status(403).json({
-            error: 'freemium_limit',
-            message: 'Upgrade to Premium to create unlimited campaigns.'
+            error: 'tier_limit',
+            message: `Your plan allows up to ${maxActiveCampaigns} active campaigns. Upgrade for more.`
           });
         }
       }
@@ -388,14 +389,14 @@ exports.updateCampaign = async (req, res) => {
         return res.status(400).json({ error: 'The deadline must be today or a future date.' });
       }
 
-      // Going active again counts toward the freemium active-campaign limit.
-      const isPremium = req.user.plan === 'premium';
-      if (!isPremium) {
+      // Going active again counts toward the tier's active-campaign limit.
+      const maxActiveCampaignsRelaunch = getTierConfig('brand', req.user.tier).maxActiveCampaigns;
+      if (Number.isFinite(maxActiveCampaignsRelaunch)) {
         const activeCampaigns = await Campaign.countDocuments({ brandId: req.userId, status: 'active' });
-        if (activeCampaigns >= 2) {
+        if (activeCampaigns >= maxActiveCampaignsRelaunch) {
           return res.status(403).json({
-            error: 'freemium_limit',
-            message: 'Upgrade to Premium to relaunch this campaign — you already have 2 active campaigns.'
+            error: 'tier_limit',
+            message: `Upgrade to relaunch this campaign — you already have ${maxActiveCampaignsRelaunch} active campaigns on your current plan.`
           });
         }
       }
@@ -419,13 +420,13 @@ exports.updateCampaign = async (req, res) => {
       if (!budgetMin || isNaN(budgetMin) || Number(budgetMin) <= 0) return res.status(400).json({ error: 'Budget min must be a positive number.' });
       if (!budgetMax || isNaN(budgetMax) || Number(budgetMax) <= 0) return res.status(400).json({ error: 'Budget max must be a positive number.' });
 
-      const isPremium = req.user.plan === 'premium';
-      if (!isPremium) {
+      const maxActiveCampaignsPublish = getTierConfig('brand', req.user.tier).maxActiveCampaigns;
+      if (Number.isFinite(maxActiveCampaignsPublish)) {
         const activeCampaigns = await Campaign.countDocuments({ brandId: req.userId, status: 'active' });
-        if (activeCampaigns >= 2) {
+        if (activeCampaigns >= maxActiveCampaignsPublish) {
           return res.status(403).json({
-            error: 'freemium_limit',
-            message: 'Upgrade to Premium to create unlimited campaigns.'
+            error: 'tier_limit',
+            message: `Your plan allows up to ${maxActiveCampaignsPublish} active campaigns. Upgrade for more.`
           });
         }
       }
@@ -771,6 +772,19 @@ exports.updateDealStatus = async (req, res) => {
         await influencerProfile.save();
       }
 
+      // Same bookkeeping on the brand side — mirrors the influencer block above.
+      const brandProfile = await BrandProfile.findOneAndUpdate(
+        { userId: deal.brandId },
+        { $inc: { dealsCompleted: 1 } },
+        { new: true }
+      );
+
+      if (brandProfile) {
+        brandProfile.level = brandProfile.calculateLevel();
+        brandProfile.score = brandProfile.calculateScore();
+        await brandProfile.save();
+      }
+
       // Deal completed → notify the influencer with the updated earnings (#8)
       const [influencer, campaign, completedDeals] = await Promise.all([
         User.findById(deal.influencerId).select('name email'),
@@ -834,13 +848,13 @@ exports.updateDealStatus = async (req, res) => {
 // ─────────────────────────────────────────
 exports.discoverInfluencers = async (req, res) => {
   try {
-    // Note: the freemium "10 profiles/day" cap is enforced when a brand opens a
-    // full profile (getInfluencerBySlug), not on this listing — browsing the
-    // grid stays unlimited for everyone.
+    // Note: the per-tier "profiles/day" cap (backend/utils/tiers.js discoverPerDay)
+    // is enforced when a brand opens a full profile (getInfluencerBySlug), not
+    // on this listing — browsing the grid stays unlimited for everyone.
 
     const {
       search,
-      niche, platform, city,
+      niche, subNiche, platform, city,
       minFollowers, maxFollowers,
       minPrice, maxPrice,
       sort = 'relevance',
@@ -874,6 +888,10 @@ exports.discoverInfluencers = async (req, res) => {
 
     if (niche) {
       query.niche = { $in: niche.split(',') };
+    }
+
+    if (subNiche) {
+      query.subNiches = { $in: subNiche.split(',') };
     }
 
     if (city) {
@@ -949,15 +967,16 @@ exports.getInfluencerBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
     const profile = await InfluencerProfile.findOne({ slug })
-      .populate('userId', 'name email plan');
+      .populate('userId', 'name email plan tier');
 
     if (!profile) {
       return res.status(404).json({ error: 'Influencer not found.' });
     }
 
-    // Freemium "10 profiles/day" cap — enforced for all non-premium brand callers.
+    // Per-tier "profiles/day" cap — see backend/utils/tiers.js discoverPerDay.
     // (brandOnly middleware guarantees only brand-role users reach this point.)
-    if (req.user.plan !== 'premium') {
+    const discoverPerDay = getTierConfig('brand', req.user.tier).discoverPerDay;
+    if (Number.isFinite(discoverPerDay)) {
       const day = new Date();
       day.setHours(0, 0, 0, 0);
 
@@ -970,10 +989,10 @@ exports.getInfluencerBySlug = async (req, res) => {
 
       if (!alreadyViewed) {
         const viewsToday = await ProfileView.countDocuments({ brandId: req.userId, day });
-        if (viewsToday >= FREE_DAILY_PROFILE_VIEWS) {
+        if (viewsToday >= discoverPerDay) {
           return res.status(403).json({
-            error: 'freemium_limit',
-            message: `You've reached your ${FREE_DAILY_PROFILE_VIEWS} profile views for today. Upgrade to Premium to view unlimited profiles.`,
+            error: 'tier_limit',
+            message: `You've reached your ${discoverPerDay} profile views for today. Upgrade for more.`,
           });
         }
 
@@ -987,7 +1006,7 @@ exports.getInfluencerBySlug = async (req, res) => {
       }
     }
 
-    const visiblePortfolio = profile.getVisiblePortfolio(profile.userId?.plan === 'premium');
+    const visiblePortfolio = profile.getVisiblePortfolio(profile.userId?.tier);
 
     res.json({
       profile: {

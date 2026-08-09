@@ -9,8 +9,8 @@ export interface FaqItem {
 
 /* Per-item accent colors cycled down the list — matches the marketing palette. */
 const ACCENTS = [
-  { edge: 'border-l-[#5D8A8F]', circle: 'bg-[#5D8A8F] border-[#5D8A8F]' },
-  { edge: 'border-l-[#7C3AED]', circle: 'bg-[#7C3AED] border-[#7C3AED]' },
+  { edge: 'border-l-[#E0115F]', circle: 'bg-[#E0115F] border-[#E0115F]' },
+  { edge: 'border-l-[#228B22]', circle: 'bg-[#228B22] border-[#228B22]' },
   { edge: 'border-l-emerald-500', circle: 'bg-emerald-500 border-emerald-500' },
   { edge: 'border-l-orange-500', circle: 'bg-orange-500 border-orange-500' },
   { edge: 'border-l-blue-500', circle: 'bg-blue-500 border-blue-500' },
@@ -28,7 +28,7 @@ export default function FaqAccordion({ items }: { items: FaqItem[] }) {
           <div
             key={item.q}
             className={`border border-l-4 rounded-2xl overflow-hidden transition-colors ${accent.edge} ${
-              isOpen ? 'border-[#5D8A8F]/40 bg-white shadow-sm' : 'border-gray-200 bg-white'
+              isOpen ? 'border-[#E0115F]/40 bg-white shadow-sm' : 'border-gray-200 bg-white'
             }`}
           >
             <button
@@ -36,7 +36,7 @@ export default function FaqAccordion({ items }: { items: FaqItem[] }) {
               aria-expanded={isOpen}
               className="w-full flex items-center justify-between gap-4 px-5 sm:px-6 py-4.5 text-left cursor-pointer group"
             >
-              <span className="text-sm sm:text-[0.95rem] font-semibold text-gray-900 group-hover:text-[#5D8A8F] transition-colors">
+              <span className="text-sm sm:text-[0.95rem] font-semibold text-gray-900 group-hover:text-[#E0115F] transition-colors">
                 {item.q}
               </span>
               <span

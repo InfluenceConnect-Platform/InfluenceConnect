@@ -32,8 +32,8 @@ function SectionLabel({ children, color = 'teal' }: { children: React.ReactNode;
   return (
     <span className={`inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-[0.18em] mb-3 px-3.5 py-1.5 rounded-full text-white shadow-md ${
       color === 'teal'
-        ? 'bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] shadow-[#5D8A8F]/30'
-        : 'bg-gradient-to-r from-[#7C3AED] to-[#EA580C] shadow-[#7C3AED]/30'
+        ? 'bg-[linear-gradient(90deg,#E0115F,#3A3A45_50%,#228B22)] shadow-[#E0115F]/30'
+        : 'bg-gradient-to-r from-[#228B22] to-[#EA580C] shadow-[#228B22]/30'
     }`}>
       <span className="w-1.5 h-1.5 rounded-full bg-white/90" />
       {children}
@@ -44,8 +44,8 @@ function SectionLabel({ children, color = 'teal' }: { children: React.ReactNode;
 /* ── Page data ──────────────────────────────────────────────────────── */
 
 const NICHE_DOT_COLORS = [
-  'from-[#7FA8AD] to-[#5D8A8F]',
-  'from-[#8B5CF6] to-[#7C3AED]',
+  'from-[#F0417B] to-[#E0115F]',
+  'from-[#3FA34D] to-[#228B22]',
   'from-emerald-400 to-emerald-600',
   'from-amber-400 to-orange-500',
   'from-sky-400 to-blue-600',
@@ -53,8 +53,8 @@ const NICHE_DOT_COLORS = [
 
 /* Soft tinted chip styles cycled in step with NICHE_DOT_COLORS. */
 const NICHE_CHIP_TINTS = [
-  'bg-[#EEF4F5] border-[#C9DCDE] text-[#4A7A7F]',
-  'bg-[#F5F3FF] border-[#DDD6FE] text-[#6D28D9]',
+  'bg-[#FCE4EC] border-[#F3B8CB] text-[#B00D4D]',
+  'bg-[#EAF7EA] border-[#C8E6C9] text-[#1B6E1B]',
   'bg-emerald-50 border-emerald-200 text-emerald-700 dark:text-emerald-300',
   'bg-amber-50 border-amber-200 text-amber-700 dark:text-amber-300',
   'bg-sky-50 border-sky-200 text-sky-700 dark:text-sky-300 dark:border-sky-900',
@@ -65,15 +65,15 @@ const FEATURES = [
     title: 'Smart creator discovery',
     body: 'Brands filter creators by niche, platform, location, follower range, and budget — no more cold DMs into the void.',
     icon: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
-    tint: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-md shadow-[#5D8A8F]/25',
-    bar: 'from-[#7FA8AD] to-[#5D8A8F]',
+    tint: 'bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white shadow-md shadow-[#E0115F]/25',
+    bar: 'from-[#F0417B] to-[#E0115F]',
   },
   {
     title: 'Campaign applications',
     body: 'Creators browse live campaigns and apply with their profile and rates. Brands shortlist, accept, or reject in one dashboard.',
     icon: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="13" y2="11"/></>,
-    tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
-    bar: 'from-[#8B5CF6] to-[#7C3AED]',
+    tint: 'bg-gradient-to-br from-[#3FA34D] to-[#228B22] text-white shadow-md shadow-[#228B22]/25',
+    bar: 'from-[#3FA34D] to-[#228B22]',
   },
   {
     title: 'Moderated in-platform chat',
@@ -131,8 +131,8 @@ const FAQS = [
     a: 'Yes. All negotiation happens in our built-in chat with automatic contact-detail moderation. Your phone number and email stay private until a deal is agreed between both sides.',
   },
   {
-    q: 'What does Premium cost?',
-    a: 'Creator Premium is ₹299 and Brand Premium is ₹1,499 — a one-time payment for 30 days, with 20% off for 365 days. It\'s not a recurring subscription, so there\'s nothing to cancel; it simply expires and you can buy again whenever you like.',
+    q: 'What do paid plans cost?',
+    a: 'Creators can upgrade from ₹9/month (Silver) up to Platinum; brands from ₹399/month (Silver) up to Golden — a one-time payment for 30 days, with 20% off for 365 days. It\'s not a recurring subscription by default, so there\'s nothing to cancel; it simply expires and you can buy again (or turn on Autopay) whenever you like.',
   },
   {
     q: 'Which platforms do creators come from?',
@@ -153,7 +153,7 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
       />
       {/* ════ HERO ════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#5D8A8F] via-emerald-600 to-[#6D28D9]">
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#E0115F,#3A3A45_50%,#228B22)]">
         {/* Depth layers: dot texture + soft light glows over the saturated gradient */}
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-3xl" />
@@ -184,7 +184,7 @@ export default function HomePage() {
             <div className="anim-fade-up anim-delay-3 flex flex-col sm:flex-row gap-3.5 mb-8">
               <Link
                 href="/auth/signup?role=influencer"
-                className="btn-shine inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-[#2A3E42] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                className="btn-shine inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-[#7A0F3D] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
               >
                 I&apos;m a Creator
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -220,7 +220,7 @@ export default function HomePage() {
             <div className="card-glow relative bg-white border border-gray-200 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] p-6 hover:shadow-[0_16px_56px_rgba(0,0,0,0.14)] transition-shadow duration-300">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] flex items-center justify-center text-white font-bold text-sm shadow-md">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#228B22] to-[#14531D] flex items-center justify-center text-white font-bold text-sm shadow-md">
                     AV
                   </div>
                   <div>
@@ -251,7 +251,7 @@ export default function HomePage() {
                   <p className="text-[0.65rem] text-gray-500 uppercase tracking-wider font-bold">Budget</p>
                   <p className="text-lg font-bold text-gray-900">₹8,000 – ₹15,000</p>
                 </div>
-                <span className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] shadow-md">
+                <span className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#E0115F] shadow-md">
                   Apply now
                 </span>
               </div>
@@ -279,7 +279,7 @@ export default function HomePage() {
                 {[35, 55, 40, 70, 60, 85, 100].map((h, i) => (
                   <div
                     key={i}
-                    className="anim-bar flex-1 rounded-sm bg-gradient-to-t from-[#5D8A8F] to-[#7FA8AD]"
+                    className="anim-bar flex-1 rounded-sm bg-gradient-to-t from-[#E0115F] to-[#F0417B]"
                     style={{ height: `${h}%`, animationDelay: `${0.5 + i * 0.09}s` }}
                   />
                 ))}
@@ -319,7 +319,7 @@ export default function HomePage() {
       </section>
 
       {/* ════ VALUE STRIP ════ */}
-      <section className="bg-gradient-to-r from-[#7C3AED] via-[#4A5F8F] to-emerald-600">
+      <section className="bg-gradient-to-r from-[#228B22] via-[#3FA34D] to-emerald-600">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
           {[
             { end: 0, from: 99, prefix: '₹', suffix: '', label: 'to get started — free plans for both sides' },
@@ -338,15 +338,15 @@ export default function HomePage() {
       </section>
 
       {/* ════ HOW IT WORKS ════ */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#EEF4F5]/70 to-[#F5F3FF]/70 dark:from-[#0E1B2E] dark:via-[#0d2d33]/50 dark:to-[#2c1f4d]/50">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#FCE4EC]/70 to-[#EAF7EA]/70 dark:from-[#0E1B2E] dark:via-[#3D0A20]/50 dark:to-[#14531D]/50">
       <div aria-hidden className="anim-blob absolute -top-20 right-10 w-72 h-72 rounded-full bg-emerald-400/15 blur-3xl" />
-      <div aria-hidden className="anim-blob absolute bottom-0 -left-20 w-80 h-80 rounded-full bg-[#7C3AED]/15 blur-3xl" style={{ animationDelay: '5s' }} />
+      <div aria-hidden className="anim-blob absolute bottom-0 -left-20 w-80 h-80 rounded-full bg-[#228B22]/15 blur-3xl" style={{ animationDelay: '5s' }} />
       <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
         <Reveal className="text-center mb-14">
           <SectionLabel>How it works</SectionLabel>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
             Two sides.{' '}
-            <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] bg-clip-text text-transparent">One simple flow.</span>
+            <span className="bg-[linear-gradient(90deg,#E0115F,#3A3A45_50%,#228B22)] bg-clip-text text-transparent">One simple flow.</span>
           </h2>
           <p className="text-base text-gray-600 max-w-xl mx-auto">
             Whether you create content or run a brand, you can be up and collaborating the same day.
@@ -355,10 +355,10 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Creators column */}
-          <Reveal className="relative overflow-hidden border border-gray-200 rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-white to-[#EEF4F5]/70 dark:from-[#0E1B2E] dark:to-[#0d2d33]/70 hover:border-[#5D8A8F]/40 hover:shadow-lg transition-all duration-300">
-            <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-emerald-500" />
+          <Reveal className="relative overflow-hidden border border-gray-200 rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-white to-[#FCE4EC]/70 dark:from-[#0E1B2E] dark:to-[#3D0A20]/70 hover:border-[#E0115F]/40 hover:shadow-lg transition-all duration-300">
+            <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#F0417B] via-[#E0115F] to-[#B00D4D]" />
             <div className="flex items-center gap-3 mb-8">
-              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] shadow-md shadow-[#5D8A8F]/25 flex items-center justify-center">
+              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F0417B] to-[#E0115F] shadow-md shadow-[#E0115F]/25 flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                 </svg>
@@ -368,7 +368,7 @@ export default function HomePage() {
             <ol className="flex flex-col gap-7">
               {CREATOR_STEPS.map((step, i) => (
                 <li key={step.title} className="flex gap-4">
-                  <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white text-sm font-bold flex items-center justify-center flex-shrink-0 shadow-md">
+                  <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white text-sm font-bold flex items-center justify-center flex-shrink-0 shadow-md">
                     {i + 1}
                   </span>
                   <div>
@@ -378,7 +378,7 @@ export default function HomePage() {
                 </li>
               ))}
             </ol>
-            <Link href="/for-creators" className="inline-flex items-center gap-1.5 mt-8 text-sm font-semibold text-[#5D8A8F] hover:text-[#4A7A7F] transition-colors">
+            <Link href="/for-creators" className="inline-flex items-center gap-1.5 mt-8 text-sm font-semibold text-[#E0115F] hover:text-[#B00D4D] transition-colors">
               Learn more for creators
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -387,10 +387,10 @@ export default function HomePage() {
           </Reveal>
 
           {/* Brands column */}
-          <Reveal delay={120} className="relative overflow-hidden border border-gray-200 rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-white to-[#F5F3FF]/70 dark:from-[#0E1B2E] dark:to-[#2c1f4d]/70 hover:border-[#7C3AED]/40 hover:shadow-lg transition-all duration-300">
-            <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#8B5CF6] via-[#7C3AED] to-blue-600" />
+          <Reveal delay={120} className="relative overflow-hidden border border-gray-200 rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-white to-[#EAF7EA]/70 dark:from-[#0E1B2E] dark:to-[#14531D]/70 hover:border-[#228B22]/40 hover:shadow-lg transition-all duration-300">
+            <span aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#3FA34D] via-[#228B22] to-blue-600" />
             <div className="flex items-center gap-3 mb-8">
-              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] shadow-md shadow-[#7C3AED]/25 flex items-center justify-center">
+              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3FA34D] to-[#228B22] shadow-md shadow-[#228B22]/25 flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>
                 </svg>
@@ -400,7 +400,7 @@ export default function HomePage() {
             <ol className="flex flex-col gap-7">
               {BRAND_STEPS.map((step, i) => (
                 <li key={step.title} className="flex gap-4">
-                  <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white text-sm font-bold flex items-center justify-center flex-shrink-0 shadow-md">
+                  <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3FA34D] to-[#228B22] text-white text-sm font-bold flex items-center justify-center flex-shrink-0 shadow-md">
                     {i + 1}
                   </span>
                   <div>
@@ -410,7 +410,7 @@ export default function HomePage() {
                 </li>
               ))}
             </ol>
-            <Link href="/for-brands" className="inline-flex items-center gap-1.5 mt-8 text-sm font-semibold text-[#7C3AED] hover:text-[#5B21B6] transition-colors">
+            <Link href="/for-brands" className="inline-flex items-center gap-1.5 mt-8 text-sm font-semibold text-[#228B22] hover:text-[#14531D] transition-colors">
               Learn more for brands
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -422,13 +422,13 @@ export default function HomePage() {
       </section>
 
       {/* ════ FEATURES ════ */}
-      <section className="bg-gradient-to-b from-[#F5F3FF] via-amber-50/40 to-[#EEF4F5] border-y border-gray-200 dark:from-[#2c1f4d]/70 dark:via-[rgba(120,80,10,0.12)] dark:to-[#0d2d33]/70">
+      <section className="bg-gradient-to-b from-[#EAF7EA] via-amber-50/40 to-[#FCE4EC] border-y border-gray-200 dark:from-[#14531D]/70 dark:via-[rgba(120,80,10,0.12)] dark:to-[#3D0A20]/70">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
           <Reveal className="text-center mb-14">
             <SectionLabel>Everything included</SectionLabel>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
               One platform for the{' '}
-              <span className="bg-gradient-to-r from-[#7C3AED] to-[#EA580C] bg-clip-text text-transparent">whole collaboration</span>
+              <span className="bg-gradient-to-r from-[#228B22] to-[#EA580C] bg-clip-text text-transparent">whole collaboration</span>
             </h2>
             <p className="text-base text-gray-600 max-w-xl mx-auto">
               From first discovery to final payment tracking — no spreadsheets, no DM chaos, no middlemen.
@@ -440,7 +440,7 @@ export default function HomePage() {
               <Reveal
                 key={f.title}
                 delay={(i % 3) * 90}
-                className="card-glow group relative bg-gradient-to-br from-white to-[#7FA8AD]/[0.06] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 pt-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
+                className="card-glow group relative bg-gradient-to-br from-white to-[#F0417B]/[0.06] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 pt-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
               >
                 <span aria-hidden className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${f.bar}`} />
                 <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${f.tint}`}>
@@ -457,7 +457,7 @@ export default function HomePage() {
       </section>
 
       {/* ════ TRUST & SAFETY ════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#04141a] via-[#3b2f6b] to-[#7C3AED]">
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#2E0818,#3A3A45_50%,#14531D)]">
       <div aria-hidden className="bg-dot-grid-white absolute inset-0 opacity-60" />
       <div aria-hidden className="anim-blob absolute -top-20 -left-20 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
       <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
@@ -497,8 +497,8 @@ export default function HomePage() {
           {/* Shield visual */}
           <Reveal delay={150} className="relative flex items-center justify-center" >
             <div aria-hidden className="anim-blob absolute w-72 h-72 rounded-full bg-white/10 blur-3xl" />
-            <div aria-hidden className="relative w-full max-w-sm bg-gradient-to-br from-white to-[#7C3AED]/[0.05] dark:from-[#0E1B2E] border border-gray-200 rounded-3xl shadow-[0_12px_48px_rgba(0,0,0,0.08)] p-8 hover:shadow-[0_20px_64px_rgba(0,0,0,0.12)] transition-shadow duration-300">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#7C3AED] flex items-center justify-center shadow-lg mb-6">
+            <div aria-hidden className="relative w-full max-w-sm bg-gradient-to-br from-white to-[#228B22]/[0.05] dark:from-[#0E1B2E] border border-gray-200 rounded-3xl shadow-[0_12px_48px_rgba(0,0,0,0.08)] p-8 hover:shadow-[0_20px_64px_rgba(0,0,0,0.12)] transition-shadow duration-300">
+              <div className="w-14 h-14 rounded-2xl bg-[linear-gradient(135deg,#F0417B,#3A3A45_50%,#228B22)] flex items-center justify-center shadow-lg mb-6">
                 <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>
                 </svg>
@@ -521,8 +521,8 @@ export default function HomePage() {
       </section>
 
       {/* ════ TESTIMONIALS ════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#EEF4F5] via-amber-50/60 to-[#F5F3FF] border-y border-gray-200 dark:from-[#0d2d33]/80 dark:via-[rgba(120,80,10,0.18)] dark:to-[#2c1f4d]/60">
-        <div aria-hidden className="anim-blob absolute -top-24 right-1/4 w-80 h-80 rounded-full bg-[#7FA8AD]/15 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#FCE4EC] via-amber-50/60 to-[#EAF7EA] border-y border-gray-200 dark:from-[#3D0A20]/80 dark:via-[rgba(120,80,10,0.18)] dark:to-[#14531D]/60">
+        <div aria-hidden className="anim-blob absolute -top-24 right-1/4 w-80 h-80 rounded-full bg-[#F0417B]/15 blur-3xl" />
         <div aria-hidden className="anim-blob absolute bottom-0 left-10 w-64 h-64 rounded-full bg-amber-400/15 blur-3xl" style={{ animationDelay: '5s' }} />
         <div className="relative max-w-5xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
           <Reveal className="text-center mb-12">
@@ -542,13 +542,13 @@ export default function HomePage() {
       </section>
 
       {/* ════ PRICING TEASER ════ */}
-      <section className="bg-gradient-to-b from-white via-[#EEF4F5]/80 to-[#F5F3FF]/80 dark:from-[#0E1B2E] dark:via-[#0d2d33]/60 dark:to-[#2c1f4d]/60">
+      <section className="bg-gradient-to-b from-white via-[#FCE4EC]/80 to-[#EAF7EA]/80 dark:from-[#0E1B2E] dark:via-[#3D0A20]/60 dark:to-[#14531D]/60">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
           <Reveal className="text-center mb-14">
             <SectionLabel>Pricing</SectionLabel>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
               Start free.{' '}
-              <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] bg-clip-text text-transparent">Upgrade when you&apos;re growing.</span>
+              <span className="bg-[linear-gradient(90deg,#E0115F,#3A3A45_50%,#228B22)] bg-clip-text text-transparent">Upgrade when you&apos;re growing.</span>
             </h2>
             <p className="text-base text-gray-600 max-w-xl mx-auto">
               Full platform access on day one — Premium simply removes the limits.
@@ -557,15 +557,15 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Creator card */}
-            <Reveal className="bg-white border-2 border-[#5D8A8F]/25 rounded-3xl p-8 flex flex-col hover:border-[#5D8A8F]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#5D8A8F] mb-2">Creators</p>
+            <Reveal className="bg-white border-2 border-[#E0115F]/25 rounded-3xl p-8 flex flex-col hover:border-[#E0115F]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#E0115F] mb-2">Creators</p>
               <div className="flex items-baseline gap-1.5 mb-1">
-                <span className="text-4xl font-bold text-gray-900">₹299</span>
-                <span className="text-sm text-gray-500 font-medium">/ month for Premium</span>
+                <span className="text-4xl font-bold text-gray-900">₹9</span>
+                <span className="text-sm text-gray-500 font-medium">/ month from Silver</span>
               </div>
               <p className="text-sm text-gray-500 mb-6">Free plan available · 20% off yearly</p>
               <ul className="flex flex-col gap-2.5 mb-8">
-                {['Unlimited campaign applications', 'Full portfolio visible to brands', 'Detailed earnings analytics + CSV export', 'Unlimited daily messages'].map(item => (
+                {['More applications & invitations per tier', 'More portfolio visible per tier', 'Detailed earnings analytics + CSV export', 'Up to unlimited daily messages'].map(item => (
                   <li key={item} className="flex items-center gap-2.5 text-sm text-gray-700">
                     <CheckIcon /> {item}
                   </li>
@@ -573,22 +573,22 @@ export default function HomePage() {
               </ul>
               <Link
                 href="/pricing"
-                className="mt-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#4A7A7F] hover:from-[#4A7A7F] hover:to-[#3D6B70] shadow-md active:scale-[0.98] transition-all"
+                className="mt-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#E0115F] to-[#B00D4D] hover:from-[#B00D4D] hover:to-[#B00D4D] shadow-md active:scale-[0.98] transition-all"
               >
                 See creator pricing
               </Link>
             </Reveal>
 
             {/* Brand card */}
-            <Reveal delay={120} className="bg-white border-2 border-[#7C3AED]/25 rounded-3xl p-8 flex flex-col hover:border-[#7C3AED]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#7C3AED] mb-2">Brands</p>
+            <Reveal delay={120} className="bg-white border-2 border-[#228B22]/25 rounded-3xl p-8 flex flex-col hover:border-[#228B22]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#228B22] mb-2">Brands</p>
               <div className="flex items-baseline gap-1.5 mb-1">
-                <span className="text-4xl font-bold text-gray-900">₹1,499</span>
-                <span className="text-sm text-gray-500 font-medium">/ month for Premium</span>
+                <span className="text-4xl font-bold text-gray-900">₹399</span>
+                <span className="text-sm text-gray-500 font-medium">/ month from Silver</span>
               </div>
               <p className="text-sm text-gray-500 mb-6">Free plan available · 20% off yearly</p>
               <ul className="flex flex-col gap-2.5 mb-8">
-                {['Unlimited active campaigns', 'Unlimited creator profile views', 'Unlimited daily messages', 'Priority support'].map(item => (
+                {['Up to unlimited active campaigns', 'Up to unlimited creator profile views', 'Up to unlimited daily messages', 'Priority support on Silver+'].map(item => (
                   <li key={item} className="flex items-center gap-2.5 text-sm text-gray-700">
                     <CheckIcon /> {item}
                   </li>
@@ -596,7 +596,7 @@ export default function HomePage() {
               </ul>
               <Link
                 href="/pricing"
-                className="mt-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#7C3AED] to-[#5B21B6] hover:from-[#6D28D9] hover:to-[#4C1D95] shadow-md active:scale-[0.98] transition-all"
+                className="mt-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#228B22] to-[#14531D] hover:from-[#1B6E1B] hover:to-[#14531D] shadow-md active:scale-[0.98] transition-all"
               >
                 See brand pricing
               </Link>
@@ -606,14 +606,14 @@ export default function HomePage() {
       </section>
 
       {/* ════ FAQ ════ */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#F5F3FF]/60 via-white to-white dark:from-[#2c1f4d]/40 dark:via-[#0E1B2E] dark:to-[#0E1B2E]">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#EAF7EA]/60 via-white to-white dark:from-[#14531D]/40 dark:via-[#0E1B2E] dark:to-[#0E1B2E]">
       <div aria-hidden className="anim-blob absolute top-10 -right-24 w-72 h-72 rounded-full bg-[#FB923C]/15 blur-3xl" />
       <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
         <Reveal className="text-center mb-12">
           <SectionLabel>FAQ</SectionLabel>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">
             Questions,{' '}
-            <span className="bg-gradient-to-r from-[#5D8A8F] via-[#7C3AED] to-[#EA580C] bg-clip-text text-transparent">answered</span>
+            <span className="bg-[linear-gradient(90deg,#E0115F,#3A3A45_33%,#228B22_55%,#EA580C)] bg-clip-text text-transparent">answered</span>
           </h2>
         </Reveal>
         <Reveal delay={100}>
@@ -624,7 +624,7 @@ export default function HomePage() {
 
       {/* ════ FINAL CTA ════ */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-20 lg:pb-24">
-        <Reveal className="anim-gradient-bg relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0f4d52] via-[#7C3AED] to-[#0f4d52] px-8 py-16 sm:px-14 text-center shadow-2xl">
+        <Reveal className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#7A0F3D,#3A3A45_50%,#14531D)] px-8 py-16 sm:px-14 text-center shadow-2xl">
           <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
           <div aria-hidden className="anim-blob absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
           <div aria-hidden className="anim-blob absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-white/10 blur-3xl" style={{ animationDelay: '6s' }} />
@@ -637,7 +637,7 @@ export default function HomePage() {
           <div className="relative flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <Link
               href="/auth/signup"
-              className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-[#2A3E42] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all"
+              className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-[#7A0F3D] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all"
             >
               Create free account
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

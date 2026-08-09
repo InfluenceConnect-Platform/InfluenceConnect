@@ -63,7 +63,7 @@ function CityMultiSelect({ value, onChange }: { value: string[]; onChange: (v: s
       ? cities.join(', ')
       : `${cities.slice(0, 2).join(', ')} +${cities.length - 2}`;
 
-  const fieldClass = 'w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] hover:border-gray-300 transition-all';
+  const fieldClass = 'w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] hover:border-gray-300 transition-all';
 
   return (
     <div className="relative" ref={ref}>
@@ -196,8 +196,8 @@ function BrandCampaigns() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=brand'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login?role=brand'); return; }
     try { setUser(JSON.parse(stored)); } catch {}
     fetchCampaigns();
   }, []);
@@ -546,7 +546,7 @@ function BrandCampaigns() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  const fieldClass = 'w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] hover:border-gray-300 transition-all placeholder:text-gray-400';
+  const fieldClass = 'w-full px-3 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] hover:border-gray-300 transition-all placeholder:text-gray-400';
   const labelClass = 'text-xs font-semibold text-gray-600 block mb-1.5';
 
   // Relaunching an expired campaign: all fields stay editable, the only rule is
@@ -692,8 +692,8 @@ function BrandCampaigns() {
                           }))}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
                             active
-                              ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm'
-                              : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                              ? 'bg-gradient-to-r from-[#228B22] to-[#3FA34D] border-transparent text-white shadow-sm'
+                              : 'bg-white border-gray-200 text-gray-600 hover:border-[#228B22]/50 hover:bg-blue-50/50'
                           }`}
                         >
                           {p === 'instagram' && <InstagramLogo size={12} />}
@@ -719,8 +719,8 @@ function BrandCampaigns() {
                         }))}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                           form.niche.includes(n)
-                            ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm'
-                            : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                            ? 'bg-gradient-to-r from-[#228B22] to-[#3FA34D] border-transparent text-white shadow-sm'
+                            : 'bg-white border-gray-200 text-gray-600 hover:border-[#228B22]/50 hover:bg-blue-50/50'
                         }`}
                       >
                         {NICHE_LABELS[n] ?? n}
@@ -735,7 +735,7 @@ function BrandCampaigns() {
               <button
                 onClick={handleCreateCampaign}
                 disabled={creating || savingDraft}
-                className="flex-1 sm:flex-none bg-[#3D5087] hover:bg-[#2B3B68] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 sm:flex-none bg-[#228B22] hover:bg-[#1B6E1B] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
               >
                 {creating ? (
                   <>
@@ -844,7 +844,7 @@ function BrandCampaigns() {
                         <button key={p} type="button"
                           onClick={() => setForm(prev => ({ ...prev, targetPlatforms: active ? prev.targetPlatforms.filter(x => x !== p) : [...prev.targetPlatforms, p] }))}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all cursor-pointer ${
-                            active ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                            active ? 'bg-gradient-to-r from-[#228B22] to-[#3FA34D] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#228B22]/50 hover:bg-blue-50/50'
                           }`}
                         >
                           {p === 'instagram' && <InstagramLogo size={12} />}
@@ -863,7 +863,7 @@ function BrandCampaigns() {
                       <button key={n} type="button"
                         onClick={() => setForm(p => ({ ...p, niche: p.niche.includes(n) ? p.niche.filter(x => x !== n) : [...p.niche, n] }))}
                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                          form.niche.includes(n) ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#3D5087]/50 hover:bg-blue-50/50'
+                          form.niche.includes(n) ? 'bg-gradient-to-r from-[#228B22] to-[#3FA34D] border-transparent text-white shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-[#228B22]/50 hover:bg-blue-50/50'
                         }`}
                       >{NICHE_LABELS[n] ?? n}</button>
                     ))}
@@ -874,7 +874,7 @@ function BrandCampaigns() {
 
             <div className="px-5 sm:px-6 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
               <button onClick={isExpiredEdit ? handleRepublishCampaign : handleEditCampaign} disabled={saving}
-                className="flex-1 sm:flex-none bg-[#3D5087] hover:bg-[#2B3B68] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2">
+                className="flex-1 sm:flex-none bg-[#228B22] hover:bg-[#1B6E1B] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2">
                 {saving ? (<><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{isExpiredEdit ? 'Republishing…' : 'Saving…'}</>) : (isExpiredEdit ? 'Republish campaign' : 'Save changes')}
               </button>
               <button onClick={closeEdit} className="flex-1 sm:flex-none px-6 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all cursor-pointer">
@@ -913,7 +913,7 @@ function BrandCampaigns() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* Hero banner */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-5 shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-5 shadow-lg">
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -953,7 +953,7 @@ function BrandCampaigns() {
               onClick={() => setActiveTab(tab)}
               className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 activeTab === tab
-                  ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-[#228B22] to-[#3FA34D] text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -996,7 +996,7 @@ function BrandCampaigns() {
                 </p>
                 <button
                   onClick={() => setShowForm(true)}
-                  className="text-sm text-[#3D5087] dark:text-blue-400 font-semibold hover:underline cursor-pointer"
+                  className="text-sm text-[#228B22] dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                 >
                   Create first campaign →
                 </button>
@@ -1011,38 +1011,44 @@ function BrandCampaigns() {
                   onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); handleSelectCampaign(campaign); } }}
                   className={`w-full text-left border rounded-2xl overflow-hidden transition-all shadow-sm cursor-pointer ${
                     selectedCampaign?._id === campaign._id
-                      ? 'bg-white border-[#3D5087] shadow-md ring-2 ring-[#3D5087]/15'
+                      ? 'bg-white border-[#228B22] shadow-md ring-2 ring-[#228B22]/15'
                       : campaign.newApplicants > 0
                         ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-amber-950/50 dark:via-orange-950/40 dark:to-amber-900/50 border-amber-300 dark:border-amber-800/40 shadow-amber-100 dark:shadow-none'
-                        : 'bg-white border-gray-200/80 hover:border-[#3D5087]/50 hover:shadow-md'
+                        : 'bg-white border-gray-200/80 hover:border-[#228B22]/50 hover:shadow-md'
                   }`}
                 >
-                  {/* Top accent strip by status */}
-                  <div className={`h-1 w-full ${
-                    campaign.status === 'active' ? 'bg-gradient-to-r from-emerald-400 to-green-500' :
-                    campaign.status === 'draft' ? 'bg-gradient-to-r from-gray-300 to-gray-400' :
-                    campaign.status === 'in-progress' ? 'bg-gradient-to-r from-amber-400 to-orange-500' :
-                    campaign.status === 'closed' ? 'bg-gradient-to-r from-red-400 to-rose-500' :
-                    campaign.status === 'expired' ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
-                    'bg-gradient-to-r from-blue-400 to-indigo-500'
-                  }`} />
-                  <div className="p-5">
-                  <div className="flex items-start justify-between mb-3 gap-2">
+                  {/* Dark header band — replaces the old thin accent strip.
+                      Every status stays within the brand's green family, just
+                      a different shade/tone per status so cards are still
+                      tellable apart at a glance without jumping to unrelated
+                      hues (amber/blue/red) the way CAMPAIGN_STATUS_STYLES does. */}
+                  <div className={`relative overflow-hidden px-5 py-4 bg-gradient-to-br ${
+                    campaign.status === 'active' ? 'from-green-700 via-green-600 to-emerald-500' :        // vivid, bright green
+                    campaign.status === 'draft' ? 'from-[#2E3B2E] via-[#3A4A3A] to-[#4B5D4B]' :            // muted, dark moss green
+                    campaign.status === 'in-progress' ? 'from-lime-800 via-lime-700 to-lime-600' :         // warm olive/yellow-green
+                    campaign.status === 'completed' ? 'from-teal-800 via-teal-700 to-teal-600' :           // cool blue-green
+                    campaign.status === 'closed' ? 'from-emerald-950 via-emerald-900 to-green-800' :       // near-black deep green
+                    campaign.status === 'expired' ? 'from-[#3A4A3A] via-[#4B5D4B] to-[#5C6B5C]' :          // faded sage green
+                    'from-[#14531D] via-[#1B6E1B] to-[#3FA34D]'                                             // default: brand forest green
+                  }`}>
+                    <div aria-hidden className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+                    <div aria-hidden className="bg-dot-grid-white absolute inset-0 opacity-30 pointer-events-none" />
+                  <div className="relative flex items-start justify-between mb-1 gap-2">
                     <div className="min-w-0 flex-1">
-                      <MarqueeText text={campaign.title} className="font-semibold text-gray-900 mb-0.5" />
-                      {campaign.customId && <IdChip id={campaign.customId} size="xs" tone="subtle" />}
+                      <MarqueeText text={campaign.title} className="font-bold text-white mb-1" />
+                      {campaign.customId && <IdChip id={campaign.customId} size="xs" tone="dark" />}
                       {/* Badges below title on mobile */}
                       <div className="flex items-center gap-1.5 mt-1.5 sm:hidden flex-wrap">
                         {campaign.newApplicants > 0 && (
-                          <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 border border-violet-200">
+                          <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white border border-white/25">
                             <span className="relative flex w-1.5 h-1.5">
-                              <span className="absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75 animate-ping" />
-                              <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-violet-500" />
+                              <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
+                              <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-white" />
                             </span>
                             {campaign.newApplicants} new
                           </span>
                         )}
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
+                        <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-white/15 text-white border border-white/25">
                           {CAMPAIGN_STATUS_LABELS[campaign.status] ?? campaign.status}
                         </span>
                       </div>
@@ -1052,21 +1058,21 @@ function BrandCampaigns() {
                       {campaign.newApplicants > 0 && (
                         <span
                           title={`${campaign.newApplicants} new applicant${campaign.newApplicants > 1 ? 's' : ''} since you last checked`}
-                          className="hidden sm:flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200"
+                          className="hidden sm:flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full bg-white/15 text-white border border-white/25"
                         >
                           <span className="relative flex w-1.5 h-1.5">
-                            <span className="absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75 animate-ping" />
-                            <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-violet-500" />
+                            <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
+                            <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-white" />
                           </span>
                           {campaign.newApplicants} new
                         </span>
                       )}
-                      <span className={`hidden sm:inline text-xs px-2.5 py-1 rounded-full font-semibold ${CAMPAIGN_STATUS_STYLES[campaign.status] || 'bg-gray-100 text-gray-600'}`}>
+                      <span className="hidden sm:inline text-xs px-2.5 py-1 rounded-full font-semibold bg-white/15 text-white border border-white/25">
                         {CAMPAIGN_STATUS_LABELS[campaign.status] ?? campaign.status}
                       </span>
                       {/* Edit button — locked when a deal is active */}
                       {campaign.hasActiveDeal ? (
-                        <span title="Cannot edit — a deal is in progress" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 cursor-not-allowed">
+                        <span title="Cannot edit — a deal is in progress" className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 cursor-not-allowed">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                           </svg>
@@ -1075,7 +1081,7 @@ function BrandCampaigns() {
                         <button
                           onClick={e => { e.stopPropagation(); openEdit(campaign); }}
                           title="Edit campaign"
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-[#3D5087] hover:bg-blue-50 transition-all duration-150 cursor-pointer"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-white/70 hover:text-white hover:bg-white/15 transition-all duration-150 cursor-pointer"
                         >
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -1087,10 +1093,10 @@ function BrandCampaigns() {
                           onClick={e => { e.stopPropagation(); handleDeleteCampaign(campaign._id, campaign.title); }}
                           disabled={deletingId === campaign._id}
                           title="Delete campaign"
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 cursor-pointer disabled:opacity-50"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-white/70 hover:text-red-200 hover:bg-red-500/20 transition-all duration-150 cursor-pointer disabled:opacity-50"
                         >
                           {deletingId === campaign._id ? (
-                            <span className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                            <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-transparent rounded-full animate-spin" />
                           ) : (
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
@@ -1100,57 +1106,69 @@ function BrandCampaigns() {
                       )}
                     </div>
                   </div>
+                  </div>
 
+                  <div className="p-5">
                   {/* Info cards row */}
                   <div className="grid grid-cols-2 gap-2 mb-2.5">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200/80">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-violet-400 mb-1.5">Niche</p>
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-sky-100 via-sky-50 to-white border border-sky-300/60 border-l-[3px] border-l-sky-500 shadow-sm">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="w-5 h-5 rounded-md bg-sky-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41 11 22.99l-9-9L11 5.42V2h9v9l.59.41z"/><circle cx="16.5" cy="6.5" r="1"/></svg>
+                        </span>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-sky-600">Niche</p>
+                      </div>
                       {campaign.niche?.length ? (
                         <div className="flex flex-wrap gap-1">
                           {campaign.niche.map((n: string) => (
-                            <span key={n} className="px-1.5 py-0.5 rounded-md bg-violet-100 text-[10px] font-bold text-violet-700">{NICHE_LABELS[n] ?? n}</span>
+                            <span key={n} className="px-1.5 py-0.5 rounded-md bg-sky-500/15 text-[10px] font-bold text-sky-800">{NICHE_LABELS[n] ?? n}</span>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs font-semibold text-violet-300">No niche</p>
+                        <p className="text-xs font-semibold text-sky-400">No niche</p>
                       )}
                     </div>
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-200/80">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-teal-400 mb-1.5">Deliverables</p>
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-teal-100 via-teal-50 to-white border border-teal-300/60 border-l-[3px] border-l-teal-500 shadow-sm">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="w-5 h-5 rounded-md bg-teal-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="13" y2="11"/></svg>
+                        </span>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-teal-600">Deliverables</p>
+                      </div>
                       <p className="text-xs font-bold text-teal-900 leading-snug">{campaign.deliverables || '—'}</p>
                     </div>
                   </div>
 
                   {/* Stat cards row */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-center">
+                    <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-100 via-blue-50 to-white border border-blue-300/60 border-t-[3px] border-t-blue-500 shadow-sm text-center">
                       {campaign.newApplicants > 0 && (
-                        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500 ring-2 ring-white" />
+                        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white" />
                       )}
                       <p className="text-base font-black text-blue-900 leading-none mb-1">{campaign.applicantCount ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-blue-500">Applicants</p>
+                      <p className="text-[10px] font-semibold text-blue-600">Applicants</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200/80 text-center">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-100 via-emerald-50 to-white border border-emerald-300/60 border-t-[3px] border-t-emerald-500 shadow-sm text-center">
                       <p className="text-[11px] font-black text-emerald-900 leading-none mb-1 truncate">
                         {(campaign.budgetMin > 0 || campaign.budgetMax > 0)
                           ? `₹${(campaign.budgetMin||0).toLocaleString('en-IN')}–${(campaign.budgetMax||0).toLocaleString('en-IN')}`
                           : 'Open'}
                       </p>
-                      <p className="text-[10px] font-semibold text-emerald-600">Budget</p>
+                      <p className="text-[10px] font-semibold text-emerald-700">Budget</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200/80 text-center">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-100 via-rose-50 to-white border border-rose-300/60 border-t-[3px] border-t-rose-500 shadow-sm text-center">
                       <p className="text-[11px] font-black text-rose-900 leading-none mb-1 truncate">
                         {followerRangeLabel(campaign.minFollowers, campaign.maxFollowers) ?? 'Any'}
                       </p>
-                      <p className="text-[10px] font-semibold text-rose-500">Followers</p>
+                      <p className="text-[10px] font-semibold text-rose-600">Followers</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 text-center">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-100 via-amber-50 to-white border border-amber-300/60 border-t-[3px] border-t-amber-500 shadow-sm text-center">
                       <p className="text-[11px] font-black text-amber-900 leading-none mb-1">
                         {campaign.deadline
                           ? new Date(campaign.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })
                           : '—'}
                       </p>
-                      <p className="text-[10px] font-semibold text-amber-600">Deadline</p>
+                      <p className="text-[10px] font-semibold text-amber-700">Deadline</p>
                     </div>
                   </div>
 
@@ -1176,7 +1194,7 @@ function BrandCampaigns() {
                       })()}
                     </div>
                     {campaign.status !== 'draft' && (
-                      <p className="text-[10px] text-[#3D5087] font-semibold lg:hidden flex items-center gap-0.5">
+                      <p className="text-[10px] text-[#228B22] font-semibold lg:hidden flex items-center gap-0.5">
                         View applicants
                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                       </p>
@@ -1192,7 +1210,7 @@ function BrandCampaigns() {
                       <button
                         onClick={e => { e.stopPropagation(); handleInvite(campaign); }}
                         title={isPremium ? 'Invite influencers to this campaign' : 'Premium feature — upgrade to invite influencers'}
-                        className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-sm"
+                        className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#1B6E1B] hover:to-[#228B22] px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-sm"
                       >
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
@@ -1213,7 +1231,7 @@ function BrandCampaigns() {
                       <p className="hidden sm:block text-[10px] text-gray-400 font-medium">Expired — push the deadline forward to relaunch</p>
                       <button
                         onClick={e => { e.stopPropagation(); openEdit(campaign); }}
-                        className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-sm"
+                        className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#1B6E1B] hover:to-[#228B22] px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-sm"
                       >
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                         Republish
@@ -1264,7 +1282,7 @@ function BrandCampaigns() {
                     </span>
                     {selectedCampaign.budgetMin > 0 && (
                       <span className="flex items-center gap-1">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/></svg>
                         ₹{selectedCampaign.budgetMin.toLocaleString('en-IN')}–{selectedCampaign.budgetMax.toLocaleString('en-IN')}
                       </span>
                     )}
@@ -1329,7 +1347,7 @@ function ApplicationsList({
     );
   }
 
-  const AVATAR_GRADS = ['bg-gradient-to-br from-violet-500 to-purple-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'];
+  const AVATAR_GRADS = ['bg-gradient-to-br from-cyan-500 to-sky-600','bg-gradient-to-br from-teal-500 to-cyan-600','bg-gradient-to-br from-amber-500 to-orange-500','bg-gradient-to-br from-indigo-500 to-blue-600','bg-gradient-to-br from-pink-500 to-rose-500','bg-gradient-to-br from-emerald-500 to-green-600'];
 
   return (
     <div className="divide-y divide-gray-100 max-h-[60vh] lg:max-h-[520px] overflow-y-auto">
@@ -1356,7 +1374,7 @@ function ApplicationsList({
                 <p className="text-[13px] font-bold text-gray-900">{app.influencerId?.name}</p>
                 {app.influencerProfile?.slug && (
                   <a href={`/brand/creator/${app.influencerProfile.slug}`} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#3D5087] hover:text-[#5D8A8F] transition-colors"
+                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#228B22] hover:text-[#3FA34D] transition-colors"
                     title="View full profile">
                     View profile
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1403,7 +1421,7 @@ function ApplicationsList({
           {app.influencerProfile?.niche?.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
               {app.influencerProfile.niche.map((n: string) => (
-                <span key={n} className="px-1.5 py-0.5 rounded-full bg-violet-50 border border-violet-100 text-[10px] font-semibold text-violet-600">{NICHE_LABELS[n] ?? n}</span>
+                <span key={n} className="px-1.5 py-0.5 rounded-full bg-sky-50 border border-sky-100 text-[10px] font-semibold text-sky-600">{NICHE_LABELS[n] ?? n}</span>
               ))}
             </div>
           )}
@@ -1418,7 +1436,7 @@ function ApplicationsList({
           {/* Proposed rate */}
           {app.proposedRate > 0 && (
             <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-1.5 mb-3 w-fit">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/></svg>
               Proposed ₹{app.proposedRate.toLocaleString('en-IN')}
             </div>
           )}
@@ -1505,7 +1523,7 @@ function ApplicationsList({
                   </div>
                   <a
                     href={`/brand/messages${app.dealId ? `?deal=${app.dealId}` : app.influencerId?._id ? `?influencerId=${app.influencerId._id}` : ''}`}
-                    className="flex items-center gap-1 text-xs font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#5D8A8F] px-2.5 py-1 rounded-lg hover:shadow-md transition-all duration-150 cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-semibold text-white bg-gradient-to-r from-[#228B22] to-[#3FA34D] px-2.5 py-1 rounded-lg hover:shadow-md transition-all duration-150 cursor-pointer"
                   >
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>

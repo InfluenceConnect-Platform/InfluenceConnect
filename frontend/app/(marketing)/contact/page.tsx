@@ -16,18 +16,18 @@ const CHANNELS = [
     body: 'Account issues, billing questions, campaign help — for both creators and brands. We usually reply within one business day.',
     email: 'support@influenceconnect.in',
     icon: <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></>,
-    tint: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-md shadow-[#5D8A8F]/25',
-    wash: 'to-[#5D8A8F]/[0.07]',
-    bar: 'from-[#7FA8AD] to-[#5D8A8F]',
+    tint: 'bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white shadow-md shadow-[#E0115F]/25',
+    wash: 'to-[#E0115F]/[0.07]',
+    bar: 'from-[#F0417B] to-[#E0115F]',
   },
   {
     title: 'Grievance redressal',
     body: 'Formal complaints about content, conduct, or data — handled by our grievance officer as required under Indian law.',
     email: 'grievance@influenceconnect.in',
     icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
-    tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
-    wash: 'to-[#7C3AED]/[0.06]',
-    bar: 'from-[#8B5CF6] to-[#7C3AED]',
+    tint: 'bg-gradient-to-br from-[#3FA34D] to-[#228B22] text-white shadow-md shadow-[#228B22]/25',
+    wash: 'to-[#228B22]/[0.06]',
+    bar: 'from-[#3FA34D] to-[#228B22]',
   },
   {
     title: 'Partnerships & press',
@@ -43,7 +43,7 @@ const CHANNELS = [
 export default function ContactPage() {
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0d3a3f] via-[#3b3f8f] to-[#7C3AED]">
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#3D0A20,#3A3A45_50%,#1B6E1B)]">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-24 left-1/2 -translate-x-1/2 w-[32rem] h-[20rem] rounded-full bg-white/10 blur-3xl" />
         <div className="anim-fade-up relative max-w-3xl mx-auto px-5 sm:px-8 pt-16 pb-20 lg:pt-24 text-center">
@@ -61,7 +61,7 @@ export default function ContactPage() {
         <SectionWave className="fill-white dark:fill-[#0E1B2E]" />
       </section>
 
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#EEF4F5]/50 to-[#F5F3FF]/60 dark:from-[#0E1B2E] dark:via-[#0d2d33]/35 dark:to-[#2c1f4d]/40">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#FCE4EC]/50 to-[#EAF7EA]/60 dark:from-[#0E1B2E] dark:via-[#3D0A20]/35 dark:to-[#14531D]/40">
       <div aria-hidden className="anim-blob absolute bottom-0 -left-24 w-72 h-72 rounded-full bg-emerald-400/12 blur-3xl" />
       <div aria-hidden className="anim-blob absolute top-10 -right-24 w-72 h-72 rounded-full bg-[#FB923C]/12 blur-3xl" style={{ animationDelay: '4s' }} />
       <div className="relative max-w-5xl mx-auto px-5 sm:px-8 pt-2 pb-20">
@@ -78,7 +78,7 @@ export default function ContactPage() {
               <p className="text-sm text-gray-600 leading-relaxed mb-5 flex-1">{c.body}</p>
               <a
                 href={`mailto:${c.email}`}
-                className="text-sm font-semibold text-[#5D8A8F] hover:text-[#4A7A7F] transition-colors break-all"
+                className="text-sm font-semibold text-[#E0115F] hover:text-[#B00D4D] transition-colors break-all"
               >
                 {c.email}
               </a>
@@ -87,23 +87,23 @@ export default function ContactPage() {
         </div>
 
         {/* Quick pointers */}
-        <Reveal delay={120} className="mt-10 bg-gradient-to-br from-[#EEF4F5]/60 via-white to-[#F5F3FF]/50 border border-gray-200 rounded-2xl p-7 sm:p-8 dark:from-[#0d2d33]/50 dark:via-[#0E1B2E] dark:to-[#2c1f4d]/40">
+        <Reveal delay={120} className="mt-10 bg-gradient-to-br from-[#FCE4EC]/60 via-white to-[#EAF7EA]/50 border border-gray-200 rounded-2xl p-7 sm:p-8 dark:from-[#3D0A20]/50 dark:via-[#0E1B2E] dark:to-[#14531D]/40">
           <h2 className="text-sm font-bold text-gray-900 mb-4">Before you write in</h2>
           <ul className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <li className="text-sm text-gray-600 leading-relaxed">
               <span className="font-semibold text-gray-800 block mb-0.5">Billing &amp; refunds</span>
               Most answers are in our{' '}
-              <Link href="/legal/refund" className="text-[#5D8A8F] font-semibold hover:underline">Refund Policy</Link>.
+              <Link href="/legal/refund" className="text-[#E0115F] font-semibold hover:underline">Refund Policy</Link>.
             </li>
             <li className="text-sm text-gray-600 leading-relaxed">
               <span className="font-semibold text-gray-800 block mb-0.5">Privacy &amp; data</span>
               See how we handle your data in the{' '}
-              <Link href="/legal/privacy" className="text-[#5D8A8F] font-semibold hover:underline">Privacy Policy</Link>.
+              <Link href="/legal/privacy" className="text-[#E0115F] font-semibold hover:underline">Privacy Policy</Link>.
             </li>
             <li className="text-sm text-gray-600 leading-relaxed">
               <span className="font-semibold text-gray-800 block mb-0.5">Platform rules</span>
               The full terms are in our{' '}
-              <Link href="/legal/terms" className="text-[#5D8A8F] font-semibold hover:underline">Terms of Service</Link>.
+              <Link href="/legal/terms" className="text-[#E0115F] font-semibold hover:underline">Terms of Service</Link>.
             </li>
           </ul>
         </Reveal>

@@ -53,10 +53,13 @@ api.interceptors.response.use(
         const stored = localStorage.getItem('user') || sessionStorage.getItem('user');
         const role = JSON.parse(stored || '{}')?.role;
         if (role === 'admin') loginPath = '/admin/login';
+        else if (role === 'brand' || role === 'influencer') loginPath = `/auth/login?role=${role}`;
       } catch {}
       sessionStorage.clear();
       localStorage.clear();
-      window.location.href = `${loginPath}?error=suspended`;
+      window.location.href = loginPath.includes('?')
+        ? `${loginPath}&error=suspended`
+        : `${loginPath}?error=suspended`;
     }
     return Promise.reject(error);
   }

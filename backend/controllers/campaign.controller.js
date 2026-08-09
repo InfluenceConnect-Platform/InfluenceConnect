@@ -6,6 +6,7 @@ const BrandProfile = require('../models/BrandProfile');
 const User = require('../models/User');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const { getMissingProfileFields, isInfluencerProfileComplete } = require('../utils/profileCompleteness');
+const { getTierConfig } = require('../utils/tiers');
 const notify = require('../services/email');
 
 // ─────────────────────────────────────────
@@ -257,7 +258,7 @@ exports.getCampaigns = async (req, res) => {
     const brandIds = [...new Set(campaigns.map(c => c.brandId?._id?.toString()).filter(Boolean))];
     const brandProfiles = await BrandProfile.find(
       { userId: { $in: brandIds } },
-      { userId: 1, logoUrl: 1, website: 1, companyName: 1, industry: 1, description: 1, gstinVerified: 1 }
+      { userId: 1, logoUrl: 1, website: 1, companyName: 1, industry: 1, description: 1, gstinVerified: 1, score: 1, level: 1 }
     );
     const brandProfileMap = {};
     brandProfiles.forEach(bp => { brandProfileMap[bp.userId.toString()] = bp; });
@@ -273,6 +274,8 @@ exports.getCampaigns = async (req, res) => {
         brandIndustry: bp?.industry || '',
         brandDescription: bp?.description || '',
         brandGstinVerified: bp?.gstinVerified || false,
+        brandScore: bp?.score ?? 0,
+        brandLevel: bp?.level || 'starter',
         match: computeCampaignMatch(influencerProfile, c),
       };
     });
@@ -330,12 +333,14 @@ exports.getCampaignById = async (req, res) => {
     // User; the website/logo live on the BrandProfile keyed by that userId.
     const brandProfile = await BrandProfile.findOne(
       { userId: campaign.brandId?._id },
-      { logoUrl: 1, website: 1, companyName: 1 }
+      { logoUrl: 1, website: 1, companyName: 1, score: 1, level: 1 }
     );
     const campaignObj = campaign.toObject();
     campaignObj.brandWebsite = brandProfile?.website || '';
     campaignObj.brandLogoUrl = brandProfile?.logoUrl || '';
     campaignObj.brandCompanyName = brandProfile?.companyName || '';
+    campaignObj.brandScore = brandProfile?.score ?? 0;
+    campaignObj.brandLevel = brandProfile?.level || 'starter';
 
     res.json({ campaign: campaignObj, hasApplied });
 
@@ -388,9 +393,10 @@ exports.applyToCampaign = async (req, res) => {
       return res.status(400).json({ error: 'This campaign is no longer accepting applications.' });
     }
 
-    // Check freemium limit — 5 applications per month
-    const isPremium = req.user.plan === 'premium';
-    if (!isPremium) {
+    // Check tier limit — applications per month (see backend/utils/tiers.js)
+    const tierConfig = getTierConfig('influencer', req.user.tier);
+    const maxApplications = tierConfig.maxApplicationsPerMonth;
+    if (Number.isFinite(maxApplications)) {
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
@@ -400,10 +406,10 @@ exports.applyToCampaign = async (req, res) => {
         createdAt: { $gte: startOfMonth }
       });
 
-      if (applicationsThisMonth >= 5) {
+      if (applicationsThisMonth >= maxApplications) {
         return res.status(403).json({
-          error: 'freemium_limit',
-          message: 'You have used all 5 free applications this month. Upgrade to Premium for unlimited applications.'
+          error: 'tier_limit',
+          message: `You have used all ${maxApplications} applications this month on your current plan. Upgrade for more.`
         });
       }
     }
@@ -611,7 +617,7 @@ exports.seedCampaigns = async (req, res) => {
         brandId: req.userId,
         title: 'Summer skincare launch',
         description: 'Launching our new hydrating serum for Indian summer. Looking for beauty creators with engaged audiences in metro cities to review the product honestly.',
-        niche: ['beauty'],
+        niche: ['beauty-makeup-and-aesthetics'],
         deliverables: '2 reels + 3 stories',
         budgetMin: 8000,
         budgetMax: 12000,
@@ -626,7 +632,7 @@ exports.seedCampaigns = async (req, res) => {
         brandId: req.userId,
         title: 'Monsoon fashion drop',
         description: 'New monsoon collection — waterproof tees, convertible jackets, lightweight trousers. Looking for fashion creators who can shoot outdoor OOTDs.',
-        niche: ['fashion'],
+        niche: ['fashion-and-styling'],
         deliverables: '1 reel + 5 photos',
         budgetMin: 15000,
         budgetMax: 20000,

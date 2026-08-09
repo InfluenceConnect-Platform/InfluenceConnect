@@ -7,24 +7,24 @@ import api from '@/lib/api';
 import InfluencerNav from '@/components/shared/InfluencerNav';
 import IdChip from '@/components/shared/IdChip';
 import { useTheme } from '@/lib/useTheme';
-import { NICHES, NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS } from '@/lib/niches';
+import { NICHES, NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, NICHE_SUBNICHES, SUB_NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const LEVEL_BADGE: Record<string, string> = {
   elite:        'bg-amber-50 text-amber-700 border border-amber-200',
-  professional: 'bg-violet-50 text-violet-700 border border-violet-200',
+  professional: 'bg-[#FCE4EC] text-[#B00D4D] border border-[#F3B8CB]',
   growing:      'bg-emerald-50 text-emerald-700 border border-emerald-200',
   starter:      'bg-gray-100 text-gray-500 border border-gray-200',
 };
 const AVATAR_GRADS = [
-  'from-[#5D8A8F] to-[#7FA8AD]',
-  'from-violet-500 to-purple-600',
-  'from-teal-500 to-cyan-600',
+  'from-[#E0115F] to-[#F0417B]',
+  'from-blue-500 to-blue-700',
+  'from-rose-500 to-cyan-600',
   'from-rose-500 to-pink-600',
   'from-amber-500 to-orange-500',
-  'from-emerald-500 to-green-600',
+  'from-[#B00D4D] to-[#7A0F3D]',
 ];
 const PLATFORM_ACCENT: Record<string, { bar: string; label: string }> = {
   instagram: { bar: 'border-l-pink-400',  label: 'text-pink-600' },
@@ -251,7 +251,7 @@ interface SectionHeaderProps {
 }
 const SectionHeader = ({ icon, title, desc }: SectionHeaderProps) => (
   <div className="flex items-center gap-2.5 mb-5">
-    <div className="w-7 h-7 rounded-lg bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center flex-shrink-0">
+    <div className="w-7 h-7 rounded-lg bg-[#FCE4EC] text-[#F0417B] flex items-center justify-center flex-shrink-0">
       {icon}
     </div>
     <div>
@@ -299,6 +299,7 @@ function InfluencerProfile() {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [niche, setNiche] = useState<string[]>([]);
+  const [subNiches, setSubNiches] = useState<string[]>([]);
   const [city, setCity] = useState('');
   const [area, setArea] = useState('');
   const [priceRangeMin, setPriceRangeMin] = useState('');
@@ -312,8 +313,8 @@ function InfluencerProfile() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=influencer'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login?role=influencer'); return; }
     fetchProfile();
   }, []);
 
@@ -335,6 +336,7 @@ function InfluencerProfile() {
         setName(p.userId?.name || '');
         setBio(p.bio || '');
         setNiche(p.niche || []);
+        setSubNiches(p.subNiches || []);
         setCity(p.city || '');
         setArea(p.area || '');
         setPriceRangeMin(p.priceRangeMin?.toString() || '');
@@ -353,6 +355,7 @@ function InfluencerProfile() {
     setName(profile.userId?.name || '');
     setBio(profile.bio || '');
     setNiche(profile.niche || []);
+    setSubNiches(profile.subNiches || []);
     setCity(profile.city || '');
     setArea(profile.area || '');
     setPriceRangeMin(profile.priceRangeMin?.toString() || '');
@@ -368,7 +371,15 @@ function InfluencerProfile() {
   };
 
   const toggleNiche = (n: string) =>
-    setNiche(prev => prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n]);
+    setNiche(prev => {
+      const next = prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n];
+      // Drop any selected sub-niches whose parent niche just got deselected.
+      setSubNiches(subs => subs.filter(s => next.includes(SUB_NICHE_TO_NICHE[s])));
+      return next;
+    });
+
+  const toggleSubNiche = (s: string) =>
+    setSubNiches(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
   const updatePlatform = (index: number, field: string, value: string | number) => {
     const updated = [...platforms];
@@ -410,7 +421,7 @@ function InfluencerProfile() {
     try {
       await api.put('/api/influencer/profile', {
         name: trimmedName,
-        bio, niche, city, area: area.trim(),
+        bio, niche, subNiches, city, area: area.trim(),
         priceRangeMin: parseInt(priceRangeMin) || 0,
         priceRangeMax: parseInt(priceRangeMax) || 0,
         platforms,
@@ -588,7 +599,7 @@ function InfluencerProfile() {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#060D1A]' : 'bg-[#F7F9FA]'}`}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#F0417B] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-400">Loading profile…</p>
         </div>
       </div>
@@ -605,13 +616,13 @@ function InfluencerProfile() {
         {/* Page header */}
         <div className={`relative overflow-hidden mb-6 md:mb-7 rounded-2xl border shadow-sm ${isDark ? 'bg-[#0E1B2E] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
           {/* Decorative gradient layer */}
-          <div className={`absolute inset-0 pointer-events-none bg-gradient-to-br ${isDark ? 'from-[#1a2e32] via-[#0E1B2E] to-[#0d1f2e]' : 'from-[#EEF4F5] via-white to-[#F4FBFB]'}`} />
-          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#7FA8AD]/10 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-10 w-52 h-52 rounded-full bg-[#5D8A8F]/10 blur-2xl pointer-events-none" />
+          <div className={`absolute inset-0 pointer-events-none bg-gradient-to-br ${isDark ? 'from-[#2E0818] via-[#0E1B2E] to-[#1a0510]' : 'from-[#FCE4EC] via-white to-[#FDF2F6]'}`} />
+          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#F0417B]/10 blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-10 w-52 h-52 rounded-full bg-[#E0115F]/10 blur-2xl pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
             <defs>
               <pattern id="hdr-dots" width="14" height="14" patternUnits="userSpaceOnUse">
-                <circle cx="1.5" cy="1.5" r="1" fill="#2A3E42"/>
+                <circle cx="1.5" cy="1.5" r="1" fill="#7A0F3D"/>
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#hdr-dots)"/>
@@ -620,8 +631,8 @@ function InfluencerProfile() {
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-5 sm:px-7 py-5 sm:py-6">
             <div className="min-w-0">
               <div className="flex items-center gap-2 mb-2">
-                <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${isDark ? 'bg-slate-800/70 text-slate-300 border-slate-700/60' : 'bg-[#EEF4F5] text-[#2A3E42] border-[#7FA8AD]/30'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? 'bg-amber-500' : 'bg-emerald-500'} animate-pulse`} />
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${isDark ? 'bg-slate-800/70 text-slate-300 border-slate-700/60' : 'bg-[#FCE4EC] text-[#7A0F3D] border-[#F0417B]/30'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? 'bg-amber-500' : 'bg-[#E0115F]'} animate-pulse`} />
                   {isEditing ? 'Editing' : 'Live preview'}
                 </span>
                 <span className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
@@ -633,9 +644,9 @@ function InfluencerProfile() {
               </div>
               <h1 className={`text-2xl sm:text-3xl font-bold tracking-tight leading-tight ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
                 {isEditing ? (
-                  <>Edit your <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] bg-clip-text text-transparent">profile</span></>
+                  <>Edit your <span className="bg-gradient-to-r from-[#E0115F] to-[#F0417B] bg-clip-text text-transparent">profile</span></>
                 ) : (
-                  <>Your <span className="bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] bg-clip-text text-transparent">creator</span> profile</>
+                  <>Your <span className="bg-gradient-to-r from-[#E0115F] to-[#F0417B] bg-clip-text text-transparent">creator</span> profile</>
                 )}
               </h1>
               <p className={`text-sm mt-1.5 max-w-md leading-relaxed ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
@@ -647,7 +658,7 @@ function InfluencerProfile() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto sm:flex-shrink-0">
               {saved && !isEditing && (
-                <span className="flex items-center gap-1.5 text-sm text-emerald-700 font-semibold bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 shadow-sm">
+                <span className="flex items-center gap-1.5 text-sm text-[#7A0F3D] font-semibold bg-[#FCE4EC] px-3 py-2 rounded-xl border border-[#F3B8CB] shadow-sm">
                   <CheckIcon />
                   Saved
                 </span>
@@ -662,7 +673,7 @@ function InfluencerProfile() {
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="group relative flex items-center gap-2 bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] hover:from-[#4A7378] hover:to-[#6B9499] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
+                    className="group relative flex items-center gap-2 bg-gradient-to-r from-[#E0115F] to-[#F0417B] hover:from-[#8C1F52] hover:to-[#D6799A] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
                     {saving ? (
                       <>
                         <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -693,7 +704,7 @@ function InfluencerProfile() {
                   </a>
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] hover:from-[#4A7378] hover:to-[#6B9499] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer overflow-hidden whitespace-nowrap">
+                    className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#E0115F] to-[#F0417B] hover:from-[#8C1F52] hover:to-[#D6799A] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer overflow-hidden whitespace-nowrap">
                     <span className="absolute inset-0 bg-[radial-gradient(circle_at_20%_-20%,rgba(255,255,255,0.35),transparent_60%)] pointer-events-none" />
                     <span className="relative flex items-center gap-2">
                       <PencilIcon />
@@ -773,7 +784,7 @@ function InfluencerProfile() {
 
                 {/* HERO */}
                 <div className={`${card} overflow-hidden`}>
-                  <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#0d2226] via-[#1f5b62] to-[#4fd8c4]">
+                  <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#2E0818] via-[#7A0F3D] to-[#F0417B]">
                     {!profile.coverPhotoUrl && <>
                       <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
                       <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-white/5 pointer-events-none" />
@@ -799,7 +810,7 @@ function InfluencerProfile() {
 
                   <div className="px-5 sm:px-7 pt-0 pb-6">
                     <div className="-mt-10 mb-4">
-                      <div className={`relative z-10 w-[78px] h-[78px] sm:w-[88px] sm:h-[88px] rounded-full border-[3px] border-white ring-2 ring-[#5D8A8F]/20 shadow-lg overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center ${profile.profilePicUrl ? 'cursor-zoom-in' : ''}`}
+                      <div className={`relative z-10 w-[78px] h-[78px] sm:w-[88px] sm:h-[88px] rounded-full border-[3px] border-white ring-2 ring-[#E0115F]/20 shadow-lg overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center ${profile.profilePicUrl ? 'cursor-zoom-in' : ''}`}
                         onClick={() => {
                           if (profile.profilePicUrl)
                             openModal([{ type: 'image', src: profile.profilePicUrl, label: `${name}'s profile picture` }], 0);
@@ -841,7 +852,7 @@ function InfluencerProfile() {
                     <div className="flex flex-wrap items-center gap-3 text-[13px] text-gray-500 mb-5">
                       {profile.city && (
                         <span className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
-                          <svg className="w-3 h-3 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <svg className="w-3 h-3 text-[#E0115F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                           </svg>
                           {profile.area ? (profile.city ? `${profile.area} · near ${profile.city}` : profile.area) : profile.city}
@@ -849,7 +860,7 @@ function InfluencerProfile() {
                       )}
                       {(profile.platforms ?? []).map((p: any) => p.profileUrl && (
                         <a key={p.name} href={p.profileUrl} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full hover:border-[#5D8A8F]/30 hover:bg-[#EEF4F5] transition-all">
+                          className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full hover:border-[#E0115F]/30 hover:bg-[#FCE4EC] transition-all">
                           {p.name === 'instagram' && <InstagramLogo size={13} />}
                           {p.name === 'youtube'   && <YouTubeLogo size={13} />}
                           {p.name === 'facebook'  && <FacebookLogo size={13} />}
@@ -861,11 +872,11 @@ function InfluencerProfile() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-gray-100">
                       {[
                         { value: String(visible.length), label: 'Posts',
-                          bg: 'bg-[#EEF4F5]', darkBg: 'dark:bg-[#0d2d33]', text: 'text-[#5D8A8F]',
+                          bg: 'bg-[#FCE4EC]', darkBg: 'dark:bg-[#7A0F3D]', text: 'text-[#E0115F]',
                           icon: (<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>),
                         },
                         { value: formatNum(totalFollowersV), label: 'Followers',
-                          bg: 'bg-violet-50', darkBg: 'dark:bg-violet-900/40', text: 'text-violet-600', darkText: 'dark:text-violet-400',
+                          bg: 'bg-amber-50', darkBg: 'dark:bg-amber-900/40', text: 'text-amber-600', darkText: 'dark:text-amber-400',
                           icon: (<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>),
                         },
                         { value: primary ? formatNum(primary.avgLikes ?? 0) : '—', label: 'Avg Likes',
@@ -873,7 +884,7 @@ function InfluencerProfile() {
                           icon: (<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>),
                         },
                         { value: `${avgEngV}%`, label: 'Engagement',
-                          bg: 'bg-emerald-50', darkBg: 'dark:bg-emerald-900/30', text: 'text-emerald-600', darkText: 'dark:text-emerald-400',
+                          bg: 'bg-[#FCE4EC]', darkBg: 'dark:bg-[#7A0F3D]/30', text: 'text-[#B00D4D]', darkText: 'dark:text-[#FFA8C6]',
                           icon: (<svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>),
                         },
                       ].map((s, i) => (
@@ -892,7 +903,7 @@ function InfluencerProfile() {
                 {(profile.platforms ?? []).length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-2.5 px-1">
-                      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#5D8A8F] to-[#7FA8AD]" />
+                      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#E0115F] to-[#F0417B]" />
                       <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Platform Stats</h2>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -909,7 +920,7 @@ function InfluencerProfile() {
                               </div>
                               {p.profileUrl && (
                                 <a href={p.profileUrl} target="_blank" rel="noopener noreferrer"
-                                  className="relative flex items-center gap-1 text-[11px] font-semibold text-[#5D8A8F] hover:underline">
+                                  className="relative flex items-center gap-1 text-[11px] font-semibold text-[#E0115F] hover:underline">
                                   Visit
                                   <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -941,18 +952,18 @@ function InfluencerProfile() {
                 {/* COLLAB DETAILS */}
                 <div>
                   <div className="flex items-center gap-2 mb-2.5 px-1">
-                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#5D8A8F] to-[#7FA8AD]" />
+                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#E0115F] to-[#F0417B]" />
                     <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Collaboration Details</h2>
                   </div>
 
                   <div className={`relative ${card} p-5 mb-3 overflow-hidden`}>
-                    <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-emerald-50 pointer-events-none" />
-                    <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-emerald-100/60 pointer-events-none" />
+                    <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-amber-50 pointer-events-none" />
+                    <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-amber-100/60 pointer-events-none" />
                     <div className="relative flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <svg className="w-4 h-4 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/>
                           </svg>
                         </div>
                         <div>
@@ -965,19 +976,19 @@ function InfluencerProfile() {
                         </div>
                       </div>
                       {profile.priceRangeMin > 0 && (
-                        <span className="text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">per deliverable</span>
+                        <span className="text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">per deliverable</span>
                       )}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className={`relative ${card} p-5 overflow-hidden`}>
-                      <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full bg-[#EEF4F5] pointer-events-none" />
-                      <div className="absolute -bottom-4 -right-4 w-14 h-14 rounded-full bg-[#C9DCDE]/60 pointer-events-none" />
+                      <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full bg-[#FCE4EC] pointer-events-none" />
+                      <div className="absolute -bottom-4 -right-4 w-14 h-14 rounded-full bg-[#F3B8CB]/60 pointer-events-none" />
                       <div className="relative">
                         <div className="flex items-center gap-2 mb-3">
-                          <div className="w-7 h-7 rounded-lg bg-[#EEF4F5] flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5 text-[#5D8A8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <div className="w-7 h-7 rounded-lg bg-[#FCE4EC] flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5 text-[#E0115F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                             </svg>
                           </div>
@@ -988,7 +999,7 @@ function InfluencerProfile() {
                           <p className="text-sm text-gray-400 font-medium mb-0.5">/100</p>
                         </div>
                         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] rounded-full transition-all duration-700"
+                          <div className="h-full bg-gradient-to-r from-[#E0115F] to-[#F0417B] rounded-full transition-all duration-700"
                             style={{ width: `${profile.credibilityScore ?? 0}%` }} />
                         </div>
                       </div>
@@ -1016,7 +1027,7 @@ function InfluencerProfile() {
                 {/* PORTFOLIO */}
                 <div>
                   <div className="flex items-center gap-2 mb-2.5 px-1">
-                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#5D8A8F] to-[#7FA8AD]" />
+                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#E0115F] to-[#F0417B]" />
                     <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Portfolio</h2>
                   </div>
                   <div className={`${card} overflow-hidden`}>
@@ -1026,11 +1037,11 @@ function InfluencerProfile() {
                           onClick={() => setViewTab(tab.key)}
                           className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-xs font-bold transition-all cursor-pointer relative ${
                             viewTab === tab.key
-                              ? 'text-[#5D8A8F] bg-white shadow-[inset_0_-2px_0_#5D8A8F]'
+                              ? 'text-[#E0115F] bg-white shadow-[inset_0_-2px_0_#E0115F]'
                               : 'text-gray-400 hover:text-gray-600 hover:bg-white/60'
                           }`}>
                           {tab.label}
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${viewTab === tab.key ? 'bg-[#EEF4F5] text-[#5D8A8F]' : 'bg-gray-100 text-gray-400'}`}>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${viewTab === tab.key ? 'bg-[#FCE4EC] text-[#E0115F]' : 'bg-gray-100 text-gray-400'}`}>
                             {tab.count}
                           </span>
                         </button>
@@ -1057,7 +1068,7 @@ function InfluencerProfile() {
                           return (
                             <button key={item._id ?? i}
                               onClick={() => openModal(mediaList, i)}
-                              className="relative aspect-square overflow-hidden bg-white group cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#5D8A8F]"
+                              className="relative aspect-square overflow-hidden bg-white group cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#E0115F]"
                               aria-label={item.type === 'video' ? 'Play reel' : 'View photo'}>
                               {item.type === 'video' ? (
                                 <>
@@ -1115,18 +1126,18 @@ function InfluencerProfile() {
                 </div>
 
                 {/* CTA — edit your profile */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#173238] via-[#1a8f92] to-[#5eead4] sm:rounded-2xl px-6 py-6 shadow-lg">
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#2E0818] via-[#B00D4D] to-[#F0417B] sm:rounded-2xl px-6 py-6 shadow-lg">
                   <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
                   <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
                   <div className="absolute -bottom-8 -left-6 w-36 h-36 bg-white/5 rounded-full pointer-events-none" />
                   <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                      <p className="text-teal-100/80 text-[11px] font-semibold uppercase tracking-widest mb-1">Your public profile</p>
+                      <p className="text-rose-100/80 text-[11px] font-semibold uppercase tracking-widest mb-1">Your public profile</p>
                       <p className="text-white text-lg font-bold tracking-tight">This is how brands see you</p>
-                      <p className="text-teal-100/70 text-sm mt-0.5">Keep your bio, niche, and stats up to date to attract better collaborations.</p>
+                      <p className="text-rose-100/70 text-sm mt-0.5">Keep your bio, niche, and stats up to date to attract better collaborations.</p>
                     </div>
                     <button onClick={() => setIsEditing(true)}
-                      className="flex-shrink-0 flex items-center gap-2 bg-white hover:bg-[#EEF4F5] text-[#2A3E42] px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
+                      className="flex-shrink-0 flex items-center gap-2 bg-white hover:bg-[#FCE4EC] text-[#7A0F3D] px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
                       <PencilIcon />
                       Edit profile
                     </button>
@@ -1146,7 +1157,7 @@ function InfluencerProfile() {
         {profile && (
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5 md:mb-6">
             <div className="relative group">
-              <div className="h-36 sm:h-44 w-full overflow-hidden bg-gradient-to-r from-[#e0eafc] to-[#cfdef3]">
+              <div className="h-36 sm:h-44 w-full overflow-hidden bg-gradient-to-r from-[#FCE4EC] to-[#F3B8CB]">
                 {profile.coverPhotoUrl ? (
                   <img loading="lazy" decoding="async" src={cdnImg(profile.coverPhotoUrl, 1600)} alt="Cover" className="w-full h-full object-cover" />
                 ) : (
@@ -1189,7 +1200,7 @@ function InfluencerProfile() {
               </div>
               {isEditing && (
                 <button onClick={() => coverPhotoInputRef.current?.click()} disabled={uploadingCover}
-                  className="text-xs font-semibold text-[#5D8A8F] hover:text-[#5D8A8F] disabled:opacity-50 cursor-pointer transition-colors flex items-center gap-1">
+                  className="text-xs font-semibold text-[#E0115F] hover:text-[#E0115F] disabled:opacity-50 cursor-pointer transition-colors flex items-center gap-1">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                   </svg>
@@ -1209,7 +1220,7 @@ function InfluencerProfile() {
               {/* Avatar */}
               <div className="relative flex-shrink-0">
                 <div
-                  className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] flex items-center justify-center text-white text-2xl font-bold shadow-md select-none overflow-hidden ${isEditing ? 'cursor-pointer group/avatar' : ''}`}
+                  className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#F0417B] to-[#E0115F] flex items-center justify-center text-white text-2xl font-bold shadow-md select-none overflow-hidden ${isEditing ? 'cursor-pointer group/avatar' : ''}`}
                   onClick={() => { if (isEditing && !uploadingPic) profilePicInputRef.current?.click(); }}
                   title={isEditing ? (profile?.profilePicUrl ? 'Change profile picture' : 'Upload profile picture') : undefined}
                 >
@@ -1233,7 +1244,7 @@ function InfluencerProfile() {
                     </div>
                   )}
                 </div>
-                <div className={`absolute -bottom-1 -right-1 rounded-full border-2 border-white shadow-sm ${(profile?.platforms?.length || 0) > 0 ? 'bg-green-500' : 'bg-gray-300'}`} style={{ width: 18, height: 18 }} />
+                <div className={`absolute -bottom-1 -right-1 rounded-full border-2 border-white shadow-sm ${(profile?.platforms?.length || 0) > 0 ? 'bg-[#E0115F]' : 'bg-gray-300'}`} style={{ width: 18, height: 18 }} />
                 {isEditing && profile?.profilePicUrl && (
                   <button
                     type="button"
@@ -1261,7 +1272,7 @@ function InfluencerProfile() {
                         value={name}
                         onChange={e => setName(e.target.value)}
                         placeholder="Your name"
-                        className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight leading-tight w-full max-w-xs bg-transparent border-b border-gray-300 focus:border-[#5D8A8F] outline-none pb-0.5"
+                        className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight leading-tight w-full max-w-xs bg-transparent border-b border-gray-300 focus:border-[#E0115F] outline-none pb-0.5"
                       />
                     ) : (
                       <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight leading-tight">
@@ -1273,7 +1284,7 @@ function InfluencerProfile() {
                   <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
                     profile?.userId?.plan === 'premium'
                       ? 'bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 border-amber-200'
-                      : 'bg-[#EEF4F5] text-[#2A3E42] border-[#7FA8AD]/30'
+                      : 'bg-[#FCE4EC] text-[#7A0F3D] border-[#F0417B]/30'
                   }`}>
                     {profile?.userId?.plan === 'premium' ? '★ Premium' : 'Freemium'}
                   </span>
@@ -1290,7 +1301,7 @@ function InfluencerProfile() {
                     </span>
                   )}
                   {(profile?.niche || []).slice(0, 3).map((n: string, idx: number) => {
-                    const chipColors = ['bg-teal-100 text-teal-700','bg-violet-100 text-violet-700','bg-amber-100 text-amber-700'];
+                    const chipColors = ['bg-rose-100 text-rose-700','bg-blue-100 text-blue-700','bg-amber-100 text-amber-700'];
                     return (
                       <span key={n} className={`text-xs px-2.5 py-1 rounded-full font-semibold ${chipColors[idx % chipColors.length]}`}>{NICHE_LABELS[n] ?? n}</span>
                     );
@@ -1299,7 +1310,7 @@ function InfluencerProfile() {
                     <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">+{profile.niche.length - 3}</span>
                   )}
                   {(profile?.priceRangeMin || profile?.priceRangeMax) && (
-                    <span className="inline-flex items-center text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full font-semibold border border-emerald-200/60">
+                    <span className="inline-flex items-center text-xs px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full font-semibold border border-amber-200/60">
                       ₹{(profile.priceRangeMin || 0).toLocaleString()} – ₹{(profile.priceRangeMax || 0).toLocaleString()}
                     </span>
                   )}
@@ -1311,9 +1322,9 @@ function InfluencerProfile() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-5 pt-4 border-t border-gray-100">
               {[
                 { value: String(profile?.portfolioItems?.length || 0), label: 'Posts', accent: 'text-gray-900' },
-                { value: formatFollowers(totalFollowers), label: 'Followers', accent: 'text-[#5D8A8F]' },
+                { value: formatFollowers(totalFollowers), label: 'Followers', accent: 'text-[#E0115F]' },
                 { value: String(profile?.platforms?.length || 0), label: 'Platforms', accent: 'text-gray-900' },
-                { value: avgEngagement ? `${avgEngagement}%` : '—', label: 'Avg. Engagement', accent: 'text-emerald-600' },
+                { value: avgEngagement ? `${avgEngagement}%` : '—', label: 'Avg. Engagement', accent: 'text-[#B00D4D]' },
               ].map((stat, i) => (
                 <div key={i} className="flex flex-col items-center text-center px-2 py-3 rounded-xl bg-gray-50 border border-gray-100">
                   <span className={`text-xl font-bold tabular-nums ${stat.accent}`}>{stat.value}</span>
@@ -1347,7 +1358,7 @@ function InfluencerProfile() {
                       placeholder="Tell brands about yourself, your content style, and what makes your audience unique…"
                       rows={4}
                       maxLength={500}
-                      className="w-full px-3.5 py-3 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] resize-none transition-all duration-150 bg-white"
+                      className="w-full px-3.5 py-3 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] resize-none transition-all duration-150 bg-white"
                     />
                     <div className="flex items-center justify-between mt-1.5">
                       <p className="text-xs text-gray-400">Write naturally — brands read every word</p>
@@ -1368,7 +1379,7 @@ function InfluencerProfile() {
                       value={area}
                       onChange={e => setArea(e.target.value.slice(0, 100))}
                       placeholder="e.g. Bhagalpur, Koramangala, Andheri West"
-                      className="w-full px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150 bg-white"
+                      className="w-full px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white"
                     />
                     <p className="text-xs text-gray-400 mt-1.5 mb-3">Wherever you're actually based — shown on your profile only.</p>
 
@@ -1379,7 +1390,7 @@ function InfluencerProfile() {
                       <select
                         value={city}
                         onChange={e => setCity(e.target.value)}
-                        className={`w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150 bg-white appearance-none cursor-pointer pr-9 ${
+                        className={`w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white appearance-none cursor-pointer pr-9 ${
                           !city ? 'text-gray-400' : 'text-gray-900'
                         }`}
                       >
@@ -1403,14 +1414,35 @@ function InfluencerProfile() {
                         <button key={n} type="button" onClick={() => toggleNiche(n)}
                           className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 border cursor-pointer ${
                             niche.includes(n)
-                              ? 'bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] border-transparent text-white shadow-sm'
-                              : 'bg-white border-gray-200 text-gray-500 hover:border-[#7FA8AD]/50 hover:bg-teal-50/50 hover:text-[#2A3E42]'
+                              ? 'bg-gradient-to-r from-[#F0417B] to-[#E0115F] border-transparent text-white shadow-sm'
+                              : 'bg-white border-gray-200 text-gray-500 hover:border-[#F0417B]/50 hover:bg-rose-50/50 hover:text-[#7A0F3D]'
                           }`}>
                           {NICHE_LABELS[n] ?? n}
                         </button>
                       ))}
                     </div>
                   </div>
+
+                  {/* Sub-niches — only offered for the niches selected above */}
+                  {niche.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
+                        Sub-niches <span className="text-gray-400 font-normal">— optional, for finer targeting</span>
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {niche.flatMap(n => NICHE_SUBNICHES[n] ?? []).map(s => (
+                          <button key={s} type="button" onClick={() => toggleSubNiche(s)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-150 border cursor-pointer ${
+                              subNiches.includes(s)
+                                ? 'bg-[#FCE4EC] border-[#F0417B]/40 text-[#7A0F3D]'
+                                : 'bg-white border-gray-200 text-gray-500 hover:border-[#F0417B]/40 hover:text-[#7A0F3D]'
+                            }`}>
+                            {SUB_NICHE_LABELS[s] ?? s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Pricing */}
                   <div>
@@ -1423,7 +1455,7 @@ function InfluencerProfile() {
                           value={priceRangeMin}
                           onChange={e => setPriceRangeMin(e.target.value)}
                           placeholder="5,000"
-                          className="w-full pl-7 pr-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150 bg-white"
+                          className="w-full pl-7 pr-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white"
                         />
                         <span className="absolute -top-2 left-3 text-[10px] text-gray-400 bg-white px-1 font-medium">Min</span>
                       </div>
@@ -1434,7 +1466,7 @@ function InfluencerProfile() {
                           value={priceRangeMax}
                           onChange={e => setPriceRangeMax(e.target.value)}
                           placeholder="25,000"
-                          className="w-full pl-7 pr-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150 bg-white"
+                          className="w-full pl-7 pr-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white"
                         />
                         <span className="absolute -top-2 left-3 text-[10px] text-gray-400 bg-white px-1 font-medium">Max</span>
                       </div>
@@ -1461,7 +1493,7 @@ function InfluencerProfile() {
                         <MapPinIcon /> City
                       </p>
                       {profile?.city ? (
-                        <span className="inline-block bg-[#EEF4F5] text-[#2A3E42] px-3 py-1 rounded-full text-xs font-semibold">
+                        <span className="inline-block bg-[#FCE4EC] text-[#7A0F3D] px-3 py-1 rounded-full text-xs font-semibold">
                           {profile.area ? (profile.city ? `${profile.area} · near ${profile.city}` : profile.area) : profile.city}
                         </span>
                       ) : (
@@ -1473,7 +1505,7 @@ function InfluencerProfile() {
                       {(profile?.niche?.length ?? 0) > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {profile.niche.map((n: string, idx: number) => {
-                            const colors = ['bg-teal-100 text-teal-800 border-teal-200','bg-violet-100 text-violet-800 border-violet-200','bg-amber-100 text-amber-800 border-amber-200','bg-pink-100 text-pink-800 border-pink-200','bg-emerald-100 text-emerald-800 border-emerald-200','bg-indigo-100 text-indigo-800 border-indigo-200','bg-orange-100 text-orange-800 border-orange-200','bg-cyan-100 text-cyan-800 border-cyan-200'];
+                            const colors = ['bg-rose-100 text-rose-800 border-rose-200','bg-blue-100 text-blue-800 border-blue-200','bg-amber-100 text-amber-800 border-amber-200','bg-pink-100 text-pink-800 border-pink-200','bg-emerald-100 text-emerald-800 border-emerald-200','bg-lime-100 text-lime-800 border-lime-200','bg-orange-100 text-orange-800 border-orange-200','bg-cyan-100 text-cyan-800 border-cyan-200'];
                             return (
                             <span key={n} className={`border px-3 py-1 rounded-full text-xs font-semibold ${colors[idx % colors.length]}`}>
                               {NICHE_LABELS[n] ?? n}
@@ -1506,7 +1538,7 @@ function InfluencerProfile() {
             <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#B00D4D] to-[#7A0F3D] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                     <BarChartIcon />
                   </div>
                   <div>
@@ -1520,7 +1552,7 @@ function InfluencerProfile() {
                   <div className="flex flex-wrap items-center gap-2">
                     {PLATFORMS.filter(p => !platforms.find(x => x.name === p)).map(p => (
                       <button key={p} onClick={() => addPlatform(p)}
-                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-[#EEF4F5] hover:border-[#7FA8AD]/40 hover:text-[#2A3E42] capitalize transition-all duration-150 cursor-pointer font-medium">
+                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-[#FCE4EC] hover:border-[#F0417B]/40 hover:text-[#7A0F3D] capitalize transition-all duration-150 cursor-pointer font-medium">
                         <PlusIcon />
                         {p}
                       </button>
@@ -1532,7 +1564,7 @@ function InfluencerProfile() {
               {isEditing ? (
                 platforms.length === 0 ? (
                   <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center bg-gray-50/50">
-                    <div className="w-10 h-10 rounded-xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#FCE4EC] text-[#F0417B] flex items-center justify-center mx-auto mb-3">
                       <BarChartIcon />
                     </div>
                     <p className="text-sm font-semibold text-gray-700 mb-1">No platforms added yet</p>
@@ -1571,7 +1603,7 @@ function InfluencerProfile() {
                                 value={platform[field] || ''}
                                 onChange={e => updatePlatform(index, field, parseInt(e.target.value) || 0)}
                                 placeholder={placeholder}
-                                className="w-full px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/30 focus:border-[#7FA8AD] transition-all duration-150 bg-white tabular-nums"
+                                className="w-full px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white tabular-nums"
                               />
                             </div>
                           ))}
@@ -1584,7 +1616,7 @@ function InfluencerProfile() {
                 /* View mode platforms */
                 (profile?.platforms?.length ?? 0) === 0 ? (
                   <div className="border-2 border-dashed border-gray-200 rounded-xl py-10 text-center">
-                    <div className="w-10 h-10 rounded-xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#FCE4EC] text-[#F0417B] flex items-center justify-center mx-auto mb-3">
                       <BarChartIcon />
                     </div>
                     <p className="text-sm font-semibold text-gray-700 mb-1">No platforms connected</p>
@@ -1654,7 +1686,7 @@ function InfluencerProfile() {
                 <button
                   onClick={() => !uploading && fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 bg-[#EEF4F5] text-[#2A3E42] border border-[#7FA8AD]/40 rounded-xl hover:bg-[#7FA8AD]/10 transition-all duration-150 cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 bg-[#FCE4EC] text-[#7A0F3D] border border-[#F0417B]/40 rounded-xl hover:bg-[#F0417B]/10 transition-all duration-150 cursor-pointer disabled:opacity-50"
                 >
                   {uploading ? (
                     <>
@@ -1710,16 +1742,16 @@ function InfluencerProfile() {
                   onClick={() => { setActiveTab(tab.id); setContentError(''); }}
                   className={`flex items-center gap-1.5 px-3.5 py-3 text-[13px] font-semibold border-b-2 transition-all duration-150 cursor-pointer whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
-                      ? 'border-[#7FA8AD] text-[#2A3E42]'
+                      ? 'border-[#F0417B] text-[#7A0F3D]'
                       : 'border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200'
                   }`}
                 >
-                  <span className={`transition-colors duration-150 ${activeTab === tab.id ? 'text-[#7FA8AD]' : 'text-gray-300'}`}>
+                  <span className={`transition-colors duration-150 ${activeTab === tab.id ? 'text-[#F0417B]' : 'text-gray-300'}`}>
                     {tab.icon}
                   </span>
                   {tab.label}
                   <span className={`ml-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-all duration-150 ${
-                    activeTab === tab.id ? 'bg-[#EEF4F5] text-[#5D8A8F]' : 'bg-gray-100 text-gray-400'
+                    activeTab === tab.id ? 'bg-[#FCE4EC] text-[#E0115F]' : 'bg-gray-100 text-gray-400'
                   }`}>
                     {tab.count}
                   </span>
@@ -1769,9 +1801,9 @@ function InfluencerProfile() {
               {isEditing && allPortfolioItems.length === 0 && !uploading && (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-200 hover:border-[#7FA8AD] hover:bg-[#EEF4F5]/30 rounded-xl p-8 text-center transition-all duration-200 mb-5 cursor-pointer group"
+                  className="border-2 border-dashed border-gray-200 hover:border-[#F0417B] hover:bg-[#FCE4EC]/30 rounded-xl p-8 text-center transition-all duration-200 mb-5 cursor-pointer group"
                 >
-                  <div className="text-gray-300 group-hover:text-[#7FA8AD] transition-colors duration-200 flex justify-center mb-3">
+                  <div className="text-gray-300 group-hover:text-[#F0417B] transition-colors duration-200 flex justify-center mb-3">
                     <UploadCloudIcon />
                   </div>
                   <p className="text-sm font-semibold text-gray-700 mb-1">Tap to upload</p>
@@ -1782,21 +1814,21 @@ function InfluencerProfile() {
               {filteredPortfolioItems.length === 0 && !uploading ? (
                 /* Empty state per tab */
                 <div className="py-16 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-[#EEF4F5] flex items-center justify-center mx-auto mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-[#FCE4EC] flex items-center justify-center mx-auto mb-4">
                     {activeTab === 'reels' ? (
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="#7FA8AD" stroke="none"/>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F0417B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="#F0417B" stroke="none"/>
                       </svg>
                     ) : activeTab === 'products' ? (
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F0417B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
                       </svg>
                     ) : activeTab === 'stories' ? (
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F0417B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
                       </svg>
                     ) : (
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA8AD" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F0417B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                       </svg>
                     )}
@@ -1822,7 +1854,7 @@ function InfluencerProfile() {
                   {isEditing && (
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
+                      className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 bg-gradient-to-r from-[#F0417B] to-[#E0115F] text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
                     >
                       <PlusIcon /> Upload now
                     </button>
@@ -1839,7 +1871,7 @@ function InfluencerProfile() {
                           ? 'border-amber-400'
                           : (!isPremiumUser && item.isVisible === false)
                             ? 'border-gray-200 opacity-60'
-                            : 'border-transparent hover:border-[#7FA8AD]/40'
+                            : 'border-transparent hover:border-[#F0417B]/40'
                       }`}
                     >
                       {item.type === 'image' ? (
@@ -1874,8 +1906,8 @@ function InfluencerProfile() {
                             : item.section === 'stories'
                               ? 'bg-pink-600/90 text-white backdrop-blur-sm'
                               : item.type === 'video'
-                                ? 'bg-purple-600/90 text-white backdrop-blur-sm'
-                                : 'bg-[#5D8A8F]/90 text-white backdrop-blur-sm'
+                                ? 'bg-blue-600/90 text-white backdrop-blur-sm'
+                                : 'bg-[#E0115F]/90 text-white backdrop-blur-sm'
                         }`}>
                           {item.section === 'products' ? 'PRODUCT'
                             : item.section === 'stories' ? 'STORY'
@@ -1914,12 +1946,12 @@ function InfluencerProfile() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-5 p-3.5 bg-[#EEF4F5] border border-[#7FA8AD]/30 rounded-xl text-xs text-[#2A3E42] leading-relaxed">
+                <div className="mt-5 p-3.5 bg-[#FCE4EC] border border-[#F0417B]/30 rounded-xl text-xs text-[#7A0F3D] leading-relaxed">
                   <div className="flex items-start gap-2">
-                    <span className="text-[#7FA8AD] mt-0.5 flex-shrink-0"><LockIcon /></span>
+                    <span className="text-[#F0417B] mt-0.5 flex-shrink-0"><LockIcon /></span>
                     <p>
                       <strong>Upload freely.</strong> On freemium, brands see your 3 most recent items.{' '}
-                      <Link href="/influencer/billing" className="text-[#5D8A8F] font-semibold hover:underline cursor-pointer">
+                      <Link href="/influencer/billing" className="text-[#E0115F] font-semibold hover:underline cursor-pointer">
                         Upgrade to show all →
                       </Link>
                     </p>
@@ -1935,7 +1967,7 @@ function InfluencerProfile() {
             require scrolling back up to save or cancel. */}
         <div className={`mt-6 flex items-center justify-end gap-2.5 rounded-2xl border px-5 py-4 shadow-sm ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'}`}>
           {saved && (
-            <span className="mr-auto flex items-center gap-1.5 text-sm text-emerald-700 font-semibold bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 shadow-sm">
+            <span className="mr-auto flex items-center gap-1.5 text-sm text-[#7A0F3D] font-semibold bg-[#FCE4EC] px-3 py-2 rounded-xl border border-[#F3B8CB] shadow-sm">
               <CheckIcon />
               Saved
             </span>
@@ -1948,7 +1980,7 @@ function InfluencerProfile() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="group relative flex items-center gap-2 bg-gradient-to-r from-[#5D8A8F] to-[#7FA8AD] hover:from-[#4A7378] hover:to-[#6B9499] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
+            className="group relative flex items-center gap-2 bg-gradient-to-r from-[#E0115F] to-[#F0417B] hover:from-[#8C1F52] hover:to-[#D6799A] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
             {saving ? (
               <>
                 <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">

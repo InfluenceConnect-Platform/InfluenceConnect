@@ -35,33 +35,34 @@ export default function VerifyOTPPage() {
   const pendingMobile = typeof window !== 'undefined' ? localStorage.getItem('pendingMobile') : null;
 
   // Theme the verification screen to match the account being created: brands
-  // get the deep indigo-navy (#3D5087), creators keep the teal. Both class
+  // get forest green (#228B22), creators get ruby red (#E0115F) — same
+  // ROLE_COLOR pair as the signup page just before this step. Both class
   // sets are written out in full so Tailwind generates them at build time.
   const isBrand = (typeof window !== 'undefined' ? localStorage.getItem('pendingRole') : null) === 'brand';
   const TH = isBrand
     ? {
-        step1Light: 'bg-indigo-50 border-indigo-300 text-indigo-600',
-        step1Dark:  'bg-[#3D5087]/30 border-[#3D5087]/50 text-[#8C9BD0]',
-        step2Badge: 'bg-[#3D5087] shadow-[0_0_12px_rgba(61,80,135,0.5)]',
-        iconLight:  'text-[#3D5087]',
-        iconDark:   'text-[#8C9BD0]',
-        link:       'text-[#3D5087] hover:text-[#2B3B68]',
-        inputFilledDark:  'border-[#6B7FBB] bg-[#6B7FBB]/10 text-[#A9B6E0]',
-        inputFilledLight: 'border-[#3D5087] bg-[#3D5087]/10 text-[#2B3B68]',
-        inputIdleDark:    'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#6B7FBB] focus:bg-[#6B7FBB]/5',
-        inputIdleLight:   'border-gray-200 bg-gray-50 text-gray-900 focus:border-[#3D5087] focus:bg-[#3D5087]/5',
+        step1Light: 'bg-emerald-50 border-emerald-300 text-emerald-700',
+        step1Dark:  'bg-[#228B22]/30 border-[#228B22]/50 text-[#8FE39A]',
+        step2Badge: 'bg-[#3FA34D] shadow-[0_0_12px_rgba(63,163,77,0.5)]',
+        iconLight:  'text-[#228B22]',
+        iconDark:   'text-[#8FE39A]',
+        link:       'text-[#228B22] hover:text-[#1B6E1B]',
+        inputFilledDark:  'border-[#3FA34D] bg-[#3FA34D]/10 text-[#8FE39A]',
+        inputFilledLight: 'border-[#228B22] bg-[#228B22]/10 text-[#14531D]',
+        inputIdleDark:    'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#3FA34D] focus:bg-[#3FA34D]/5',
+        inputIdleLight:   'border-gray-200 bg-gray-50 text-gray-900 focus:border-[#228B22] focus:bg-[#228B22]/5',
       }
     : {
-        step1Light: 'bg-teal-50 border-teal-300 text-teal-600',
-        step1Dark:  'bg-[#5D8A8F]/30 border-[#5D8A8F]/50 text-[#7FA8AD]',
-        step2Badge: 'bg-[#7FA8AD] shadow-[0_0_12px_rgba(127,168,173,0.5)]',
-        iconLight:  'text-[#5D8A8F]',
-        iconDark:   'text-[#7FA8AD]',
-        link:       'text-[#5D8A8F] hover:text-[#4A7A7F]',
-        inputFilledDark:  'border-[#7FA8AD] bg-[#7FA8AD]/10 text-[#9FC8CD]',
-        inputFilledLight: 'border-[#5D8A8F] bg-[#5D8A8F]/10 text-[#3D6B70]',
-        inputIdleDark:    'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#7FA8AD] focus:bg-[#7FA8AD]/5',
-        inputIdleLight:   'border-gray-200 bg-gray-50 text-gray-900 focus:border-[#5D8A8F] focus:bg-[#5D8A8F]/5',
+        step1Light: 'bg-rose-50 border-rose-300 text-[#B00D4D]',
+        step1Dark:  'bg-[#E0115F]/30 border-[#E0115F]/50 text-[#FFA8C6]',
+        step2Badge: 'bg-[#F0417B] shadow-[0_0_12px_rgba(240,65,123,0.5)]',
+        iconLight:  'text-[#E0115F]',
+        iconDark:   'text-[#FFA8C6]',
+        link:       'text-[#E0115F] hover:text-[#B00D4D]',
+        inputFilledDark:  'border-[#F0417B] bg-[#F0417B]/10 text-[#FFA8C6]',
+        inputFilledLight: 'border-[#E0115F] bg-[#E0115F]/10 text-[#7A0F3D]',
+        inputIdleDark:    'border-slate-700 bg-[#0A1628] text-slate-100 focus:border-[#F0417B] focus:bg-[#F0417B]/5',
+        inputIdleLight:   'border-gray-200 bg-gray-50 text-gray-900 focus:border-[#E0115F] focus:bg-[#E0115F]/5',
       };
 
   useEffect(() => {

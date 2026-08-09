@@ -197,7 +197,7 @@ export default function AdminDashboard() {
       wash: 'to-emerald-50/70',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          <path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/>
         </svg>
       ),
     },
@@ -503,16 +503,37 @@ export default function AdminDashboard() {
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Quick access</p>
               {[
-                { label: 'Manage users', href: '/admin/users' },
-                { label: 'Review campaigns', href: '/admin/campaigns' },
-                { label: 'Subscription overview', href: '/admin/subscriptions' },
+                {
+                  label: 'Manage users', href: '/admin/users',
+                  iconBg: 'bg-blue-50 group-hover:bg-blue-100', iconColor: 'text-blue-500',
+                  icon: <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />,
+                  icon2: <circle cx="9" cy="7" r="4" />,
+                  icon3: <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />,
+                },
+                {
+                  label: 'Review campaigns', href: '/admin/campaigns',
+                  iconBg: 'bg-violet-50 group-hover:bg-violet-100', iconColor: 'text-violet-500',
+                  icon: <path d="M3 3v18h18" />,
+                  icon2: <path d="M18.7 8 13 13.7l-3.5-3.5L3 17.5" />,
+                },
+                {
+                  label: 'Subscription overview', href: '/admin/subscriptions',
+                  iconBg: 'bg-teal-50 group-hover:bg-teal-100', iconColor: 'text-teal-500',
+                  icon: <rect x="1" y="4" width="22" height="16" rx="2" />,
+                  icon2: <line x1="1" y1="10" x2="23" y2="10" />,
+                },
               ].map((l, i) => (
                 <Link
                   key={i}
                   href={l.href}
-                  className="flex items-center justify-between text-xs font-medium text-gray-600 hover:text-[#3E4751] py-1.5 border-b border-gray-50 last:border-0 transition-colors group"
+                  className="flex items-center gap-2.5 text-xs font-medium text-gray-600 hover:text-[#3E4751] py-1.5 border-b border-gray-50 last:border-0 transition-colors group"
                 >
-                  {l.label}
+                  <span className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${l.iconBg}`}>
+                    <svg className={`w-3.5 h-3.5 ${l.iconColor}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      {l.icon}{l.icon2}{l.icon3}
+                    </svg>
+                  </span>
+                  <span className="flex-1">{l.label}</span>
                   <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-[#3E4751] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                   </svg>

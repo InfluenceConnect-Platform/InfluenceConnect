@@ -15,6 +15,8 @@ interface AccountInfo {
   mobile: string;
   role: string;
   plan: string;
+  tier?: string;
+  autopay?: boolean;
   signupMethod: string;
   createdAt: string;
   deleteScheduledAt: string | null;
@@ -80,11 +82,29 @@ export default function InfluencerSettings() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [savingAutopay, setSavingAutopay] = useState(false);
+  const [autopayMsg, setAutopayMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  async function handleToggleAutopay() {
+    if (!account) return;
+    const next = !account.autopay;
+    setSavingAutopay(true);
+    setAutopayMsg(null);
+    try {
+      const res = await api.post('/api/payments/autopay', { enabled: next });
+      setAccount(prev => prev ? { ...prev, autopay: res.data.autopay } : prev);
+      setAutopayMsg({ type: 'success', text: res.data.message });
+    } catch (err: any) {
+      setAutopayMsg({ type: 'error', text: err.response?.data?.error || 'Could not update Autopay.' });
+    } finally {
+      setSavingAutopay(false);
+    }
+  }
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
-    if (!stored || !localStorage.getItem('token')) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
+    if (!stored || !localStorage.getItem('token')) { router.push('/auth/login?role=influencer'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login?role=influencer'); return; }
     api.get('/api/auth/account').then(r => setAccount(r.data)).catch(() => {}).finally(() => setLoading(false));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data.profile?.profilePicUrl || '')).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -142,15 +162,15 @@ export default function InfluencerSettings() {
 
   const inputCls = `w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 ${
     isDark
-      ? 'bg-slate-800/60 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-[#5D8A8F] focus:ring-[#5D8A8F]/20'
-      : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-[#5D8A8F] focus:ring-[#5D8A8F]/10'
+      ? 'bg-slate-800/60 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-[#E0115F] focus:ring-[#E0115F]/20'
+      : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-[#E0115F] focus:ring-[#E0115F]/10'
   }`;
 
   const labelCls = `block text-xs font-semibold mb-1.5 ${isDark ? 'text-slate-400' : 'text-gray-500'}`;
 
   const cardCls = `rounded-2xl border p-6 ${isDark ? 'bg-[#0f1e31] border-slate-700/60' : 'bg-white border-gray-200'}`;
 
-  const accentBtn = 'flex items-center gap-2 bg-[#5D8A8F] hover:bg-[#4a7378] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 cursor-pointer';
+  const accentBtn = 'flex items-center gap-2 bg-[#E0115F] hover:bg-[#B00D4D] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 cursor-pointer';
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#080f1a]' : 'bg-gray-50'}`}>
@@ -179,7 +199,7 @@ export default function InfluencerSettings() {
                     ${activeSection === s.id
                       ? s.id === 'danger'
                         ? 'bg-red-500/10 text-red-500'
-                        : isDark ? 'bg-[#5D8A8F]/15 text-[#9DC4C9]' : 'bg-[#5D8A8F]/8 text-[#5D8A8F]'
+                        : isDark ? 'bg-[#E0115F]/15 text-[#F5A8BF]' : 'bg-[#E0115F]/8 text-[#E0115F]'
                       : s.id === 'danger'
                         ? isDark ? 'text-red-400/70 hover:bg-red-900/10 hover:text-red-400' : 'text-red-400 hover:bg-red-50 hover:text-red-500'
                         : isDark ? 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
@@ -196,7 +216,7 @@ export default function InfluencerSettings() {
           <div className="flex-1 min-w-0 space-y-5">
             {loading ? (
               <div className={`${cardCls} flex items-center justify-center h-48`}>
-                <svg className="w-6 h-6 animate-spin text-[#5D8A8F]" viewBox="0 0 24 24" fill="none">
+                <svg className="w-6 h-6 animate-spin text-[#E0115F]" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                 </svg>
@@ -204,14 +224,42 @@ export default function InfluencerSettings() {
             ) : (
               <>
                 {activeSection === 'account' && account && (
-                  <div className={cardCls}>
-                    <h2 className={`text-base font-bold mb-1 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Account Information</h2>
-                    <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Each field has its own Update button. Email and phone changes require OTP verification.</p>
-                    <AccountInfoSection
-                      account={account}
-                      accentColor="#5D8A8F"
-                      onUpdate={updates => setAccount(prev => prev ? { ...prev, ...updates } : prev)}
-                    />
+                  <div className="space-y-5">
+                    <div className={cardCls}>
+                      <h2 className={`text-base font-bold mb-1 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Account Information</h2>
+                      <p className={`text-xs mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Each field has its own Update button. Email and phone changes require OTP verification.</p>
+                      <AccountInfoSection
+                        account={account}
+                        accentColor="#E0115F"
+                        onUpdate={updates => setAccount(prev => prev ? { ...prev, ...updates } : prev)}
+                      />
+                    </div>
+
+                    <div className={cardCls}>
+                      <div className="flex items-start justify-between gap-4 mb-1">
+                        <div>
+                          <h2 className={`text-base font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Autopay</h2>
+                          <p className={`text-xs mt-1 max-w-md ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                            {account.plan === 'premium'
+                              ? 'Automatically renew your current plan when it expires, instead of reverting to Free.'
+                              : 'Upgrade to a paid plan to enable Autopay.'}
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleToggleAutopay}
+                          disabled={savingAutopay || account.plan !== 'premium'}
+                          aria-pressed={!!account.autopay}
+                          className={`relative shrink-0 w-11 h-6 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+                            account.autopay ? 'bg-[#E0115F]' : isDark ? 'bg-slate-700' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${account.autopay ? 'translate-x-5' : ''}`} />
+                        </button>
+                      </div>
+                      {autopayMsg && (
+                        <p className={`text-xs mt-3 ${autopayMsg.type === 'success' ? 'text-emerald-500' : 'text-red-500'}`}>{autopayMsg.text}</p>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -289,7 +337,7 @@ export default function InfluencerSettings() {
                       <p className={`text-xs mb-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Our team typically responds within 24 hours.</p>
                       <a
                         href="mailto:support@influenceconnect.in"
-                        className="inline-flex items-center gap-2 bg-[#5D8A8F] hover:bg-[#4a7378] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all"
+                        className="inline-flex items-center gap-2 bg-[#E0115F] hover:bg-[#B00D4D] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                         Email Support

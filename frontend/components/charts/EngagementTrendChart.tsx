@@ -130,7 +130,7 @@ export default function EngagementTrendChart({ history, totalFollowers }: Props)
                 onClick={() => { setRange(r); setHovered(null); }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   range === r
-                    ? 'bg-gradient-to-r from-[#1C4A52] to-[#2d7a88] text-white shadow-sm'
+                    ? 'bg-gradient-to-r from-[#7A0F3D] to-[#B00D4D] text-white shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -138,20 +138,20 @@ export default function EngagementTrendChart({ history, totalFollowers }: Props)
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1.5 bg-teal-50 border border-teal-100 rounded-xl px-3 py-1.5">
-            <span className="text-[11px] font-bold text-teal-700">
+          <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-100 rounded-xl px-3 py-1.5">
+            <span className="text-[11px] font-bold text-[#7A0F3D]">
               {totalFollowers >= 1_000_000
                 ? `${(totalFollowers / 1_000_000).toFixed(1)}M`
                 : totalFollowers >= 1_000
                 ? `${(totalFollowers / 1_000).toFixed(0)}K`
                 : totalFollowers || '—'}
             </span>
-            <span className="text-[10px] text-teal-500 font-medium">Reach</span>
+            <span className="text-[10px] text-[#E0115F] font-medium">Reach</span>
           </div>
           {latestRate > 0 && (
-            <div className="flex items-center gap-1.5 bg-violet-50 border border-violet-100 rounded-xl px-3 py-1.5">
-              <span className="text-[11px] font-bold text-violet-700">{fmtPct(latestRate)}</span>
-              <span className="text-[10px] text-violet-500 font-medium">Avg. Engagement</span>
+            <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-xl px-3 py-1.5">
+              <span className="text-[11px] font-bold text-blue-700">{fmtPct(latestRate)}</span>
+              <span className="text-[10px] text-blue-500 font-medium">Avg. Engagement</span>
             </div>
           )}
         </div>
@@ -160,7 +160,7 @@ export default function EngagementTrendChart({ history, totalFollowers }: Props)
       <div ref={containerRef} className="px-2 sm:px-3 pb-4 pt-3">
         {data.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center gap-2 px-6" style={{ height: H }}>
-            <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#E0115F] flex items-center justify-center">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
               </svg>
@@ -180,12 +180,12 @@ export default function EngagementTrendChart({ history, totalFollowers }: Props)
           >
             <defs>
               <linearGradient id="eng-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#7FA8AD" stopOpacity="0.35" />
-                <stop offset="100%" stopColor="#7FA8AD" stopOpacity="0.02" />
+                <stop offset="0%" stopColor="#F0417B" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#F0417B" stopOpacity="0.02" />
               </linearGradient>
               <linearGradient id="eng-line" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#5D8A8F" />
-                <stop offset="100%" stopColor="#2d7a88" />
+                <stop offset="0%" stopColor="#E0115F" />
+                <stop offset="100%" stopColor="#B00D4D" />
               </linearGradient>
               <filter id="dot-glow" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="3" result="blur" />
@@ -224,10 +224,10 @@ export default function EngagementTrendChart({ history, totalFollowers }: Props)
 
             {hovPt && (
               <>
-                <line x1={hovPt.x} y1={PAD.top} x2={hovPt.x} y2={PAD.top + plotH} stroke="#7FA8AD" strokeWidth="1.5" strokeDasharray="3 3" />
-                <circle cx={hovPt.x} cy={hovPt.y} r="6" fill="white" stroke="#2d7a88" strokeWidth="2" filter="url(#dot-glow)" />
+                <line x1={hovPt.x} y1={PAD.top} x2={hovPt.x} y2={PAD.top + plotH} stroke="#F0417B" strokeWidth="1.5" strokeDasharray="3 3" />
+                <circle cx={hovPt.x} cy={hovPt.y} r="6" fill="white" stroke="#B00D4D" strokeWidth="2" filter="url(#dot-glow)" />
                 <g>
-                  <rect x={Math.min(Math.max(hovPt.x - 30, 2), W - 64)} y={hovPt.y - 36} width={62} height={24} rx="6" fill="#1C4A52" />
+                  <rect x={Math.min(Math.max(hovPt.x - 30, 2), W - 64)} y={hovPt.y - 36} width={62} height={24} rx="6" fill="#7A0F3D" />
                   <text x={Math.min(Math.max(hovPt.x - 30, 2), W - 64) + 31} y={hovPt.y - 20} textAnchor="middle" fontSize="11" fontWeight="700" fill="white" fontFamily="sans-serif">
                     {fmtPct(hovPt.value)}
                   </text>
@@ -237,14 +237,14 @@ export default function EngagementTrendChart({ history, totalFollowers }: Props)
 
             {pts.map((p, i) =>
               hovered === i ? null : (
-                <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="white" stroke="#7FA8AD" strokeWidth="2" />
+                <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="white" stroke="#F0417B" strokeWidth="2" />
               )
             )}
 
             {pts.map((p, i) =>
               p.showLabel ? (
                 <text key={i} x={p.x} y={H - 8} textAnchor="middle" fontSize="11"
-                  fill={hovered === i ? '#1C4A52' : '#9EB8BC'}
+                  fill={hovered === i ? '#7A0F3D' : '#B08A96'}
                   fontWeight={hovered === i ? '700' : '500'}
                   fontFamily="sans-serif"
                 >

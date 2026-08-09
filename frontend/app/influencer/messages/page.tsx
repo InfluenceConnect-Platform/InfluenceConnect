@@ -14,6 +14,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { ChatAttachment, validateChatFile, uploadChatAttachment, formatFileSize, downloadUrlFor, MAX_ATTACHMENTS_PER_MESSAGE } from '@/lib/chatAttachments';
 import { cdnImg } from '@/lib/img';
+import { dealStatusMeta } from '@/lib/dealStatus';
 
 interface Message {
   _id: string;
@@ -123,6 +124,19 @@ const formatRelativeTime = (d: string) => {
 const getInitials = (name: string) =>
   name?.slice(0, 2).toUpperCase() || 'BR';
 
+// WhatsApp-style day key/label — groups messages by calendar day (IST) and
+// labels the divider "Today" / "Yesterday" / a full date for anything older.
+const dayKey = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD, stable sort/compare key
+const formatDayDivider = (iso: string) => {
+  const todayKey = dayKey(new Date().toISOString());
+  const yesterdayKey = dayKey(new Date(Date.now() - 86400000).toISOString());
+  const key = dayKey(iso);
+  if (key === todayKey) return 'Today';
+  if (key === yesterdayKey) return 'Yesterday';
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
+};
+
 const previewText = (msg?: { content: string; attachments?: ChatAttachment[] } | null) => {
   if (!msg) return '';
   if (msg.content) return msg.content;
@@ -134,11 +148,11 @@ const previewText = (msg?: { content: string; attachments?: ChatAttachment[] } |
 };
 
 const AVATAR_COLORS = [
-  'from-[#7FA8AD] to-[#5D8A8F]',
-  'from-violet-400 to-violet-600',
+  'from-[#F0417B] to-[#E0115F]',
+  'from-blue-400 to-blue-600',
   'from-amber-400 to-orange-500',
   'from-rose-400 to-pink-600',
-  'from-emerald-400 to-teal-600',
+  'from-sky-400 to-cyan-600',
 ];
 const getAvatarColor = (name: string) =>
   AVATAR_COLORS[(name?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
@@ -195,8 +209,8 @@ function MessagesPage() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=influencer'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login?role=influencer'); return; }
     setUser(JSON.parse(stored));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchDeals();
@@ -442,7 +456,7 @@ function MessagesPage() {
   const openCampaignDrawer = () => { if (canViewCampaign) setCampaignDrawerOpen(true); };
 
   return (
-    <div className={`h-[100dvh] flex flex-col overflow-hidden ${isDark ? 'bg-[#060D1A]' : 'bg-[#EDF3F4]'}`}>
+    <div className={`h-[100dvh] flex flex-col overflow-hidden ${isDark ? 'bg-[#060D1A]' : 'bg-[#FCE4EC]'}`}>
 
       <div className={showChat ? 'hidden lg:block flex-shrink-0' : 'flex-shrink-0'}>
         <InfluencerNav user={user} profilePicUrl={profilePicUrl} />
@@ -459,7 +473,7 @@ function MessagesPage() {
 
           {/* Dark navy header */}
           <div className="px-4 pt-4 pb-3 flex-shrink-0"
-            style={{ background: 'linear-gradient(145deg, #17353D 0%, #1C4A52 55%, #255E6A 100%)' }}>
+            style={{ background: 'linear-gradient(145deg, #2E0818 0%, #7A0F3D 55%, #B00D4D 100%)' }}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2.5">
                 <h1 className="text-[17px] font-bold text-white tracking-tight">Messages</h1>
@@ -507,7 +521,7 @@ function MessagesPage() {
               </div>
             ) : filteredDeals.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center mb-4 shadow-lg shadow-teal-200/50">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white flex items-center justify-center mb-4 shadow-lg shadow-rose-200/50">
                   <ChatBubbleIcon size={28} />
                 </div>
                 <p className="text-[14px] font-bold text-gray-800 mb-1.5">No conversations</p>
@@ -518,7 +532,7 @@ function MessagesPage() {
                 </p>
                 {!search && (
                   <Link href="/influencer/campaigns"
-                    className="mt-5 text-[12px] font-semibold text-white bg-gradient-to-r from-[#27717E] to-[#5BA8B5] hover:opacity-90 px-4 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-md shadow-teal-200/30">
+                    className="mt-5 text-[12px] font-semibold text-white bg-gradient-to-r from-[#B00D4D] to-[#F0417B] hover:opacity-90 px-4 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-md shadow-rose-200/30">
                     Browse campaigns →
                   </Link>
                 )}
@@ -542,15 +556,15 @@ function MessagesPage() {
                         onClick={() => selectDeal(deal)}
                         className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 cursor-pointer relative ${
                           isActive
-                            ? isDark ? 'bg-gradient-to-r from-teal-900/30 to-cyan-900/20' : 'bg-gradient-to-r from-teal-50 to-cyan-50/40'
+                            ? isDark ? 'bg-gradient-to-r from-rose-900/30 to-cyan-900/20' : 'bg-gradient-to-r from-rose-50 to-cyan-50/40'
                             : hasActivity
-                            ? isDark ? 'bg-teal-900/20 hover:bg-teal-900/30' : 'bg-teal-50/40 hover:bg-teal-50/70'
+                            ? isDark ? 'bg-rose-900/20 hover:bg-rose-900/30' : 'bg-rose-50/40 hover:bg-rose-50/70'
                             : isDark ? 'hover:bg-slate-800/40' : 'hover:bg-gray-50/80'
                         }`}
                       >
                         {/* Active left bar */}
                         {isActive && (
-                          <span className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-[#27717E]" />
+                          <span className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-[#B00D4D]" />
                         )}
 
                         {/* Avatar */}
@@ -566,7 +580,7 @@ function MessagesPage() {
                             )}
                           </div>
                           {hasActivity && (
-                            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#4CAF7D] border-2 border-white" />
+                            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#E0115F] border-2 border-white" />
                           )}
                         </div>
 
@@ -574,7 +588,7 @@ function MessagesPage() {
                           <div className="flex items-center justify-between mb-0.5">
                             <span className={`text-[13.5px] truncate leading-tight ${
                               isActive
-                                ? isDark ? 'font-bold text-teal-300' : 'font-bold text-[#1C4A52]'
+                                ? isDark ? 'font-bold text-rose-300' : 'font-bold text-[#7A0F3D]'
                                 : hasActivity
                                 ? isDark ? 'font-bold text-slate-200' : 'font-bold text-gray-900'
                                 : isDark ? 'font-semibold text-slate-300' : 'font-semibold text-gray-700'
@@ -583,7 +597,7 @@ function MessagesPage() {
                             </span>
                             {lastMsg && (
                               <span className={`text-[10.5px] ml-2 flex-shrink-0 font-medium ${
-                                hasActivity ? isDark ? 'text-teal-400' : 'text-teal-600' : isDark ? 'text-slate-500' : 'text-gray-400'
+                                hasActivity ? isDark ? 'text-rose-400' : 'text-rose-600' : isDark ? 'text-slate-500' : 'text-gray-400'
                               }`}>
                                 {formatRelativeTime(lastMsg.createdAt)}
                               </span>
@@ -603,18 +617,12 @@ function MessagesPage() {
 
                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                           {hasUnread && !isActive && (
-                            <span className="min-w-[20px] h-[20px] px-1.5 rounded-full bg-[#27717E] text-white text-[10px] font-bold flex items-center justify-center">
+                            <span className="min-w-[20px] h-[20px] px-1.5 rounded-full bg-[#B00D4D] text-white text-[10px] font-bold flex items-center justify-center">
                               {(deal.unreadCount ?? 0) > 9 ? '9+' : deal.unreadCount}
                             </span>
                           )}
-                          <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-md text-white uppercase tracking-wide ${
-                            deal.status === 'completed'
-                              ? 'bg-emerald-500'
-                              : deal.status === 'active'
-                              ? 'bg-blue-500'
-                              : 'bg-amber-500'
-                          }`}>
-                            {deal.status}
+                          <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${dealStatusMeta(deal.status).badge}`}>
+                            {dealStatusMeta(deal.status).label}
                           </span>
                         </div>
                       </button>
@@ -629,7 +637,7 @@ function MessagesPage() {
           {!isPremium && (
             <div className="border-t border-gray-100 p-3 flex-shrink-0">
               <div className="relative overflow-hidden rounded-2xl p-3.5 flex items-center gap-3"
-                style={{ background: 'linear-gradient(135deg, #1C4A52 0%, #27717E 60%, #5BA8B5 100%)' }}>
+                style={{ background: 'linear-gradient(135deg, #7A0F3D 0%, #B00D4D 60%, #F0417B 100%)' }}>
                 <div className="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
                 <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5 pointer-events-none" />
                 <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center flex-shrink-0 relative">
@@ -637,10 +645,10 @@ function MessagesPage() {
                 </div>
                 <div className="flex-1 min-w-0 relative">
                   <p className="text-[12px] font-bold text-white">Unlimited messages</p>
-                  <p className="text-[11px] text-teal-200/80">Upgrade to Premium</p>
+                  <p className="text-[11px] text-rose-200/80">Upgrade to Premium</p>
                 </div>
                 <Link href="/influencer/billing"
-                  className="text-[11px] font-bold text-[#1C4A52] bg-white hover:bg-teal-50 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
+                  className="text-[11px] font-bold text-[#7A0F3D] bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
                   Upgrade
                 </Link>
               </div>
@@ -671,7 +679,7 @@ function MessagesPage() {
                   !selectedDeal.brandLogoUrl
                     ? `bg-gradient-to-br ${getAvatarColor(selectedDeal.brandId?.name || '')}`
                     : 'bg-gray-100'
-                } ${canViewCampaign ? 'cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-teal-400/60 hover:brightness-95 active:scale-95' : ''}`}>
+                } ${canViewCampaign ? 'cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-rose-400/60 hover:brightness-95 active:scale-95' : ''}`}>
                   {selectedDeal.brandLogoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img loading="lazy" decoding="async" src={cdnImg(selectedDeal.brandLogoUrl)} alt={selectedDeal.brandId?.name} className="w-full h-full object-cover" />
@@ -686,7 +694,7 @@ function MessagesPage() {
                       type="button"
                       onClick={openCampaignDrawer}
                       title="View campaign brief"
-                      className={`text-[15px] font-bold leading-tight text-left cursor-pointer hover:underline decoration-2 underline-offset-2 transition-colors ${isDark ? 'text-white hover:text-teal-300' : 'text-gray-900 hover:text-teal-600'}`}
+                      className={`text-[15px] font-bold leading-tight text-left cursor-pointer hover:underline decoration-2 underline-offset-2 transition-colors ${isDark ? 'text-white hover:text-rose-300' : 'text-gray-900 hover:text-rose-600'}`}
                     >
                       {selectedDeal.brandId?.name}
                     </button>
@@ -702,7 +710,7 @@ function MessagesPage() {
                       onClick={handleSubmitContent}
                       disabled={actionLoading || chatLocked}
                       title={chatLocked ? 'Unlock the chat to mark content as submitted' : undefined}
-                      className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-[#27717E] hover:bg-[#1C5A65] text-white transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                      className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-[#B00D4D] hover:bg-[#7A0F3D] text-white transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm active:scale-95"
                     >
                       {actionLoading ? 'Submitting…' : 'Mark Done'}
                     </button>
@@ -713,7 +721,7 @@ function MessagesPage() {
                     </span>
                   )}
                   {selectedDeal.status === 'completed' && (
-                    <span className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-[#FCE4EC] text-[#B00D4D] border border-[#F3B8CB]">
                       Completed
                     </span>
                   )}
@@ -726,15 +734,15 @@ function MessagesPage() {
               </div>
 
               {/* Campaign brief strip */}
-              <div className={`flex items-center gap-2.5 px-4 sm:px-5 py-2 border-b flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDark ? 'bg-teal-900/20 border-teal-800/30' : 'bg-teal-50/70 border-teal-100/70'}`}>
-                <svg className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-teal-300' : 'text-teal-600'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className={`flex items-center gap-2.5 px-4 sm:px-5 py-2 border-b flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDark ? 'bg-rose-900/20 border-rose-800/30' : 'bg-rose-50/70 border-rose-100/70'}`}>
+                <svg className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-rose-300' : 'text-rose-600'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                 </svg>
-                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-teal-200' : 'text-teal-900'}`}>Deliverables:</span>
-                <span className={`text-[11.5px] font-medium flex-shrink-0 ${isDark ? 'text-teal-200' : 'text-teal-800'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
-                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-teal-600' : 'text-teal-400'}`}>·</span>
-                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-teal-200' : 'text-teal-900'}`}>Budget:</span>
-                <span className={`text-[11.5px] flex-shrink-0 font-semibold ${isDark ? 'text-teal-200' : 'text-teal-800'}`}>
+                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-rose-200' : 'text-rose-900'}`}>Deliverables:</span>
+                <span className={`text-[11.5px] font-medium flex-shrink-0 ${isDark ? 'text-rose-200' : 'text-rose-800'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
+                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-rose-600' : 'text-rose-400'}`}>·</span>
+                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-rose-200' : 'text-rose-900'}`}>Budget:</span>
+                <span className={`text-[11.5px] flex-shrink-0 font-semibold ${isDark ? 'text-rose-200' : 'text-rose-800'}`}>
                   {selectedDeal.negotiationStatus === 'agreed'
                     ? `₹${selectedDeal.agreedAmount?.toLocaleString('en-IN')} (agreed)`
                     : `₹${selectedDeal.campaignId?.budgetMin?.toLocaleString('en-IN')} – ₹${selectedDeal.campaignId?.budgetMax?.toLocaleString('en-IN')}`}
@@ -771,7 +779,7 @@ function MessagesPage() {
                     {payoutLoaded && (
                       <button
                         onClick={() => setPayoutModalOpen(true)}
-                        className={`flex-shrink-0 text-[11.5px] font-bold px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer ${isDark ? 'text-teal-300 hover:bg-slate-800' : 'text-[#27717E] hover:bg-teal-50'}`}
+                        className={`flex-shrink-0 text-[11.5px] font-bold px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer ${isDark ? 'text-rose-300 hover:bg-slate-800' : 'text-[#B00D4D] hover:bg-rose-50'}`}
                       >
                         {!payout ? 'Fill in details' : 'View'}
                       </button>
@@ -788,9 +796,9 @@ function MessagesPage() {
               )}
 
               {/* Moderation notice */}
-              <div className={`flex items-center gap-2 px-4 sm:px-5 py-1.5 border-b flex-shrink-0 ${isDark ? 'bg-teal-900/15 border-teal-800/20' : 'bg-teal-50/50 border-teal-100/40'}`}>
-                <span className={`flex-shrink-0 ${isDark ? 'text-teal-300' : 'text-teal-600'}`}><ShieldIcon /></span>
-                <p className={`text-[11px] font-medium ${isDark ? 'text-teal-200' : 'text-teal-800'}`}>
+              <div className={`flex items-center gap-2 px-4 sm:px-5 py-1.5 border-b flex-shrink-0 ${isDark ? 'bg-rose-900/15 border-rose-800/20' : 'bg-rose-50/50 border-rose-100/40'}`}>
+                <span className={`flex-shrink-0 ${isDark ? 'text-rose-300' : 'text-rose-600'}`}><ShieldIcon /></span>
+                <p className={`text-[11px] font-medium ${isDark ? 'text-rose-200' : 'text-rose-800'}`}>
                   Contact info, social handles & external links are automatically blocked to protect both parties.
                 </p>
               </div>
@@ -805,14 +813,14 @@ function MessagesPage() {
                   backgroundImage: 'radial-gradient(circle, #1a2e40 1px, transparent 1px)',
                   backgroundSize: '22px 22px',
                 } : {
-                  backgroundColor: '#EDF3F4',
-                  backgroundImage: 'radial-gradient(circle, #B0CACE 1px, transparent 1px)',
+                  backgroundColor: '#FCE4EC',
+                  backgroundImage: 'radial-gradient(circle, #F3B8CB 1px, transparent 1px)',
                   backgroundSize: '22px 22px',
                 }}
               >
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center gap-4 py-12">
-                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#27717E] to-[#5BA8B5] text-white flex items-center justify-center shadow-xl shadow-teal-300/25">
+                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#B00D4D] to-[#F0417B] text-white flex items-center justify-center shadow-xl shadow-rose-300/25">
                       <ChatBubbleIcon size={30} />
                     </div>
                     <div>
@@ -825,36 +833,41 @@ function MessagesPage() {
                   </div>
                 ) : (
                   <>
-                    {/* Date divider */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
-                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm ${isDark ? 'text-slate-500 bg-slate-800/70' : 'text-gray-400/80 bg-white/70'}`}>
-                        Today
-                      </span>
-                      <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
-                    </div>
-
                     {messages.map((msg, idx) => {
                       const isMine = msg.senderId?.toString() === user?.id?.toString();
+                      const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                      const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
+                      const showDateDivider = !prevMsg || dayKey(prevMsg.createdAt) !== dayKey(msg.createdAt);
+                      const dateDivider = showDateDivider && (
+                        <div key={`divider-${msg._id}`} className="flex items-center gap-3 mb-4 mt-3 first:mt-0">
+                          <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
+                          <span className={`text-[10px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm ${isDark ? 'text-slate-500 bg-slate-800/70' : 'text-gray-400/80 bg-white/70'}`}>
+                            {formatDayDivider(msg.createdAt)}
+                          </span>
+                          <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
+                        </div>
+                      );
+
                       // System notices (e.g. admin removed the campaign) sit centered.
                       // The acting party sees actorContent ("You did X") instead of
                       // the other party's phrasing ("X did Y"), when one is set.
                       if (msg.system) {
                         return (
-                          <div key={msg._id} className="flex justify-center my-3">
-                            <div className={`max-w-[85%] text-center text-[12px] font-medium px-3.5 py-2 rounded-xl border ${
-                              isDark
-                                ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
-                                : 'bg-amber-50 text-amber-700 border-amber-200/70'
-                            }`}>
-                              {isMine && msg.actorContent ? msg.actorContent : msg.content}
+                          <div key={msg._id}>
+                            {dateDivider}
+                            <div className="flex justify-center my-3">
+                              <div className={`max-w-[85%] text-center text-[12px] font-medium px-3.5 py-2 rounded-xl border ${
+                                isDark
+                                  ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200/70'
+                              }`}>
+                                {isMine && msg.actorContent ? msg.actorContent : msg.content}
+                              </div>
                             </div>
                           </div>
                         );
                       }
-                      const prevMsg = idx > 0 ? messages[idx - 1] : null;
-                      const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
-                      const isFirst = !prevMsg || prevMsg.senderId !== msg.senderId;
+                      const isFirst = !prevMsg || prevMsg.senderId !== msg.senderId || showDateDivider;
                       const isLast = !nextMsg || nextMsg.senderId !== msg.senderId;
 
                       // Bubble shape: tighten corners for grouped messages
@@ -875,8 +888,9 @@ function MessagesPage() {
                         : 'rounded-2xl rounded-l-sm';
 
                       return (
+                        <div key={msg._id}>
+                        {dateDivider}
                         <div
-                          key={msg._id}
                           className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'} ${isFirst ? 'mt-3' : 'mt-0.5'}`}
                         >
                           {/* Their avatar */}
@@ -931,7 +945,7 @@ function MessagesPage() {
                                       download={att.fileName || true}
                                       className={`flex items-center gap-2.5 px-3.5 py-2.5 min-w-[180px] cursor-pointer ${bubbleShape} ${
                                         isMine
-                                          ? 'bg-[#27717E] text-white'
+                                          ? 'bg-[#B00D4D] text-white'
                                           : isDark
                                           ? 'bg-[#1a2e45] text-slate-200 border border-slate-700/50'
                                           : 'bg-white text-gray-800 border border-gray-200/50'
@@ -953,7 +967,7 @@ function MessagesPage() {
                             {!!msg.content && (
                               <div className={`px-4 py-2.5 text-[13.5px] leading-relaxed select-text ${bubbleShape} ${
                                 isMine
-                                  ? 'bg-[#27717E] text-white shadow-md shadow-teal-900/10'
+                                  ? 'bg-[#B00D4D] text-white shadow-md shadow-rose-900/10'
                                   : isDark
                                   ? 'bg-[#1a2e45] text-slate-200 border border-slate-700/50 shadow-sm'
                                   : 'bg-white text-gray-800 border border-gray-200/50 shadow-sm'
@@ -964,7 +978,7 @@ function MessagesPage() {
                             {isLast && (
                               <div className={`flex items-center gap-1 px-1 ${isMine ? 'flex-row-reverse' : ''}`}>
                                 <span className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-gray-400/70'}`}>{formatTime(msg.createdAt)}</span>
-                                {isMine && <span className="text-[#7FA8AD]"><CheckDoubleIcon /></span>}
+                                {isMine && <span className="text-[#F0417B]"><CheckDoubleIcon /></span>}
                               </div>
                             )}
                           </div>
@@ -982,6 +996,7 @@ function MessagesPage() {
                               )}
                             </div>
                           )}
+                        </div>
                         </div>
                       );
                     })}
@@ -1024,11 +1039,11 @@ function MessagesPage() {
                 <div className={`px-4 sm:px-5 py-4 border-t flex-shrink-0 ${isDark ? 'bg-[#0B1725] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
                   <div className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl ${
                     selectedDeal.status === 'completed'
-                      ? 'bg-emerald-50 border border-emerald-200/60'
+                      ? 'bg-[#FCE4EC] border border-[#F3B8CB]'
                       : 'bg-red-50 border border-red-200/60'
                   }`}>
                     {selectedDeal.status === 'completed' ? (
-                      <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="w-4 h-4 text-[#E0115F] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                       </svg>
                     ) : (
@@ -1036,7 +1051,7 @@ function MessagesPage() {
                         <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
                       </svg>
                     )}
-                    <p className={`text-[13px] font-medium ${selectedDeal.status === 'completed' ? 'text-emerald-700' : 'text-red-600'}`}>
+                    <p className={`text-[13px] font-medium ${selectedDeal.status === 'completed' ? 'text-[#B00D4D]' : 'text-red-600'}`}>
                       {selectedDeal.status === 'completed'
                         ? 'Deal complete — messaging closed. Chat history is preserved.'
                         : 'Deal cancelled — messaging disabled.'}
@@ -1058,7 +1073,7 @@ function MessagesPage() {
                     {payoutMissing ? (
                       <button
                         onClick={() => setPayoutModalOpen(true)}
-                        className="flex-shrink-0 text-[12px] font-bold text-white px-3.5 py-2 rounded-xl transition-all duration-150 cursor-pointer shadow-sm bg-[#27717E] hover:bg-[#1C5A65]"
+                        className="flex-shrink-0 text-[12px] font-bold text-white px-3.5 py-2 rounded-xl transition-all duration-150 cursor-pointer shadow-sm bg-[#B00D4D] hover:bg-[#7A0F3D]"
                       >
                         Fill in details
                       </button>
@@ -1110,8 +1125,8 @@ function MessagesPage() {
                     limitReached
                       ? isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-gray-50 border-gray-200'
                       : isDark
-                      ? 'bg-slate-800/40 border-slate-700 focus-within:border-[#27717E] focus-within:shadow-lg focus-within:shadow-teal-900/30 focus-within:ring-2 focus-within:ring-[#27717E]/20'
-                      : 'bg-white border-gray-200 focus-within:border-[#27717E] focus-within:shadow-lg focus-within:shadow-teal-100/40 focus-within:ring-2 focus-within:ring-[#27717E]/10'
+                      ? 'bg-slate-800/40 border-slate-700 focus-within:border-[#B00D4D] focus-within:shadow-lg focus-within:shadow-rose-900/30 focus-within:ring-2 focus-within:ring-[#B00D4D]/20'
+                      : 'bg-white border-gray-200 focus-within:border-[#B00D4D] focus-within:shadow-lg focus-within:shadow-rose-100/40 focus-within:ring-2 focus-within:ring-[#B00D4D]/10'
                   }`}>
                     <input
                       ref={fileInputRef}
@@ -1148,7 +1163,7 @@ function MessagesPage() {
                       disabled={sending || uploadingAttachments || (!newMessage.trim() && pendingAttachments.length === 0) || limitReached}
                       className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
                         (newMessage.trim() || pendingAttachments.length > 0) && !limitReached && !uploadingAttachments
-                          ? 'bg-[#27717E] hover:bg-[#1C5A65] text-white shadow-sm hover:shadow-md active:scale-95 cursor-pointer'
+                          ? 'bg-[#B00D4D] hover:bg-[#7A0F3D] text-white shadow-sm hover:shadow-md active:scale-95 cursor-pointer'
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       }`}
                     >
@@ -1171,20 +1186,20 @@ function MessagesPage() {
                 backgroundImage: 'radial-gradient(circle, #1a2e40 1px, transparent 1px)',
                 backgroundSize: '22px 22px',
               } : {
-                backgroundColor: '#EDF3F4',
-                backgroundImage: 'radial-gradient(circle, #B0CACE 1px, transparent 1px)',
+                backgroundColor: '#FCE4EC',
+                backgroundImage: 'radial-gradient(circle, #F3B8CB 1px, transparent 1px)',
                 backgroundSize: '22px 22px',
               }}
             >
-              <div className={`backdrop-blur-sm rounded-3xl p-10 flex flex-col items-center shadow-xl border ${isDark ? 'bg-[#0E1B2E]/90 border-slate-700/50 shadow-slate-900/50' : 'bg-white/80 border-white/70 shadow-teal-100/30'}`}>
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#0d2f36] via-[#0e8a92] to-[#38c9b9] text-white flex items-center justify-center mb-5 shadow-xl shadow-teal-400/20">
+              <div className={`backdrop-blur-sm rounded-3xl p-10 flex flex-col items-center shadow-xl border ${isDark ? 'bg-[#0E1B2E]/90 border-slate-700/50 shadow-slate-900/50' : 'bg-white/80 border-white/70 shadow-rose-100/30'}`}>
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#2E0818] via-[#B00D4D] to-[#F0417B] text-white flex items-center justify-center mb-5 shadow-xl shadow-rose-400/20">
                   <ChatBubbleIcon size={38} />
                 </div>
                 <h3 className={`text-[17px] font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>Your messages</h3>
                 <p className={`text-[13px] max-w-[250px] leading-relaxed mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                   Select a conversation from the sidebar to start chatting with a brand.
                 </p>
-                <div className={`flex items-center gap-2 text-[11.5px] px-4 py-2.5 rounded-xl border ${isDark ? 'text-teal-300 bg-teal-900/20 border-teal-800/30' : 'text-teal-700 bg-teal-50 border-teal-200/50'}`}>
+                <div className={`flex items-center gap-2 text-[11.5px] px-4 py-2.5 rounded-xl border ${isDark ? 'text-rose-300 bg-rose-900/20 border-rose-800/30' : 'text-rose-700 bg-rose-50 border-rose-200/50'}`}>
                   <ShieldIcon />
                   <span className="font-semibold">End-to-end moderated for your safety</span>
                 </div>

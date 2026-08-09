@@ -10,9 +10,9 @@ const TESTIMONIALS = [
     name: 'Priya S.',
     role: 'Fashion creator · 48K followers',
     initials: 'PS',
-    gradient: 'from-[#7FA8AD] to-[#5D8A8F]',
-    wash: 'to-[#5D8A8F]/[0.06]',
-    quoteColor: 'text-[#5D8A8F]/30',
+    gradient: 'from-[#F0417B] to-[#E0115F]',
+    wash: 'to-[#E0115F]/[0.06]',
+    quoteColor: 'text-[#E0115F]/30',
   },
   {
     quote:
@@ -20,9 +20,9 @@ const TESTIMONIALS = [
     name: 'Rohan M.',
     role: 'Marketing lead, D2C skincare brand',
     initials: 'RM',
-    gradient: 'from-[#8B5CF6] to-[#7C3AED]',
-    wash: 'to-[#7C3AED]/[0.06]',
-    quoteColor: 'text-[#7C3AED]/25',
+    gradient: 'from-[#3FA34D] to-[#228B22]',
+    wash: 'to-[#228B22]/[0.06]',
+    quoteColor: 'text-[#228B22]/25',
   },
   {
     quote:
@@ -117,7 +117,7 @@ export default function TestimonialCarousel() {
         <button
           onClick={() => go(active - 1)}
           aria-label="Previous testimonial"
-          className="w-10 h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-[#5D8A8F] hover:border-[#5D8A8F]/50 hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-sm"
+          className="w-10 h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-[#E0115F] hover:border-[#E0115F]/50 hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"/>
@@ -132,7 +132,7 @@ export default function TestimonialCarousel() {
               aria-label={`Go to testimonial ${i + 1}`}
               className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                 i === active
-                  ? 'w-7 bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED]'
+                  ? 'w-7 bg-[linear-gradient(90deg,#E0115F,#3A3A45_50%,#228B22)]'
                   : 'w-2 bg-gray-300 hover:bg-gray-400'
               }`}
             />
@@ -142,7 +142,7 @@ export default function TestimonialCarousel() {
         <button
           onClick={() => go(active + 1)}
           aria-label="Next testimonial"
-          className="w-10 h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-[#5D8A8F] hover:border-[#5D8A8F]/50 hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-sm"
+          className="w-10 h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-[#E0115F] hover:border-[#E0115F]/50 hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6"/>

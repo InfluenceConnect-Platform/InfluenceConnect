@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { NICHES } = require('../utils/niches');
+const { NICHES, SUB_NICHES } = require('../utils/niches');
 
 const platformSchema = new mongoose.Schema({
   name: {
@@ -59,6 +59,15 @@ const influencerProfileSchema = new mongoose.Schema({
   niche: [{
     type: String,
     enum: NICHES
+  }],
+
+  // Optional finer tagging within a selected niche — e.g. niche
+  // 'personal-finance-and-budgeting' + subNiche 'fire-financial-independence-retire-early'.
+  // Not required to belong to a selected niche at the schema level (kept
+  // permissive); the frontend picker only offers sub-niches of chosen niches.
+  subNiches: [{
+    type: String,
+    enum: SUB_NICHES
   }],
 
   city: {
@@ -192,16 +201,19 @@ influencerProfileSchema.methods.calculateLevel = function() {
 // ─────────────────────────────────────────
 // Get visible portfolio items
 // ─────────────────────────────────────────
-influencerProfileSchema.methods.getVisiblePortfolio = function(isPremium) {
-  if (isPremium) return this.portfolioItems;
-  // For freemium: include ALL items (isVisible or not) so brands see real counts.
-  // First 3 (pinned first) are clear; the rest are locked with URLs stripped.
+influencerProfileSchema.methods.getVisiblePortfolio = function(tier) {
+  const { getTierConfig } = require('../utils/tiers');
+  const visibleCount = getTierConfig('influencer', tier).visiblePortfolioItems;
+  if (!Number.isFinite(visibleCount)) return this.portfolioItems;
+  // Below the tier's visible-item cap: include ALL items (isVisible or not)
+  // so brands see real counts. First N (pinned first) are clear; the rest
+  // are locked with URLs stripped.
   const pinned  = this.portfolioItems.filter(item => item.isPinned);
   const rest    = this.portfolioItems.filter(item => !item.isPinned);
   const ordered = [...pinned, ...rest];
   return ordered.map((item, i) => {
     const obj = item.toObject();
-    if (i >= 3) {
+    if (i >= visibleCount) {
       obj.locked = true;
       // Keep URLs so the frontend can render a blurred preview
     }

@@ -16,7 +16,7 @@ const STATUS_CONFIG: Record<string, { cls: string; dot: string; label: string }>
 };
 
 const AVATAR_GRADS = [
-  'from-violet-500 to-purple-600',
+  'from-cyan-500 to-sky-600',
   'from-teal-500 to-cyan-600',
   'from-amber-500 to-orange-500',
   'from-indigo-500 to-blue-600',
@@ -56,8 +56,8 @@ export default function BrandInvitations() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=brand'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login?role=brand'); return; }
     fetchInvitations();
     // Clear the brand-side "new response" badge once they view this page.
     api.put('/api/invitations/brand/seen').catch(() => {});
@@ -86,7 +86,7 @@ export default function BrandInvitations() {
       <main className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl px-6 sm:px-8 py-7 mb-5 shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] rounded-2xl px-6 sm:px-8 py-7 mb-5 shadow-lg">
           <div className="absolute -top-12 -right-12 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-12 -left-8 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
           <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -115,8 +115,8 @@ export default function BrandInvitations() {
               onClick={() => setActiveTab(tab)}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold capitalize whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === tab
-                  ? 'bg-[#3D5087] text-white shadow-sm'
-                  : 'bg-white text-gray-500 border border-gray-200 hover:border-[#3D5087]/40'
+                  ? 'bg-[#228B22] text-white shadow-sm'
+                  : 'bg-white text-gray-500 border border-gray-200 hover:border-[#228B22]/40'
               }`}
             >
               {tab}
@@ -139,14 +139,14 @@ export default function BrandInvitations() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="border-2 border-dashed border-blue-100 rounded-2xl p-16 text-center bg-white/60">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3D5087] to-[#4a5fa0] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#228B22] to-[#3FA34D] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
             </div>
             <p className="text-sm font-semibold text-gray-700 mb-1">
               {activeTab === 'all' ? 'No invitations sent yet' : `No ${activeTab} invitations`}
             </p>
             <p className="text-xs text-gray-400 mb-4">Invite creators from a campaign to start proactive outreach.</p>
-            <Link href="/brand/campaigns" className="text-xs bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white px-4 py-2 rounded-xl font-semibold cursor-pointer shadow-sm hover:shadow-md transition-all">
+            <Link href="/brand/campaigns" className="text-xs bg-gradient-to-r from-[#228B22] to-[#3FA34D] text-white px-4 py-2 rounded-xl font-semibold cursor-pointer shadow-sm hover:shadow-md transition-all">
               Go to Campaigns →
             </Link>
           </div>
@@ -160,7 +160,7 @@ export default function BrandInvitations() {
                 <div
                   key={inv._id}
                   onClick={() => setSelectedInv(inv)}
-                  className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[#C7D2EC] transition-all cursor-pointer"
+                  className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[#C8E6C9] transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-3.5">
                     {/* Influencer avatar */}
@@ -176,7 +176,7 @@ export default function BrandInvitations() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         {inv.influencerSlug ? (
-                          <Link href={`/brand/creator/${inv.influencerSlug}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-bold text-gray-900 truncate hover:text-[#3D5087] hover:underline">
+                          <Link href={`/brand/creator/${inv.influencerSlug}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-bold text-gray-900 truncate hover:text-[#228B22] hover:underline">
                             {name}
                           </Link>
                         ) : (
@@ -199,7 +199,7 @@ export default function BrandInvitations() {
                     {inv.status === 'accepted' && (
                       <button
                         onClick={(e) => { e.stopPropagation(); router.push(inv.dealId ? `/brand/messages?deal=${inv.dealId}` : '/brand/messages'); }}
-                        className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer"
+                        className="flex-shrink-0 flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#1B6E1B] hover:to-[#228B22] px-3.5 py-2 rounded-lg transition-all shadow-sm cursor-pointer"
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         Message

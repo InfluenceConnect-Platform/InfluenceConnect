@@ -13,6 +13,13 @@ interface InputProps {
   prefix?: string;
   showPasswordToggle?: boolean;
   dark?: boolean;
+  /** Maps to the native attribute so password managers can fill and save. */
+  autoComplete?: string;
+  name?: string;
+  required?: boolean;
+  /** Focus-ring colour. Defaults to the platform teal; role-themed screens
+   *  (creator ruby / brand green) pass their own so focus matches the card. */
+  accent?: string;
 }
 
 const EyeIcon = () => (
@@ -40,6 +47,10 @@ export default function Input({
   prefix,
   showPasswordToggle = false,
   dark = false,
+  autoComplete,
+  name,
+  required,
+  accent = '#7FA8AD',
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const id = useId();
@@ -47,8 +58,11 @@ export default function Input({
   const inputType = isPasswordField ? (showPassword ? 'text' : 'password') : type;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className={`text-[0.7rem] font-bold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-gray-600'}`}>
+    <div
+      className="flex flex-col gap-1.5"
+      style={{ ['--ic-accent' as string]: accent }}
+    >
+      <label htmlFor={id} className={`text-[0.7rem] font-bold uppercase tracking-widest ${dark ? 'text-slate-400' : 'text-gray-600'}`}>
         {label}
       </label>
       <div className="flex relative">
@@ -63,15 +77,18 @@ export default function Input({
         )}
         <input
           id={id}
+          name={name}
           type={inputType}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          required={required}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : helper ? `${id}-helper` : undefined}
           className={`
             w-full px-4 py-3 text-sm border rounded-xl
-            focus:outline-none focus:ring-2 focus:ring-[#7FA8AD]/25 focus:border-[#7FA8AD]
+            focus:outline-none focus:ring-2 focus:ring-[var(--ic-accent)]/30 focus:border-[var(--ic-accent)]
             hover:border-opacity-80
             transition-all duration-200
             ${prefix ? 'rounded-l-none' : ''}
@@ -86,8 +103,8 @@ export default function Input({
           <button
             type="button"
             onClick={() => setShowPassword(v => !v)}
-            tabIndex={-1}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-pressed={showPassword}
             className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors duration-150 cursor-pointer ${
               dark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'
             }`}
@@ -97,7 +114,7 @@ export default function Input({
         )}
       </div>
       {helper && !error && (
-        <p id={`${id}-helper`} className={`text-[0.7rem] leading-relaxed ${dark ? 'text-slate-600' : 'text-gray-500'}`}>{helper}</p>
+        <p id={`${id}-helper`} className={`text-[0.7rem] leading-relaxed ${dark ? 'text-slate-400' : 'text-gray-500'}`}>{helper}</p>
       )}
       {error && (
         <p id={`${id}-error`} role="alert" className={`text-[0.7rem] font-medium ${dark ? 'text-red-400' : 'text-red-500'}`}>{error}</p>

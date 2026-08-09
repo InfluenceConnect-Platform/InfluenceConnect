@@ -31,13 +31,13 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
 export default function Footer() {
   return (
     <footer className="bg-gray-50">
-      <div aria-hidden className="h-1 bg-gradient-to-r from-[#5D8A8F] via-[#7C3AED] to-[#EA580C]" />
+      <div aria-hidden className="h-1 bg-[linear-gradient(90deg,#E0115F,#3A3A45_33%,#228B22_55%,#EA580C)]" />
       <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-8">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
           {/* Brand blurb */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2.5 mb-4 w-fit">
-              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#7C3AED] flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <span className="w-9 h-9 rounded-xl bg-[linear-gradient(135deg,#F0417B,#3A3A45_50%,#228B22)] flex items-center justify-center text-white font-bold text-sm shadow-md">
                 IC
               </span>
               <span className="text-sm font-bold tracking-tight text-gray-900">Influence Connect</span>
@@ -60,7 +60,7 @@ export default function Footer() {
               <ul className="flex flex-col gap-2.5">
                 {col.links.map(link => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-gray-500 hover:text-[#5D8A8F] transition-colors">
+                    <Link href={link.href} className="text-sm text-gray-500 hover:text-[#E0115F] transition-colors">
                       {link.label}
                     </Link>
                   </li>

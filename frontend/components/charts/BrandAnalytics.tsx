@@ -111,12 +111,12 @@ function ApplicationsOverTime({ data }: { data: BrandAnalyticsData['applications
           <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="w-full overflow-visible" onMouseLeave={() => setHovered(null)}>
             <defs>
               <linearGradient id="ba-area" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3D5087" stopOpacity="0.35" />
-                <stop offset="100%" stopColor="#3D5087" stopOpacity="0.02" />
+                <stop offset="0%" stopColor="#228B22" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#228B22" stopOpacity="0.02" />
               </linearGradient>
               <linearGradient id="ba-line" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#3D5087" />
-                <stop offset="100%" stopColor="#4a5fa0" />
+                <stop offset="0%" stopColor="#228B22" />
+                <stop offset="100%" stopColor="#3FA34D" />
               </linearGradient>
             </defs>
             {yTicks.map((t, i) => {
@@ -135,16 +135,16 @@ function ApplicationsOverTime({ data }: { data: BrandAnalyticsData['applications
             ))}
             {hovPt && (
               <>
-                <line x1={hovPt.x} y1={PAD.top} x2={hovPt.x} y2={PAD.top + plotH} stroke="#3D5087" strokeWidth="1.5" strokeDasharray="3 3" />
-                <rect x={Math.min(Math.max(hovPt.x - 22, 2), W - 46)} y={hovPt.y - 30} width={44} height={22} rx="6" fill="#1e2f5c" />
+                <line x1={hovPt.x} y1={PAD.top} x2={hovPt.x} y2={PAD.top + plotH} stroke="#228B22" strokeWidth="1.5" strokeDasharray="3 3" />
+                <rect x={Math.min(Math.max(hovPt.x - 22, 2), W - 46)} y={hovPt.y - 30} width={44} height={22} rx="6" fill="#14531D" />
                 <text x={Math.min(Math.max(hovPt.x - 22, 2), W - 46) + 22} y={hovPt.y - 15} textAnchor="middle" fontSize="11" fontWeight="700" fill="white" fontFamily="sans-serif">{hovPt.count}</text>
               </>
             )}
             {pts.map((p, i) => (
-              <circle key={i} cx={p.x} cy={p.y} r={hovered === i ? 5 : 3.5} fill="white" stroke="#3D5087" strokeWidth="2" />
+              <circle key={i} cx={p.x} cy={p.y} r={hovered === i ? 5 : 3.5} fill="white" stroke="#228B22" strokeWidth="2" />
             ))}
             {pts.map((p, i) => (
-              <text key={i} x={p.x} y={H - 8} textAnchor="middle" fontSize="11" fill={hovered === i ? '#1e2f5c' : '#9aa3ba'} fontWeight={hovered === i ? '700' : '500'} fontFamily="sans-serif">{p.month}</text>
+              <text key={i} x={p.x} y={H - 8} textAnchor="middle" fontSize="11" fill={hovered === i ? '#14531D' : '#9aa3ba'} fontWeight={hovered === i ? '700' : '500'} fontFamily="sans-serif">{p.month}</text>
             ))}
           </svg>
         )}
@@ -156,8 +156,8 @@ function ApplicationsOverTime({ data }: { data: BrandAnalyticsData['applications
 // ── 2. Application Funnel (horizontal bars) ─────────────────────────────────
 function ApplicationFunnel({ funnel }: { funnel: BrandAnalyticsData['funnel'] }) {
   const rows = [
-    { label: 'Applied', value: funnel.applied, color: '#3D5087' },
-    { label: 'Shortlisted', value: funnel.shortlisted, color: '#6366f1' },
+    { label: 'Applied', value: funnel.applied, color: '#228B22' },
+    { label: 'Shortlisted', value: funnel.shortlisted, color: '#3B82F6' },
     { label: 'Accepted', value: funnel.accepted, color: '#10b981' },
     { label: 'Rejected', value: funnel.rejected, color: '#f87171' },
   ];
@@ -193,9 +193,9 @@ function ApplicationFunnel({ funnel }: { funnel: BrandAnalyticsData['funnel'] })
 function DealPipeline({ pipeline }: { pipeline: BrandAnalyticsData['dealPipeline'] }) {
   const { isDark } = useTheme();
   const segs = [
-    // In-progress uses the brand navy, which blends into the dark card — lift it
-    // to a brighter indigo in dark mode so the segment and legend stay visible.
-    { label: 'In-progress', value: pipeline.inProgress, color: isDark ? '#818cf8' : '#3D5087' },
+    // In-progress uses the brand green, which blends into the dark card — lift
+    // it to a brighter green in dark mode so the segment and legend stay visible.
+    { label: 'In-progress', value: pipeline.inProgress, color: isDark ? '#6BBF75' : '#228B22' },
     { label: 'Content submitted', value: pipeline.contentSubmitted, color: '#f59e0b' },
     { label: 'Completed', value: pipeline.completed, color: '#10b981' },
     { label: 'Cancelled', value: pipeline.cancelled, color: '#94a3b8' },
@@ -226,7 +226,7 @@ function DealPipeline({ pipeline }: { pipeline: BrandAnalyticsData['dealPipeline
                 offset += len;
                 return el;
               })}
-              <text x="70" y="66" textAnchor="middle" fontSize="26" fontWeight="800" fill={isDark ? '#f1f5f9' : '#1e2f5c'} fontFamily="sans-serif">{total}</text>
+              <text x="70" y="66" textAnchor="middle" fontSize="26" fontWeight="800" fill={isDark ? '#f1f5f9' : '#14531D'} fontFamily="sans-serif">{total}</text>
               <text x="70" y="84" textAnchor="middle" fontSize="10" fontWeight="600" fill="#9aa3ba" fontFamily="sans-serif">deals</text>
             </svg>
             <div className="flex-1 flex flex-col gap-2">
@@ -272,8 +272,8 @@ function SpendByCampaign({ data }: { data: BrandAnalyticsData['spendByCampaign']
           <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="w-full overflow-visible" onMouseLeave={() => setHovered(null)}>
             <defs>
               <linearGradient id="ba-bar" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3D5087" />
-                <stop offset="100%" stopColor="#7c8fc7" stopOpacity="0.75" />
+                <stop offset="0%" stopColor="#228B22" />
+                <stop offset="100%" stopColor="#6BBF75" stopOpacity="0.75" />
               </linearGradient>
             </defs>
             {yTicks.map((t, i) => {
@@ -295,11 +295,11 @@ function SpendByCampaign({ data }: { data: BrandAnalyticsData['spendByCampaign']
                   <rect x={x} y={y} width={barW} height={barH} rx={Math.min(5, barW * 0.2)} fill="url(#ba-bar)" opacity={hovered === null || hovered === i ? 1 : 0.5} style={{ transition: 'opacity 0.15s' }} />
                   {hovered === i && (
                     <>
-                      <rect x={Math.min(Math.max(x + barW / 2 - 30, 2), W - 62)} y={y - 28} width={60} height={20} rx="6" fill="#1e2f5c" />
+                      <rect x={Math.min(Math.max(x + barW / 2 - 30, 2), W - 62)} y={y - 28} width={60} height={20} rx="6" fill="#14531D" />
                       <text x={Math.min(Math.max(x + barW / 2 - 30, 2), W - 62) + 30} y={y - 14} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="white" fontFamily="sans-serif">{formatINR(d.amount)}</text>
                     </>
                   )}
-                  <text x={x + barW / 2} y={H - 20} textAnchor="middle" fontSize="10" fill={hovered === i ? '#1e2f5c' : '#9aa3ba'} fontWeight={hovered === i ? '700' : '500'} fontFamily="sans-serif">{short}</text>
+                  <text x={x + barW / 2} y={H - 20} textAnchor="middle" fontSize="10" fill={hovered === i ? '#14531D' : '#9aa3ba'} fontWeight={hovered === i ? '700' : '500'} fontFamily="sans-serif">{short}</text>
                 </g>
               );
             })}

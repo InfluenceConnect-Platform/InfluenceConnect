@@ -14,6 +14,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { ChatAttachment, validateChatFile, uploadChatAttachment, formatFileSize, downloadUrlFor, MAX_ATTACHMENTS_PER_MESSAGE } from '@/lib/chatAttachments';
 import { cdnImg } from '@/lib/img';
+import { dealStatusMeta } from '@/lib/dealStatus';
 
 interface Message {
   _id: string;
@@ -50,7 +51,7 @@ function getInitials(name = '') {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 const AVATAR_GRADIENTS = [
-  'from-violet-500 to-purple-600',
+  'from-cyan-500 to-sky-600',
   'from-pink-500 to-rose-500',
   'from-amber-500 to-orange-500',
   'from-emerald-500 to-green-600',
@@ -64,6 +65,19 @@ function getAvatarColor(name: string) {
 }
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+// WhatsApp-style day key/label — groups messages by calendar day (IST) and
+// labels the divider "Today" / "Yesterday" / a full date for anything older.
+function dayKey(iso: string) {
+  return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD, stable sort/compare key
+}
+function formatDayDivider(iso: string) {
+  const todayKey = dayKey(new Date().toISOString());
+  const yesterdayKey = dayKey(new Date(Date.now() - 86400000).toISOString());
+  const key = dayKey(iso);
+  if (key === todayKey) return 'Today';
+  if (key === yesterdayKey) return 'Yesterday';
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
 }
 function formatRelativeTime(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -238,8 +252,8 @@ function BrandMessages() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=brand'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login?role=brand'); return; }
     if (!user) setUser(JSON.parse(stored));
     fetchDeals();
     api.get('/api/brand/profile/me').then(res => {
@@ -497,19 +511,6 @@ function BrandMessages() {
     d.campaignId?.title?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const dealStatusColor = (status: string) => {
-    if (status === 'completed') return 'bg-emerald-500';
-    if (status === 'content-submitted') return 'bg-blue-500';
-    if (status === 'cancelled') return 'bg-red-500';
-    return 'bg-amber-500';
-  };
-
-  const dealStatusLabel = (status: string) => {
-    if (status === 'in-progress') return 'Active';
-    if (status === 'content-submitted') return 'Review';
-    return status.charAt(0).toUpperCase() + status.slice(1);
-  };
-
   return (
     <div className={`h-[100dvh] flex flex-col overflow-hidden ${isDark ? 'bg-[#060D1A]' : 'bg-[#ECEEF6]'}`}>
       <div className={showChat ? 'hidden lg:block flex-shrink-0' : 'flex-shrink-0'}>
@@ -527,7 +528,7 @@ function BrandMessages() {
 
           {/* Dark navy header */}
           <div className="px-4 pt-4 pb-3 flex-shrink-0"
-            style={{ background: 'linear-gradient(145deg, #161F3F 0%, #2B3B68 55%, #394E86 100%)' }}>
+            style={{ background: 'linear-gradient(145deg, #0F2E12 0%, #1B6E1B 55%, #2FA84F 100%)' }}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2.5">
                 <h1 className="text-[17px] font-bold text-white tracking-tight">Messages</h1>
@@ -575,7 +576,7 @@ function BrandMessages() {
               </div>
             ) : filteredDeals.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white flex items-center justify-center mb-4 shadow-lg shadow-indigo-200/50">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#228B22] to-[#1B6E1B] text-white flex items-center justify-center mb-4 shadow-lg shadow-green-200/50">
                   <ChatBubbleIcon size={28} />
                 </div>
                 <p className={`text-[14px] font-bold mb-1.5 ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>No conversations</p>
@@ -586,7 +587,7 @@ function BrandMessages() {
                 </p>
                 {!search && (
                   <Link href="/brand/campaigns"
-                    className="mt-5 text-[12px] font-semibold text-white bg-gradient-to-r from-[#3D5087] to-[#2B3B68] hover:opacity-90 px-4 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-md shadow-indigo-200/30">
+                    className="mt-5 text-[12px] font-semibold text-white bg-gradient-to-r from-[#228B22] to-[#1B6E1B] hover:opacity-90 px-4 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-md shadow-green-200/30">
                     View campaigns →
                   </Link>
                 )}
@@ -609,15 +610,15 @@ function BrandMessages() {
                         onClick={() => selectDeal(deal)}
                         className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 cursor-pointer relative ${
                           isActive
-                            ? isDark ? 'bg-gradient-to-r from-indigo-900/30 to-blue-900/20' : 'bg-gradient-to-r from-indigo-50 to-blue-50/40'
+                            ? isDark ? 'bg-gradient-to-r from-green-900/30 to-blue-900/20' : 'bg-gradient-to-r from-green-50 to-blue-50/40'
                             : hasActivity
-                            ? isDark ? 'bg-indigo-900/20 hover:bg-indigo-900/30' : 'bg-indigo-50/40 hover:bg-indigo-50/70'
+                            ? isDark ? 'bg-green-900/20 hover:bg-green-900/30' : 'bg-green-50/40 hover:bg-green-50/70'
                             : isDark ? 'hover:bg-slate-800/40' : 'hover:bg-gray-50/80'
                         }`}
                       >
                         {/* Active left bar */}
                         {isActive && (
-                          <span className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-[#3D5087]" />
+                          <span className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-[#228B22]" />
                         )}
 
                         {/* Avatar */}
@@ -641,7 +642,7 @@ function BrandMessages() {
                           <div className="flex items-center justify-between mb-0.5">
                             <span className={`text-[13.5px] truncate leading-tight ${
                               isActive
-                                ? isDark ? 'font-bold text-indigo-300' : 'font-bold text-[#2B3B68]'
+                                ? isDark ? 'font-bold text-green-300' : 'font-bold text-[#1B6E1B]'
                                 : hasActivity
                                 ? isDark ? 'font-bold text-slate-200' : 'font-bold text-gray-900'
                                 : isDark ? 'font-semibold text-slate-300' : 'font-semibold text-gray-700'
@@ -650,7 +651,7 @@ function BrandMessages() {
                             </span>
                             {deal.lastMessage && (
                               <span className={`text-[10.5px] ml-2 flex-shrink-0 font-medium ${
-                                hasActivity ? isDark ? 'text-indigo-400' : 'text-indigo-600' : isDark ? 'text-slate-500' : 'text-gray-400'
+                                hasActivity ? isDark ? 'text-green-400' : 'text-green-600' : isDark ? 'text-slate-500' : 'text-gray-400'
                               }`}>
                                 {formatRelativeTime(deal.lastMessage.createdAt)}
                               </span>
@@ -670,12 +671,12 @@ function BrandMessages() {
 
                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                           {hasUnread && !isActive && (
-                            <span className="min-w-[20px] h-[20px] px-1.5 rounded-full bg-[#3D5087] text-white text-[10px] font-bold flex items-center justify-center">
+                            <span className="min-w-[20px] h-[20px] px-1.5 rounded-full bg-[#228B22] text-white text-[10px] font-bold flex items-center justify-center">
                               {(deal.unreadCount ?? 0) > 9 ? '9+' : deal.unreadCount}
                             </span>
                           )}
-                          <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-md text-white uppercase tracking-wide ${dealStatusColor(deal.status)}`}>
-                            {dealStatusLabel(deal.status)}
+                          <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide ${dealStatusMeta(deal.status).badge}`}>
+                            {dealStatusMeta(deal.status).label}
                           </span>
                         </div>
                       </button>
@@ -690,7 +691,7 @@ function BrandMessages() {
           {!isPremium && (
             <div className={`border-t p-3 flex-shrink-0 ${isDark ? 'border-slate-800' : 'border-gray-100'}`}>
               <div className="relative overflow-hidden rounded-2xl p-3.5 flex items-center gap-3"
-                style={{ background: 'linear-gradient(135deg, #2B3B68 0%, #3D5087 60%, #4a5fa0 100%)' }}>
+                style={{ background: 'linear-gradient(135deg, #1B6E1B 0%, #228B22 60%, #3FA34D 100%)' }}>
                 <div className="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
                 <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5 pointer-events-none" />
                 <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center flex-shrink-0 relative">
@@ -698,10 +699,10 @@ function BrandMessages() {
                 </div>
                 <div className="flex-1 min-w-0 relative">
                   <p className="text-[12px] font-bold text-white">Unlimited messages</p>
-                  <p className="text-[11px] text-indigo-200/80">Upgrade to Premium</p>
+                  <p className="text-[11px] text-green-200/80">Upgrade to Premium</p>
                 </div>
                 <Link href="/brand/billing"
-                  className="text-[11px] font-bold text-[#2B3B68] bg-white hover:bg-indigo-50 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
+                  className="text-[11px] font-bold text-[#1B6E1B] bg-white hover:bg-green-50 px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 shadow-sm relative">
                   Upgrade
                 </Link>
               </div>
@@ -731,7 +732,7 @@ function BrandMessages() {
                   !selectedDeal.influencerProfile?.profilePicUrl
                     ? `bg-gradient-to-br ${getAvatarColor(selectedDeal.influencerId?.name || '')}`
                     : 'bg-gray-100'
-                } ${canVisitProfile ? 'cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-indigo-400/60 hover:brightness-95 active:scale-95' : ''}`}>
+                } ${canVisitProfile ? 'cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-green-400/60 hover:brightness-95 active:scale-95' : ''}`}>
                   {selectedDeal.influencerProfile?.profilePicUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img loading="lazy" decoding="async" src={cdnImg(selectedDeal.influencerProfile.profilePicUrl)} alt={selectedDeal.influencerId?.name} className="w-full h-full object-cover" />
@@ -746,7 +747,7 @@ function BrandMessages() {
                       type="button"
                       onClick={handleVisitProfile}
                       title={`Visit ${selectedDeal.influencerId?.name}'s profile`}
-                      className={`text-[15px] font-bold leading-tight text-left cursor-pointer hover:underline decoration-2 underline-offset-2 transition-colors ${isDark ? 'text-white hover:text-indigo-300' : 'text-gray-900 hover:text-indigo-600'}`}
+                      className={`text-[15px] font-bold leading-tight text-left cursor-pointer hover:underline decoration-2 underline-offset-2 transition-colors ${isDark ? 'text-white hover:text-green-300' : 'text-gray-900 hover:text-green-600'}`}
                     >
                       {selectedDeal.influencerId?.name}
                     </button>
@@ -778,7 +779,7 @@ function BrandMessages() {
                     ) : (
                       <button
                         onClick={() => setPayoutModalOpen(true)}
-                        className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-[#3D5087] hover:bg-[#2B3B68] text-white transition-all duration-150 cursor-pointer shadow-sm active:scale-95"
+                        className="text-[12px] font-bold px-3.5 py-1.5 rounded-xl bg-[#228B22] hover:bg-[#1B6E1B] text-white transition-all duration-150 cursor-pointer shadow-sm active:scale-95"
                       >
                         Pay to complete
                       </button>
@@ -807,14 +808,14 @@ function BrandMessages() {
               </div>
 
               {/* Campaign brief strip */}
-              <div className={`flex items-center gap-2.5 px-4 sm:px-5 py-2 border-b flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDark ? 'bg-indigo-900/20 border-indigo-800/30' : 'bg-indigo-50/70 border-indigo-100/70'}`}>
-                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`}><CampaignIcon /></span>
-                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-indigo-200' : 'text-indigo-900'}`}>Deliverables:</span>
-                <span className={`text-[11.5px] font-medium flex-shrink-0 ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
-                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-indigo-600' : 'text-indigo-400'}`}>·</span>
-                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`}><RupeeIcon /></span>
-                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-indigo-200' : 'text-indigo-900'}`}>Price:</span>
-                <span className={`text-[11.5px] flex-shrink-0 font-semibold ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>
+              <div className={`flex items-center gap-2.5 px-4 sm:px-5 py-2 border-b flex-shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden ${isDark ? 'bg-green-900/20 border-green-800/30' : 'bg-green-50/70 border-green-100/70'}`}>
+                <span className={`flex-shrink-0 ${isDark ? 'text-green-300' : 'text-green-600'}`}><CampaignIcon /></span>
+                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-green-200' : 'text-green-900'}`}>Deliverables:</span>
+                <span className={`text-[11.5px] font-medium flex-shrink-0 ${isDark ? 'text-green-200' : 'text-green-800'}`}>{selectedDeal.campaignId?.deliverables || '—'}</span>
+                <span className={`flex-shrink-0 mx-1 ${isDark ? 'text-green-600' : 'text-green-400'}`}>·</span>
+                <span className={`flex-shrink-0 ${isDark ? 'text-green-300' : 'text-green-600'}`}><RupeeIcon /></span>
+                <span className={`text-[11.5px] font-bold flex-shrink-0 ${isDark ? 'text-green-200' : 'text-green-900'}`}>Price:</span>
+                <span className={`text-[11.5px] flex-shrink-0 font-semibold ${isDark ? 'text-green-200' : 'text-green-800'}`}>
                   {selectedDeal.negotiationStatus === 'agreed'
                     ? `₹${selectedDeal.agreedAmount?.toLocaleString()} (agreed)`
                     : 'Negotiating…'}
@@ -851,7 +852,7 @@ function BrandMessages() {
                     {payoutLoaded && payout && (
                       <button
                         onClick={() => setPayoutModalOpen(true)}
-                        className={`flex-shrink-0 text-[11.5px] font-bold px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer ${isDark ? 'text-indigo-300 hover:bg-slate-800' : 'text-[#3D5087] hover:bg-indigo-50'}`}
+                        className={`flex-shrink-0 text-[11.5px] font-bold px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer ${isDark ? 'text-green-300 hover:bg-slate-800' : 'text-[#228B22] hover:bg-green-50'}`}
                       >
                         View
                       </button>
@@ -860,7 +861,7 @@ function BrandMessages() {
                   <PayoutPanel
                     dealId={selectedDeal._id}
                     role="brand"
-                    accentColor="#3D5087"
+                    accentColor="#228B22"
                     open={payoutModalOpen}
                     onClose={() => setPayoutModalOpen(false)}
                     onStatusChange={handlePayoutStatusChange}
@@ -870,9 +871,9 @@ function BrandMessages() {
               )}
 
               {/* Moderation notice */}
-              <div className={`flex items-center gap-2 px-4 sm:px-5 py-1.5 border-b flex-shrink-0 ${isDark ? 'bg-indigo-900/15 border-indigo-800/20' : 'bg-indigo-50/50 border-indigo-100/40'}`}>
-                <span className={`flex-shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`}><ShieldIcon /></span>
-                <p className={`text-[11px] font-medium ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>
+              <div className={`flex items-center gap-2 px-4 sm:px-5 py-1.5 border-b flex-shrink-0 ${isDark ? 'bg-green-900/15 border-green-800/20' : 'bg-green-50/50 border-green-100/40'}`}>
+                <span className={`flex-shrink-0 ${isDark ? 'text-green-300' : 'text-green-600'}`}><ShieldIcon /></span>
+                <p className={`text-[11px] font-medium ${isDark ? 'text-green-200' : 'text-green-800'}`}>
                   Contact info, social handles & external links are automatically blocked to protect both parties.
                 </p>
               </div>
@@ -888,13 +889,13 @@ function BrandMessages() {
                   backgroundSize: '22px 22px',
                 } : {
                   backgroundColor: '#ECEEF6',
-                  backgroundImage: 'radial-gradient(circle, #B4BBDA 1px, transparent 1px)',
+                  backgroundImage: 'radial-gradient(circle, #A8D5AC 1px, transparent 1px)',
                   backgroundSize: '22px 22px',
                 }}
               >
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center gap-4 py-12">
-                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#3D5087] to-[#4a5fa0] text-white flex items-center justify-center shadow-xl shadow-indigo-300/25">
+                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#228B22] to-[#3FA34D] text-white flex items-center justify-center shadow-xl shadow-green-300/25">
                       <ChatBubbleIcon size={30} />
                     </div>
                     <div>
@@ -907,36 +908,41 @@ function BrandMessages() {
                   </div>
                 ) : (
                   <>
-                    {/* Date divider */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
-                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm ${isDark ? 'text-slate-500 bg-slate-800/70' : 'text-gray-400/80 bg-white/70'}`}>
-                        Today
-                      </span>
-                      <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
-                    </div>
-
                     {messages.map((msg, idx) => {
                       const isMine = msg.senderId?.toString() === user?.id?.toString();
+                      const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                      const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
+                      const showDateDivider = !prevMsg || dayKey(prevMsg.createdAt) !== dayKey(msg.createdAt);
+                      const dateDivider = showDateDivider && (
+                        <div key={`divider-${msg._id}`} className="flex items-center gap-3 mb-4 mt-3 first:mt-0">
+                          <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
+                          <span className={`text-[10px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm ${isDark ? 'text-slate-500 bg-slate-800/70' : 'text-gray-400/80 bg-white/70'}`}>
+                            {formatDayDivider(msg.createdAt)}
+                          </span>
+                          <div className={`flex-1 h-px ${isDark ? 'bg-slate-700/40' : 'bg-gray-300/40'}`} />
+                        </div>
+                      );
+
                       // System notices (e.g. admin removed the campaign) sit centered.
                       // The acting party sees actorContent ("You did X") instead of
                       // the other party's phrasing ("X did Y"), when one is set.
                       if (msg.system) {
                         return (
-                          <div key={msg._id} className="flex justify-center my-3">
-                            <div className={`max-w-[85%] text-center text-[12px] font-medium px-3.5 py-2 rounded-xl border ${
-                              isDark
-                                ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
-                                : 'bg-amber-50 text-amber-700 border-amber-200/70'
-                            }`}>
-                              {isMine && msg.actorContent ? msg.actorContent : msg.content}
+                          <div key={msg._id}>
+                            {dateDivider}
+                            <div className="flex justify-center my-3">
+                              <div className={`max-w-[85%] text-center text-[12px] font-medium px-3.5 py-2 rounded-xl border ${
+                                isDark
+                                  ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200/70'
+                              }`}>
+                                {isMine && msg.actorContent ? msg.actorContent : msg.content}
+                              </div>
                             </div>
                           </div>
                         );
                       }
-                      const prevMsg = idx > 0 ? messages[idx - 1] : null;
-                      const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
-                      const isFirst = !prevMsg || prevMsg.senderId !== msg.senderId;
+                      const isFirst = !prevMsg || prevMsg.senderId !== msg.senderId || showDateDivider;
                       const isLast = !nextMsg || nextMsg.senderId !== msg.senderId;
 
                       const bubbleShape = isMine
@@ -950,8 +956,9 @@ function BrandMessages() {
                           : 'rounded-2xl rounded-l-sm';
 
                       return (
+                        <div key={msg._id}>
+                        {dateDivider}
                         <div
-                          key={msg._id}
                           className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'} ${isFirst ? 'mt-3' : 'mt-0.5'}`}
                         >
                           {/* Their avatar */}
@@ -1006,7 +1013,7 @@ function BrandMessages() {
                                       download={att.fileName || true}
                                       className={`flex items-center gap-2.5 px-3.5 py-2.5 min-w-[180px] cursor-pointer ${bubbleShape} ${
                                         isMine
-                                          ? 'bg-[#3D5087] text-white'
+                                          ? 'bg-[#228B22] text-white'
                                           : isDark
                                           ? 'bg-[#1a2a45] text-slate-200 border border-slate-700/50'
                                           : 'bg-white text-gray-800 border border-gray-200/50'
@@ -1028,7 +1035,7 @@ function BrandMessages() {
                             {!!msg.content && (
                               <div className={`px-4 py-2.5 text-[13.5px] leading-relaxed select-text ${bubbleShape} ${
                                 isMine
-                                  ? 'bg-[#3D5087] text-white shadow-md shadow-indigo-900/10'
+                                  ? 'bg-[#228B22] text-white shadow-md shadow-green-900/10'
                                   : isDark
                                   ? 'bg-[#1a2a45] text-slate-200 border border-slate-700/50 shadow-sm'
                                   : 'bg-white text-gray-800 border border-gray-200/50 shadow-sm'
@@ -1047,7 +1054,7 @@ function BrandMessages() {
                           {/* My avatar */}
                           {isMine && (
                             <div className={`w-7 h-7 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center mb-0.5 ${
-                              logoUrl ? 'bg-gray-100' : 'bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white text-[9px] font-bold'
+                              logoUrl ? 'bg-gray-100' : 'bg-gradient-to-br from-[#228B22] to-[#1B6E1B] text-white text-[9px] font-bold'
                             } ${isLast ? 'opacity-100' : 'opacity-0'}`}>
                               {logoUrl ? (
                                 <img loading="lazy" decoding="async" src={cdnImg(logoUrl)} alt="" className="w-full h-full object-cover" />
@@ -1056,6 +1063,7 @@ function BrandMessages() {
                               )}
                             </div>
                           )}
+                        </div>
                         </div>
                       );
                     })}
@@ -1175,8 +1183,8 @@ function BrandMessages() {
                     limitHit
                       ? isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-gray-50 border-gray-200'
                       : isDark
-                      ? 'bg-slate-800/40 border-slate-700 focus-within:border-[#3D5087] focus-within:shadow-lg focus-within:shadow-indigo-900/30 focus-within:ring-2 focus-within:ring-[#3D5087]/20'
-                      : 'bg-white border-gray-200 focus-within:border-[#3D5087] focus-within:shadow-lg focus-within:shadow-indigo-100/40 focus-within:ring-2 focus-within:ring-[#3D5087]/10'
+                      ? 'bg-slate-800/40 border-slate-700 focus-within:border-[#228B22] focus-within:shadow-lg focus-within:shadow-green-900/30 focus-within:ring-2 focus-within:ring-[#228B22]/20'
+                      : 'bg-white border-gray-200 focus-within:border-[#228B22] focus-within:shadow-lg focus-within:shadow-green-100/40 focus-within:ring-2 focus-within:ring-[#228B22]/10'
                   }`}>
                     <input
                       ref={fileInputRef}
@@ -1213,7 +1221,7 @@ function BrandMessages() {
                       disabled={sending || uploadingAttachments || (!newMessage.trim() && pendingAttachments.length === 0) || limitHit}
                       className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
                         (newMessage.trim() || pendingAttachments.length > 0) && !limitHit && !uploadingAttachments
-                          ? 'bg-[#3D5087] hover:bg-[#2B3B68] text-white shadow-sm hover:shadow-md active:scale-95 cursor-pointer'
+                          ? 'bg-[#228B22] hover:bg-[#1B6E1B] text-white shadow-sm hover:shadow-md active:scale-95 cursor-pointer'
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       }`}
                     >
@@ -1235,19 +1243,19 @@ function BrandMessages() {
                 backgroundSize: '22px 22px',
               } : {
                 backgroundColor: '#ECEEF6',
-                backgroundImage: 'radial-gradient(circle, #B4BBDA 1px, transparent 1px)',
+                backgroundImage: 'radial-gradient(circle, #A8D5AC 1px, transparent 1px)',
                 backgroundSize: '22px 22px',
               }}
             >
-              <div className={`backdrop-blur-sm rounded-3xl p-10 flex flex-col items-center shadow-xl border ${isDark ? 'bg-[#0E1B2E]/90 border-slate-700/50 shadow-slate-900/50' : 'bg-white/80 border-white/70 shadow-indigo-100/30'}`}>
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] text-white flex items-center justify-center mb-5 shadow-xl shadow-indigo-400/20">
+              <div className={`backdrop-blur-sm rounded-3xl p-10 flex flex-col items-center shadow-xl border ${isDark ? 'bg-[#0E1B2E]/90 border-slate-700/50 shadow-slate-900/50' : 'bg-white/80 border-white/70 shadow-green-100/30'}`}>
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] text-white flex items-center justify-center mb-5 shadow-xl shadow-green-400/20">
                   <ChatBubbleIcon size={38} />
                 </div>
                 <h3 className={`text-[17px] font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-800'}`}>Deal conversations</h3>
                 <p className={`text-[13px] max-w-[250px] leading-relaxed mb-6 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                   Select a creator from the sidebar to view and continue your conversation.
                 </p>
-                <div className={`flex items-center gap-2 text-[11.5px] px-4 py-2.5 rounded-xl border ${isDark ? 'text-indigo-300 bg-indigo-900/20 border-indigo-800/30' : 'text-indigo-700 bg-indigo-50 border-indigo-200/50'}`}>
+                <div className={`flex items-center gap-2 text-[11.5px] px-4 py-2.5 rounded-xl border ${isDark ? 'text-green-300 bg-green-900/20 border-green-800/30' : 'text-green-700 bg-green-50 border-green-200/50'}`}>
                   <ShieldIcon />
                   <span className="font-semibold">All messages are moderated for platform safety</span>
                 </div>

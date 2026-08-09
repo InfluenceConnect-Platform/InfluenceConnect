@@ -114,9 +114,9 @@ export default function InfluencerDashboard() {
   useEffect(() => {
     const stored = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    if (!token || !stored) { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=influencer'); return; }
     const parsedUser = JSON.parse(stored);
-    if (parsedUser.role !== 'influencer') { router.push('/auth/login'); return; }
+    if (parsedUser.role !== 'influencer') { router.push('/auth/login?role=influencer'); return; }
     setUser(parsedUser);
     fetchProfile();
   }, []);
@@ -151,7 +151,7 @@ export default function InfluencerDashboard() {
     return (
       <div className="min-h-screen bg-[#F7F9FA] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#F0417B] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-400">Loading your dashboard…</p>
         </div>
       </div>
@@ -159,6 +159,8 @@ export default function InfluencerDashboard() {
   }
 
   const isPremium = user?.plan === 'premium';
+  const VISIBLE_LIMIT: Record<string, number> = { free: 1, silver: 3, golden: 5, platinum: Infinity };
+  const visibleLimit = VISIBLE_LIMIT[(user as any)?.tier || (isPremium ? 'silver' : 'free')] ?? 1;
 
   const completionFlags = [
     !!profile?.bio,
@@ -175,15 +177,20 @@ export default function InfluencerDashboard() {
   // summing double-counts anyone who follows the creator on more than one.
   const reachFollowers = (profile?.platforms ?? []).reduce((max, p) => Math.max(max, p.followers), 0);
 
+  // Four jewel-tone KPI tiles. Each tile owns a distinct hue (ruby, magenta,
+  // topaz, garnet) and carries explicit dark: gradient stops — the .dark
+  // cascade in globals.css only overrides background-color, which a
+  // bg-gradient-to-br (background-image) ignores, so without these the cards
+  // render as pale light-mode washes on the dark page.
   const STATS = [
     {
       label: 'Credibility Score',
       value: profile?.credibilityScore ?? 0,
       sub: 'Out of 100',
-      from: 'from-[#7FA8AD]', to: 'to-[#4A8D95]',
-      bgFrom: 'from-teal-50', bgTo: 'to-cyan-100',
-      border: 'border-teal-200/70',
-      valCls: 'text-[#1C4A52]', subCls: 'text-teal-600',
+      from: 'from-[#F0417B]', to: 'to-[#E0115F]',
+      bgFrom: 'from-[#FFF1F5] dark:from-[#3D0A20]', bgTo: 'to-[#FCE4EC] dark:to-[#2A0716]',
+      border: 'border-[#F6C6D8] dark:border-[#7A1F44]',
+      valCls: 'text-[#8A0F42] dark:text-[#FF8FB8]', subCls: 'text-[#C41055] dark:text-[#FFB3CE]',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -194,10 +201,10 @@ export default function InfluencerDashboard() {
       label: 'Engagement Rate',
       value: primaryPlatform ? `${primaryPlatform.engagementRate}%` : '—',
       sub: primaryPlatform ? primaryPlatform.name : 'No platform',
-      from: 'from-violet-500', to: 'to-purple-600',
-      bgFrom: 'from-violet-50', bgTo: 'to-purple-100',
-      border: 'border-violet-200/70',
-      valCls: 'text-violet-900', subCls: 'text-violet-500',
+      from: 'from-[#E0489F]', to: 'to-[#B0107A]',
+      bgFrom: 'from-[#FDF0FA] dark:from-[#3B0A2E]', bgTo: 'to-[#F9DCF0] dark:to-[#26061D]',
+      border: 'border-[#EFC3E2] dark:border-[#6E1F5A]',
+      valCls: 'text-[#86176B] dark:text-[#F9A8D4]', subCls: 'text-[#B0107A] dark:text-[#F5BEE0]',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
@@ -207,11 +214,11 @@ export default function InfluencerDashboard() {
     {
       label: 'Portfolio Items',
       value: profile?.portfolioItems?.length ?? 0,
-      sub: isPremium ? 'All visible' : `${Math.min(profile?.portfolioItems?.length ?? 0, 3)} visible`,
-      from: 'from-amber-500', to: 'to-orange-500',
-      bgFrom: 'from-amber-50', bgTo: 'to-orange-100',
-      border: 'border-amber-200/70',
-      valCls: 'text-amber-900', subCls: 'text-amber-600',
+      sub: Number.isFinite(visibleLimit) ? `${Math.min(profile?.portfolioItems?.length ?? 0, visibleLimit)} visible` : 'All visible',
+      from: 'from-[#F59E0B]', to: 'to-[#EA580C]',
+      bgFrom: 'from-[#FFFBEB] dark:from-[#3A2606]', bgTo: 'to-[#FEF0C7] dark:to-[#241703]',
+      border: 'border-[#F3DFA8] dark:border-[#6B4E12]',
+      valCls: 'text-[#78350F] dark:text-[#FCD34D]', subCls: 'text-[#B45309] dark:text-[#FBBF24]',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -223,10 +230,10 @@ export default function InfluencerDashboard() {
       label: 'Deals Done',
       value: profile?.dealsCompleted ?? 0,
       sub: 'All time',
-      from: 'from-emerald-500', to: 'to-green-600',
-      bgFrom: 'from-emerald-50', bgTo: 'to-green-100',
-      border: 'border-emerald-200/70',
-      valCls: 'text-emerald-900', subCls: 'text-emerald-600',
+      from: 'from-[#E11D48]', to: 'to-[#881337]',
+      bgFrom: 'from-[#FFF1F2] dark:from-[#3A0A14]', bgTo: 'to-[#FFDDE1] dark:to-[#24050C]',
+      border: 'border-[#F6C7CC] dark:border-[#7A2230]',
+      valCls: 'text-[#881337] dark:text-[#FDA4AF]', subCls: 'text-[#BE123C] dark:text-[#FCB8C0]',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
@@ -242,7 +249,7 @@ export default function InfluencerDashboard() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* ── Hero ── */}
-        <section className="relative bg-gradient-to-br from-[#04141a] via-[#0b5e6c] to-[#1fb8a8] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
+        <section className="relative bg-gradient-to-br from-[#2E0818] via-[#7A0F3D] to-[#F0417B] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
           {/* decorative blobs */}
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
@@ -258,7 +265,7 @@ export default function InfluencerDashboard() {
 
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div>
-              <p className="text-teal-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
+              <p className="text-rose-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
                 {getGreeting()}, {user?.name?.split(' ')[0]} 👋
               </p>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-2.5">
@@ -273,7 +280,7 @@ export default function InfluencerDashboard() {
               <div className="flex flex-wrap items-center gap-2">
                 {totalFollowers > 0 && (
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
-                    <svg className="w-3 h-3 text-teal-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className="w-3 h-3 text-rose-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                       <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
@@ -281,13 +288,13 @@ export default function InfluencerDashboard() {
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
-                  <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-3 h-3 text-[#F5A8BF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
                   {profile?.dealsCompleted ?? 0} deal{(profile?.dealsCompleted ?? 0) !== 1 ? 's' : ''} done
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm capitalize">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-300" />
                   {profile?.level || 'Starter'}
                 </span>
                 {isPremium && (
@@ -313,12 +320,12 @@ export default function InfluencerDashboard() {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-white">Profile strength</p>
-                  <p className="text-xs text-teal-300 mt-0.5">{completionFlags.filter(Boolean).length}/{completionFlags.length} steps done</p>
+                  <p className="text-xs text-rose-300 mt-0.5">{completionFlags.filter(Boolean).length}/{completionFlags.length} steps done</p>
                 </div>
               </div>
               <Link
                 href="/influencer/campaigns"
-                className="inline-flex items-center gap-2 bg-white/95 hover:bg-white text-[#0d2d33] px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm self-start sm:self-auto"
+                className="inline-flex items-center gap-2 bg-white/95 hover:bg-white text-[#7A0F3D] px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm self-start sm:self-auto"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -340,9 +347,9 @@ export default function InfluencerDashboard() {
 
         {/* ── Profile completion prompt ── */}
         {completionPct < 100 && (
-          <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-br from-teal-50 via-cyan-50 to-white dark:from-[#0d2d33] dark:via-[#0a2428] dark:to-[#0f1e31] border border-teal-200/80 dark:border-[#7FA8AD]/30 rounded-2xl px-5 py-4 mb-6 shadow-sm">
+          <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-br from-rose-50 via-cyan-50 to-white dark:from-[#7A0F3D] dark:via-[#0a2428] dark:to-[#0f1e31] border border-rose-200/80 dark:border-[#F0417B]/30 rounded-2xl px-5 py-4 mb-6 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#EEF4F5] dark:bg-[#7FA8AD]/20 text-[#7FA8AD] dark:text-[#9DC4C9] flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#FCE4EC] dark:bg-[#F0417B]/20 text-[#F0417B] dark:text-[#F5A8BF] flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"/>
                 </svg>
@@ -353,15 +360,15 @@ export default function InfluencerDashboard() {
                 </h3>
                 <div className="flex items-center gap-2.5 max-w-[240px]">
                   <div className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] rounded-full transition-all duration-500" style={{ width: `${completionPct}%` }} />
+                    <div className="h-full bg-gradient-to-r from-[#F0417B] to-[#E0115F] rounded-full transition-all duration-500" style={{ width: `${completionPct}%` }} />
                   </div>
-                  <span className="text-xs font-bold text-[#5D8A8F] dark:text-[#9DC4C9] flex-shrink-0">{completionPct}%</span>
+                  <span className="text-xs font-bold text-[#E0115F] dark:text-[#F5A8BF] flex-shrink-0">{completionPct}%</span>
                 </div>
               </div>
             </div>
             <Link
               href="/influencer/profile?edit=true"
-              className="flex-shrink-0 inline-flex items-center gap-1.5 bg-[#7FA8AD] hover:bg-[#5D8A8F] dark:bg-[#5D8A8F] dark:hover:bg-[#7FA8AD] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm self-start sm:self-auto"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 bg-[#F0417B] hover:bg-[#E0115F] dark:bg-[#E0115F] dark:hover:bg-[#F0417B] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm self-start sm:self-auto"
             >
               Complete profile →
             </Link>
@@ -376,7 +383,7 @@ export default function InfluencerDashboard() {
               className={`relative overflow-hidden border rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all bg-gradient-to-br ${stat.bgFrom} ${stat.bgTo} ${stat.border}`}
             >
               <div className="flex items-start justify-between mb-4">
-                <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">{stat.label}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-[#6B7280] dark:text-[#CBD5E1] leading-tight pr-2">{stat.label}</p>
                 <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${stat.from} ${stat.to} text-white flex items-center justify-center flex-shrink-0 shadow-sm`}>
                   {stat.icon}
                 </div>
@@ -388,7 +395,7 @@ export default function InfluencerDashboard() {
                 {stat.sub}
               </p>
               {/* decorative circle */}
-              <div className={`absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br ${stat.from} ${stat.to} opacity-10 pointer-events-none`} />
+              <div className={`absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br ${stat.from} ${stat.to} opacity-10 dark:opacity-25 pointer-events-none`} />
             </div>
           ))}
         </section>
@@ -418,7 +425,7 @@ export default function InfluencerDashboard() {
               </div>
               <Link
                 href="/influencer/profile?edit=true"
-                className="flex items-center gap-1.5 text-xs text-[#5D8A8F] font-bold hover:text-[#2A3E42] transition-colors"
+                className="flex items-center gap-1.5 text-xs text-[#E0115F] font-bold hover:text-[#7A0F3D] transition-colors"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -441,7 +448,7 @@ export default function InfluencerDashboard() {
                         platform.name.toLowerCase() === 'tiktok' ? 'bg-gradient-to-br from-[#010101] to-[#69C9D0]' :
                         platform.name.toLowerCase() === 'twitter' || platform.name.toLowerCase() === 'x' ? 'bg-black' :
                         platform.name.toLowerCase() === 'linkedin' ? 'bg-gradient-to-br from-[#0077B5] to-[#005885]' :
-                        'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F]'
+                        'bg-gradient-to-br from-[#F0417B] to-[#E0115F]'
                       }`}>
                         {getPlatformIcon(platform.name)}
                       </div>
@@ -477,7 +484,7 @@ export default function InfluencerDashboard() {
                 </div>
               ) : (
                 <div className="border-2 border-dashed border-gray-200 rounded-xl py-14 text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-[#EEF4F5] text-[#7FA8AD] flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#FCE4EC] text-[#F0417B] flex items-center justify-center mx-auto mb-3">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
                     </svg>
@@ -488,7 +495,7 @@ export default function InfluencerDashboard() {
                   </p>
                   <Link
                     href="/influencer/profile?edit=true"
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#7FA8AD] hover:bg-[#5D8A8F] px-4 py-2 rounded-xl transition-all"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#F0417B] hover:bg-[#E0115F] px-4 py-2 rounded-xl transition-all"
                   >
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -511,25 +518,25 @@ export default function InfluencerDashboard() {
                   {
                     label: 'Campaigns',
                     href: '/influencer/campaigns',
-                    grad: 'from-[#1C4A52] to-[#0d2d33]',
+                    grad: 'from-[#7A0F3D] to-[#7A0F3D]',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
                   },
                   {
                     label: 'Edit Profile',
                     href: '/influencer/profile?edit=true',
-                    grad: 'from-[#7FA8AD] to-[#5D8A8F]',
+                    grad: 'from-[#F0417B] to-[#E0115F]',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
                   },
                   {
                     label: 'Earnings',
                     href: '/influencer/earnings',
                     grad: 'from-amber-500 to-orange-500',
-                    icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+                    icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/></svg>,
                   },
                   {
                     label: 'Messages',
                     href: '/influencer/messages',
-                    grad: 'from-emerald-500 to-green-600',
+                    grad: 'from-[#B00D4D] to-[#7A0F3D]',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
                   },
                 ].map(action => (
@@ -549,7 +556,7 @@ export default function InfluencerDashboard() {
 
             {/* Upgrade / Premium card */}
             {!isPremium ? (
-              <div className="relative bg-gradient-to-br from-[#04141a] via-[#0b5e6c] to-[#1fb8a8] rounded-2xl p-5 overflow-hidden shadow-md">
+              <div className="relative bg-gradient-to-br from-[#2E0818] via-[#7A0F3D] to-[#F0417B] rounded-2xl p-5 overflow-hidden shadow-md">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
                 <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
                 <div className="relative">
@@ -557,14 +564,14 @@ export default function InfluencerDashboard() {
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
-                    Upgrade to Premium
+                    Upgrade your plan
                   </div>
                   <h4 className="font-extrabold text-white text-[15px] mb-1">Unlock every feature</h4>
-                  <p className="text-teal-200/70 text-xs mb-4 leading-relaxed">Show all your work and remove every limit.</p>
+                  <p className="text-rose-200/70 text-xs mb-4 leading-relaxed">Silver, Golden and Platinum show more of your work and lift every limit.</p>
                   <ul className="space-y-2 mb-5">
-                    {['All portfolio items visible to brands', 'Unlimited campaign applications', 'Unlimited daily messages'].map(f => (
-                      <li key={f} className="flex items-center gap-2 text-xs text-teal-100/90">
-                        <svg className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    {['More portfolio items visible to brands', 'More campaign invitations & messages', 'Advanced credibility score'].map(f => (
+                      <li key={f} className="flex items-center gap-2 text-xs text-rose-100/90">
+                        <svg className="w-3.5 h-3.5 text-[#F5A8BF] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                         {f}
@@ -573,9 +580,9 @@ export default function InfluencerDashboard() {
                   </ul>
                   <Link
                     href="/influencer/billing"
-                    className="block text-center bg-white/95 hover:bg-white text-[#0d2d33] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
+                    className="block text-center bg-white/95 hover:bg-white text-[#7A0F3D] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
                   >
-                    ₹299 / month — Upgrade now →
+                    From ₹9 / month — View plans →
                   </Link>
                 </div>
               </div>

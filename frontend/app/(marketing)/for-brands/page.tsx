@@ -16,15 +16,15 @@ const BENEFITS = [
     title: 'Discovery that actually filters',
     body: 'Search creators by niche, platform, location, follower range, and budget. See portfolios and credibility scores before you reach out.',
     icon: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
-    tint: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-md shadow-[#5D8A8F]/25',
-    bar: 'from-[#7FA8AD] to-[#5D8A8F]',
+    tint: 'bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white shadow-md shadow-[#E0115F]/25',
+    bar: 'from-[#F0417B] to-[#E0115F]',
   },
   {
     title: 'Campaigns, not chaos',
     body: 'Post a campaign with your goals, budget, and requirements. Qualified creators apply — you shortlist, accept, or reject from one dashboard.',
     icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
-    tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
-    bar: 'from-[#8B5CF6] to-[#7C3AED]',
+    tint: 'bg-gradient-to-br from-[#3FA34D] to-[#228B22] text-white shadow-md shadow-[#228B22]/25',
+    bar: 'from-[#3FA34D] to-[#228B22]',
   },
   {
     title: 'Credibility scores you can trust',
@@ -49,10 +49,10 @@ const BENEFITS = [
   },
   {
     title: 'Start free, scale when ready',
-    body: 'Run up to 2 active campaigns free. Premium (₹1,499/month) unlocks unlimited campaigns, unlimited discovery, and priority support.',
+    body: 'Run up to 3 active campaigns free. Silver and Golden (from ₹399/month) unlock more campaigns, unlimited discovery, and priority support.',
     icon: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
-    tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
-    bar: 'from-[#8B5CF6] to-[#7C3AED]',
+    tint: 'bg-gradient-to-br from-[#3FA34D] to-[#228B22] text-white shadow-md shadow-[#228B22]/25',
+    bar: 'from-[#3FA34D] to-[#228B22]',
   },
 ];
 
@@ -63,11 +63,11 @@ const FAQS = [
   },
   {
     q: 'What does the free plan include?',
-    a: 'Up to 2 active campaigns, creator discovery (10 profiles/day), full application management, campaign performance dashboard, and 10 messages per day. Premium removes all of these limits.',
+    a: 'Up to 3 active campaigns, creator discovery (5 profiles/day), application accept/reject, campaign performance dashboard, and 5 messages per day. Silver and Golden raise or remove all of these limits.',
   },
   {
     q: 'How do payments to creators work?',
-    a: 'You agree on payment terms directly with each creator during deal negotiation. Influence Connect keeps the negotiation on record; your Premium subscription is the only thing billed through the platform (via Razorpay).',
+    a: 'You agree on payment terms directly with each creator during deal negotiation. Influence Connect keeps the negotiation on record; your plan subscription is the only thing billed through the platform (via Razorpay).',
   },
   {
     q: 'Can my team manage campaigns together?',
@@ -83,7 +83,7 @@ export default function ForBrandsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
       />
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#7C3AED] via-[#6D28D9] to-blue-600">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#228B22] via-[#1B6E1B] to-blue-600">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-32 left-0 w-[30rem] h-[30rem] rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="anim-blob absolute bottom-0 right-0 w-80 h-80 rounded-full bg-white/10 blur-3xl" style={{ animationDelay: '3s' }} />
@@ -103,7 +103,7 @@ export default function ForBrandsPage() {
           </p>
           <Link
             href="/auth/signup?role=brand"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-[#3D2A6D] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg active:scale-[0.98] transition-all"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-[#14531D] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg active:scale-[0.98] transition-all"
           >
             Start your first campaign — free
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -111,15 +111,15 @@ export default function ForBrandsPage() {
             </svg>
           </Link>
         </div>
-        <SectionWave className="fill-[#F5F3FF] dark:fill-[#2c1f4d]" />
+        <SectionWave className="fill-[#EAF7EA] dark:fill-[#14531D]" />
       </section>
 
       {/* Benefits grid */}
-      <section className="bg-gradient-to-br from-[#F5F3FF] via-amber-50/40 to-blue-50 border-y border-gray-200 dark:from-[#2c1f4d] dark:via-[rgba(120,80,10,0.12)] dark:to-[rgba(30,58,138,0.30)]">
+      <section className="bg-gradient-to-br from-[#EAF7EA] via-amber-50/40 to-blue-50 border-y border-gray-200 dark:from-[#14531D] dark:via-[rgba(120,80,10,0.12)] dark:to-[rgba(30,58,138,0.30)]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {BENEFITS.map((b, i) => (
-              <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group relative bg-gradient-to-br from-white to-[#7C3AED]/[0.06] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 pt-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
+              <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group relative bg-gradient-to-br from-white to-[#228B22]/[0.06] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 pt-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
                 <span aria-hidden className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${b.bar}`} />
                 <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${b.tint}`}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -135,13 +135,13 @@ export default function ForBrandsPage() {
       </section>
 
       {/* FAQ */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#F5F3FF]/60 to-blue-50/60 dark:from-[#0E1B2E] dark:via-[#2c1f4d]/40 dark:to-[rgba(30,58,138,0.20)]">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#EAF7EA]/60 to-blue-50/60 dark:from-[#0E1B2E] dark:via-[#14531D]/40 dark:to-[rgba(30,58,138,0.20)]">
       <div aria-hidden className="anim-blob absolute bottom-0 -left-24 w-72 h-72 rounded-full bg-blue-400/15 blur-3xl" />
       <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-20">
         <Reveal>
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-10">
             Brand{' '}
-            <span className="anim-gradient-text bg-gradient-to-r from-[#7C3AED] to-blue-600 bg-clip-text text-transparent">questions</span>
+            <span className="anim-gradient-text bg-gradient-to-r from-[#228B22] to-blue-600 bg-clip-text text-transparent">questions</span>
           </h2>
         </Reveal>
         <Reveal delay={120}>
@@ -150,7 +150,7 @@ export default function ForBrandsPage() {
         <div className="text-center mt-12">
           <Link
             href="/auth/signup?role=brand"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#7C3AED] to-[#5B21B6] shadow-lg active:scale-[0.98] transition-all"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#228B22] to-[#14531D] shadow-lg active:scale-[0.98] transition-all"
           >
             Join as a brand
           </Link>

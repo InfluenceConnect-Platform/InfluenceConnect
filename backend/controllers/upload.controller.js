@@ -225,7 +225,16 @@ exports.savePortfolioItem = async (req, res) => {
 
     const currentCount = profile.portfolioItems.length;
 
-    // Freemium: unlimited uploads, only first 3 marked visible; premium: all visible
+    // Per-tier upload cap + visible-item count — see backend/utils/tiers.js
+    const { getTierConfig } = require('../utils/tiers');
+    const tierConfig = getTierConfig('influencer', req.user.tier);
+    if (Number.isFinite(tierConfig.maxPortfolioUploads) && currentCount >= tierConfig.maxPortfolioUploads) {
+      return res.status(403).json({
+        error: 'tier_limit',
+        message: `Your plan allows up to ${tierConfig.maxPortfolioUploads} portfolio uploads. Upgrade for more.`
+      });
+    }
+
     const newItem = {
       type,
       section: resolvedSection,
@@ -233,7 +242,7 @@ exports.savePortfolioItem = async (req, res) => {
       thumbnailUrl: thumbnailUrl || '',
       fileSize: fileSize || 0,
       duration: duration || 0,
-      isVisible: req.user.plan === 'premium' || currentCount < 3,
+      isVisible: currentCount < tierConfig.visiblePortfolioItems,
       isPinned: false
     };
 

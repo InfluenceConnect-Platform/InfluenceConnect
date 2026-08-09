@@ -1,8 +1,9 @@
 const User = require('../models/User');
 const Payment = require('../models/Payment');
 const notify = require('../services/email');
-const applyPremiumUpgrade = require('../utils/applyPremiumUpgrade');
+const applyTierUpgrade = require('../utils/applyPremiumUpgrade');
 const { BILLING_CYCLES, getPlanAmountPaise } = require('../utils/planPricing');
+const { isValidTier } = require('../utils/tiers');
 const razorpay = require('../services/razorpay');
 
 // ─────────────────────────────────────────
@@ -10,15 +11,18 @@ const razorpay = require('../services/razorpay');
 // ─────────────────────────────────────────
 exports.createOrder = async (req, res) => {
   try {
-    const { billingCycle } = req.body;
+    const { billingCycle, tier } = req.body;
     const role = req.user.role;
 
     if (!BILLING_CYCLES[billingCycle]) {
       return res.status(400).json({ error: 'Invalid billing cycle.' });
     }
-    const amountPaise = getPlanAmountPaise(role, billingCycle);
+    if (!tier || !isValidTier(role, tier) || tier === 'free') {
+      return res.status(400).json({ error: 'Invalid plan tier.' });
+    }
+    const amountPaise = getPlanAmountPaise(role, tier, billingCycle);
     if (!amountPaise) {
-      return res.status(400).json({ error: 'No Premium plan available for this account type.' });
+      return res.status(400).json({ error: 'No plan available for this account type.' });
     }
 
     // Razorpay caps `receipt` at 40 chars — keep it short; the full userId
@@ -27,13 +31,14 @@ exports.createOrder = async (req, res) => {
     const order = await razorpay.createOrder({
       amountPaise,
       receipt,
-      notes: { userId: req.userId.toString(), role, billingCycle },
+      notes: { userId: req.userId.toString(), role, billingCycle, tier },
     });
 
     await Payment.create({
       userId: req.userId,
       role,
       billingCycle,
+      tier,
       amount: amountPaise,
       currency: 'INR',
       razorpayOrderId: order.id,
@@ -70,12 +75,13 @@ async function confirmPaymentAndUpgrade(payment, razorpayPaymentId, razorpaySign
 
   const user = await User.findById(payment.userId);
   if (!user) return;
-  applyPremiumUpgrade(user, BILLING_CYCLES[payment.billingCycle].days);
+  applyTierUpgrade(user, payment.tier, BILLING_CYCLES[payment.billingCycle].days);
   await user.save();
 
   notify.premiumUpgradeConfirmed(user.email, {
     role: user.role,
     billingCycle: payment.billingCycle,
+    tier: payment.tier,
     amount: payment.amount / 100,
     premiumUntil: user.premiumUntil,
   });
@@ -124,6 +130,7 @@ exports.verifyPayment = async (req, res) => {
         email: user.email,
         role: user.role,
         plan: user.plan,
+        tier: user.tier,
         premiumStartedAt: user.premiumStartedAt,
         premiumUntil: user.premiumUntil,
       },
@@ -212,5 +219,85 @@ exports.reconcile = async (req, res) => {
   } catch (error) {
     console.error('Reconcile sweep error:', error);
     res.status(500).json({ error: 'Reconciliation sweep failed.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// AUTOPAY TOGGLE
+// ─────────────────────────────────────────
+exports.setAutopay = async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ error: 'enabled must be true or false.' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    // Autopay only makes sense once there's a paid tier to renew.
+    if (enabled && (!user.tier || user.tier === 'free')) {
+      return res.status(400).json({ error: 'Upgrade to a paid plan before enabling Autopay.' });
+    }
+
+    user.autopay = enabled;
+    await user.save();
+
+    res.json({ message: enabled ? 'Autopay enabled.' : 'Autopay disabled.', autopay: user.autopay });
+  } catch (error) {
+    console.error('Set autopay error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// AUTOPAY RENEWALS  (Vercel Cron scaffold — see vercel.json)
+//
+// SCAFFOLD ONLY: this identifies who is due for renewal but does not charge
+// anyone yet. Razorpay isn't configured for recurring billing on this
+// project — the createOrder/verifyPayment flow above only creates one-time
+// Orders, which can't be charged again server-side without the customer
+// present at checkout. Wiring a real charge here requires:
+//   1. Razorpay Subscriptions or an e-mandate ("Recurring Payments") set up
+//      on the merchant account (dashboard config, not code).
+//   2. Capturing a mandate/customer token at the ORIGINAL checkout — in
+//      createOrder, when billingCycle + tier + autopay:true is requested —
+//      since a one-time Order's payment method can't be reused later.
+//   3. Replacing the TODO below with an actual server-initiated charge
+//      against that stored token, then calling applyTierUpgrade + emailing
+//      a receipt exactly like confirmPaymentAndUpgrade does today.
+// Until then, this job only reports who *would* be renewed, so the rest of
+// the autopay plumbing (the toggle, the User.autopay field, this cron slot)
+// is proven out end-to-end before real money moves through it.
+// ─────────────────────────────────────────
+const RENEWAL_WINDOW_MS = 24 * 60 * 60 * 1000; // flag renewals due within 24h
+
+exports.autopayRenewals = async (req, res) => {
+  // Vercel Cron sends `Authorization: Bearer $CRON_SECRET` — same gate as /reconcile.
+  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized.' });
+  }
+
+  try {
+    const dueUsers = await User.find({
+      autopay: true,
+      tier: { $ne: 'free' },
+      premiumUntil: { $lte: new Date(Date.now() + RENEWAL_WINDOW_MS), $gt: new Date() },
+    }).select('_id name email role tier premiumUntil');
+
+    // TODO(autopay): once Razorpay recurring is configured, replace this
+    // with real charges — see the scaffold comment above.
+    if (dueUsers.length) {
+      console.log(`[autopay] ${dueUsers.length} user(s) due for renewal:`, dueUsers.map(u => u._id.toString()));
+    }
+
+    res.json({
+      scaffold: true,
+      message: 'Autopay renewal charging is not yet wired to Razorpay recurring billing — see code comment in payment.controller.js.',
+      dueForRenewal: dueUsers.length,
+    });
+  } catch (error) {
+    console.error('Autopay renewals sweep error:', error);
+    res.status(500).json({ error: 'Autopay renewal sweep failed.' });
   }
 };

@@ -33,6 +33,12 @@ const paymentSchema = new mongoose.Schema({
     required: true
   },
 
+  // Which tier this purchase was for — see backend/utils/tiers.js.
+  tier: {
+    type: String,
+    default: 'silver'
+  },
+
   amount: {
     type: Number, // paise
     required: true

@@ -16,8 +16,8 @@ const BENEFITS = [
     title: 'Campaigns come to you',
     body: 'Browse live campaigns filtered to your niche and follower range. Apply with your profile and rates — no cold pitching.',
     icon: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></>,
-    tint: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-md shadow-[#5D8A8F]/25',
-    bar: 'from-[#7FA8AD] to-[#5D8A8F]',
+    tint: 'bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white shadow-md shadow-[#E0115F]/25',
+    bar: 'from-[#F0417B] to-[#E0115F]',
   },
   {
     title: 'Only verified brands',
@@ -30,8 +30,8 @@ const BENEFITS = [
     title: 'A profile that sells you',
     body: 'A public profile with a custom URL, portfolio uploads, and a credibility score that grows with every completed collab.',
     icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
-    tint: 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white shadow-md shadow-[#7C3AED]/25',
-    bar: 'from-[#8B5CF6] to-[#7C3AED]',
+    tint: 'bg-gradient-to-br from-[#3FA34D] to-[#228B22] text-white shadow-md shadow-[#228B22]/25',
+    bar: 'from-[#3FA34D] to-[#228B22]',
   },
   {
     title: 'Deal privately, safely',
@@ -49,17 +49,17 @@ const BENEFITS = [
   },
   {
     title: 'Free to start, fair to upgrade',
-    body: '5 applications per month free, forever. Premium removes the caps for ₹299/month — less than one sponsored story.',
+    body: 'Free plan, forever. Silver starts at ₹9/month — less than one sponsored story — with Golden and Platinum raising the caps further.',
     icon: <><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
-    tint: 'bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white shadow-md shadow-[#5D8A8F]/25',
-    bar: 'from-[#7FA8AD] to-[#5D8A8F]',
+    tint: 'bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white shadow-md shadow-[#E0115F]/25',
+    bar: 'from-[#F0417B] to-[#E0115F]',
   },
 ];
 
 const FAQS = [
   {
     q: 'How much does it cost to join as a creator?',
-    a: 'Nothing. The free plan includes a public profile, portfolio uploads, 5 campaign applications per month, and in-platform messaging. Premium (₹299/month, 20% off yearly) unlocks unlimited applications, full portfolio visibility, and earnings analytics.',
+    a: 'Nothing to start. The free plan includes a public profile, portfolio uploads, campaign applications, and in-platform messaging. Paid tiers start at ₹9/month (Silver, 20% off yearly) and raise caps up through Golden and Platinum, unlocking full portfolio visibility and earnings analytics along the way.',
   },
   {
     q: 'How do I get paid for collaborations?',
@@ -83,7 +83,7 @@ export default function ForCreatorsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
       />
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#5D8A8F] via-[#4A8A82] to-emerald-600">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#E0115F] via-[#B00D4D] to-[#7A0F3D]">
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-32 right-0 w-[30rem] h-[30rem] rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="anim-blob absolute bottom-0 left-0 w-80 h-80 rounded-full bg-white/10 blur-3xl" style={{ animationDelay: '3s' }} />
@@ -103,7 +103,7 @@ export default function ForCreatorsPage() {
           </p>
           <Link
             href="/auth/signup?role=influencer"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-[#2A3E42] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg active:scale-[0.98] transition-all"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-[#7A0F3D] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg active:scale-[0.98] transition-all"
           >
             Create your creator profile — free
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -111,15 +111,15 @@ export default function ForCreatorsPage() {
             </svg>
           </Link>
         </div>
-        <SectionWave className="fill-[#EEF4F5] dark:fill-[#0d2d33]" />
+        <SectionWave className="fill-[#FCE4EC] dark:fill-[#3D0A20]" />
       </section>
 
       {/* Benefits grid */}
-      <section className="bg-gradient-to-br from-[#EEF4F5] via-amber-50/40 to-emerald-50 border-y border-gray-200 dark:from-[#0d2d33] dark:via-[rgba(120,80,10,0.12)] dark:to-[rgba(6,78,59,0.30)]">
+      <section className="bg-gradient-to-br from-[#FCE4EC] via-amber-50/40 to-emerald-50 border-y border-gray-200 dark:from-[#3D0A20] dark:via-[rgba(120,80,10,0.12)] dark:to-[rgba(6,78,59,0.30)]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {BENEFITS.map((b, i) => (
-              <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group relative bg-gradient-to-br from-white to-[#5D8A8F]/[0.07] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 pt-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
+              <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group relative bg-gradient-to-br from-white to-[#E0115F]/[0.07] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 pt-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
                 <span aria-hidden className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${b.bar}`} />
                 <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${b.tint}`}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -135,13 +135,13 @@ export default function ForCreatorsPage() {
       </section>
 
       {/* FAQ */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#EEF4F5]/60 to-emerald-50/60 dark:from-[#0E1B2E] dark:via-[#0d2d33]/40 dark:to-[rgba(6,78,59,0.20)]">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#FCE4EC]/60 to-emerald-50/60 dark:from-[#0E1B2E] dark:via-[#3D0A20]/40 dark:to-[rgba(6,78,59,0.20)]">
       <div aria-hidden className="anim-blob absolute bottom-0 -right-24 w-72 h-72 rounded-full bg-emerald-400/15 blur-3xl" />
       <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-20">
         <Reveal>
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 text-center mb-10">
             Creator{' '}
-            <span className="anim-gradient-text bg-gradient-to-r from-[#5D8A8F] to-emerald-600 bg-clip-text text-transparent">questions</span>
+            <span className="anim-gradient-text bg-gradient-to-r from-[#E0115F] to-[#B00D4D] bg-clip-text text-transparent">questions</span>
           </h2>
         </Reveal>
         <Reveal delay={120}>
@@ -150,7 +150,7 @@ export default function ForCreatorsPage() {
         <div className="text-center mt-12">
           <Link
             href="/auth/signup?role=influencer"
-            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#5D8A8F] to-[#7C3AED] shadow-lg active:scale-[0.98] transition-all"
+            className="btn-shine inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#E0115F] to-[#B00D4D] shadow-lg active:scale-[0.98] transition-all"
           >
             Join as a creator
           </Link>

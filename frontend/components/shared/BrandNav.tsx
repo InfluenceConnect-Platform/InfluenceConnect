@@ -203,7 +203,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
     if (!ok) return;
     localStorage.clear();
     localStorage.clear();
-    router.push('/auth/login');
+    router.push('/auth/login?role=brand');
   };
 
   // Reusable dark/light class sets
@@ -211,13 +211,13 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
 
   const activeItemCls = isDark
     ? 'bg-[#1a2a45] text-slate-200'
-    : 'bg-[#EAEDF6] text-[#1B2444]';
+    : 'bg-[#EAF7EA] text-[#14531D]';
 
   const inactiveItemCls = isDark
     ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'
     : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50';
 
-  const activeIconCls = isDark ? 'text-[#6B94C6]' : 'text-[#3D5087]';
+  const activeIconCls = isDark ? 'text-[#6BBF75]' : 'text-[#228B22]';
 
   return (
     <>
@@ -230,11 +230,11 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
         {/* Left — logo + nav links */}
         <div className="flex items-center gap-6 lg:gap-8 min-w-0">
           <Link href="/brand/dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#3D5087] to-[#1e2f5c] flex items-center justify-center text-white font-black text-[13px] shadow-md group-hover:shadow-[#3D5087]/40 transition-shadow duration-200">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#228B22] to-[#14531D] flex items-center justify-center text-white font-black text-[13px] shadow-md group-hover:shadow-[#228B22]/40 transition-shadow duration-200">
               IC
             </div>
             <span className={`font-extrabold text-[15px] tracking-tight hidden sm:block ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
-              Influence<span className={isDark ? 'text-[#7B9DD4]' : 'text-[#3D5087]'}>Connect</span>
+              Influence<span className={isDark ? 'text-[#6BBF75]' : 'text-[#228B22]'}>Connect</span>
             </span>
           </Link>
 
@@ -247,7 +247,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
               const isCampaigns = item.href === '/brand/campaigns';
               const isActive    = pathname === item.href;
               const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
-              const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
+              const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-blue-400';
               return (
                 <Link
                   key={item.href}
@@ -261,7 +261,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
                   </span>
                   {item.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-[#3D5087]" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-[#228B22]" />
                   )}
                   {hasDot && (
                     <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${dotColorCls} ${dotShadow}`} />
@@ -281,7 +281,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
             title="Account Settings"
             className={`hidden sm:flex items-center justify-center w-8 h-8 rounded-xl transition-all cursor-pointer ${
               pathname === '/brand/settings'
-                ? isDark ? 'bg-[#3D5087]/25 text-[#7B9DD4]' : 'bg-[#3D5087]/10 text-[#3D5087]'
+                ? isDark ? 'bg-[#228B22]/25 text-[#6BBF75]' : 'bg-[#228B22]/10 text-[#228B22]'
                 : isDark ? 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
             }`}
           >
@@ -320,14 +320,14 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           <Link
             href="/brand/profile"
             title={user?.name ?? 'Brand profile'}
-            className={`w-9 h-9 rounded-full overflow-hidden ring-2 shadow-sm transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#EAEDF6] to-[#D4D9EE] cursor-pointer
-              ${isDark ? 'ring-slate-700 hover:ring-[#3D5087]' : 'ring-gray-200 hover:ring-[#3D5087]'}`}
+            className={`w-9 h-9 rounded-full overflow-hidden ring-2 shadow-sm transition-all duration-150 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#EAF7EA] to-[#C8E6C9] cursor-pointer
+              ${isDark ? 'ring-slate-700 hover:ring-[#228B22]' : 'ring-gray-200 hover:ring-[#228B22]'}`}
           >
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img loading="lazy" decoding="async" src={cdnImg(logoUrl)} alt="Brand logo" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-[#3D5087] font-bold text-sm">{user?.name?.charAt(0).toUpperCase() ?? '?'}</span>
+              <span className="text-[#228B22] font-bold text-sm">{user?.name?.charAt(0).toUpperCase() ?? '?'}</span>
             )}
           </Link>
 
@@ -364,7 +364,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
                 const isCampaigns = item.href === '/brand/campaigns';
                 const isActive    = pathname === item.href;
                 const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
-                const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
+                const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-blue-400';
                 return (
                   <Link
                     key={item.href}
@@ -429,7 +429,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
             const isCampaigns = item.href === '/brand/campaigns';
             const isActive    = pathname === item.href;
             const hasDot      = (isMessages && (unreadCount > 0 || pendingOfferCount > 0)) || (isInvites && inviteResponseCount > 0) || (isProfile && gstNeedsAction) || (isCampaigns && newApplicantCount > 0);
-            const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-violet-400';
+            const dotColorCls = isProfile && gstNeedsAction ? 'bg-amber-500' : 'bg-blue-400';
             return (
               <Link
                 key={item.href}

@@ -40,8 +40,8 @@ export default function BrandProfile() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=brand'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login?role=brand'); return; }
     if (!user) setUser(JSON.parse(stored));
     fetchProfile();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -155,7 +155,7 @@ export default function BrandProfile() {
 
   if (loading) return (
     <div className="min-h-screen bg-[#F4F6FB] dark:bg-[#060D1A] flex items-center justify-center">
-      <div className="w-7 h-7 border-2 border-[#3D5087] border-t-transparent rounded-full animate-spin" />
+      <div className="w-7 h-7 border-2 border-[#228B22] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -163,7 +163,7 @@ export default function BrandProfile() {
   const isPremium   = user?.plan === 'premium';
   const industryChip = profile?.industry ? (INDUSTRY_COLORS[profile.industry] ?? INDUSTRY_COLORS.other) : null;
 
-  const fieldClass = 'w-full px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D5087]/25 focus:border-[#3D5087] transition-all bg-white';
+  const fieldClass = 'w-full px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#228B22]/25 focus:border-[#228B22] transition-all bg-white';
 
   return (
     <div className="min-h-screen bg-[#F4F6FB]">
@@ -186,7 +186,7 @@ export default function BrandProfile() {
         <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm mb-5">
 
           {/* Cover banner */}
-          <div className="h-28 sm:h-36 bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] relative overflow-hidden">
+          <div className="h-28 sm:h-36 bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] relative overflow-hidden">
             <svg className="absolute inset-0 w-full h-full" style={{opacity:0.04}} aria-hidden="true">
               <defs><pattern id="bp-dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="white"/></pattern></defs>
               <rect width="100%" height="100%" fill="url(#bp-dots)"/>
@@ -208,7 +208,7 @@ export default function BrandProfile() {
                     Cancel
                   </button>
                   <button onClick={handleSave} disabled={saving}
-                    className="text-xs font-semibold text-[#1e2d56] dark:text-white bg-white dark:bg-white/20 hover:bg-blue-50 dark:hover:bg-white/30 px-4 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer disabled:opacity-60 flex items-center gap-1.5">
+                    className="text-xs font-semibold text-[#14531D] dark:text-white bg-white dark:bg-white/20 hover:bg-blue-50 dark:hover:bg-white/30 px-4 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer disabled:opacity-60 flex items-center gap-1.5">
                     {saving ? (
                       <><svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Saving…</>
                     ) : 'Save changes'}
@@ -231,14 +231,14 @@ export default function BrandProfile() {
             <div className="flex items-end gap-4 -mt-10 mb-4">
               {/* Logo */}
               <div
-                className={`relative z-10 w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl border-4 border-white dark:border-[#0E1B2E] shadow-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#EAEDF6] to-[#c8ceea] dark:from-[#1e2a4a] dark:to-[#2d3d6a] flex items-center justify-center ${isEditing ? 'cursor-pointer group' : ''}`}
+                className={`relative z-10 w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl border-4 border-white dark:border-[#0E1B2E] shadow-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#EAF7EA] to-[#C8E6C9] dark:from-[#14531D] dark:to-[#14531D] flex items-center justify-center ${isEditing ? 'cursor-pointer group' : ''}`}
                 onClick={() => isEditing && logoInputRef.current?.click()}
               >
                 {profile?.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img loading="lazy" decoding="async" src={cdnImg(profile.logoUrl)} alt="Brand logo" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-[#3D5087] font-black text-2xl select-none">
+                  <span className="text-[#228B22] font-black text-2xl select-none">
                     {displayName.charAt(0).toUpperCase()}
                   </span>
                 )}
@@ -264,7 +264,7 @@ export default function BrandProfile() {
               {/* Plan badge — push to right */}
               <div className="flex-1" />
               <span className={`self-start mt-11 text-xs font-bold px-2.5 py-1 rounded-full border ${
-                isPremium ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-[#EAEDF6] dark:bg-[#1e2a4a] text-[#3D5087] dark:text-blue-300 border-[#3D5087]/20 dark:border-blue-800/40'
+                isPremium ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-[#EAF7EA] dark:bg-[#14531D] text-[#228B22] dark:text-blue-300 border-[#228B22]/20 dark:border-blue-800/40'
               }`}>
                 {isPremium ? '★ Premium' : 'Freemium'}
               </span>
@@ -301,7 +301,7 @@ export default function BrandProfile() {
               )}
               {profile?.website && (
                 <a href={/^https?:\/\//i.test(profile.website) ? profile.website : `https://${profile.website}`} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs font-medium text-[#3D5087] dark:text-blue-400 hover:underline">
+                  className="flex items-center gap-1 text-xs font-medium text-[#228B22] dark:text-blue-400 hover:underline">
                   <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                   </svg>
@@ -319,7 +319,7 @@ export default function BrandProfile() {
                 <button
                   onClick={() => logoInputRef.current?.click()}
                   disabled={uploadingLogo}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 bg-[#3D5087] hover:bg-[#2B3B68] text-white rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 bg-[#228B22] hover:bg-[#1B6E1B] text-white rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-sm"
                 >
                   <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
@@ -356,7 +356,7 @@ export default function BrandProfile() {
         <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm mb-5 overflow-hidden">
           <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
             <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <svg className="w-3.5 h-3.5 text-[#3D5087] dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-3.5 h-3.5 text-[#228B22] dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
               </svg>
             </div>
@@ -443,7 +443,7 @@ export default function BrandProfile() {
                     <div className="col-span-2">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Website</p>
                       <a href={/^https?:\/\//i.test(profile.website) ? profile.website : `https://${profile.website}`} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm font-medium text-[#3D5087] dark:text-blue-400 hover:underline w-fit">
+                        className="flex items-center gap-1.5 text-sm font-medium text-[#228B22] dark:text-blue-400 hover:underline w-fit">
                         <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
                         </svg>
@@ -551,7 +551,7 @@ export default function BrandProfile() {
                 <button
                   onClick={handleSubmitGstin}
                   disabled={savingGstin}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 bg-[#3D5087] hover:bg-[#2B3B68] text-white rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 bg-[#228B22] hover:bg-[#1B6E1B] text-white rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-sm"
                 >
                   {savingGstin ? 'Submitting…' : 'Submit for verification'}
                 </button>

@@ -18,7 +18,7 @@ const STATUS_CONFIG: Record<string, { cls: string; label: string }> = {
 };
 
 const AVATAR_GRADS = [
-  'from-violet-500 to-purple-600',
+  'from-cyan-500 to-sky-600',
   'from-teal-500 to-cyan-600',
   'from-amber-500 to-orange-500',
   'from-indigo-500 to-blue-600',
@@ -49,8 +49,8 @@ export default function BrandDashboard() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=brand'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login?role=brand'); return; }
     fetchDashboard();
   }, []);
 
@@ -81,7 +81,7 @@ export default function BrandDashboard() {
     return (
       <div className="min-h-screen bg-[#F4F6FB] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#3D5087] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#228B22] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-500">Loading dashboard…</p>
         </div>
       </div>
@@ -92,12 +92,12 @@ export default function BrandDashboard() {
     {
       label: 'Active Campaigns',
       value: stats?.activeCampaigns ?? 0,
-      sub: isPremium ? 'Unlimited plan' : `${stats?.activeCampaigns ?? 0} of 2 free`,
-      warn: !isPremium && (stats?.activeCampaigns ?? 0) >= 2,
-      from: 'from-blue-500', to: 'to-indigo-600',
-      bgFrom: 'from-blue-50', bgTo: 'to-indigo-50',
-      border: 'border-blue-200/70',
-      valCls: 'text-blue-900', subCls: 'text-blue-500',
+      sub: isPremium ? 'On your plan' : `${stats?.activeCampaigns ?? 0} of 3 free`,
+      warn: !isPremium && (stats?.activeCampaigns ?? 0) >= 3,
+      from: 'from-[#3FA34D]', to: 'to-[#228B22]',
+      bgFrom: 'from-[#EAF7EA]', bgTo: 'to-emerald-50',
+      border: 'border-[#228B22]/20',
+      valCls: 'text-[#14531D]', subCls: 'text-[#228B22]',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -108,10 +108,10 @@ export default function BrandDashboard() {
       label: 'Total Applications',
       value: stats?.totalApplications ?? 0,
       sub: 'From creators',
-      from: 'from-violet-500', to: 'to-purple-600',
-      bgFrom: 'from-violet-50', bgTo: 'to-purple-50',
-      border: 'border-violet-200/70',
-      valCls: 'text-violet-900', subCls: 'text-violet-500',
+      from: 'from-rose-500', to: 'to-red-600',
+      bgFrom: 'from-rose-50', bgTo: 'to-red-50',
+      border: 'border-rose-200/70',
+      valCls: 'text-rose-900', subCls: 'text-rose-600',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -137,10 +137,10 @@ export default function BrandDashboard() {
       label: 'Deals Completed',
       value: stats?.completedDeals ?? 0,
       sub: 'All time',
-      from: 'from-emerald-500', to: 'to-green-600',
-      bgFrom: 'from-emerald-50', bgTo: 'to-green-50',
-      border: 'border-emerald-200/70',
-      valCls: 'text-emerald-900', subCls: 'text-emerald-600',
+      from: 'from-sky-500', to: 'to-cyan-600',
+      bgFrom: 'from-sky-50', bgTo: 'to-cyan-50',
+      border: 'border-sky-200/70',
+      valCls: 'text-sky-900', subCls: 'text-sky-600',
       icon: (
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
@@ -156,7 +156,7 @@ export default function BrandDashboard() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* ── Hero ── */}
-        <section className="relative bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
+        <section className="relative bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
           {/* decorative blobs */}
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
@@ -190,7 +190,7 @@ export default function BrandDashboard() {
                   {stats?.activeCampaigns ?? 0} active campaign{(stats?.activeCampaigns ?? 0) !== 1 ? 's' : ''}
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
-                  <svg className="w-3 h-3 text-violet-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  <svg className="w-3 h-3 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                   {stats?.totalApplications ?? 0} application{(stats?.totalApplications ?? 0) !== 1 ? 's' : ''}
                 </span>
                 {isPremium && (
@@ -203,7 +203,7 @@ export default function BrandDashboard() {
             <div className="flex flex-col sm:items-end gap-2 flex-shrink-0">
               <Link
                 href="/brand/campaigns"
-                className="inline-flex items-center gap-2 bg-white dark:bg-white/20 text-[#3D5087] dark:text-white hover:bg-blue-50 dark:hover:bg-white/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm self-start sm:self-auto"
+                className="inline-flex items-center gap-2 bg-white dark:bg-white/20 text-[#228B22] dark:text-white hover:bg-blue-50 dark:hover:bg-white/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm self-start sm:self-auto"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -224,7 +224,7 @@ export default function BrandDashboard() {
         </section>
 
         {/* ── Freemium warning ── */}
-        {!isPremium && (stats?.activeCampaigns || 0) >= 2 && (
+        {!isPremium && (stats?.activeCampaigns || 0) >= 3 && (
           <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
@@ -285,7 +285,7 @@ export default function BrandDashboard() {
                 <h3 className="font-bold text-gray-900">Recent Applications</h3>
                 <p className="text-[11px] text-gray-400 mt-0.5">Latest creator applications across all campaigns</p>
               </div>
-              <Link href="/brand/campaigns" className="flex items-center gap-1 text-xs text-[#3D5087] font-bold hover:underline">
+              <Link href="/brand/campaigns" className="flex items-center gap-1 text-xs text-[#228B22] font-bold hover:underline">
                 View all
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -305,7 +305,7 @@ export default function BrandDashboard() {
                 <p className="text-xs text-gray-400 max-w-xs leading-relaxed mb-4">
                   Creator applications will appear here once you launch a campaign.
                 </p>
-                <Link href="/brand/campaigns" className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#3D5087] hover:bg-[#2B3B68] px-4 py-2 rounded-xl transition-all">
+                <Link href="/brand/campaigns" className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#228B22] hover:bg-[#1B6E1B] px-4 py-2 rounded-xl transition-all">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                   </svg>
@@ -337,7 +337,7 @@ export default function BrandDashboard() {
                           {cfg.label}
                         </span>
                       )}
-                      <svg className="w-4 h-4 text-gray-200 group-hover:text-[#3D5087] transition-colors flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="w-4 h-4 text-gray-200 group-hover:text-[#228B22] transition-colors flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="9 18 15 12 9 6"/>
                       </svg>
                     </Link>
@@ -358,13 +358,13 @@ export default function BrandDashboard() {
                   {
                     label: 'New Campaign',
                     href: '/brand/campaigns',
-                    grad: 'from-[#3D5087] to-[#2B3B68]',
+                    grad: 'from-[#228B22] to-[#1B6E1B]',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
                   },
                   {
                     label: 'Discover',
                     href: '/brand/discover',
-                    grad: 'from-violet-500 to-purple-600',
+                    grad: 'from-sky-500 to-blue-600',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
                   },
                   {
@@ -396,7 +396,7 @@ export default function BrandDashboard() {
 
             {/* Upgrade card */}
             {!isPremium ? (
-              <div className="relative bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl p-5 overflow-hidden shadow-md">
+              <div className="relative bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] rounded-2xl p-5 overflow-hidden shadow-md">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
                 <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
                 <div className="relative">
@@ -404,12 +404,12 @@ export default function BrandDashboard() {
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
-                    Upgrade to Premium
+                    Upgrade your plan
                   </div>
                   <h4 className="font-extrabold text-white text-[15px] mb-1">Unlock unlimited growth</h4>
-                  <p className="text-blue-200/70 text-xs mb-4 leading-relaxed">Everything you need to run campaigns at scale.</p>
+                  <p className="text-blue-200/70 text-xs mb-4 leading-relaxed">Silver and Golden unlock more campaigns, discovery and messaging.</p>
                   <ul className="space-y-2 mb-5">
-                    {['Unlimited campaigns', 'Priority in creator discovery', 'Advanced analytics & exports'].map(f => (
+                    {['More active campaigns', 'Priority in creator discovery', 'Invite creators directly'].map(f => (
                       <li key={f} className="flex items-center gap-2 text-xs text-blue-100/90">
                         <svg className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
@@ -420,9 +420,9 @@ export default function BrandDashboard() {
                   </ul>
                   <Link
                     href="/brand/billing"
-                    className="block text-center bg-white/95 hover:bg-white text-[#3D5087] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
+                    className="block text-center bg-white/95 hover:bg-white text-[#228B22] py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm"
                   >
-                    ₹1,499 / month — Upgrade now →
+                    From ₹399 / month — View plans →
                   </Link>
                 </div>
               </div>

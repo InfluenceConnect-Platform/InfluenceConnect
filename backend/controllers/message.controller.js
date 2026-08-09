@@ -1,6 +1,7 @@
 const Message = require('../models/Message');
 const Deal = require('../models/Deal');
 const User = require('../models/User');
+const { getTierConfig } = require('../utils/tiers');
 const notify = require('../services/email');
 
 const BLOCKED_PATTERN = /(\+?\d[\d\s\-()\u200c]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|insta(gram)?\b|insta\.me|face ?book|\bfb\b|fb\.com|whatsapp|wa\.me|telegram|t\.me|snap(chat)?\b|\bhandle\b|\busername\b)/i;
@@ -143,9 +144,10 @@ exports.sendMessage = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Freemium daily message limit
-    const isPremium = req.user.plan === 'premium';
-    if (!isPremium) {
+    const tierConfig = getTierConfig(req.user.role, req.user.tier);
+
+    // Per-tier daily message limit — see backend/utils/tiers.js
+    if (Number.isFinite(tierConfig.maxMessagesPerDay)) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -155,10 +157,23 @@ exports.sendMessage = async (req, res) => {
         createdAt: { $gte: today }
       });
 
-      if (messagesToday >= 10) {
+      if (messagesToday >= tierConfig.maxMessagesPerDay) {
         return res.status(403).json({
           error: 'daily_message_limit',
-          message: 'You have reached your 10 daily messages on freemium. Upgrade to Premium for unlimited messaging.'
+          message: `You have reached your ${tierConfig.maxMessagesPerDay} daily messages on your current plan. Upgrade for more.`
+        });
+      }
+    }
+
+    // Per-tier shared-file size cap (brand tiers define maxFileMB; influencers
+    // aren't capped by the doc, so fall back to unlimited for that role).
+    if (validAttachments.length > 0 && Number.isFinite(tierConfig.maxFileMB)) {
+      const maxBytes = tierConfig.maxFileMB * 1024 * 1024;
+      const oversized = validAttachments.find(att => (att.fileSize || 0) > maxBytes);
+      if (oversized) {
+        return res.status(403).json({
+          error: 'tier_limit',
+          message: `Your plan allows files up to ${tierConfig.maxFileMB} MB. Upgrade to share larger files.`
         });
       }
     }

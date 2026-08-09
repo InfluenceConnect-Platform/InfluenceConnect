@@ -17,7 +17,16 @@ passport.use(new GoogleStrategy({
   try {
     // Returning user — already linked Google
     let user = await User.findOne({ googleId: profile.id });
-    if (user) return done(null, user);
+    if (user) {
+      // Role-themed login pages pass which portal the user picked via the
+      // OAuth `state` param — reject if it doesn't match their real role
+      // instead of silently logging them into the other portal.
+      const expectedRole = req.query.state;
+      if (expectedRole && ['brand', 'influencer'].includes(expectedRole) && user.role !== expectedRole) {
+        return done(null, false, { message: 'role_mismatch', expectedRole });
+      }
+      return done(null, user);
+    }
 
     const email = profile.emails?.[0]?.value;
     if (!email) return done(null, false, { message: 'No email from Google account' });

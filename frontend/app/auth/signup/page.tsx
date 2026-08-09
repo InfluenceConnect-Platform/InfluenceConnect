@@ -37,7 +37,7 @@ const ROLE_META: Record<Role, {
   influencer: {
     label: 'Influencer',
     sub: 'Creators, reviewers & content makers',
-    gradient: 'from-[#7FA8AD] to-[#5D8A8F]',
+    gradient: 'from-[#F0417B] to-[#E0115F]',
     icon: (
       <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -60,8 +60,8 @@ const ROLE_META: Record<Role, {
   brand: {
     label: 'Brand',
     sub: 'Businesses, companies & agencies',
-    // Matches the brand profile's theme (deep indigo-navy, #3D5087).
-    gradient: 'from-[#4a5fa0] to-[#1e2f5c]',
+    // Matches the brand profile's theme (forest green, #228B22).
+    gradient: 'from-[#3FA34D] to-[#228B22]',
     icon: (
       <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
@@ -79,6 +79,13 @@ const ROLE_META: Record<Role, {
       password: { label: 'Create a password',        placeholder: 'At least 8 characters',        helper: undefined },
     }
   }
+};
+
+// Solid accent hexes per role — used for the accent bar, IC logo mark,
+// links and the headline gradient, alongside ROLE_META's card gradients.
+const ROLE_COLOR: Record<Role, { main: string; mid: string; dark: string; darker: string }> = {
+  influencer: { main: '#E0115F', mid: '#F0417B', dark: '#B00D4D', darker: '#7A0F3D' },
+  brand:      { main: '#228B22', mid: '#3FA34D', dark: '#1B6E1B', darker: '#14531D' },
 };
 
 const FEATURES = [
@@ -113,9 +120,9 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { value: '2K+', label: 'Creators', tint: 'teal' },
-  { value: '800+', label: 'Brands', tint: 'indigo' },
-  { value: '5K+', label: 'Collabs', tint: 'violet' },
+  { value: '2K+', label: 'Creators', tint: 'ruby' },
+  { value: '800+', label: 'Brands', tint: 'green' },
+  { value: '5K+', label: 'Collabs', tint: 'amber' },
 ];
 
 function SignupPage() {
@@ -186,9 +193,9 @@ function SignupPage() {
   };
 
   const statValueColor = (tint: string) => {
-    if (tint === 'teal') return isDark ? 'text-teal-400' : 'text-teal-600';
-    if (tint === 'indigo') return isDark ? 'text-indigo-400' : 'text-indigo-600';
-    return isDark ? 'text-violet-400' : 'text-violet-600';
+    if (tint === 'ruby') return isDark ? 'text-[#F0417B]' : 'text-[#E0115F]';
+    if (tint === 'green') return isDark ? 'text-[#3FA34D]' : 'text-[#228B22]';
+    return isDark ? 'text-amber-400' : 'text-amber-600';
   };
 
   return (
@@ -209,7 +216,11 @@ function SignupPage() {
           <h1 className={`text-[2.75rem] font-bold leading-[1.12] tracking-tight mb-4 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Create your account<br />
             and{' '}
-            <span className="bg-gradient-to-r from-[#7FA8AD] via-[#5D8A8F] to-[#7C9ED9] bg-clip-text text-transparent">
+            <span
+              key={role}
+              className="anim-pop bg-clip-text text-transparent transition-all duration-300"
+              style={{ backgroundImage: `linear-gradient(90deg, ${ROLE_COLOR[role].mid}, ${ROLE_COLOR[role].main}, ${ROLE_COLOR[role].dark})` }}
+            >
               start connecting
             </span>.
           </h1>
@@ -254,17 +265,19 @@ function SignupPage() {
         }`}>
 
           {/* Gradient accent bar — changes with role */}
-          <div className={`h-[3px] bg-gradient-to-r ${
-            role === 'influencer'
-              ? 'from-[#7FA8AD] via-[#5D8A8F] to-[#3D7082]'
-              : 'from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6]'
-          } transition-all duration-300`} />
+          <div
+            className="h-[3px] transition-all duration-300"
+            style={{ background: `linear-gradient(90deg, ${ROLE_COLOR[role].mid}, ${ROLE_COLOR[role].main}, ${ROLE_COLOR[role].dark})` }}
+          />
 
           <div className={`px-8 pt-7 pb-8 transition-colors ${isDark ? 'bg-[#0E1B2E]' : 'bg-white'}`}>
 
             {/* IC branding inside card */}
             <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7FA8AD] to-[#3D5087] flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md transition-all duration-300"
+                style={{ background: `linear-gradient(135deg, ${ROLE_COLOR[role].mid}, ${ROLE_COLOR[role].main})` }}
+              >
                 IC
               </div>
               <div>
@@ -415,7 +428,11 @@ function SignupPage() {
 
             <p className={`text-[0.72rem] text-center mt-5 transition-colors ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-[#5D8A8F] font-semibold hover:text-[#4A7A7F] transition-colors">
+              <Link
+                href={`/auth/login?role=${role}`}
+                className="font-semibold hover:underline transition-colors"
+                style={{ color: ROLE_COLOR[role].main }}
+              >
                 Sign in →
               </Link>
             </p>

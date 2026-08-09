@@ -22,7 +22,7 @@ export default function InfluencerLayout({ children }: { children: React.ReactNo
     } catch {}
 
     if (!token || !stored || role !== 'influencer') {
-      router.replace('/auth/login');
+      router.replace('/auth/login?role=influencer');
       return;
     }
     setChecked(true);
@@ -31,7 +31,7 @@ export default function InfluencerLayout({ children }: { children: React.ReactNo
   if (!checked) {
     return (
       <div className="min-h-screen bg-[#F7F9FA] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#F0417B] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
@@ -106,6 +106,11 @@ export default function AdminLogs() {
     }
   }, [buildParams, page]);
 
+  // Pagination shouldn't collapse the table into a skeleton (that shrinks the
+  // page height and clamps window scroll, which reads as "jumping to top").
+  // Filter changes still show the skeleton; page changes fetch silently.
+  const pageChangeRef = useRef(false);
+
   const fetchStats = useCallback(async () => {
     try {
       const res = await api.get('/api/admin/logs/stats');
@@ -115,7 +120,10 @@ export default function AdminLogs() {
     }
   }, []);
 
-  useEffect(() => { fetchLogs(); }, [fetchLogs]);
+  useEffect(() => {
+    fetchLogs({ silent: pageChangeRef.current });
+    pageChangeRef.current = false;
+  }, [fetchLogs]);
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
   // Reset to page 1 whenever a filter changes.
@@ -390,14 +398,14 @@ export default function AdminLogs() {
                   </p>
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      onClick={() => { pageChangeRef.current = true; setPage(p => Math.max(1, p - 1)); }}
                       disabled={page === 1}
                       className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600 shadow-sm"
                     >
                       ← Prev
                     </button>
                     <button
-                      onClick={() => setPage(p => Math.min(pages, p + 1))}
+                      onClick={() => { pageChangeRef.current = true; setPage(p => Math.min(pages, p + 1)); }}
                       disabled={page === pages}
                       className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600 shadow-sm"
                     >

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
@@ -33,6 +33,9 @@ export default function AdminSubscriptions() {
   const [paymentsPage, setPaymentsPage]       = useState(1);
   const [paymentsPages, setPaymentsPages]     = useState(1);
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+  // Pagination fetches silently so the table doesn't collapse into a
+  // skeleton mid-scroll (that clamps window scroll and reads as "jump to top").
+  const pageChangeRef = useRef(false);
 
   const [roleFilter, setRoleFilter]     = useState('');
   const [cycleFilter, setCycleFilter]   = useState('');
@@ -80,7 +83,10 @@ export default function AdminSubscriptions() {
     }
   };
 
-  useEffect(() => { fetchPayments(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [paymentsPage, roleFilter, cycleFilter, statusFilter]);
+  useEffect(() => {
+    fetchPayments({ silent: pageChangeRef.current });
+    pageChangeRef.current = false;
+  /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [paymentsPage, roleFilter, cycleFilter, statusFilter]);
   useEffect(() => { setPaymentsPage(1); }, [roleFilter, cycleFilter, statusFilter]);
 
   const fmt = (n: number) => n.toLocaleString('en-IN');
@@ -124,7 +130,7 @@ export default function AdminSubscriptions() {
                   </div>
                   <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">
                     <svg className="w-5 h-5 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                      <path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/>
                     </svg>
                   </div>
                 </div>
@@ -426,14 +432,14 @@ export default function AdminSubscriptions() {
                       </p>
                       <div className="flex items-center gap-1.5">
                         <button
-                          onClick={() => setPaymentsPage(p => Math.max(1, p - 1))}
+                          onClick={() => { pageChangeRef.current = true; setPaymentsPage(p => Math.max(1, p - 1)); }}
                           disabled={paymentsPage === 1}
                           className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600 shadow-sm"
                         >
                           ← Prev
                         </button>
                         <button
-                          onClick={() => setPaymentsPage(p => Math.min(paymentsPages, p + 1))}
+                          onClick={() => { pageChangeRef.current = true; setPaymentsPage(p => Math.min(paymentsPages, p + 1)); }}
                           disabled={paymentsPage === paymentsPages}
                           className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer text-gray-600 shadow-sm"
                         >

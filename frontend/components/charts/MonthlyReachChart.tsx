@@ -119,7 +119,7 @@ export default function MonthlyReachChart({ history }: Props) {
               onClick={() => { setPeriod(p); setHovered(null); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 period === p
-                  ? 'bg-gradient-to-r from-[#1C4A52] to-[#2d7a88] text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-[#7A0F3D] to-[#B00D4D] text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -132,7 +132,7 @@ export default function MonthlyReachChart({ history }: Props) {
       <div ref={containerRef} className="px-2 sm:px-3 pb-4">
         {data.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center gap-2 px-6" style={{ height: H }}>
-            <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#E0115F] flex items-center justify-center">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" />
               </svg>
@@ -152,12 +152,12 @@ export default function MonthlyReachChart({ history }: Props) {
           >
             <defs>
               <linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2d7a88" stopOpacity="1" />
-                <stop offset="100%" stopColor="#7FA8AD" stopOpacity="0.6" />
+                <stop offset="0%" stopColor="#B00D4D" stopOpacity="1" />
+                <stop offset="100%" stopColor="#F0417B" stopOpacity="0.6" />
               </linearGradient>
               <linearGradient id="bar-grad-hover" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#1C4A52" stopOpacity="1" />
-                <stop offset="100%" stopColor="#4A8D95" stopOpacity="0.8" />
+                <stop offset="0%" stopColor="#7A0F3D" stopOpacity="1" />
+                <stop offset="100%" stopColor="#F0417B" stopOpacity="0.8" />
               </linearGradient>
             </defs>
 
@@ -186,7 +186,7 @@ export default function MonthlyReachChart({ history }: Props) {
                 />
                 {hovered === bar.idx && (
                   <g>
-                    <rect x={bar.x + bar.width / 2 - 28} y={bar.y - 30} width={56} height={22} rx="6" fill="#1C4A52" />
+                    <rect x={bar.x + bar.width / 2 - 28} y={bar.y - 30} width={56} height={22} rx="6" fill="#7A0F3D" />
                     <text x={bar.x + bar.width / 2} y={bar.y - 14} textAnchor="middle" fontSize="11" fontWeight="700" fill="white" fontFamily="sans-serif">
                       {formatReach(bar.value)}
                     </text>
@@ -197,7 +197,7 @@ export default function MonthlyReachChart({ history }: Props) {
                   y={H - 8}
                   textAnchor="middle"
                   fontSize="11"
-                  fill={hovered === bar.idx ? '#1C4A52' : '#9EB8BC'}
+                  fill={hovered === bar.idx ? '#7A0F3D' : '#B08A96'}
                   fontWeight={hovered === bar.idx ? '700' : '500'}
                   fontFamily="sans-serif"
                 >

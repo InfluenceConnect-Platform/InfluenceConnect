@@ -10,14 +10,14 @@ import { cdnImg } from '@/lib/img';
 
 const LEVEL_BADGE: Record<string, string> = {
   elite:        'bg-amber-50 text-amber-700 border border-amber-200',
-  professional: 'bg-violet-50 text-violet-700 border border-violet-200',
+  professional: 'bg-sky-50 text-sky-700 border border-sky-200',
   growing:      'bg-emerald-50 text-emerald-700 border border-emerald-200',
   starter:      'bg-gray-100 text-gray-500 border border-gray-200',
 };
 
 const AVATAR_GRADS = [
-  'from-[#3D5087] to-[#6B7FBB]',
-  'from-violet-500 to-purple-600',
+  'from-[#228B22] to-[#6BBF75]',
+  'from-cyan-500 to-sky-600',
   'from-teal-500 to-cyan-600',
   'from-rose-500 to-pink-600',
   'from-amber-500 to-orange-500',
@@ -280,7 +280,7 @@ export default function CreatorProfilePage() {
   if (loading) return (
     <div className="min-h-screen bg-[#F4F6FB] flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-[#3D5087] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#228B22] border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-gray-400 font-medium">Loading profile…</p>
       </div>
     </div>
@@ -301,7 +301,7 @@ export default function CreatorProfilePage() {
           ← Back to Discover
         </button>
         <button onClick={() => router.push('/brand/billing')}
-          className="px-5 py-2.5 bg-[#3D5087] hover:bg-[#2B3B68] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer">
+          className="px-5 py-2.5 bg-[#228B22] hover:bg-[#1B6E1B] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer">
           Upgrade to Premium
         </button>
       </div>
@@ -318,7 +318,7 @@ export default function CreatorProfilePage() {
       <p className="text-lg font-bold text-gray-800">Profile not found</p>
       <p className="text-sm text-gray-400">This creator hasn&apos;t set up their profile yet.</p>
       <button onClick={() => router.back()}
-        className="mt-1 px-5 py-2.5 bg-[#3D5087] hover:bg-[#2B3B68] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer">
+        className="mt-1 px-5 py-2.5 bg-[#228B22] hover:bg-[#1B6E1B] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer">
         ← Back to Discover
       </button>
     </div>
@@ -391,7 +391,7 @@ export default function CreatorProfilePage() {
         <div className={`${card} overflow-hidden`}>
 
           {/* Cover — clickable if coverPhotoUrl exists */}
-          <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6]">
+          <div className="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F]">
             {/* Decorative shapes on the cover default gradient */}
             {!profile.coverPhotoUrl && <>
               <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
@@ -425,7 +425,7 @@ export default function CreatorProfilePage() {
             {/* Avatar — pulled up over the cover with -mt-10, z-10 keeps it above the cover stacking context */}
             <div className="-mt-10 mb-4">
               <div
-                className={`relative z-10 w-[78px] h-[78px] sm:w-[88px] sm:h-[88px] rounded-full border-[3px] border-white ring-2 ring-[#3D5087]/20 shadow-lg overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center ${profile.profilePicUrl ? 'cursor-zoom-in' : ''}`}
+                className={`relative z-10 w-[78px] h-[78px] sm:w-[88px] sm:h-[88px] rounded-full border-[3px] border-white ring-2 ring-[#228B22]/20 shadow-lg overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center ${profile.profilePicUrl ? 'cursor-zoom-in' : ''}`}
                 onClick={() => {
                   if (profile.profilePicUrl)
                     openModal([{ type: 'image', src: profile.profilePicUrl, label: `${name}'s profile picture` }], 0);
@@ -470,7 +470,7 @@ export default function CreatorProfilePage() {
             <div className="flex flex-wrap items-center gap-3 text-[13px] text-gray-500 mb-5">
               {profile.city && (
                 <span className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
-                  <svg className="w-3 h-3 text-[#3D5087]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-3 h-3 text-[#228B22]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                   </svg>
                   {profile.area ? (profile.city ? `${profile.area} · near ${profile.city}` : profile.area) : profile.city}
@@ -478,7 +478,7 @@ export default function CreatorProfilePage() {
               )}
               {(profile.platforms ?? []).map((p: any) => p.profileUrl && (
                 <a key={p.name} href={p.profileUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full hover:border-[#3D5087]/30 hover:bg-[#EEF1F8] transition-all">
+                  className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full hover:border-[#228B22]/30 hover:bg-[#EAF7EA] transition-all">
                   {p.name === 'instagram' && <InstagramLogo size={13} />}
                   {p.name === 'youtube'   && <YouTubeLogo size={13} />}
                   {p.name === 'facebook'  && <FacebookLogo size={13} />}
@@ -492,7 +492,7 @@ export default function CreatorProfilePage() {
               {[
                 {
                   value: String(allItems.length), label: 'Posts',
-                  bg: 'bg-[#EEF1F8]', darkBg: 'dark:bg-[#0d2d33]', text: 'text-[#3D5087]', darkText: 'dark:text-[#7EC8D3]',
+                  bg: 'bg-[#EAF7EA]', darkBg: 'dark:bg-[#0F2E12]', text: 'text-[#228B22]', darkText: 'dark:text-[#6BBF75]',
                   icon: (
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -501,7 +501,7 @@ export default function CreatorProfilePage() {
                 },
                 {
                   value: formatNum(totalFollowers), label: 'Followers',
-                  bg: 'bg-violet-50', darkBg: 'dark:bg-violet-900/40', text: 'text-violet-600', darkText: 'dark:text-violet-400',
+                  bg: 'bg-sky-50', darkBg: 'dark:bg-sky-900/40', text: 'text-sky-600', darkText: 'dark:text-sky-400',
                   icon: (
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
@@ -545,7 +545,7 @@ export default function CreatorProfilePage() {
         {(profile.platforms ?? []).length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-2.5 px-1">
-              <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#3D5087] to-[#6B7FBB]" />
+              <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#228B22] to-[#6BBF75]" />
               <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Platform Stats</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -571,7 +571,7 @@ export default function CreatorProfilePage() {
                       </div>
                       {/* {p.profileUrl && (
                         <a href={p.profileUrl} target="_blank" rel="noopener noreferrer"
-                          className="relative flex items-center gap-1 text-[11px] font-semibold text-[#3D5087] hover:underline">
+                          className="relative flex items-center gap-1 text-[11px] font-semibold text-[#228B22] hover:underline">
                           Visit
                           <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -605,7 +605,7 @@ export default function CreatorProfilePage() {
             ═══════════════════════════════ */}
         <div>
           <div className="flex items-center gap-2 mb-2.5 px-1">
-            <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#3D5087] to-[#6B7FBB]" />
+            <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#228B22] to-[#6BBF75]" />
             <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Collaboration Details</h2>
           </div>
 
@@ -618,7 +618,7 @@ export default function CreatorProfilePage() {
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 shadow-sm">
                   <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    <path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/>
                   </svg>
                 </div>
                 <div>
@@ -641,12 +641,12 @@ export default function CreatorProfilePage() {
             {/* Score card */}
             <div className={`relative ${card} p-5 overflow-hidden`}>
               {/* Quarter-circle bottom-right */}
-              <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full bg-[#EEF1F8] pointer-events-none" />
-              <div className="absolute -bottom-4 -right-4 w-14 h-14 rounded-full bg-[#D6DCF0]/60 pointer-events-none" />
+              <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full bg-[#EAF7EA] pointer-events-none" />
+              <div className="absolute -bottom-4 -right-4 w-14 h-14 rounded-full bg-[#C8E6C9]/60 pointer-events-none" />
               <div className="relative">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-lg bg-[#EEF1F8] flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-[#3D5087]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="w-7 h-7 rounded-lg bg-[#EAF7EA] flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-[#228B22]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
                     </svg>
                   </div>
@@ -658,7 +658,7 @@ export default function CreatorProfilePage() {
                 </div>
                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#3D5087] to-[#6B7FBB] rounded-full transition-all duration-700"
+                    className="h-full bg-gradient-to-r from-[#228B22] to-[#6BBF75] rounded-full transition-all duration-700"
                     style={{ width: `${profile.credibilityScore ?? 0}%` }}
                   />
                 </div>
@@ -691,7 +691,7 @@ export default function CreatorProfilePage() {
             ═══════════════════════════════ */}
         <div>
           <div className="flex items-center gap-2 mb-2.5 px-1">
-            <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#3D5087] to-[#6B7FBB]" />
+            <div className="w-1 h-4 rounded-full bg-gradient-to-b from-[#228B22] to-[#6BBF75]" />
             <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Portfolio</h2>
           </div>
           <div className={`${card} overflow-hidden`}>
@@ -704,12 +704,12 @@ export default function CreatorProfilePage() {
                   onClick={() => setActiveTab(tab.key)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-3.5 text-xs font-bold transition-all cursor-pointer relative ${
                     activeTab === tab.key
-                      ? 'text-[#3D5087] bg-white shadow-[inset_0_-2px_0_#3D5087]'
+                      ? 'text-[#228B22] bg-white shadow-[inset_0_-2px_0_#228B22]'
                       : 'text-gray-400 hover:text-gray-600 hover:bg-white/60'
                   }`}
                 >
                   {tab.label}
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${activeTab === tab.key ? 'bg-[#EEF1F8] text-[#3D5087]' : 'bg-gray-100 text-gray-400'}`}>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${activeTab === tab.key ? 'bg-[#EAF7EA] text-[#228B22]' : 'bg-gray-100 text-gray-400'}`}>
                     {tab.count}
                   </span>
                 </button>
@@ -783,7 +783,7 @@ export default function CreatorProfilePage() {
                     <button
                       key={item._id ?? i}
                       onClick={() => openModal(mediaList, unlockedIndex)}
-                      className="relative aspect-square overflow-hidden bg-white group cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#3D5087]"
+                      className="relative aspect-square overflow-hidden bg-white group cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#228B22]"
                       aria-label={item.type === 'video' ? 'Play reel' : 'View photo'}
                     >
                       {item.type === 'video' ? (

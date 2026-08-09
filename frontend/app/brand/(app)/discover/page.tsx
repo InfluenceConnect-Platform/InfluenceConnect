@@ -6,13 +6,14 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import BrandNav from '@/components/shared/BrandNav';
 import { useToast } from '@/components/shared/Toast';
-import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
+import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS, NICHE_SUBNICHES, SUB_NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
+import { levelBadgeCls } from '@/lib/levelBadge';
 
 const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
 const AVATAR_GRADIENTS = [
-  'from-violet-500 to-purple-600',
+  'from-cyan-500 to-sky-600',
   'from-teal-500 to-cyan-600',
   'from-amber-500 to-orange-500',
   'from-indigo-500 to-blue-600',
@@ -60,11 +61,13 @@ const FacebookLogo = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const FIELD_CLASS = 'w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] hover:border-gray-300 transition-all placeholder:text-gray-400';
+const FIELD_CLASS = 'w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] hover:border-gray-300 transition-all placeholder:text-gray-400';
 
 interface FilterPanelProps {
   selectedNiches: string[];
   toggleNiche: (n: string) => void;
+  selectedSubNiches: string[];
+  toggleSubNiche: (n: string) => void;
   selectedCities: string[];
   toggleCity: (v: string) => void;
   selectedPlatforms: string[];
@@ -91,6 +94,7 @@ interface FilterPanelProps {
 
 function FilterPanel({
   selectedNiches, toggleNiche,
+  selectedSubNiches, toggleSubNiche,
   selectedCities, toggleCity,
   selectedPlatforms, togglePlatform,
   minInput, setMinInput,
@@ -129,10 +133,10 @@ function FilterPanel({
     <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm">
       <div className="px-5 py-3.5 bg-gradient-to-r from-blue-50/70 to-white dark:from-[#0f1e31] dark:to-[#0E1B2E] border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 rounded-full bg-gradient-to-b from-[#3D5087] to-[#2B3B68]" />
+          <div className="w-1 h-5 rounded-full bg-gradient-to-b from-[#228B22] to-[#1B6E1B]" />
           <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Filters</h4>
           {activeFilterCount > 0 && (
-            <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white text-[10px] font-bold flex items-center justify-center">
+            <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#228B22] to-[#1B6E1B] text-white text-[10px] font-bold flex items-center justify-center">
               {activeFilterCount}
             </span>
           )}
@@ -148,7 +152,7 @@ function FilterPanel({
         {/* Niche */}
         <div className="mb-5">
           <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-gradient-to-br from-violet-500 to-purple-600 flex-shrink-0" />
+            <span className="w-3 h-3 rounded bg-gradient-to-br from-sky-500 to-blue-600 flex-shrink-0" />
             Niche
           </p>
           <div className="flex flex-col gap-2">
@@ -156,8 +160,8 @@ function FilterPanel({
               <div key={n} role="checkbox" aria-checked={selectedNiches.includes(n)} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleNiche(n)}>
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                   selectedNiches.includes(n)
-                    ? 'border-0 bg-gradient-to-br from-[#3D5087] to-[#2B3B68] shadow-sm'
-                    : 'border-gray-300 group-hover:border-[#3D5087]'
+                    ? 'border-0 bg-gradient-to-br from-[#228B22] to-[#1B6E1B] shadow-sm'
+                    : 'border-gray-300 group-hover:border-[#228B22]'
                 }`}>
                   {selectedNiches.includes(n) && (
                     <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -165,11 +169,41 @@ function FilterPanel({
                     </svg>
                   )}
                 </div>
-                <span className={`text-sm transition-colors ${selectedNiches.includes(n) ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{NICHE_LABELS[n] ?? n}</span>
+                <span className={`text-sm transition-colors ${selectedNiches.includes(n) ? 'text-[#228B22] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{NICHE_LABELS[n] ?? n}</span>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Sub-niche — only offered once at least one niche above is picked */}
+        {selectedNiches.length > 0 && (
+          <>
+            <div className="mb-5">
+              <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-gradient-to-br from-[#F0417B] to-[#E0115F] flex-shrink-0" />
+                Sub-niche
+              </p>
+              <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
+                {selectedNiches.flatMap(n => NICHE_SUBNICHES[n] ?? []).map(s => (
+                  <div key={s} role="checkbox" aria-checked={selectedSubNiches.includes(s)} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleSubNiche(s)}>
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                      selectedSubNiches.includes(s)
+                        ? 'border-0 bg-gradient-to-br from-[#F0417B] to-[#E0115F] shadow-sm'
+                        : 'border-gray-300 group-hover:border-[#F0417B]'
+                    }`}>
+                      {selectedSubNiches.includes(s) && (
+                        <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span className={`text-sm transition-colors ${selectedSubNiches.includes(s) ? 'text-[#E0115F] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{SUB_NICHE_LABELS[s] ?? s}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="h-px bg-gray-100 mb-5" />
 
@@ -218,8 +252,8 @@ function FilterPanel({
                 <div key={p.value} role="checkbox" aria-checked={checked} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => togglePlatform(p.value)}>
                   <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                     checked
-                      ? 'border-[#3D5087] bg-[#3D5087]'
-                      : 'border-gray-300 group-hover:border-[#3D5087]'
+                      ? 'border-[#228B22] bg-[#228B22]'
+                      : 'border-gray-300 group-hover:border-[#228B22]'
                   }`}>
                     {checked && (
                       <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -227,7 +261,7 @@ function FilterPanel({
                   </div>
                   <div className="flex items-center gap-1.5">
                     {p.logo}
-                    <span className={`text-sm transition-colors ${checked ? 'text-[#3D5087] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{p.label}</span>
+                    <span className={`text-sm transition-colors ${checked ? 'text-[#228B22] font-semibold' : 'text-gray-600 group-hover:text-gray-800'}`}>{p.label}</span>
                   </div>
                 </div>
               );
@@ -280,7 +314,7 @@ function FilterPanel({
               disabled={!canApply}
               className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-150 ${
                 canApply
-                  ? 'bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white cursor-pointer hover:from-[#2B3B68] hover:to-[#3D5087] shadow-sm hover:shadow-md'
+                  ? 'bg-gradient-to-r from-[#228B22] to-[#3FA34D] text-white cursor-pointer hover:from-[#1B6E1B] hover:to-[#228B22] shadow-sm hover:shadow-md'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
@@ -612,6 +646,7 @@ function BrandDiscover() {
   const initialMaxPrice = searchParams.get('maxPrice') || '';
 
   const [selectedNiches, setSelectedNiches] = useState<string[]>(initialNiche ? initialNiche.split(',') : []);
+  const [selectedSubNiches, setSelectedSubNiches] = useState<string[]>([]);
   const [selectedCities, setSelectedCities] = useState<string[]>(initialCities);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(initialPlatform ? initialPlatform.split(',') : []);
   const [minFollowers, setMinFollowers] = useState(initialMinFollowers);
@@ -629,8 +664,8 @@ function BrandDiscover() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=brand'); return; }
+    if (JSON.parse(stored).role !== 'brand') { router.push('/auth/login?role=brand'); return; }
     fetchInfluencers();
   }, []);
 
@@ -642,7 +677,7 @@ function BrandDiscover() {
 
   useEffect(() => {
     fetchInfluencers();
-  }, [selectedNiches, selectedCities, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch, sortBy, limit]);
+  }, [selectedNiches, selectedSubNiches, selectedCities, selectedPlatforms, minFollowers, maxFollowers, minPrice, maxPrice, debouncedSearch, sortBy, limit]);
 
   const fetchInfluencers = async () => {
     setLoading(true);
@@ -650,6 +685,7 @@ function BrandDiscover() {
       const params: Record<string, string> = {};
       if (debouncedSearch) params.search = debouncedSearch;
       if (selectedNiches.length > 0) params.niche = selectedNiches.join(',');
+      if (selectedSubNiches.length > 0) params.subNiche = selectedSubNiches.join(',');
       if (selectedCities.length > 0) params.city = selectedCities.join(',');
       if (selectedPlatforms.length > 0) params.platform = selectedPlatforms.join(',');
       if (minFollowers) params.minFollowers = minFollowers;
@@ -670,8 +706,17 @@ function BrandDiscover() {
   };
 
   const toggleNiche = (niche: string) => {
-    setSelectedNiches(prev =>
-      prev.includes(niche) ? prev.filter(n => n !== niche) : [...prev, niche]
+    setSelectedNiches(prev => {
+      const next = prev.includes(niche) ? prev.filter(n => n !== niche) : [...prev, niche];
+      // Drop any selected sub-niches whose parent niche just got deselected.
+      setSelectedSubNiches(subs => subs.filter(s => next.includes(SUB_NICHE_TO_NICHE[s])));
+      return next;
+    });
+  };
+
+  const toggleSubNiche = (subNiche: string) => {
+    setSelectedSubNiches(prev =>
+      prev.includes(subNiche) ? prev.filter(n => n !== subNiche) : [...prev, subNiche]
     );
   };
 
@@ -714,6 +759,7 @@ function BrandDiscover() {
   const clearFilters = () => {
     setSearch('');
     setSelectedNiches([]);
+    setSelectedSubNiches([]);
     setSelectedCities([]);
     setSelectedPlatforms([]);
     setMinFollowers('');
@@ -727,7 +773,7 @@ function BrandDiscover() {
   };
 
   const activeFilterCount =
-    selectedNiches.length + selectedCities.length + selectedPlatforms.length +
+    selectedNiches.length + selectedSubNiches.length + selectedCities.length + selectedPlatforms.length +
     (minFollowers ? 1 : 0) + (maxFollowers ? 1 : 0) + (minPrice || maxPrice ? 1 : 0);
 
   const getPrimaryPlatform = (influencer: any) => {
@@ -739,6 +785,7 @@ function BrandDiscover() {
 
   const filterPanelProps: FilterPanelProps = {
     selectedNiches, toggleNiche,
+    selectedSubNiches, toggleSubNiche,
     selectedCities, toggleCity,
     selectedPlatforms, togglePlatform,
     minInput, setMinInput,
@@ -786,7 +833,7 @@ function BrandDiscover() {
             <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
               {directCampaignsLoading ? (
                 <div className="flex items-center justify-center py-10">
-                  <span className="w-6 h-6 border-2 border-[#3D5087]/30 border-t-[#3D5087] rounded-full animate-spin" />
+                  <span className="w-6 h-6 border-2 border-[#228B22]/30 border-t-[#228B22] rounded-full animate-spin" />
                 </div>
               ) : directCampaigns.length === 0 ? (
                 <div className="text-center py-10">
@@ -794,7 +841,7 @@ function BrandDiscover() {
                   <Link
                     href="/brand/campaigns"
                     onClick={() => setDirectInviteInfluencer(null)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white rounded-xl hover:from-[#1e2f5c] hover:to-[#3D5087] transition-all"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-gradient-to-r from-[#228B22] to-[#3FA34D] text-white rounded-xl hover:from-[#14531D] hover:to-[#228B22] transition-all"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Create a campaign
@@ -816,8 +863,8 @@ function BrandDiscover() {
                           : isPending
                           ? 'border-amber-200 dark:border-amber-800/50 bg-amber-50/60 dark:bg-amber-900/10'
                           : checked
-                          ? 'border-[#3D5087] bg-blue-50 dark:bg-blue-900/20 cursor-pointer'
-                          : 'border-gray-200 dark:border-slate-600 hover:border-[#3D5087]/40 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer'
+                          ? 'border-[#228B22] bg-blue-50 dark:bg-blue-900/20 cursor-pointer'
+                          : 'border-gray-200 dark:border-slate-600 hover:border-[#228B22]/40 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer'
                       }`}
                       onClick={() => {
                         if (!canSelect) return;
@@ -831,7 +878,7 @@ function BrandDiscover() {
                       {/* Checkbox — only shown when selectable */}
                       {!isPending && (
                         <div className={`mt-0.5 w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all ${
-                          isInProgress ? 'border-gray-300 dark:border-slate-600' : checked ? 'border-[#3D5087] bg-[#3D5087]' : 'border-gray-300 dark:border-slate-500'
+                          isInProgress ? 'border-gray-300 dark:border-slate-600' : checked ? 'border-[#228B22] bg-[#228B22]' : 'border-gray-300 dark:border-slate-500'
                         }`}>
                           {checked && (
                             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -877,7 +924,7 @@ function BrandDiscover() {
               <Link
                 href="/brand/campaigns"
                 onClick={() => setDirectInviteInfluencer(null)}
-                className="text-xs font-semibold text-[#3D5087] dark:text-blue-400 hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-[#228B22] dark:text-blue-400 hover:underline flex items-center gap-1"
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 New campaign
@@ -892,7 +939,7 @@ function BrandDiscover() {
                 <button
                   onClick={handleDirectSend}
                   disabled={directSending || selectedCampaignIds.size === 0}
-                  className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl transition-all shadow-sm disabled:opacity-50 cursor-pointer disabled:cursor-default"
+                  className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#14531D] hover:to-[#228B22] text-white rounded-xl transition-all shadow-sm disabled:opacity-50 cursor-pointer disabled:cursor-default"
                 >
                   {directSending ? (
                     <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -911,7 +958,7 @@ function BrandDiscover() {
 
       {/* Invite-mode bar */}
       {inviteMode && (
-        <div className="sticky top-[64px] z-20 bg-gradient-to-r from-[#2B3B68] to-[#3D5087] text-white shadow-md">
+        <div className="sticky top-[64px] z-20 bg-gradient-to-r from-[#1B6E1B] to-[#228B22] text-white shadow-md">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
@@ -950,7 +997,7 @@ function BrandDiscover() {
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-gray-900">Filters</h3>
                 {activeFilterCount > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#3D5087] to-[#2B3B68] text-white text-[10px] font-bold flex items-center justify-center">
+                  <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#228B22] to-[#1B6E1B] text-white text-[10px] font-bold flex items-center justify-center">
                     {activeFilterCount}
                   </span>
                 )}
@@ -970,7 +1017,7 @@ function BrandDiscover() {
             <div className="px-4 py-4 bg-white border-t border-gray-100 flex-shrink-0">
               <button
                 onClick={() => setShowFilters(false)}
-                className="w-full py-3 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#2B3B68] hover:to-[#3D5087] text-white rounded-xl text-sm font-semibold transition-all cursor-pointer shadow-sm"
+                className="w-full py-3 bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#1B6E1B] hover:to-[#228B22] text-white rounded-xl text-sm font-semibold transition-all cursor-pointer shadow-sm"
               >
                 Show {influencers.length} creators
               </button>
@@ -982,7 +1029,7 @@ function BrandDiscover() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* Hero banner */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-5 shadow-lg">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-5 shadow-lg">
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -1050,7 +1097,7 @@ function BrandDiscover() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search creators by name, @slug, city or niche…"
-                className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/60 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] transition-all"
+                className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/60 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] transition-all"
               />
               {search && (
                 <button
@@ -1067,12 +1114,12 @@ function BrandDiscover() {
 
             <div className="flex items-center justify-between mb-4 px-1">
               <div className="flex items-center gap-2.5">
-                <span className="inline-flex items-center justify-center min-w-[2rem] h-6 px-2 rounded-full bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white text-xs font-bold shadow-sm">
+                <span className="inline-flex items-center justify-center min-w-[2rem] h-6 px-2 rounded-full bg-gradient-to-r from-[#228B22] to-[#3FA34D] text-white text-xs font-bold shadow-sm">
                   {influencers.length}
                 </span>
                 <p className="text-sm text-gray-500 font-medium">
                   creator{influencers.length !== 1 ? 's' : ''} found
-                  {activeFilterCount > 0 && <span className="text-[#3D5087] font-semibold ml-1">· {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active</span>}
+                  {activeFilterCount > 0 && <span className="text-[#228B22] font-semibold ml-1">· {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active</span>}
                 </p>
               </div>
               <div className="flex items-center gap-2.5">
@@ -1082,7 +1129,7 @@ function BrandDiscover() {
                     id="sort-by"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-1.5 cursor-pointer hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#3D5087]/30 focus:border-[#3D5087] transition-all"
+                    className="text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-1.5 cursor-pointer hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] transition-all"
                   >
                     <option value="relevance">Relevance</option>
                     <option value="followers">Followers</option>
@@ -1135,7 +1182,7 @@ function BrandDiscover() {
               </div>
             ) : influencers.length === 0 ? (
               <div className="border-2 border-dashed border-blue-100 rounded-2xl p-16 text-center bg-white/60">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3D5087] to-[#4a5fa0] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#228B22] to-[#3FA34D] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
                   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8"/>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -1145,7 +1192,7 @@ function BrandDiscover() {
                 <p className="text-xs text-gray-400 mb-4">Try adjusting or clearing your filters.</p>
                 <button
                   onClick={clearFilters}
-                  className="text-xs bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] text-white px-4 py-2 rounded-xl font-semibold cursor-pointer shadow-sm hover:shadow-md transition-all"
+                  className="text-xs bg-gradient-to-r from-[#228B22] to-[#3FA34D] text-white px-4 py-2 rounded-xl font-semibold cursor-pointer shadow-sm hover:shadow-md transition-all"
                 >
                   Clear all filters →
                 </button>
@@ -1157,7 +1204,7 @@ function BrandDiscover() {
                   const charCode = influencer.userId?.name?.charCodeAt(0) || 0;
                   const avatarGrad = AVATAR_GRADIENTS[charCode % 6];
                   // Use the brand's signature lavender/indigo banner for every card.
-                  const bannerGrad = 'from-[#0a1330] via-[#2c3f9b] to-[#4c5fe6]';
+                  const bannerGrad = 'from-[#0F2E12] via-[#14531D] to-[#2FA84F]';
                   return (
                     <div
                       key={i}
@@ -1199,7 +1246,14 @@ function BrandDiscover() {
                         </div>
 
                         {/* Name + handle + city */}
-                        <p className="font-bold text-gray-900 mb-0.5 truncate">{influencer.userId?.name}</p>
+                        <div className="flex items-center gap-1.5 mb-0.5 min-w-0">
+                          <p className="font-bold text-gray-900 truncate">{influencer.userId?.name}</p>
+                          {influencer.level && (
+                            <span className={`shrink-0 text-[9.5px] font-bold px-1.5 py-0.5 rounded-full capitalize ${levelBadgeCls(influencer.level)}`}>
+                              {influencer.level}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2 mb-3 min-w-0">
                           <p className="text-xs text-gray-400 font-mono truncate">@{influencer.slug}</p>
                           {influencer.city && (
@@ -1235,11 +1289,11 @@ function BrandDiscover() {
                             </p>
                             <p className="text-[9px] font-bold uppercase tracking-wide text-teal-600/80 dark:text-teal-400/80 mt-0.5">Followers</p>
                           </div>
-                          <div className="bg-violet-50 dark:bg-violet-900/30 border border-violet-100 dark:border-violet-800/40 rounded-xl p-2 text-center">
-                            <p className="text-sm font-black text-violet-900 dark:text-violet-300">
+                          <div className="bg-sky-50 dark:bg-sky-900/30 border border-sky-100 dark:border-sky-800/40 rounded-xl p-2 text-center">
+                            <p className="text-sm font-black text-sky-900 dark:text-sky-300">
                               {primary ? `${primary.engagementRate}%` : '—'}
                             </p>
-                            <p className="text-[9px] font-bold uppercase tracking-wide text-violet-600/80 dark:text-violet-400/80 mt-0.5">Engage</p>
+                            <p className="text-[9px] font-bold uppercase tracking-wide text-sky-600/80 dark:text-sky-400/80 mt-0.5">Engage</p>
                           </div>
                           <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/40 rounded-xl p-2 text-center">
                             <p className="text-sm font-black text-amber-900 dark:text-amber-300">{influencer.credibilityScore ?? '—'}</p>
@@ -1269,7 +1323,7 @@ function BrandDiscover() {
                                   <Link
                                     href={`/brand/creator/${influencer.slug}`}
                                     {...(openProfileSameTab ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all whitespace-nowrap"
+                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#228B22] hover:text-[#228B22] dark:hover:text-blue-400 rounded-xl font-semibold transition-all whitespace-nowrap"
                                   >
                                     View profile
                                   </Link>
@@ -1292,7 +1346,7 @@ function BrandDiscover() {
                                     <button
                                       onClick={() => handleInvite(influencer)}
                                       disabled={isInviting}
-                                      className="flex-1 flex items-center justify-center gap-1.5 text-xs px-4 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-60 cursor-pointer"
+                                      className="flex-1 flex items-center justify-center gap-1.5 text-xs px-4 py-2 bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#14531D] hover:to-[#228B22] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md disabled:opacity-60 cursor-pointer"
                                     >
                                       {isInviting ? (
                                         <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -1316,14 +1370,14 @@ function BrandDiscover() {
                                   <Link
                                     href={`/brand/creator/${influencer.slug}`}
                                     {...(openProfileSameTab ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#3D5087] hover:text-[#3D5087] dark:hover:text-blue-400 rounded-xl font-semibold transition-all whitespace-nowrap"
+                                    className="flex-1 text-center text-xs px-3 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#228B22] hover:text-[#228B22] dark:hover:text-blue-400 rounded-xl font-semibold transition-all whitespace-nowrap"
                                   >
                                     View profile
                                   </Link>
                                   {isPremium ? (
                                     <button
                                       onClick={() => openDirectInvite(influencer)}
-                                      className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 bg-gradient-to-r from-[#3D5087] to-[#4a5fa0] hover:from-[#1e2f5c] hover:to-[#3D5087] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md cursor-pointer"
+                                      className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 bg-gradient-to-r from-[#228B22] to-[#3FA34D] hover:from-[#14531D] hover:to-[#228B22] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md cursor-pointer"
                                     >
                                       {invitedCount > 0 ? (
                                         <>
@@ -1363,7 +1417,7 @@ function BrandDiscover() {
               <div className="flex flex-col items-center gap-2 mt-6">
                 <button
                   onClick={() => setLimit(l => l + 12)}
-                  className="px-5 py-2.5 text-sm font-semibold text-[#3D5087] bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer"
+                  className="px-5 py-2.5 text-sm font-semibold text-[#228B22] bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer"
                 >
                   Load more creators
                 </button>

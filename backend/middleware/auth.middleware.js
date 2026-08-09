@@ -41,6 +41,7 @@ const authenticate = async (req, res, next) => {
     // to pass through, so it doubles as where expiry is enforced.
     if (user.plan === 'premium' && user.premiumUntil && user.premiumUntil <= new Date()) {
       user.plan = 'freemium';
+      user.tier = 'free';
       await user.save();
     }
 

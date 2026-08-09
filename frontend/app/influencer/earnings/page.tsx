@@ -57,10 +57,10 @@ const fmtStatus = (status?: string) => STATUS_LABELS[status ?? ''] || 'Completed
 const CAT_COLORS = NICHE_STYLES;
 
 const BRAND_GRADS = [
-  'from-violet-500 to-purple-600',
-  'from-teal-500 to-cyan-600',
+  'from-blue-500 to-blue-700',
+  'from-rose-500 to-cyan-600',
   'from-amber-500 to-orange-500',
-  'from-indigo-500 to-blue-600',
+  'from-[#B00D4D] to-[#7A0F3D]',
   'from-pink-500 to-rose-500',
 ];
 
@@ -79,8 +79,8 @@ export default function EarningsPage() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (!token || !stored) { router.push('/auth/login'); return; }
-    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login'); return; }
+    if (!token || !stored) { router.push('/auth/login?role=influencer'); return; }
+    if (JSON.parse(stored).role !== 'influencer') { router.push('/auth/login?role=influencer'); return; }
     setUser(JSON.parse(stored));
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data?.profile?.profilePicUrl || '')).catch(() => {});
     fetchEarnings();
@@ -151,7 +151,7 @@ export default function EarningsPage() {
     return (
       <div className="min-h-screen bg-[#F7F9FA] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#7FA8AD] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#F0417B] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-400">Loading earnings…</p>
         </div>
       </div>
@@ -165,7 +165,7 @@ export default function EarningsPage() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
         {/* ── Hero ── */}
-        <section className="relative bg-gradient-to-br from-[#04141a] via-[#0b5e6c] to-[#1fb8a8] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
+        <section className="relative bg-gradient-to-br from-[#2E0818] via-[#7A0F3D] to-[#F0417B] rounded-2xl px-6 sm:px-10 py-7 sm:py-9 mb-6 overflow-hidden shadow-lg">
           <div className="absolute -top-16 -right-16 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
           <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
           <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -179,7 +179,7 @@ export default function EarningsPage() {
 
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div>
-              <p className="text-teal-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
+              <p className="text-rose-300/80 text-xs font-semibold uppercase tracking-widest mb-2">
                 Revenue &amp; partnerships
               </p>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
@@ -188,12 +188,12 @@ export default function EarningsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
                   <svg className="w-3 h-3 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    <path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/>
                   </svg>
                   ₹{(summary?.totalEarnings || 0).toLocaleString()} total
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 border border-white/15 text-white px-3 py-1.5 rounded-full backdrop-blur-sm">
-                  <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-3 h-3 text-[#F5A8BF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
                   {summary?.dealsCompleted || 0} deals done
@@ -214,7 +214,7 @@ export default function EarningsPage() {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 cursor-pointer ${
-                      activeTab === tab ? 'bg-white text-[#1C4A52] shadow-sm' : 'text-white/70 hover:text-white'
+                      activeTab === tab ? 'bg-white text-[#7A0F3D] shadow-sm' : 'text-white/70 hover:text-white'
                     }`}
                   >
                     {tab === '6months' ? '6 months' : '1 year'}
@@ -228,10 +228,10 @@ export default function EarningsPage() {
                 >
                   {exported ? (
                     <>
-                      <svg className="w-3.5 h-3.5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="w-3.5 h-3.5 text-[#F5A8BF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
-                      <span className="hidden sm:inline text-emerald-300">Exported!</span>
+                      <span className="hidden sm:inline text-[#F5A8BF]">Exported!</span>
                     </>
                   ) : (
                     <>
@@ -256,7 +256,7 @@ export default function EarningsPage() {
               <p className="text-[11px] font-bold uppercase tracking-wide text-amber-100/80 leading-tight pr-2">Total Earnings</p>
               <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 shadow-sm text-white">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  <path d="M6 3h12"/><path d="M6 8h12"/><path d="m6 13 8.5 8"/><path d="M6 13h3"/><path d="M9 13c6.667 0 6.667-10 0-10"/>
                 </svg>
               </div>
             </div>
@@ -268,56 +268,56 @@ export default function EarningsPage() {
           </div>
 
           {/* Active deals */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-rose-50 to-red-100 border border-rose-200/70 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#FCE4EC] to-pink-100 border border-[#F0417B]/25 rounded-2xl p-4 sm:p-5 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Active Deals</p>
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                 </svg>
               </div>
             </div>
-            <p className="text-3xl sm:text-4xl font-black text-rose-900 leading-none mb-2 tabular-nums">
+            <p className="text-3xl sm:text-4xl font-black text-[#7A0F3D] leading-none mb-2 tabular-nums">
               {summary?.activeDeals || 0}
             </p>
-            <p className="text-[11px] text-rose-600/80 font-semibold truncate">
+            <p className="text-[11px] text-[#B00D4D]/80 font-semibold truncate">
               ₹{(summary?.pendingPayout || 0).toLocaleString()} pending
             </p>
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-rose-500 to-red-600 opacity-10 pointer-events-none" />
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-[#F0417B] to-[#E0115F] opacity-10 pointer-events-none" />
           </div>
 
           {/* Deals done */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200/70 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#FCE4EC] to-rose-100 border border-[#B00D4D]/20 rounded-2xl p-4 sm:p-5 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Deals Done</p>
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#B00D4D] to-[#7A0F3D] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
               </div>
             </div>
-            <p className="text-3xl sm:text-4xl font-black text-emerald-900 leading-none mb-2 tabular-nums">
+            <p className="text-3xl sm:text-4xl font-black text-[#7A0F3D] leading-none mb-2 tabular-nums">
               {summary?.dealsCompleted || 0}
             </p>
-            <p className="text-[11px] text-emerald-600/80 font-semibold">All time</p>
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 opacity-10 pointer-events-none" />
+            <p className="text-[11px] text-[#B00D4D]/80 font-semibold">All time</p>
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-[#B00D4D] to-[#7A0F3D] opacity-10 pointer-events-none" />
           </div>
 
           {/* Avg deal value */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200/70 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200/70 rounded-2xl p-4 sm:p-5 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 leading-tight pr-2">Avg Deal Value</p>
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
                 </svg>
               </div>
             </div>
-            <p className="text-3xl sm:text-4xl font-black text-violet-900 leading-none mb-2 tabular-nums">
+            <p className="text-3xl sm:text-4xl font-black text-amber-900 leading-none mb-2 tabular-nums">
               ₹{(summary?.avgDealValue || 0).toLocaleString()}
             </p>
-            <p className="text-[11px] text-violet-600/80 font-semibold">Per campaign</p>
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 opacity-10 pointer-events-none" />
+            <p className="text-[11px] text-amber-600/80 font-semibold">Per campaign</p>
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 opacity-10 pointer-events-none" />
           </div>
 
         </section>
@@ -333,7 +333,7 @@ export default function EarningsPage() {
                   <h3 className="font-bold text-gray-900">Earnings Overview</h3>
                   <p className="text-[11px] text-gray-400 mt-0.5">Monthly earnings from completed deals</p>
                 </div>
-                <span className="self-start text-xs font-bold px-2.5 py-1 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] text-white rounded-full shadow-sm">
+                <span className="self-start text-xs font-bold px-2.5 py-1 bg-gradient-to-r from-[#F0417B] to-[#E0115F] text-white rounded-full shadow-sm">
                   ₹{(summary?.totalEarnings || 0).toLocaleString()} total
                 </span>
               </div>
@@ -351,8 +351,8 @@ export default function EarningsPage() {
                           <div
                             className={`w-full rounded-t-lg transition-all duration-200 cursor-pointer relative ${
                               isMax
-                                ? 'bg-gradient-to-t from-[#0d2d33] to-[#5BA8B5] shadow-sm'
-                                : 'bg-gradient-to-t from-teal-200 to-cyan-100 group-hover:from-[#5D8A8F] group-hover:to-[#7FA8AD]'
+                                ? 'bg-gradient-to-t from-[#7A0F3D] to-[#F0417B] shadow-sm'
+                                : 'bg-gradient-to-t from-rose-200 to-cyan-100 group-hover:from-[#E0115F] group-hover:to-[#F0417B]'
                             }`}
                             style={{ height: `${pct}%` }}
                           >
@@ -391,14 +391,14 @@ export default function EarningsPage() {
                     return rows.map(([cat, amount]) => (
                       <div key={cat || 'general'}>
                         <div className="flex items-center justify-between gap-2 mb-1.5">
-                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${CAT_COLORS[cat] || 'bg-teal-50 text-teal-700 border-teal-200'}`}>
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${CAT_COLORS[cat] || 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                             {fmtCategory(cat)}
                           </span>
                           <span className="text-xs font-black text-gray-800 tabular-nums">₹{amount.toLocaleString()}</span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] transition-all duration-500"
+                            className="h-full rounded-full bg-gradient-to-r from-[#F0417B] to-[#E0115F] transition-all duration-500"
                             style={{ width: `${(amount / maxAmt) * 100}%` }}
                           />
                         </div>
@@ -408,7 +408,7 @@ export default function EarningsPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[140px] text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center mx-auto mb-3 shadow-sm">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
                     </svg>
@@ -425,7 +425,7 @@ export default function EarningsPage() {
         ) : (
           /* ── Freemium gate ── */
           <section className="mb-6">
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#04141a] via-[#0b5e6c] to-[#1fb8a8] rounded-2xl p-6 shadow-lg">
+            <div className="relative overflow-hidden bg-gradient-to-br from-[#2E0818] via-[#7A0F3D] to-[#F0417B] rounded-2xl p-6 shadow-lg">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
               <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
               <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
@@ -445,14 +445,14 @@ export default function EarningsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-extrabold text-white text-[15px] mb-1">Unlock earnings analytics with Premium</h3>
-                    <p className="text-sm text-teal-100/80 leading-relaxed mb-3">
+                    <p className="text-sm text-rose-100/80 leading-relaxed mb-3">
                       See your full monthly trend, earnings by category, and export your data as CSV.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { label: 'Monthly chart',       color: 'bg-teal-400/20 border-teal-300/30 text-teal-100' },
-                        { label: 'Category breakdown',  color: 'bg-violet-400/20 border-violet-300/30 text-violet-100' },
-                        { label: 'CSV export',          color: 'bg-emerald-400/20 border-emerald-300/30 text-emerald-100' },
+                        { label: 'Monthly chart',       color: 'bg-rose-400/20 border-rose-300/30 text-rose-100' },
+                        { label: 'Category breakdown',  color: 'bg-blue-400/20 border-blue-300/30 text-blue-100' },
+                        { label: 'CSV export',          color: 'bg-amber-400/20 border-amber-300/30 text-amber-100' },
                       ].map(f => (
                         <span key={f.label} className={`inline-flex items-center gap-1 text-xs border px-2.5 py-1 rounded-full font-semibold ${f.color}`}>
                           <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
@@ -464,8 +464,8 @@ export default function EarningsPage() {
                 </div>
                 <Link
                   href="/influencer/billing"
-                  className="flex-shrink-0 bg-white hover:bg-teal-50 text-[#1C4A52] px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap self-start sm:self-auto">
-                  Upgrade · ₹299/mo →
+                  className="flex-shrink-0 bg-white hover:bg-rose-50 text-[#7A0F3D] px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all shadow-sm hover:shadow-md cursor-pointer text-center whitespace-nowrap self-start sm:self-auto">
+                  Upgrade · from ₹9/mo →
                 </Link>
               </div>
             </div>
@@ -476,14 +476,14 @@ export default function EarningsPage() {
         <section className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 sm:px-6 py-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-[#7FA8AD] to-[#5D8A8F]" />
+              <div className="w-1 h-8 rounded-full bg-gradient-to-b from-[#F0417B] to-[#E0115F]" />
               <div>
                 <h3 className="font-bold text-gray-900">Deal History</h3>
                 <p className="text-[11px] text-gray-400 mt-0.5">Completed and in-progress deals, newest first</p>
               </div>
             </div>
             <Link href="/influencer/campaigns"
-              className="self-start sm:self-auto inline-flex items-center gap-1.5 text-xs text-white font-bold bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] px-3.5 py-2 rounded-xl shadow-sm hover:shadow-md transition-all">
+              className="self-start sm:self-auto inline-flex items-center gap-1.5 text-xs text-white font-bold bg-gradient-to-r from-[#F0417B] to-[#E0115F] hover:from-[#E0115F] hover:to-[#B00D4D] px-3.5 py-2 rounded-xl shadow-sm hover:shadow-md transition-all">
               Browse campaigns →
             </Link>
           </div>
@@ -509,7 +509,7 @@ export default function EarningsPage() {
                         <tr
                           key={index}
                           onClick={() => setSelectedDeal(deal)}
-                          className="border-b border-gray-50 hover:bg-[#EEF4F5]/40 transition-colors cursor-pointer"
+                          className="border-b border-gray-50 hover:bg-[#FCE4EC]/40 transition-colors cursor-pointer"
                         >
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-2.5">
@@ -526,7 +526,7 @@ export default function EarningsPage() {
                           </td>
                           <td className="px-5 py-4 text-sm text-gray-500 max-w-[200px] truncate font-medium">{deal.campaignTitle}</td>
                           <td className="px-5 py-4">
-                            <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border-teal-200'}`}>
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${CAT_COLORS[deal.category] || 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                               {fmtCategory(deal.category)}
                             </span>
                           </td>
@@ -534,14 +534,14 @@ export default function EarningsPage() {
                           <td className="px-5 py-4">
                             <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-bold ${
                               deal.status === 'completed'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                ? 'bg-[#FCE4EC] text-[#7A0F3D] border border-[#F3B8CB]'
                                 : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${deal.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${deal.status === 'completed' ? 'bg-[#E0115F]' : 'bg-amber-500'}`} />
                               {fmtStatus(deal.status)}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-sm font-black text-emerald-700 text-right tabular-nums">
+                          <td className="px-5 py-4 text-sm font-black text-[#7A0F3D] text-right tabular-nums">
                             ₹{deal.amount.toLocaleString()}
                           </td>
                         </tr>
@@ -576,20 +576,20 @@ export default function EarningsPage() {
                             <p className="text-xs text-gray-400 mt-0.5 truncate font-medium">{deal.campaignTitle}</p>
                           </div>
                         </div>
-                        <p className="text-sm font-black text-emerald-700 tabular-nums flex-shrink-0">
+                        <p className="text-sm font-black text-[#7A0F3D] tabular-nums flex-shrink-0">
                           ₹{deal.amount.toLocaleString()}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap mt-1.5">
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${CAT_COLORS[deal.category] || 'bg-teal-50 text-teal-700 border-teal-200'}`}>
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${CAT_COLORS[deal.category] || 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                           {fmtCategory(deal.category)}
                         </span>
                         <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold ${
                           deal.status === 'completed'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            ? 'bg-[#FCE4EC] text-[#7A0F3D] border border-[#F3B8CB]'
                             : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${deal.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                          <span className={`w-1.5 h-1.5 rounded-full ${deal.status === 'completed' ? 'bg-[#E0115F]' : 'bg-amber-500'}`} />
                           {fmtStatus(deal.status)}
                         </span>
                         <span className="text-[11px] text-gray-400 ml-auto font-medium">{fmtDealDate(deal.completedAt)}</span>
@@ -601,7 +601,7 @@ export default function EarningsPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7FA8AD] to-[#5D8A8F] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F0417B] to-[#E0115F] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
                 <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                 </svg>
@@ -612,7 +612,7 @@ export default function EarningsPage() {
               </p>
               <Link
                 href="/influencer/campaigns"
-                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#7FA8AD] to-[#5D8A8F] hover:from-[#5D8A8F] hover:to-[#4A7A7F] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md cursor-pointer">
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#F0417B] to-[#E0115F] hover:from-[#E0115F] hover:to-[#B00D4D] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md cursor-pointer">
                 Browse campaigns →
               </Link>
             </div>

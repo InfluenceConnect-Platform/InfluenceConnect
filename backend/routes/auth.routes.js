@@ -109,6 +109,9 @@ router.get('/google/callback', (req, res, next) => {
       if (info?.message === 'email_exists') {
         return res.redirect(`${frontendUrl}/auth/login?error=email_exists`);
       }
+      if (info?.message === 'role_mismatch') {
+        return res.redirect(`${frontendUrl}/auth/login?role=${info.expectedRole}&error=role_mismatch`);
+      }
       return res.redirect(`${frontendUrl}/auth/login?error=google_failed`);
     }
 
