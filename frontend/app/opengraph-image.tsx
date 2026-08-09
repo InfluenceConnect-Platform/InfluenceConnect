@@ -16,7 +16,7 @@ export default async function Image() {
           justifyContent: 'center',
           alignItems: 'flex-start',
           padding: '80px',
-          background: 'linear-gradient(135deg, #0E1B2E 0%, #143b40 55%, #3d2a63 100%)',
+          background: 'linear-gradient(135deg, #0E1B2E 0%, #3D0A20 55%, #7A0F3D 100%)',
         }}
       >
         <div
@@ -32,7 +32,7 @@ export default async function Image() {
               width: 56,
               height: 56,
               borderRadius: 16,
-              background: 'linear-gradient(135deg, #7FA8AD, #5D8A8F)',
+              background: 'linear-gradient(135deg, #F0417B, #7A0F3D)',
               display: 'flex',
             }}
           />
