@@ -198,12 +198,12 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 
 /* Infinite niche marquee — content must be duplicated once for a seamless loop */
-.anim-marquee { animation: marqueeX 30s linear infinite; }
+.anim-marquee { animation: marqueeX 55s linear infinite; }
 @keyframes marqueeXRev {
   from { transform: translateX(-50%); }
   to   { transform: translateX(0); }
 }
-.anim-marquee-rev { animation: marqueeXRev 36s linear infinite; }
+.anim-marquee-rev { animation: marqueeXRev 65s linear infinite; }
 .marquee-paused:hover .anim-marquee,
 .marquee-paused:hover .anim-marquee-rev { animation-play-state: paused; }
 .marquee-mask {
