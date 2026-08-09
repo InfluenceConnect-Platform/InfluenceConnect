@@ -233,6 +233,7 @@ export default function CreatorProfilePage() {
   const [loading,   setLoading]   = useState(true);
   const [notFound,  setNotFound]  = useState(false);
   const [limitReached, setLimitReached] = useState<string>('');
+  const [loadError, setLoadError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<Tab>('all');
 
   // Media modal state
@@ -268,10 +269,18 @@ export default function CreatorProfilePage() {
       );
       setProfile(res.data.profile);
     } catch (err: any) {
-      if (err.response?.status === 404) setNotFound(true);
-      else if (err.response?.data?.error === 'freemium_limit') {
-        setLimitReached(err.response.data.message || 'Daily profile view limit reached.');
+      const status = err.response?.status;
+      const data = err.response?.data;
+      if (status === 404) setNotFound(true);
+      // The daily-view cap's code was renamed freemium_limit → tier_limit when
+      // the tier system landed. Accept both: the frontend deploys ahead of the
+      // backend, so either version may be answering.
+      else if (status === 403 && (data?.error === 'tier_limit' || data?.error === 'freemium_limit')) {
+        setLimitReached(data.message || 'Daily profile view limit reached.');
       }
+      // Anything else used to fall through to `return null` — a blank white
+      // page. Always land on a screen that says something.
+      else setLoadError(data?.message || data?.error || 'Could not load this profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -317,6 +326,22 @@ export default function CreatorProfilePage() {
       </div>
       <p className="text-lg font-bold text-gray-800">Profile not found</p>
       <p className="text-sm text-gray-400">This creator hasn&apos;t set up their profile yet.</p>
+      <button onClick={() => router.back()}
+        className="mt-1 px-5 py-2.5 bg-[#228B22] hover:bg-[#1B6E1B] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer">
+        ← Back to Discover
+      </button>
+    </div>
+  );
+
+  if (loadError) return (
+    <div className="min-h-screen bg-[#F4F6FB] flex flex-col items-center justify-center gap-4 px-6">
+      <div className="w-16 h-16 rounded-2xl bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+        <svg className="w-7 h-7 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <p className="text-lg font-bold text-gray-800">Couldn&apos;t load this profile</p>
+      <p className="text-sm text-gray-400 text-center max-w-sm">{loadError}</p>
       <button onClick={() => router.back()}
         className="mt-1 px-5 py-2.5 bg-[#228B22] hover:bg-[#1B6E1B] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer">
         ← Back to Discover
