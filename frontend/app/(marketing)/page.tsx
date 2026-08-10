@@ -153,7 +153,7 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
       />
       {/* ════ HERO ════ */}
-      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#E0115F,#3A3A45_50%,#228B22)]">
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#E0115F_50%,#228B22_50%)]">
         {/* Depth layers: dot texture + soft light glows over the saturated gradient */}
         <div aria-hidden className="bg-dot-grid-white absolute inset-0" />
         <div aria-hidden className="anim-blob absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-3xl" />
