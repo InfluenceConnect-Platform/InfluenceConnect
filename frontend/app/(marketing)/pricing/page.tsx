@@ -14,7 +14,7 @@ export const metadata = pageMetadata({
 const FAQS = [
   {
     q: 'Can I cancel?',
-    a: 'Yes, any time, from the Billing page in your account — no fee, no need to contact us, and no reason required. Cancelling stops future charges and you keep full access until the end of the period you have already paid for. You can also choose to end it immediately, but the remaining paid days are then forfeited.',
+    a: 'Yes, any time, from the Pricing page in your account — no fee, no need to contact us, and no reason required. Cancelling stops future charges and you keep full access until the end of the period you have already paid for. You can also choose to end it immediately, but the remaining paid days are then forfeited.',
   },
   {
     q: 'Will I be charged automatically?',

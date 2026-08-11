@@ -93,7 +93,7 @@ const TERMS: LegalDoc = {
           `"Influencer" or "Creator" means an individual or entity offering content-creation or promotional services through the Platform.`,
           `"User", "you", or "your" means any Brand, Influencer, or visitor who accesses the Platform.`,
           `"Collaboration" or "Deal" means any arrangement, campaign, or transaction agreed directly between a Brand and an Influencer.`,
-          `"Paid Plan" (also referred to as a "Premium" plan) means any of the paid subscription tiers offered on the Billing page — currently Silver and Golden for Brands, and Silver, Golden and Platinum for Creators. A Paid Plan is a recurring subscription that renews automatically until cancelled, as set out in clause 8. Where a recurring mandate cannot be set up, the Billing page may instead offer an equivalent one-time payment covering a single fixed period (30 days for monthly, 365 days for yearly), which does not renew.`,
+          `"Paid Plan" (also referred to as a "Premium" plan) means any of the paid subscription tiers offered on the Pricing page — currently Silver and Golden for Brands, and Silver, Golden and Platinum for Creators. A Paid Plan is a recurring subscription that renews automatically until cancelled, as set out in clause 8. Where a recurring mandate cannot be set up, the Pricing page may instead offer an equivalent one-time payment covering a single fixed period (30 days for monthly, 365 days for yearly), which does not renew.`,
           `"Content" means any text, images, links, briefs, profiles, messages, or other material submitted to or displayed on the Platform.`,
         ]),
       ],
@@ -199,7 +199,7 @@ const TERMS: LegalDoc = {
       blocks: [
         p(
           `The Platform offers a free "Freemium" plan and paid "Premium" plans. Premium features and prices are described ` +
-          `on the Billing page and may differ for Brands and Influencers. Prices are shown in Indian Rupees (₹) and are ` +
+          `on the Pricing page and may differ for Brands and Influencers. Prices are shown in Indian Rupees (₹) and are ` +
           `exclusive of applicable taxes unless stated otherwise.`
         ),
         p(
@@ -207,12 +207,12 @@ const TERMS: LegalDoc = {
           `payment mandate with your bank or card issuer through our payment partner, Razorpay. The plan then renews ` +
           `automatically — every 30 days for a monthly plan, or every 365 days for a yearly plan — and the same amount is ` +
           `charged at the start of each new period <strong>until you cancel</strong>. There is no separate step to switch ` +
-          `renewal on; it is how the plan works, and it is disclosed on the Billing page before you pay.`
+          `renewal on; it is how the plan works, and it is disclosed on the Pricing page before you pay.`
         ),
         p(
           `Before the mandate is created you are shown the amount, the billing frequency and the fact that the plan renews ` +
           `until cancelled. Your bank or card issuer will ask you to authorise the mandate; the subscription only starts ` +
-          `once you do. After that, the next charge date is always visible on your Billing page.`
+          `once you do. After that, the next charge date is always visible on your Pricing page.`
         ),
         p(
           `Razorpay sends you advance notice of each upcoming debit as required by the Reserve Bank of India's e-mandate ` +
@@ -247,7 +247,7 @@ const TERMS: LegalDoc = {
       blocks: [
         p(
           `You may cancel your subscription at any time, for any reason, without contacting us and without any ` +
-          `cancellation fee. You can do this yourself from the Billing page in your account. Cancelling is the only thing ` +
+          `cancellation fee. You can do this yourself from the Pricing page in your account. Cancelling is the only thing ` +
           `that stops future charges.`
         ),
         p(`When you cancel you choose what happens to the time you have already paid for:`),
@@ -263,7 +263,7 @@ const TERMS: LegalDoc = {
         p(
           `You may also cancel or revoke the payment mandate directly with your bank or card issuer. If you do, future ` +
           `charges will stop, but your account status on the Platform may take a short time to reflect this, so we ` +
-          `recommend cancelling from your Billing page.`
+          `recommend cancelling from your Pricing page.`
         ),
       ],
     },
@@ -671,7 +671,7 @@ const REFUND: LegalDoc = {
         p(
           `<strong>Premium plans are recurring subscriptions.</strong> Buying a plan authorises a recurring mandate, and ` +
           `the same amount is charged automatically at the start of each new period until you cancel. This is disclosed on ` +
-          `the Billing page before payment, and your bank or card issuer asks you to authorise the mandate before the ` +
+          `the Pricing page before payment, and your bank or card issuer asks you to authorise the mandate before the ` +
           `subscription begins.`
         ),
         p(
@@ -700,7 +700,7 @@ const REFUND: LegalDoc = {
       title: '4. Cancellation',
       blocks: [
         p(
-          `You can cancel at any time, for any reason, directly from the Billing page in your account. You do not need to ` +
+          `You can cancel at any time, for any reason, directly from the Pricing page in your account. You do not need to ` +
           `contact us, give a reason, or pay any cancellation fee. Cancelling is what stops future charges — simply not ` +
           `using the Platform does not.`
         ),
@@ -716,7 +716,7 @@ const REFUND: LegalDoc = {
         ),
         p(
           `You may also cancel or revoke the mandate directly with your bank or card issuer. Future charges will stop, but ` +
-          `we may take a short time to see this, so we recommend cancelling from your Billing page so your account updates ` +
+          `we may take a short time to see this, so we recommend cancelling from your Pricing page so your account updates ` +
           `immediately.`
         ),
         p(
