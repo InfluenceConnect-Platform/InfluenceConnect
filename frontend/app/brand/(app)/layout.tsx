@@ -1,41 +1,12 @@
-'use client';
+import type { Viewport } from 'next';
+import BrandAppLayoutClient from './BrandAppLayoutClient';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+// Tints the mobile browser chrome (status bar / address bar) to match the
+// brand palette's green instead of the default theme-color.
+export const viewport: Viewport = {
+  themeColor: '#228B22',
+};
 
-// Shared across every /brand/* dashboard tab (the (app) group excludes the
-// public /brand/creator/[slug] profile route) so the App Router treats this
-// segment as one stable layout instead of tearing the whole tree down and
-// rebuilding it on every nav-tab click — that churn is what was producing
-// the intermittent stuck-loading/404 flash when switching tabs quickly.
 export default function BrandAppLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [checked, setChecked] = useState(false);
-
-  useEffect(() => {
-    let token: string | null = null;
-    let stored: string | null = null;
-    let role: string | undefined;
-    try {
-      token = localStorage.getItem('token');
-      stored = localStorage.getItem('user');
-      role = stored ? JSON.parse(stored)?.role : undefined;
-    } catch {}
-
-    if (!token || !stored || role !== 'brand') {
-      router.replace('/auth/login?role=brand');
-      return;
-    }
-    setChecked(true);
-  }, [router]);
-
-  if (!checked) {
-    return (
-      <div className="min-h-screen bg-[#F4F6FB] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#228B22] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+  return <BrandAppLayoutClient>{children}</BrandAppLayoutClient>;
 }

@@ -250,8 +250,8 @@ function SpendByCampaign({ data }: { data: BrandAnalyticsData['spendByCampaign']
   const [ref, width] = useWidth();
   const [hovered, setHovered] = useState<number | null>(null);
 
-  const PAD = { top: 18, right: 12, bottom: 38, left: 48 };
-  const H = 200;
+  const PAD = { top: 18, right: 12, bottom: 52, left: 48 };
+  const H = 214;
   const W = Math.max(width, 200);
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
@@ -262,6 +262,10 @@ function SpendByCampaign({ data }: { data: BrandAnalyticsData['spendByCampaign']
 
   const barGap = data.length ? plotW / data.length : plotW;
   const barW = Math.min(barGap * 0.55, 42);
+  // Rotating the labels buys room for a diagonal run of characters instead
+  // of a horizontal one squeezed into barGap, so tighten the char budget
+  // only for the horizontal case and let the rotated case run longer.
+  const maxChars = Math.max(3, Math.floor(barGap / 6));
 
   return (
     <Card title="Spend by Campaign" subtitle="Total agreed deal value (₹)">
@@ -289,17 +293,35 @@ function SpendByCampaign({ data }: { data: BrandAnalyticsData['spendByCampaign']
               const barH = (d.amount / yMax) * plotH;
               const x = PAD.left + i * barGap + (barGap - barW) / 2;
               const y = PAD.top + plotH - barH;
-              const short = d.title.length > 10 ? `${d.title.slice(0, 9)}…` : d.title;
+              const short = d.title.length > maxChars ? `${d.title.slice(0, Math.max(1, maxChars - 1))}…` : d.title;
+              const isHovered = hovered === i;
+              // Tooltip box widens to fit the full campaign name (not just the
+              // truncated axis label) so hovering actually reveals what was cut off.
+              const tipText = `${d.title} · ${formatINR(d.amount)}`;
+              const tipW = Math.min(Math.max(tipText.length * 5.6 + 16, 60), W - 4);
+              const tipX = Math.min(Math.max(x + barW / 2 - tipW / 2, 2), W - tipW - 2);
               return (
                 <g key={i} onMouseEnter={() => setHovered(i)}>
-                  <rect x={x} y={y} width={barW} height={barH} rx={Math.min(5, barW * 0.2)} fill="url(#ba-bar)" opacity={hovered === null || hovered === i ? 1 : 0.5} style={{ transition: 'opacity 0.15s' }} />
-                  {hovered === i && (
+                  <rect x={x} y={y} width={barW} height={barH} rx={Math.min(5, barW * 0.2)} fill="url(#ba-bar)" opacity={hovered === null || isHovered ? 1 : 0.5} style={{ transition: 'opacity 0.15s' }} />
+                  <title>{tipText}</title>
+                  {isHovered && (
                     <>
-                      <rect x={Math.min(Math.max(x + barW / 2 - 30, 2), W - 62)} y={y - 28} width={60} height={20} rx="6" fill="#14531D" />
-                      <text x={Math.min(Math.max(x + barW / 2 - 30, 2), W - 62) + 30} y={y - 14} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="white" fontFamily="sans-serif">{formatINR(d.amount)}</text>
+                      <rect x={tipX} y={y - 28} width={tipW} height={20} rx="6" fill="#14531D" />
+                      <text x={tipX + tipW / 2} y={y - 14} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="white" fontFamily="sans-serif">{tipText}</text>
                     </>
                   )}
-                  <text x={x + barW / 2} y={H - 20} textAnchor="middle" fontSize="10" fill={hovered === i ? '#14531D' : '#9aa3ba'} fontWeight={hovered === i ? '700' : '500'} fontFamily="sans-serif">{short}</text>
+                  <text
+                    x={x + barW / 2}
+                    y={H - 32}
+                    textAnchor="end"
+                    fontSize="10"
+                    fill={isHovered ? '#14531D' : '#9aa3ba'}
+                    fontWeight={isHovered ? '700' : '500'}
+                    fontFamily="sans-serif"
+                    transform={`rotate(-35 ${x + barW / 2} ${H - 32})`}
+                  >
+                    {short}
+                  </text>
                 </g>
               );
             })}
