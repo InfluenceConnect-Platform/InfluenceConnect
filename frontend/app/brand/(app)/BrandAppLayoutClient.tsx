@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useThemeColor } from '@/lib/useThemeColor';
 
 // Shared across every /brand/* dashboard tab (the (app) group excludes the
 // public /brand/creator/[slug] profile route) so the App Router treats this
@@ -11,6 +12,7 @@ import { useRouter } from 'next/navigation';
 export default function BrandAppLayoutClient({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+  useThemeColor('#228B22');
 
   useEffect(() => {
     let token: string | null = null;

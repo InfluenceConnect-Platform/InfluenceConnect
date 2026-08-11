@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useThemeColor } from '@/lib/useThemeColor';
 
 // Shared across every /influencer/* tab so the App Router treats this
 // segment as one stable layout instead of tearing the whole tree down and
@@ -10,6 +11,7 @@ import { useRouter } from 'next/navigation';
 export default function InfluencerLayoutClient({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+  useThemeColor('#E0115F');
 
   useEffect(() => {
     let token: string | null = null;

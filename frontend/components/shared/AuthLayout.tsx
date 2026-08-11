@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useTheme } from '@/lib/useTheme';
+import { useThemeColor } from '@/lib/useThemeColor';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 
 type AuthRole = 'influencer' | 'brand';
@@ -38,6 +39,13 @@ const PALETTES: Record<AuthRole, {
 export default function AuthLayout({ children, role = 'influencer' }: AuthLayoutProps) {
   const { isDark } = useTheme();
   const c = PALETTES[role];
+
+  // These pages aren't behind /brand or /influencer yet (auth happens before
+  // that layout mounts), so the mobile status bar/address bar has no role-
+  // aware theme-color from the server. Set it here, keyed off the same role
+  // that drives the rest of the page chrome; the hook also swaps to the dark
+  // status-bar color when dark mode is on.
+  useThemeColor(c.main);
 
   return (
     <div
