@@ -82,32 +82,6 @@ export default function InfluencerSettings() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [savingAutopay, setSavingAutopay] = useState(false);
-  const [autopayMsg, setAutopayMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  async function handleToggleAutopay() {
-    if (!account) return;
-    // Auto-renewal can only be switched ON at checkout, where the payment
-    // mandate is authorised — so this toggle only ever turns it OFF.
-    if (!account.autopay) {
-      router.push('/influencer/billing');
-      return;
-    }
-    setSavingAutopay(true);
-    setAutopayMsg(null);
-    try {
-      const res = await api.post('/api/payments/subscription/cancel', {
-        immediate: false,
-        reason: 'Turned off from settings',
-      });
-      setAccount(prev => prev ? { ...prev, autopay: false } : prev);
-      setAutopayMsg({ type: 'success', text: res.data.message });
-    } catch (err: any) {
-      setAutopayMsg({ type: 'error', text: err.response?.data?.error || 'Could not update auto-renewal.' });
-    } finally {
-      setSavingAutopay(false);
-    }
-  }
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -242,34 +216,6 @@ export default function InfluencerSettings() {
                         role="influencer"
                         onUpdate={updates => setAccount(prev => prev ? { ...prev, ...updates } : prev)}
                       />
-                    </div>
-
-                    <div className={cardCls}>
-                      <div className="flex items-start justify-between gap-4 mb-1">
-                        <div>
-                          <h2 className={`text-base font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Automatic renewal</h2>
-                          <p className={`text-xs mt-1 max-w-md ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-                            {account.autopay
-                              ? 'Your plan renews automatically. Turning this off stops future charges — you keep access until the end of the period you have already paid for.'
-                              : account.plan === 'premium'
-                              ? 'Auto-renewal is off for this plan, so it will end when the current period runs out. Start a plan again from the billing page to resume automatic renewal.'
-                              : 'Paid plans renew automatically until you cancel. Choose a plan on the billing page to get started.'}
-                          </p>
-                        </div>
-                        <button
-                          onClick={handleToggleAutopay}
-                          disabled={savingAutopay || account.plan !== 'premium'}
-                          aria-pressed={!!account.autopay}
-                          className={`relative shrink-0 w-11 h-6 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
-                            account.autopay ? 'bg-[#E0115F]' : isDark ? 'bg-slate-700' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${account.autopay ? 'translate-x-5' : ''}`} />
-                        </button>
-                      </div>
-                      {autopayMsg && (
-                        <p className={`text-xs mt-3 ${autopayMsg.type === 'success' ? 'text-emerald-500' : 'text-red-500'}`}>{autopayMsg.text}</p>
-                      )}
                     </div>
                   </div>
                 )}

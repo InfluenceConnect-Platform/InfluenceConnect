@@ -24,7 +24,7 @@ export const LEGAL_ENTITY = {
   grievanceOfficer: '〔Grievance Officer name〕',
   grievanceEmail: 'grievance@influenceconnect.in',
   website: 'influenceconnect.in',
-  lastUpdated: '9 August 2026',
+  lastUpdated: '11 August 2026',
 };
 
 export type LegalSlug = 'terms' | 'privacy' | 'refund';
@@ -466,7 +466,7 @@ const PRIVACY: LegalDoc = {
           `Brand profiles: company/brand name, logo, industry, website, and GST identification number (GSTIN). A valid GSTIN is required to register a Brand account and is manually reviewed by our team.`,
           `Influencer profiles: social-media handles, niche/categories, audience and follower statistics, and portfolio information.`,
           `Communications: messages, campaign briefs, applications, offers, and support requests you send through the Platform, including files and media you attach to messages.`,
-          `Billing information: your plan, billing cycle, payment confirmations and receipts. If you choose automatic renewal we also store the identifier of the recurring mandate created by Razorpay, its status, the date of the next scheduled charge, and (optionally) the reason you give when cancelling. Card and bank details are collected and processed directly by Razorpay — we never store your payment instrument or full card or bank credentials.`,
+          `Billing information: your plan, billing cycle, payment confirmations and receipts. For Premium plans, which renew automatically as described in our Terms, we also store the identifier of the recurring mandate created by Razorpay, its status, the date of the next scheduled charge, and (optionally) the reason you give when cancelling. Card and bank details are collected and processed directly by Razorpay — we never store your payment instrument or full card or bank credentials.`,
           `Payout details (Influencers): if you choose to submit payout details for an agreed deal, we collect your account holder name and, depending on the method you select, your bank account number and IFSC code or UPI ID. These are stored encrypted and are visible only to the Brand on that specific deal and to authorised Platform administrators (see "How We Protect Your Information").`,
           `Payment proof (Brands): when a Brand marks a deal as paid, we collect the transaction/UTR reference and payment receipt they upload.`,
         ]),

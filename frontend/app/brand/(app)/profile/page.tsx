@@ -427,7 +427,7 @@ export default function BrandProfile() {
                 )}
 
                 {/* Info grid */}
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Company</p>
                     <p className="text-sm font-semibold text-gray-800">{profile?.companyName || <span className="font-normal italic text-gray-400">Not set</span>}</p>
@@ -435,7 +435,7 @@ export default function BrandProfile() {
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Industry</p>
                     {profile?.industry ? (
-                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${INDUSTRY_COLORS[profile.industry] ?? INDUSTRY_COLORS.other}`}>
+                      <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full border whitespace-nowrap ${INDUSTRY_COLORS[profile.industry] ?? INDUSTRY_COLORS.other}`}>
                         {NICHE_LABELS[profile.industry] ?? profile.industry}
                       </span>
                     ) : (
