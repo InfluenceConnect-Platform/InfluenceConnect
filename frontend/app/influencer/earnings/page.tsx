@@ -309,8 +309,10 @@ export default function EarningsPage() {
             <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-br from-[#E11D48] to-[#881337] opacity-10 dark:opacity-25 pointer-events-none" />
           </div>
 
-          {/* Avg deal value */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#FFFBEB] dark:from-[#3A2606] to-[#FEF0C7] dark:to-[#241703] border border-[#F3DFA8] dark:border-[#6B4E12] rounded-2xl p-4 sm:p-5 shadow-sm">
+          {/* Avg deal value — spans the full two-column mobile row so it
+              doesn't sit next to an empty cell now that it's the odd one
+              out in a 2x2 grid; reverts to one cell once md:grid-cols-4 kicks in. */}
+          <div className="col-span-2 md:col-span-1 relative overflow-hidden bg-gradient-to-br from-[#FFFBEB] dark:from-[#3A2606] to-[#FEF0C7] dark:to-[#241703] border border-[#F3DFA8] dark:border-[#6B4E12] rounded-2xl p-4 sm:p-5 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <p className="text-[11px] font-bold uppercase tracking-wide text-[#6B7280] dark:text-[#CBD5E1] leading-tight pr-2">Avg Deal Value</p>
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">

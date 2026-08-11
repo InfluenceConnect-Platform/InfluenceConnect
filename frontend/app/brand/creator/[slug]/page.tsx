@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import api from '@/lib/api';
 import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
+import { useThemeColor } from '@/lib/useThemeColor';
 
 /* ─── constants ────────────────────────────────────── */
 
@@ -228,6 +229,7 @@ export default function CreatorProfilePage() {
   const router = useRouter();
   const params = useParams();
   const slug   = params?.slug as string;
+  useThemeColor('#228B22');
 
   const [profile,   setProfile]   = useState<any>(null);
   const [loading,   setLoading]   = useState(true);
