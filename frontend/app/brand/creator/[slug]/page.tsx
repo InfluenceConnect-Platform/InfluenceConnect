@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import { useThemeColor } from '@/lib/useThemeColor';
+import { tierLabel, influencerCaps, limitLabel } from '@/lib/tiers';
 
 /* ─── constants ────────────────────────────────────── */
 
@@ -372,7 +373,9 @@ export default function CreatorProfilePage() {
   const products = allItems.filter((i: any) => i.section === 'products');
   const stories  = allItems.filter((i: any) => i.section === 'stories');
   const tabMedia: Record<Tab, any[]> = { all: allItems, reels, photos, products, stories };
-  // Unlocked items are the first 3 (or all items for premium influencers).
+  // Unlocked items are the first N, where N = the creator's tier cap
+  // (visiblePortfolioItems in backend/utils/tiers.js — 1 free, 3 silver,
+  // 5 golden, all platinum). `locked` is computed server-side per item.
   const visible  = allItems.filter((i: any) => !i.locked);
 
   const sectionLabel: Record<string, string> = {
@@ -756,7 +759,7 @@ export default function CreatorProfilePage() {
                     {tabMedia[activeTab].filter((i: any) => i.locked).length} posts blurred
                   </p>
                   <p className="text-[11px] text-amber-600/80 mt-0.5">
-                    This creator is on the free plan. Only the first 3 posts are fully visible — the rest are blurred.
+                    This creator is on the {tierLabel('influencer', profile.userId?.tier)} plan. Only the first {limitLabel(influencerCaps(profile.userId?.tier).visiblePortfolioItems)} posts are fully visible — the rest are blurred.
                   </p>
                 </div>
               </div>
