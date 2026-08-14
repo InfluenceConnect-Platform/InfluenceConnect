@@ -44,6 +44,9 @@ const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile
     widgetIdRef.current = window.turnstile.render(containerRef.current, {
       sitekey: SITE_KEY,
       theme,
+      // Stretches the widget to fill its container instead of Cloudflare's
+      // default fixed ~300px — the signup/login cards are wider than that.
+      size: 'flexible',
       callback: onVerify,
       'expired-callback': () => onExpire?.(),
       'error-callback': () => onExpire?.(),
@@ -78,7 +81,7 @@ const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(function Turnstile
         strategy="afterInteractive"
         onReady={renderWidget}
       />
-      <div ref={containerRef} />
+      <div ref={containerRef} className="w-full" />
     </>
   );
 });
