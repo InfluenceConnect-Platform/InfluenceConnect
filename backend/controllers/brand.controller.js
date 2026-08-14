@@ -13,6 +13,7 @@ const { getTierConfig } = require('../utils/tiers');
 const notify = require('../services/email');
 const { getAdminEmails } = require('../utils/getAdminEmails');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
+const { migrateIndustryValue, migrateNicheArray, migrateSubNicheArray } = require('../utils/nicheMigration');
 
 // Email influencers when a campaign goes live. Matches on niche overlap (or
 // all active creators if the campaign has no niche), capped to keep the
@@ -142,6 +143,13 @@ exports.updateProfile = async (req, res) => {
         gstinResubmitted = true;
       }
     }
+
+    // Self-heal any pre-2026-08-08 niche taxonomy leftovers (see
+    // utils/nicheMigration.js) — done unconditionally, not just when this
+    // request touched industry: .save() validates the whole document, so a
+    // profile still carrying a legacy value would otherwise fail to save on
+    // ANY edit, even one unrelated to industry.
+    profile.industry = migrateIndustryValue(profile.industry);
 
     profile.score = profile.calculateScore();
     profile.level = profile.calculateLevel();
@@ -380,6 +388,11 @@ exports.updateCampaign = async (req, res) => {
 
     const { title, description, niche, subNiches, deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms, minFollowers, maxFollowers, status } = req.body;
     const normalizedPlatforms = Array.isArray(targetPlatforms) ? targetPlatforms : [];
+    // Self-heal pre-2026-08-08 taxonomy leftovers (see utils/nicheMigration.js)
+    // — findByIdAndUpdate skips schema validation, so a legacy slug wouldn't
+    // crash this save, but it would keep displaying a niche badge with no
+    // matching label forever unless normalized here.
+    const migratedNiche = migrateNicheArray(niche);
 
     // Republishing an EXPIRED campaign → active. All fields are editable; the
     // only added rule is that the deadline must be today or a future date.
@@ -415,7 +428,7 @@ exports.updateCampaign = async (req, res) => {
 
       const republished = await Campaign.findByIdAndUpdate(
         campaignId,
-        { title, description, niche, subNiches: normalizeSubNiches(niche, subNiches), deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers, status: 'active' },
+        { title, description, niche: migratedNiche, subNiches: migrateSubNicheArray(normalizeSubNiches(migratedNiche, subNiches)), deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers, status: 'active' },
         { new: true }
       );
       // Back on the market → notify matching influencers
@@ -444,7 +457,7 @@ exports.updateCampaign = async (req, res) => {
       }
     }
 
-    const updateFields = { title, description, niche, subNiches: normalizeSubNiches(niche, subNiches), deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers };
+    const updateFields = { title, description, niche: migratedNiche, subNiches: migrateSubNicheArray(normalizeSubNiches(migratedNiche, subNiches)), deliverables, budgetMin, budgetMax, deadline, targetCity, targetPlatforms: normalizedPlatforms, minFollowers, maxFollowers };
     if (status === 'active' || status === 'draft') updateFields.status = status;
 
     const updated = await Campaign.findByIdAndUpdate(

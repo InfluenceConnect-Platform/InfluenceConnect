@@ -7,6 +7,7 @@ const Message = require('../models/Message');
 const Campaign = require('../models/Campaign');
 const notify = require('../services/email');
 const { postDealNotice } = require('../utils/dealNotice');
+const { migrateNicheArray, migrateSubNicheArray } = require('../utils/nicheMigration');
 
 // ─────────────────────────────────────────
 // Generate slug from name
@@ -198,6 +199,14 @@ exports.updateProfile = async (req, res) => {
       profile.platforms = platforms;
       profile.calculateEngagementRates();
     }
+
+    // Self-heal any pre-2026-08-08 niche taxonomy leftovers (see
+    // utils/nicheMigration.js) — done unconditionally, not just when this
+    // request touched niche/subNiches, because .save() validates the whole
+    // document: a profile that still carries legacy slugs would otherwise
+    // fail to save on ANY edit, even one unrelated to niches.
+    profile.niche = migrateNicheArray(profile.niche);
+    profile.subNiches = migrateSubNicheArray(profile.subNiches);
 
     // Recalculate credibility score and level
     profile.credibilityScore = profile.calculateCredibilityScore();
