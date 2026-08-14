@@ -8,6 +8,7 @@ const Campaign = require('../models/Campaign');
 const notify = require('../services/email');
 const { postDealNotice } = require('../utils/dealNotice');
 const { migrateNicheArray, migrateSubNicheArray } = require('../utils/nicheMigration');
+const { isSafeHttpUrl } = require('../utils/validateUrl');
 
 // ─────────────────────────────────────────
 // Generate slug from name
@@ -196,7 +197,16 @@ exports.updateProfile = async (req, res) => {
 
     // Update platforms and recalculate engagement rates
     if (platforms !== undefined) {
-      profile.platforms = platforms;
+      // profileUrl is rendered as a link on the creator's public/brand-facing
+      // profile, so only real http(s) links may be stored — never javascript:,
+      // data: or file: (see utils/validateUrl.js).
+      const cleanedPlatforms = (Array.isArray(platforms) ? platforms : []).map(p => {
+        if (p && p.profileUrl && !isSafeHttpUrl(p.profileUrl)) {
+          return { ...(p.toObject ? p.toObject() : p), profileUrl: '' };
+        }
+        return p;
+      });
+      profile.platforms = cleanedPlatforms;
       profile.calculateEngagementRates();
     }
 

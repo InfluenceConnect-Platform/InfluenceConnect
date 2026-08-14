@@ -1,4 +1,6 @@
 const cloudinary = require('cloudinary').v2;
+const mongoose = require('mongoose');
+const { isCloudinaryUrl } = require('../utils/validateUrl');
 const InfluencerProfile = require('../models/InfluencerProfile');
 const BrandProfile = require('../models/BrandProfile');
 
@@ -8,6 +10,20 @@ cloudinary.config({
   api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// Returns the deal id only when it is a valid id AND the caller is one of the
+// two parties on that deal; otherwise null, so the caller falls back to their
+// own per-user folder instead of writing into someone else's.
+async function resolveOwnDealId(dealId, userId) {
+  if (!dealId || !mongoose.Types.ObjectId.isValid(dealId)) return null;
+  const Deal = require('../models/Deal');
+  const deal = await Deal.findById(dealId).select('brandId influencerId');
+  if (!deal) return null;
+  const isParty =
+    deal.brandId.toString() === userId.toString() ||
+    deal.influencerId.toString() === userId.toString();
+  return isParty ? deal._id.toString() : null;
+}
 
 // ─────────────────────────────────────────
 // GET SIGNATURE
@@ -25,12 +41,13 @@ exports.getSignature = async (req, res) => {
       folder = `influence-connect/brand-logos`;
     } else if (context === 'cover-photo') {
       folder = `influence-connect/cover-photos`;
-    } else if (context === 'chat-attachment') {
-      const dealId = req.query.dealId;
-      folder = dealId ? `influence-connect/chat/${dealId}` : `influence-connect/chat/${req.userId}`;
-    } else if (context === 'payout-receipt') {
-      const dealId = req.query.dealId;
-      folder = dealId ? `influence-connect/payout-receipts/${dealId}` : `influence-connect/payout-receipts/${req.userId}`;
+    } else if (context === 'chat-attachment' || context === 'payout-receipt') {
+      // The deal id lands in the Cloudinary path, so it has to be both a real
+      // id and one this user is actually party to — otherwise any logged-in
+      // user could mint a signature that writes into another deal's folder.
+      const dealId = await resolveOwnDealId(req.query.dealId, req.userId);
+      const base = context === 'chat-attachment' ? 'chat' : 'payout-receipts';
+      folder = dealId ? `influence-connect/${base}/${dealId}` : `influence-connect/${base}/${req.userId}`;
     } else {
       folder = `influence-connect/portfolio/${req.userId}`;
     }
@@ -93,6 +110,7 @@ exports.saveProfilePicture = async (req, res) => {
   try {
     const { profilePicUrl } = req.body;
     if (!profilePicUrl) return res.status(400).json({ error: 'profilePicUrl is required.' });
+    if (!isCloudinaryUrl(profilePicUrl)) return res.status(400).json({ error: 'Invalid image URL.' });
 
     const profile = await InfluencerProfile.findOne({ userId: req.userId });
     if (!profile) return res.status(404).json({ error: 'Profile not found.' });
@@ -114,6 +132,7 @@ exports.saveBrandLogo = async (req, res) => {
   try {
     const { logoUrl } = req.body;
     if (!logoUrl) return res.status(400).json({ error: 'logoUrl is required.' });
+    if (!isCloudinaryUrl(logoUrl)) return res.status(400).json({ error: 'Invalid image URL.' });
 
     const profile = await BrandProfile.findOne({ userId: req.userId });
     if (!profile) return res.status(404).json({ error: 'Brand profile not found.' });
@@ -135,6 +154,7 @@ exports.saveCoverPhoto = async (req, res) => {
   try {
     const { coverPhotoUrl } = req.body;
     if (!coverPhotoUrl) return res.status(400).json({ error: 'coverPhotoUrl is required.' });
+    if (!isCloudinaryUrl(coverPhotoUrl)) return res.status(400).json({ error: 'Invalid image URL.' });
 
     const profile = await InfluencerProfile.findOne({ userId: req.userId });
     if (!profile) return res.status(404).json({ error: 'Profile not found.' });
@@ -207,6 +227,12 @@ exports.savePortfolioItem = async (req, res) => {
       return res.status(400).json({
         error: 'type must be image or video'
       });
+    }
+
+    // Must be a real Cloudinary delivery URL from our own account — see
+    // utils/validateUrl.js.
+    if (!isCloudinaryUrl(cloudinaryUrl) || (thumbnailUrl && !isCloudinaryUrl(thumbnailUrl))) {
+      return res.status(400).json({ error: 'Invalid media URL.' });
     }
 
     const validSections = ['photos', 'reels', 'products', 'stories'];

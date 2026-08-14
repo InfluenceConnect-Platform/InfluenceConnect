@@ -40,27 +40,63 @@ app.set('trust proxy', 1);
 // (e.g. a phone at http://10.15.144.238:3000).  Private LAN ranges are safe
 // to whitelist; this guard is removed in production where FRONTEND_URL is set
 // to the real domain.
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // server-to-server / curl
     // Explicit allow-list from env (production)
     const allowed = process.env.FRONTEND_URL;
     if (allowed && origin === allowed) return callback(null, true);
-    // localhost / 127.0.0.1 (dev machine)
-    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
-    // Private LAN ranges: 10.x, 172.16-31.x, 192.168.x
-    if (/^https?:\/\/(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(origin)) return callback(null, true);
+    // The localhost / private-LAN escape hatches below exist so a phone on the
+    // same Wi-Fi can hit a laptop's dev server. They must NOT survive into
+    // production: with credentials:true they would let any page served from a
+    // private address (or an attacker's box on a shared network) read
+    // authenticated responses from the live API.
+    if (!IS_PRODUCTION) {
+      // localhost / 127.0.0.1 (dev machine)
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
+      // Private LAN ranges: 10.x, 172.16-31.x, 192.168.x
+      if (/^https?:\/\/(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(origin)) return callback(null, true);
+    }
     callback(new Error(`CORS: origin not allowed — ${origin}`));
   },
   credentials: true,
 }));
+
+// Baseline security response headers. Kept hand-rolled rather than pulling in
+// helmet so the deployed dependency set stays unchanged.
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+  res.removeHeader('X-Powered-By');
+  if (IS_PRODUCTION) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
 // Captures the raw request body alongside express's parsed JSON, needed to
 // verify the Razorpay webhook's HMAC signature (payment.controller.js).
 app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
+// Strip Mongo query operators ($ne, $gt, dotted paths) out of request data
+// before any controller builds a Mongoose filter from it — see the middleware
+// for the login/OTP attacks this closes.
+app.use(require('./middleware/sanitize.middleware').sanitizeRequest);
 app.use(session({
-  secret: process.env.JWT_SECRET,
+  // Falls back to JWT_SECRET so existing deployments keep working, but prefer
+  // a distinct SESSION_SECRET: reusing the token-signing key for cookie
+  // signing means one leak compromises both.
+  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: IS_PRODUCTION,   // HTTPS-only in production; plain HTTP in local dev
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
+  },
 }));
 app.use(passport.initialize());
 app.use(passport.session());

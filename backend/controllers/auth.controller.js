@@ -459,6 +459,13 @@ exports.login = async (req, res) => {
   try {
     const { email, password, role, turnstileToken } = req.body;
 
+    // Belt-and-braces alongside the global operator stripper (see
+    // middleware/sanitize.middleware.js): reject non-string credentials
+    // outright so a crafted body can never reach the Mongoose filter.
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Invalid email or password' });
+    }
+
     const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
     if (!isHuman) {
       return res.status(400).json({ error: 'Bot verification failed. Please refresh and try again.' });

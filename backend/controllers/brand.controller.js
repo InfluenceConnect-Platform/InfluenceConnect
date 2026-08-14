@@ -14,6 +14,7 @@ const notify = require('../services/email');
 const { getAdminEmails } = require('../utils/getAdminEmails');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 const { migrateIndustryValue, migrateNicheArray, migrateSubNicheArray } = require('../utils/nicheMigration');
+const { isSafeHttpUrl } = require('../utils/validateUrl');
 
 // Email influencers when a campaign goes live. Matches on niche overlap (or
 // all active creators if the campaign has no niche), capped to keep the
@@ -117,7 +118,16 @@ exports.updateProfile = async (req, res) => {
     if (companyName !== undefined) profile.companyName = companyName;
     if (description !== undefined) profile.description = description;
     if (industry !== undefined)    profile.industry = industry;
-    if (website !== undefined)     profile.website = website;
+    // Rendered as a link on campaign cards and in the admin user drawer, so
+    // restrict to real http(s) URLs (see utils/validateUrl.js). A bare domain
+    // like "acme.com" is still accepted — the UI prefixes https:// itself.
+    if (website !== undefined) {
+      const w = String(website).trim();
+      if (w && !isSafeHttpUrl(w) && !isSafeHttpUrl(`https://${w}`)) {
+        return res.status(400).json({ error: 'Please enter a valid website URL.' });
+      }
+      profile.website = w;
+    }
 
     // GSTIN (re)submission — validate, queue for manual admin review, and
     // acknowledge by email. We re-queue when a value is provided AND either it

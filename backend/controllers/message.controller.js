@@ -3,6 +3,7 @@ const Deal = require('../models/Deal');
 const User = require('../models/User');
 const { getTierConfig } = require('../utils/tiers');
 const notify = require('../services/email');
+const { isCloudinaryUrl } = require('../utils/validateUrl');
 
 const BLOCKED_PATTERN = /(\+?\d[\d\s\-()\u200c]{7,}|[\w.-]+@[\w.-]+\.\w+|https?:\/\/|www\.|insta(gram)?\b|insta\.me|face ?book|\bfb\b|fb\.com|whatsapp|wa\.me|telegram|t\.me|snap(chat)?\b|\bhandle\b|\busername\b)/i;
 
@@ -153,6 +154,12 @@ exports.sendMessage = async (req, res) => {
     for (const att of validAttachments) {
       if (!att || typeof att.url !== 'string' || !att.url || !ATTACHMENT_TYPES.includes(att.type)) {
         return res.status(400).json({ error: 'Invalid attachment.' });
+      }
+      // The URL is echoed back from the client after a direct-to-Cloudinary
+      // upload, so it has to be pinned to our own Cloudinary account — see
+      // utils/validateUrl.js.
+      if (!isCloudinaryUrl(att.url) || (att.thumbnailUrl && !isCloudinaryUrl(att.thumbnailUrl))) {
+        return res.status(400).json({ error: 'Invalid attachment URL.' });
       }
     }
 
