@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AuthLayout from '@/components/shared/AuthLayout';
 import Input from '@/components/shared/Input';
 import Button from '@/components/shared/Button';
+import Turnstile from '@/components/shared/Turnstile';
 import api from '@/lib/api';
 import { useTheme } from '@/lib/useTheme';
 
@@ -139,6 +140,8 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileKey, setTurnstileKey] = useState(0);
 
   const clearFieldError = (field: keyof FieldErrors) => {
     setFieldErrors(prev => (prev[field] ? { ...prev, [field]: undefined } : prev));
@@ -171,12 +174,13 @@ function SignupPage() {
     const errors = validate();
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) { setError(''); return; }
+    if (!turnstileToken) { setError('Please complete the bot verification check.'); return; }
     const normalizedGstin = gstin.replace(/\s+/g, '').toUpperCase();
     setLoading(true);
     setError('');
     try {
       const response = await api.post('/api/auth/register', {
-        name, email, mobile: `+91${mobile}`, password, role,
+        name, email, mobile: `+91${mobile}`, password, role, turnstileToken,
         ...(role === 'brand' ? { gstin: normalizedGstin } : {}),
       });
       localStorage.setItem('pendingUserId', response.data.userId);
@@ -188,6 +192,10 @@ function SignupPage() {
       const e = err as { response?: { data?: { error?: string } } };
       if (!e.response) setError('Cannot reach the server. Make sure the backend is running.');
       else setError(e.response?.data?.error || 'Something went wrong. Please try again.');
+      // Turnstile tokens are single-use — force a fresh widget so retrying
+      // the form doesn't submit an already-spent token.
+      setTurnstileToken('');
+      setTurnstileKey(k => k + 1);
     } finally {
       setLoading(false);
     }
@@ -389,17 +397,13 @@ function SignupPage() {
             )}
 
             {/* Bot protection */}
-            <div className={`mt-4 p-3 border rounded-xl flex items-center gap-3 text-xs font-medium transition-colors ${
-              isDark
-                ? 'bg-slate-800/60 border-slate-700/60 text-slate-500'
-                : 'bg-gray-50 border-gray-200 text-gray-400'
-            }`}>
-              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </div>
-              Bot protection enabled · Secured by Cloudflare
+            <div className="mt-4">
+              <Turnstile
+                key={turnstileKey}
+                theme={isDark ? 'dark' : 'light'}
+                onVerify={setTurnstileToken}
+                onExpire={() => setTurnstileToken('')}
+              />
             </div>
 
             <div className="mt-4">

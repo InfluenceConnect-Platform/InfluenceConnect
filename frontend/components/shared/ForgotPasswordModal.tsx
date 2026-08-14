@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
+import Turnstile, { TurnstileHandle } from '@/components/shared/Turnstile';
 import { useTheme } from '@/lib/useTheme';
 
 interface ForgotPasswordModalProps {
@@ -38,9 +39,11 @@ export default function ForgotPasswordModal({ onClose, onSuccess, accent = RUBY 
   const [resendTimer, setResendTimer] = useState(0);
   const [resending, setResending] = useState(false);
   const [expiryTimer, setExpiryTimer] = useState(-1);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   const startResendTimer = useCallback(() => {
     setResendTimer(60);
@@ -77,11 +80,12 @@ export default function ForgotPasswordModal({ onClose, onSuccess, accent = RUBY 
     if (!email.trim()) { setError('Please enter your email address.'); return; }
     const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRx.test(email.trim())) { setError('Enter a valid email address.'); return; }
+    if (!turnstileToken) { setError('Please complete the bot verification check.'); return; }
 
     setLoading(true);
     setError('');
     try {
-      const res = await api.post('/api/auth/forgot-password', { email: email.trim() });
+      const res = await api.post('/api/auth/forgot-password', { email: email.trim(), turnstileToken });
       if (res.data.userId) {
         setUserId(res.data.userId);
         setStep('reset');
@@ -100,6 +104,10 @@ export default function ForgotPasswordModal({ onClose, onSuccess, accent = RUBY 
       }
     } finally {
       setLoading(false);
+      // Turnstile tokens are single-use — get a fresh one for the next
+      // attempt, whether this one succeeded or failed.
+      setTurnstileToken('');
+      turnstileRef.current?.reset();
     }
   };
 
@@ -126,10 +134,11 @@ export default function ForgotPasswordModal({ onClose, onSuccess, accent = RUBY 
   };
 
   const handleResend = async () => {
+    if (!turnstileToken) { setError('Please complete the bot verification check.'); return; }
     setResending(true);
     setError('');
     try {
-      const res = await api.post('/api/auth/forgot-password', { email: email.trim() });
+      const res = await api.post('/api/auth/forgot-password', { email: email.trim(), turnstileToken });
       if (res.data.userId) {
         setOtp(['', '', '', '', '', '']);
         startResendTimer();
@@ -140,6 +149,8 @@ export default function ForgotPasswordModal({ onClose, onSuccess, accent = RUBY 
       setError('Failed to resend. Please try again.');
     } finally {
       setResending(false);
+      setTurnstileToken('');
+      turnstileRef.current?.reset();
     }
   };
 
@@ -224,6 +235,20 @@ export default function ForgotPasswordModal({ onClose, onSuccess, accent = RUBY 
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
+
+          {/* Bot protection — kept mounted across the email → reset step
+              transition so the same widget can supply a fresh token for
+              both the initial send and any "resend code" click. */}
+          {step !== 'done' && (
+            <div className="mb-5">
+              <Turnstile
+                ref={turnstileRef}
+                theme={isDark ? 'dark' : 'light'}
+                onVerify={setTurnstileToken}
+                onExpire={() => setTurnstileToken('')}
+              />
+            </div>
+          )}
 
           {/* ── Step 1: Email ── */}
           {step === 'email' && (

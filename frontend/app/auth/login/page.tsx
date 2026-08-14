@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AuthLayout from '@/components/shared/AuthLayout';
 import Input from '@/components/shared/Input';
 import api from '@/lib/api';
 import ForgotPasswordModal from '@/components/shared/ForgotPasswordModal';
+import Turnstile, { TurnstileHandle } from '@/components/shared/Turnstile';
 import { useTheme } from '@/lib/useTheme';
 
 type Role = 'influencer' | 'brand';
@@ -200,6 +201,8 @@ function LoginForm({ role }: { role: Role }) {
   const [authConflict, setAuthConflict] = useState<'use_google' | 'use_password' | 'role_mismatch' | null>(null);
   const [showForgotPw, setShowForgotPw] = useState(false);
   const [lockTimer, setLockTimer] = useState(0);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   useEffect(() => {
     const errorCode = searchParams.get('error');
@@ -235,11 +238,12 @@ function LoginForm({ role }: { role: Role }) {
   const handleLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!email || !password) { setError('Email and password are required.'); return; }
+    if (!turnstileToken) { setError('Please complete the bot verification check.'); return; }
     setLoading(true);
     setError('');
     setAuthConflict(null);
     try {
-      const response = await api.post('/api/auth/login', { email, password, role });
+      const response = await api.post('/api/auth/login', { email, password, role, turnstileToken });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       const user = response.data.user;
@@ -258,6 +262,10 @@ function LoginForm({ role }: { role: Role }) {
         setError('');
       }
       else setError(e.response?.data?.error || 'Something went wrong. Please try again.');
+      // Turnstile tokens are single-use — refresh so a retry doesn't submit
+      // an already-spent token.
+      setTurnstileToken('');
+      turnstileRef.current?.reset();
     } finally {
       setLoading(false);
     }
@@ -534,6 +542,15 @@ function LoginForm({ role }: { role: Role }) {
                 {error}
               </div>
             )}
+
+            <div className="mb-4">
+              <Turnstile
+                ref={turnstileRef}
+                theme={isDark ? 'dark' : 'light'}
+                onVerify={setTurnstileToken}
+                onExpire={() => setTurnstileToken('')}
+              />
+            </div>
 
             <button
               type="submit"

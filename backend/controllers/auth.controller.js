@@ -8,6 +8,7 @@ const logAdminAction = require('../utils/logAdminAction');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 const { getAdminEmails } = require('../utils/getAdminEmails');
 const applyPremiumUpgrade = require('../utils/applyPremiumUpgrade');
+const { verifyTurnstileToken } = require('../utils/verifyTurnstile');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || 'Influence Connect <onboarding@resend.dev>';
@@ -119,11 +120,19 @@ function generateToken(userId) {
 // ─────────────────────────────────────────
 exports.register = async (req, res) => {
   try {
-    const { name, email, mobile, password, gstin } = req.body;
+    const { name, email, mobile, password, gstin, turnstileToken } = req.body;
 
     if (!name || !email || !mobile || !password) {
       return res.status(400).json({ error: 'All fields are required.' });
     }
+
+    // Bot protection: the client widget hands back a one-time token that we
+    // must redeem with Cloudflare before trusting anything else in the form.
+    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!isHuman) {
+      return res.status(400).json({ error: 'Bot verification failed. Please refresh and try again.' });
+    }
+
     if (!EMAIL_REGEX.test(email)) {
       return res.status(400).json({ error: 'Please enter a valid email address.' });
     }
@@ -448,7 +457,12 @@ exports.resendOTP = async (req, res) => {
 // ─────────────────────────────────────────
 exports.login = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password, role, turnstileToken } = req.body;
+
+    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!isHuman) {
+      return res.status(400).json({ error: 'Bot verification failed. Please refresh and try again.' });
+    }
 
     // Find user
     const user = await User.findOne({ email });
@@ -575,8 +589,13 @@ exports.login = async (req, res) => {
 // ─────────────────────────────────────────
 exports.forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, turnstileToken } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+    if (!isHuman) {
+      return res.status(400).json({ error: 'Bot verification failed. Please refresh and try again.' });
+    }
 
     const user = await User.findOne({ email: email.toLowerCase() });
 
