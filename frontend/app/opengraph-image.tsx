@@ -32,7 +32,7 @@ export default async function Image() {
               width: 56,
               height: 56,
               borderRadius: 16,
-              background: 'linear-gradient(135deg, #F0417B, #7A0F3D)',
+              background: 'linear-gradient(135deg, #3FA34D, #14531D)',
               display: 'flex',
             }}
           />
