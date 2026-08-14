@@ -4,7 +4,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const authenticate = require('../middleware/auth.middleware');
 const { sensitiveAuthLimiter, accountActionLimiter } = require('../middleware/rateLimit.middleware');
-const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion, requestEmailChange, verifyEmailChange, requestMobileChange, verifyMobileChange } = require('../controllers/auth.controller');
+const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion, purgeScheduledDeletions, requestEmailChange, verifyEmailChange, requestMobileChange, verifyMobileChange } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
 router.post('/register', accountActionLimiter, register);
@@ -55,6 +55,11 @@ router.post('/account/delete', authenticate, scheduleAccountDeletion);
 
 // DELETE /api/auth/account/delete  — cancel scheduled deletion
 router.delete('/account/delete', authenticate, cancelAccountDeletion);
+
+// GET /api/auth/account/purge-deletions  (Vercel Cron only, gated by
+// CRON_SECRET — see backend/utils/purgeAccount.js). Runs daily; anonymizes
+// every account whose 30-day grace period has passed.
+router.get('/account/purge-deletions', purgeScheduledDeletions);
 
 // POST /api/auth/account/email/request  — send OTP to new email
 router.post('/account/email/request', authenticate, requestEmailChange);

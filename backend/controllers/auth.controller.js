@@ -479,6 +479,9 @@ exports.login = async (req, res) => {
     }
 
     // Check if account is active
+    if (user.deletedAt) {
+      return res.status(403).json({ error: 'This account has been deleted.' });
+    }
     if (user.status === 'suspended') {
       return res.status(403).json({ error: 'Your account has been suspended. Contact support.' });
     }
@@ -1209,6 +1212,25 @@ exports.cancelAccountDeletion = async (req, res) => {
     res.json({ message: 'Account deletion cancelled. Your account is safe.' });
   } catch (error) {
     console.error('Cancel deletion error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// PURGE SCHEDULED DELETIONS  (Vercel Cron only, gated by CRON_SECRET — see
+// backend/utils/purgeAccount.js for what "purge" actually does)
+// ─────────────────────────────────────────
+exports.purgeScheduledDeletions = async (req, res) => {
+  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized.' });
+  }
+
+  try {
+    const { purgeDueAccounts } = require('../utils/purgeAccount');
+    const result = await purgeDueAccounts();
+    res.json({ ok: true, ...result });
+  } catch (error) {
+    console.error('Purge scheduled deletions error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

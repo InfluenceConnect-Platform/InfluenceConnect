@@ -695,6 +695,21 @@ module.exports = {
     };
   },
 
+  // Account permanently deleted (to user, sent to their address just before
+  // it's scrubbed) — themed by role
+  accountDeletionCompleted({ name, role }) {
+    return {
+      subject: 'Your Influence Connect account has been deleted',
+      html: layout({
+        theme: themeFor(role),
+        heading: 'Account deleted',
+        bodyHtml:
+          para(`Hi ${esc(name || 'there')}, as requested your Influence Connect account and personal data have now been permanently deleted.`) +
+          para('Any campaigns, deals, or payment records shared with other users are kept for their records, with your identity removed. This is the last email you\'ll receive from us.'),
+      }),
+    };
+  },
+
   // Account deletion cancelled (to user) — themed by role
   accountDeletionCancelled({ name, role }) {
     return {
@@ -704,6 +719,42 @@ module.exports = {
         heading: 'Your account is safe ✅',
         bodyHtml:
           para(`Hi ${esc(name || 'there')}, your scheduled account deletion has been cancelled and your account will stay active. Welcome back!`),
+      }),
+    };
+  },
+
+  // Deal auto-cancelled because the other party deleted their account (to
+  // the surviving party) — themed by the recipient's own role
+  dealCancelledAccountDeleted({ name, role, dealCustomId }) {
+    const otherParty = role === 'brand' ? 'The creator' : 'The brand';
+    return {
+      subject: `Collaboration cancelled${dealCustomId ? ` — ${dealCustomId}` : ''}`,
+      html: layout({
+        theme: themeFor(role),
+        heading: 'A collaboration was cancelled',
+        bodyHtml:
+          para(`Hi ${esc(name || 'there')}, ${otherParty.toLowerCase()} on one of your active deals${dealCustomId ? ` (<strong>${esc(dealCustomId)}</strong>)` : ''} has deleted their account, so the collaboration has been cancelled. No further action is needed.`) +
+          button('View your deals', `${APP_URL}/${role}/deals`, themeFor(role)),
+      }),
+    };
+  },
+
+  // Deal needs manual review because a party with unresolved (paid/owed)
+  // work deleted their account — to admins
+  dealNeedsAdminReviewAccountDeleted({ dealCustomId, campaignTitle, deletedRole }) {
+    return {
+      subject: `Deal needs review — ${deletedRole} account deleted mid-deal`,
+      html: layout({
+        theme: BRAND,
+        heading: 'A deal needs manual review',
+        bodyHtml:
+          para(`A ${esc(deletedRole)} deleted their account while a deal with submitted content (possibly owed payment) was still unresolved. This deal was left as-is rather than auto-cancelled, since work may already be owed.`) +
+          details([
+            ['Deal', dealCustomId],
+            ['Campaign', campaignTitle],
+            ['Deleted party’s role', deletedRole],
+          ]) +
+          para('Please check in on the surviving party and resolve manually if needed.'),
       }),
     };
   },

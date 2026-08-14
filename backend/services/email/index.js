@@ -82,6 +82,9 @@ module.exports = {
   // Account lifecycle
   accountDeletionScheduled:  make('accountDeletionScheduled'),
   accountDeletionCancelled:  make('accountDeletionCancelled'),
+  accountDeletionCompleted:  make('accountDeletionCompleted'),
+  dealCancelledAccountDeleted:       make('dealCancelledAccountDeleted'),
+  dealNeedsAdminReviewAccountDeleted: make('dealNeedsAdminReviewAccountDeleted'),
 
   // Admin actions
   accountSuspended:          make('accountSuspended'),

@@ -129,6 +129,16 @@ const userSchema = new mongoose.Schema({
   deleteScheduledAt: {
     type: Date,
     default: null
+  },
+
+  // Set once the daily purge cron has actually anonymized this account (see
+  // backend/utils/purgeAccount.js). The document itself is never removed —
+  // Deals, Messages, Applications, Payments, and Subscriptions all reference
+  // this id and must keep resolving — but every PII field is scrubbed and
+  // login is permanently blocked (status stays 'suspended').
+  deletedAt: {
+    type: Date,
+    default: null
   }
 
 }, {
