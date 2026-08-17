@@ -440,7 +440,7 @@ export default function BrandBillingPage() {
 
         <p className="text-xs text-gray-400 text-center mt-6">
           Questions?{' '}
-          <Link href="/brand/messages" className="text-[#228B22] hover:underline font-medium">
+          <Link href="/brand/settings#support" className="text-[#228B22] hover:underline font-medium">
             Message us
           </Link>{' '}
           and we&apos;ll get back within 24 hours.

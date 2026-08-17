@@ -91,6 +91,17 @@ export default function InfluencerSettings() {
     api.get('/api/influencer/profile/me').then(r => setProfilePicUrl(r.data.profile?.profilePicUrl || '')).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Deep links like /influencer/settings#support open that section directly
+  useEffect(() => {
+    const applyHash = () => {
+      const id = window.location.hash.slice(1);
+      if (SECTIONS.some(s => s.id === id)) setActiveSection(id as Section);
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, []);
+
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
     setPwMsg(null);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import InfluencerNav from '@/components/shared/InfluencerNav';
@@ -431,7 +432,11 @@ export default function BillingPage() {
         </div>
 
         <p className="text-xs text-gray-400 text-center mt-6">
-          Questions? Reach out via the Messages section and we'll get back to you within 24 hours.
+          Questions?{' '}
+          <Link href="/influencer/settings#support" className="text-[#E0115F] hover:underline font-medium">
+            Message us
+          </Link>{' '}
+          and we&apos;ll get back within 24 hours.
         </p>
 
       </main>

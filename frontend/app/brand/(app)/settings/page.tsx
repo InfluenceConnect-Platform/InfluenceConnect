@@ -93,6 +93,17 @@ export default function BrandSettings() {
     api.get('/api/auth/account').then(r => setAccount(r.data)).catch(() => {}).finally(() => setLoading(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Deep links like /brand/settings#support open that section directly
+  useEffect(() => {
+    const applyHash = () => {
+      const id = window.location.hash.slice(1);
+      if (SECTIONS.some(s => s.id === id)) setActiveSection(id as Section);
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, []);
+
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
     setPwMsg(null);
