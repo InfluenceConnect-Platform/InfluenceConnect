@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/useTheme";
@@ -47,6 +47,16 @@ export const metadata: Metadata = {
   verification: process.env.GOOGLE_SITE_VERIFICATION
     ? { google: process.env.GOOGLE_SITE_VERIFICATION }
     : undefined,
+};
+
+// Fallback for routes with no more specific `viewport` export of their own
+// (/auth, /admin, /legal) — without this, the mobile status bar/address bar
+// renders the browser's default chrome color on first paint, before any
+// client-side theme-color sync (e.g. useThemeColor) can run post-hydration.
+// Marketing, brand, influencer and the public creator-profile layouts each
+// set their own more specific themeColor and take precedence over this.
+export const viewport: Viewport = {
+  themeColor: '#228B22',
 };
 
 export default function RootLayout({
