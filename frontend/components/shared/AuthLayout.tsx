@@ -12,8 +12,10 @@ interface AuthLayoutProps {
   /**
    * Whose sign-up/sign-in this is. The whole page chrome — background wash,
    * decorative accents, logo mark and the Visit Website pill — follows it, so
-   * a brand never sees creator ruby around a green card. Falls back to the
-   * creator palette on screens where no role is known yet (the role chooser).
+   * a brand never sees creator ruby around a green card. Left undefined on
+   * screens where no role is known yet (the role chooser): the chrome goes
+   * neutral (slate) and the decorative blobs split ruby/green by side, so
+   * the page doesn't lean toward either role before the user's picked one.
    */
   role?: AuthRole;
 }
@@ -36,9 +38,26 @@ const PALETTES: Record<AuthRole, {
   },
 };
 
-export default function AuthLayout({ children, role = 'influencer' }: AuthLayoutProps) {
+// Neutral chrome for screens where no role is known yet — the role chooser.
+// Used for the logo mark, Visit Website pill and dot grid, which only have
+// room for one color and shouldn't lean creator or brand before the user
+// has picked one. The decorative blobs/rings still split ruby/green by side
+// (see below) so both roles stay visually present.
+const NEUTRAL = {
+  mid: '#64748B', main: '#475569', dark: '#334155', darker: '#1E293B',
+  tint: '#F1F5F9', border: '#CBD5E1', bright: '#CBD5E1', hoverTint: '#E2E8F0',
+  rgbMid: '100,116,139', rgbDark: '51,65,85', rgbDarker: '30,41,59', rgbMain: '71,85,105',
+};
+
+export default function AuthLayout({ children, role }: AuthLayoutProps) {
   const { isDark } = useTheme();
-  const c = PALETTES[role];
+  const neutral = !role;
+  const c = role ? PALETTES[role] : NEUTRAL;
+  // Left-side decorative accents lean creator ruby, right-side lean brand
+  // green, only when no role is chosen yet — once a role is picked every
+  // accent follows it via `c` like before.
+  const left = neutral ? PALETTES.influencer : c;
+  const right = neutral ? PALETTES.brand : c;
 
   // These pages aren't behind /brand or /influencer yet (auth happens before
   // that layout mounts), so the mobile status bar/address bar has no role-
@@ -87,82 +106,82 @@ export default function AuthLayout({ children, role = 'influencer' }: AuthLayout
           }}
         />
 
-        {/* Blob 1 — teal, top-left */}
+        {/* Blob 1 — top-left (ruby when neutral) */}
         <div
           className="absolute -top-40 -left-40 w-[760px] h-[760px] rounded-full"
           style={{
             background: isDark
-              ? `radial-gradient(circle at center, rgba(${c.rgbDark},0.55) 0%, rgba(${c.rgbDark},0.20) 45%, transparent 70%)`
-              : `radial-gradient(circle at center, rgba(${c.rgbMid},0.22) 0%, rgba(${c.rgbMid},0.07) 45%, transparent 70%)`,
+              ? `radial-gradient(circle at center, rgba(${left.rgbDark},0.55) 0%, rgba(${left.rgbDark},0.20) 45%, transparent 70%)`
+              : `radial-gradient(circle at center, rgba(${left.rgbMid},0.22) 0%, rgba(${left.rgbMid},0.07) 45%, transparent 70%)`,
             filter: 'blur(80px)'
           }}
         />
 
-        {/* Blob 2 — deep navy-blue, bottom-right */}
+        {/* Blob 2 — bottom-right (green when neutral) */}
         <div
           className="absolute -bottom-52 -right-36 w-[720px] h-[720px] rounded-full"
           style={{
             background: isDark
-              ? `radial-gradient(circle at center, rgba(${c.rgbDarker},0.60) 0%, rgba(${c.rgbDarker},0.20) 45%, transparent 70%)`
-              : `radial-gradient(circle at center, rgba(${c.rgbMain},0.13) 0%, rgba(${c.rgbDarker},0.07) 45%, transparent 70%)`,
+              ? `radial-gradient(circle at center, rgba(${right.rgbDarker},0.60) 0%, rgba(${right.rgbDarker},0.20) 45%, transparent 70%)`
+              : `radial-gradient(circle at center, rgba(${right.rgbMain},0.13) 0%, rgba(${right.rgbDarker},0.07) 45%, transparent 70%)`,
             filter: 'blur(88px)'
           }}
         />
 
-        {/* Blob 3 — teal, top-right */}
+        {/* Blob 3 — top-right (green when neutral) */}
         <div
           className="absolute -top-20 right-0 w-[420px] h-[420px] rounded-full"
           style={{
             background: isDark
-              ? `radial-gradient(circle at center, rgba(${c.rgbMid},0.30) 0%, transparent 65%)`
-              : `radial-gradient(circle at center, rgba(${c.rgbMid},0.16) 0%, transparent 65%)`,
+              ? `radial-gradient(circle at center, rgba(${right.rgbMid},0.30) 0%, transparent 65%)`
+              : `radial-gradient(circle at center, rgba(${right.rgbMid},0.16) 0%, transparent 65%)`,
             filter: 'blur(64px)'
           }}
         />
 
-        {/* Blob 4 — navy, center-left balance */}
+        {/* Blob 4 — center-left balance (ruby when neutral) */}
         <div
           className="absolute top-1/2 -left-24 w-[360px] h-[360px] rounded-full"
           style={{
             background: isDark
-              ? `radial-gradient(circle at center, rgba(${c.rgbDarker},0.22) 0%, transparent 65%)`
-              : `radial-gradient(circle at center, rgba(${c.rgbDarker},0.08) 0%, transparent 65%)`,
+              ? `radial-gradient(circle at center, rgba(${left.rgbDarker},0.22) 0%, transparent 65%)`
+              : `radial-gradient(circle at center, rgba(${left.rgbDarker},0.08) 0%, transparent 65%)`,
             filter: 'blur(64px)'
           }}
         />
 
-        {/* Decorative ring — top-left */}
+        {/* Decorative ring — top-left (ruby when neutral) */}
         <svg
           className={`absolute -top-16 -left-16 ${isDark ? 'opacity-[0.07]' : 'opacity-[0.12]'}`}
           width="380" height="380" viewBox="0 0 380 380"
           fill="none" xmlns="http://www.w3.org/2000/svg"
         >
-          <circle cx="190" cy="190" r="180" stroke={c.mid} strokeWidth="1.2" />
-          <circle cx="190" cy="190" r="130" stroke={c.mid} strokeWidth="0.8" />
-          <circle cx="190" cy="190" r="80" stroke={c.mid} strokeWidth="0.6" />
+          <circle cx="190" cy="190" r="180" stroke={left.mid} strokeWidth="1.2" />
+          <circle cx="190" cy="190" r="130" stroke={left.mid} strokeWidth="0.8" />
+          <circle cx="190" cy="190" r="80" stroke={left.mid} strokeWidth="0.6" />
         </svg>
 
-        {/* Decorative ring — bottom-right */}
+        {/* Decorative ring — bottom-right (green when neutral) */}
         <svg
           className={`absolute -bottom-20 -right-20 ${isDark ? 'opacity-[0.07]' : 'opacity-[0.12]'}`}
           width="420" height="420" viewBox="0 0 420 420"
           fill="none" xmlns="http://www.w3.org/2000/svg"
         >
-          <circle cx="210" cy="210" r="200" stroke={c.main} strokeWidth="1.2" />
-          <circle cx="210" cy="210" r="148" stroke={c.main} strokeWidth="0.8" />
-          <circle cx="210" cy="210" r="96" stroke={c.main} strokeWidth="0.6" />
+          <circle cx="210" cy="210" r="200" stroke={right.main} strokeWidth="1.2" />
+          <circle cx="210" cy="210" r="148" stroke={right.main} strokeWidth="0.8" />
+          <circle cx="210" cy="210" r="96" stroke={right.main} strokeWidth="0.6" />
         </svg>
 
-        {/* Plus accent — right */}
+        {/* Plus accent — right (green when neutral) */}
         <svg className={`absolute top-1/3 right-12 ${isDark ? 'opacity-20' : 'opacity-15'}`} width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <line x1="9" y1="0" x2="9" y2="18" stroke={c.mid} strokeWidth="1.5" strokeLinecap="round" />
-          <line x1="0" y1="9" x2="18" y2="9" stroke={c.mid} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="9" y1="0" x2="9" y2="18" stroke={right.mid} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="0" y1="9" x2="18" y2="9" stroke={right.mid} strokeWidth="1.5" strokeLinecap="round" />
         </svg>
 
-        {/* Plus accent — left */}
+        {/* Plus accent — left (ruby when neutral) */}
         <svg className={`absolute bottom-1/3 left-14 ${isDark ? 'opacity-15' : 'opacity-10'}`} width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <line x1="9" y1="0" x2="9" y2="18" stroke={c.dark} strokeWidth="1.5" strokeLinecap="round" />
-          <line x1="0" y1="9" x2="18" y2="9" stroke={c.dark} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="9" y1="0" x2="9" y2="18" stroke={left.dark} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="0" y1="9" x2="18" y2="9" stroke={left.dark} strokeWidth="1.5" strokeLinecap="round" />
         </svg>
 
         {/* Small diamond top-center */}
@@ -170,11 +189,11 @@ export default function AuthLayout({ children, role = 'influencer' }: AuthLayout
           <rect x="5" y="0" width="7" height="7" transform="rotate(45 5 5)" stroke={c.mid} strokeWidth="1" />
         </svg>
 
-        {/* Floating dots */}
-        <div className={`absolute top-24 right-1/4 w-2 h-2 rounded-full bg-[var(--ic-a-mid)] ${isDark ? 'opacity-20' : 'opacity-30'}`} />
-        <div className={`absolute top-1/2 left-8 w-1.5 h-1.5 rounded-full bg-[var(--ic-a-main)] ${isDark ? 'opacity-15' : 'opacity-25'}`} />
-        <div className={`absolute bottom-32 right-1/3 w-2 h-2 rounded-full bg-[var(--ic-a-mid)] ${isDark ? 'opacity-15' : 'opacity-20'}`} />
-        <div className={`absolute top-1/4 left-1/3 w-1 h-1 rounded-full bg-[var(--ic-a-mid)] ${isDark ? 'opacity-20' : 'opacity-30'}`} />
+        {/* Floating dots — split ruby/green when neutral, matching side */}
+        <div className={`absolute top-24 right-1/4 w-2 h-2 rounded-full ${isDark ? 'opacity-20' : 'opacity-30'}`} style={{ backgroundColor: right.mid }} />
+        <div className={`absolute top-1/2 left-8 w-1.5 h-1.5 rounded-full ${isDark ? 'opacity-15' : 'opacity-25'}`} style={{ backgroundColor: left.main }} />
+        <div className={`absolute bottom-32 right-1/3 w-2 h-2 rounded-full ${isDark ? 'opacity-15' : 'opacity-20'}`} style={{ backgroundColor: right.mid }} />
+        <div className={`absolute top-1/4 left-1/3 w-1 h-1 rounded-full ${isDark ? 'opacity-20' : 'opacity-30'}`} style={{ backgroundColor: left.mid }} />
       </div>
 
       {/* ── Top bar ── */}
