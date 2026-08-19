@@ -82,6 +82,15 @@ export default function AuthLayout({ children, role }: AuthLayoutProps) {
         isDark ? 'bg-[#060D1A]' : 'bg-gray-50'
       }`}
     >
+      {/* Solid ruby/green split strip — only when no role is chosen yet, so
+          both identities are unambiguously present in full, flat color
+          rather than the low-opacity decorative wash below. */}
+      {neutral && (
+        <div className="relative z-10 h-[5px] w-full flex shrink-0" aria-hidden="true">
+          <div className="h-full w-1/2" style={{ backgroundColor: PALETTES.influencer.main }} />
+          <div className="h-full w-1/2" style={{ backgroundColor: PALETTES.brand.main }} />
+        </div>
+      )}
 
       {/* ── Decorative Background Layer ── */}
       <div className="absolute inset-0 pointer-events-none select-none" aria-hidden="true">
@@ -199,7 +208,13 @@ export default function AuthLayout({ children, role }: AuthLayoutProps) {
       {/* ── Top bar ── */}
       <header className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-5 gap-2">
         <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group min-w-0">
-          <div className="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--ic-a-mid)] to-[var(--ic-a-darker)] flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow">
+          <div
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow"
+            style={neutral
+              ? { background: `linear-gradient(135deg, ${PALETTES.influencer.main} 0%, ${PALETTES.influencer.main} 49%, ${PALETTES.brand.main} 51%, ${PALETTES.brand.main} 100%)` }
+              : { background: `linear-gradient(135deg, var(--ic-a-mid), var(--ic-a-darker))` }
+            }
+          >
             IC
           </div>
           <span className={`font-semibold tracking-tight whitespace-nowrap truncate transition-colors ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
