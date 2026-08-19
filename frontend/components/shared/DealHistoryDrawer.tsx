@@ -96,7 +96,7 @@ export default function DealHistoryDrawer({ deal, onClose }: Props) {
         }`}
       >
         <div className="flex items-center justify-between px-5 py-4 flex-shrink-0 text-white"
-          style={{ background: 'linear-gradient(135deg, #04141a 0%, #0b5e6c 60%, #1fb8a8 100%)' }}>
+          style={{ background: 'linear-gradient(135deg, #2A0A17 0%, #7A0F3D 55%, #E0115F 100%)' }}>
           <p className="text-[11px] font-bold uppercase tracking-widest text-white/70">Deal details</p>
           <button
             onClick={onClose}
