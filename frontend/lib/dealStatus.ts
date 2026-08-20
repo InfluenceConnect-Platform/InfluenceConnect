@@ -12,7 +12,7 @@ interface DealStatusMeta {
 
 export const DEAL_STATUS_META: Record<string, DealStatusMeta> = {
   'in-progress':       { label: 'Active',   badge: 'bg-blue-500 text-white',    dot: 'bg-blue-500' },
-  'content-submitted': { label: 'Review',   badge: 'bg-sky-500 text-white', dot: 'bg-sky-500' },
+  'content-submitted': { label: 'Review',   badge: 'bg-violet-500 text-white', dot: 'bg-violet-500' },
   'completed':          { label: 'Completed', badge: 'bg-emerald-500 text-white', dot: 'bg-emerald-500' },
   'cancelled':          { label: 'Cancelled', badge: 'bg-red-500 text-white',  dot: 'bg-red-500' },
 };
