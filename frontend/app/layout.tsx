@@ -116,30 +116,11 @@ export default function RootLayout({
             launches. Purely decorative and self-dismissing, so it's inert to
             assistive tech and never blocks interaction once its animation ends. */}
         <div id="ic-boot-splash" aria-hidden="true">
-          <div className="ic-boot-aurora">
-            <span className="ic-boot-blob ic-boot-blob-ruby" />
-            <span className="ic-boot-blob ic-boot-blob-green" />
-          </div>
-          <div className="ic-boot-stage">
-            <span className="ic-boot-dot ic-boot-dot-ruby" />
-            <span className="ic-boot-dot ic-boot-dot-green" />
-            <span className="ic-boot-halo" />
-            <span className="ic-boot-ring" />
-            <div className="ic-boot-mark">IC</div>
-          </div>
-          <div className="ic-boot-word">
-            {/* Split so each letter can un-blur in on its own beat. Spaces
-                become NBSP — a bare space in a flex child collapses. */}
-            {'Influence Connect'.split('').map((ch, i) => (
-              <span key={i} style={{ animationDelay: `${960 + i * 22}ms` }}>
-                {ch === ' ' ? '\u00A0' : ch}
-              </span>
-            ))}
-          </div>
+          <div className="ic-boot-mark">IC</div>
+          <div className="ic-boot-word">Influence Connect</div>
           <div className="ic-boot-tagline">
             <b className="ic-boot-creators">Creators</b> × <b className="ic-boot-brands">Brands</b>
           </div>
-          <div className="ic-boot-bar"><span /></div>
         </div>
         <ThemeProvider>
           <ToastProvider>
