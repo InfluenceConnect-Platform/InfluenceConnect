@@ -76,12 +76,28 @@ export default function RootLayout({
             don't force-repaint it with a heuristic darkening filter that
             fights our own `dark` class toggle. */}
         <meta name="color-scheme" content="light dark" />
+        {/* iOS ignores manifest.ts for "Add to Home Screen" — these are its own
+            equivalents: run fullscreen without Safari chrome, and let our navy
+            boot splash sit under a translucent (not white) status bar. */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Influence Connect" />
         {/* Anti-flash: apply stored theme before React hydrates. A native inline
             script runs synchronously during HTML parse, so the `dark` class is
             set before first paint with no flash. */}
         <script
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem('ic-theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}`,
+          }}
+        />
+        {/* Same anti-flash pattern, for the boot splash below: only an app
+            launched from its home-screen icon (installed PWA) should ever see
+            it, never a plain browser tab. Detecting synchronously here — before
+            first paint — means the splash is either fully there or fully absent,
+            with no flash of it appearing/disappearing either way. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var m=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches;var i=navigator.standalone===true;if(m||i)document.documentElement.classList.add('ic-standalone-boot');}catch(e){}`,
           }}
         />
         <script
@@ -94,6 +110,17 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        {/* Hidden by default (see .ic-boot-splash rules in globals.css); the
+            inline script above reveals it pre-paint only for standalone
+            launches. Purely decorative and self-dismissing, so it's inert to
+            assistive tech and never blocks interaction once its animation ends. */}
+        <div id="ic-boot-splash" aria-hidden="true">
+          <div className="ic-boot-mark">IC</div>
+          <div className="ic-boot-word">Influence Connect</div>
+          <div className="ic-boot-tagline">
+            <b className="ic-boot-creators">Creators</b> × <b className="ic-boot-brands">Brands</b>
+          </div>
+        </div>
         <ThemeProvider>
           <ToastProvider>
             <ConfirmProvider>{children}</ConfirmProvider>
