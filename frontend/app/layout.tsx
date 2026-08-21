@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/shared/Toast";
 import { ConfirmProvider } from "@/components/shared/ConfirmModal";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import GoogleAnalytics from "@/components/marketing/GoogleAnalytics";
+import ServiceWorkerRegister from "@/components/shared/ServiceWorkerRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -127,6 +128,7 @@ export default function RootLayout({
           </ToastProvider>
         </ThemeProvider>
         <GoogleAnalytics />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

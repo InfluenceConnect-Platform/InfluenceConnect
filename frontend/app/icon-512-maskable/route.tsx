@@ -4,10 +4,10 @@ import { ImageResponse } from 'next/og';
 // rounded square...). The OS crops to whatever shape it wants, so content
 // must sit inside the center ~80% "safe zone" with no rounded corners of our
 // own — a full-bleed background lets the OS mask do the shaping.
-export const size = { width: 512, height: 512 };
-export const contentType = 'image/png';
-
-export default function Icon512Maskable() {
+//
+// A plain `route.tsx` (not the special `icon.tsx` file convention) needs a
+// named HTTP-method export rather than the icon convention's default export.
+export async function GET() {
   return new ImageResponse(
     (
       <div
@@ -27,6 +27,6 @@ export default function Icon512Maskable() {
         IC
       </div>
     ),
-    { ...size }
+    { width: 512, height: 512 }
   );
 }

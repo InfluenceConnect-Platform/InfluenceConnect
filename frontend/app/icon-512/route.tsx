@@ -5,10 +5,10 @@ import { ImageResponse } from 'next/og';
 // tab favicon, but Android upscales whatever the manifest points at for its
 // install splash — pointing it at a 32px image renders it blurry. This is
 // the same mark/gradient as `/icon` and `/apple-icon`, just at full size.
-export const size = { width: 512, height: 512 };
-export const contentType = 'image/png';
-
-export default function Icon512() {
+//
+// A plain `route.tsx` (not the special `icon.tsx` file convention) needs a
+// named HTTP-method export rather than the icon convention's default export.
+export async function GET() {
   return new ImageResponse(
     (
       <div
@@ -29,6 +29,6 @@ export default function Icon512() {
         IC
       </div>
     ),
-    { ...size }
+    { width: 512, height: 512 }
   );
 }
