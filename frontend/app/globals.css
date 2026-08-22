@@ -101,9 +101,18 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   }
 }
 
-/* Smooth theme transitions — only color/bg/border, not transform/opacity (preserves animations) */
+/* Smooth theme transitions — color/bg/border only. box-shadow is deliberately
+   excluded: it's one of the most expensive properties to animate (forces a
+   repaint of the shadow's blur/spread region, can't be cheaply composited),
+   and animating it across every node on the page at once is what made the
+   toggle visibly janky — the fade would stutter/stretch well past 200ms on
+   real devices while the mobile status-bar color (a <meta theme-color> swap,
+   which snaps instantly) had already finished, producing a visible two-step
+   lag. Dropping box-shadow keeps the remaining properties cheap (paint-only,
+   compositable) so the fade actually finishes in ~200ms and both change in
+   step. */
 *, *::before, *::after {
-  transition-property: color, background-color, border-color, box-shadow;
+  transition-property: color, background-color, border-color;
   transition-duration: 200ms;
   transition-timing-function: ease;
 }
