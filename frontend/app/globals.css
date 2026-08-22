@@ -27,7 +27,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
-  transition: background-color 0.2s ease, color 0.2s ease;
   /* Defensive safety net — no page should scroll horizontally on mobile even
      if a future fixed-width element sneaks in without a clipping parent. */
   overflow-x: hidden;
@@ -101,20 +100,63 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   }
 }
 
-/* Smooth theme transitions — color/bg/border only. box-shadow is deliberately
-   excluded: it's one of the most expensive properties to animate (forces a
-   repaint of the shadow's blur/spread region, can't be cheaply composited),
-   and animating it across every node on the page at once is what made the
-   toggle visibly janky — the fade would stutter/stretch well past 200ms on
-   real devices while the mobile status-bar color (a <meta theme-color> swap,
-   which snaps instantly) had already finished, producing a visible two-step
-   lag. Dropping box-shadow keeps the remaining properties cheap (paint-only,
-   compositable) so the fade actually finishes in ~200ms and both change in
-   step. */
-*, *::before, *::after {
+/* ── Theme flip: why there is no `*` transition here ──────────────────
+   This used to be `*, *::before, *::after { transition: color,
+   background-color, border-color, box-shadow 200ms }`. That is what made
+   the dark-mode toggle lag. Flipping `.dark` on <html> invalidates every
+   element's style, so a universal transition starts one animation per node
+   — thousands on a dashboard — and each of the ~200ms worth of frames has
+   to repaint all of them. This app has 78 `backdrop-blur` surfaces, and a
+   backdrop-filter must re-blur its backdrop on every frame its underlying
+   pixels change, so the flip also forced ~12 full-viewport re-blurs. The
+   main thread stalls, frames drop, the "200ms" fade stretches to most of a
+   second, and the <meta theme-color> status bar (which the OS snaps
+   instantly, un-animatable) finishes long before the page catches up —
+   the exact two-step lag this replaces.
+
+   The smooth version is the View Transitions API instead (see
+   lib/useTheme.ts): the browser snapshots the before/after pages as two GPU
+   textures and cross-fades them on the compositor. No per-frame style,
+   layout, paint or re-blur work at all, no matter how big the page.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* Interactive affordances still ease their hover/focus colours. Scoped to
+   the handful of elements where a colour fade is actually perceived, never
+   `*` — that distinction is the whole fix above. */
+a, button, input, select, textarea, summary,
+[role="button"], [role="tab"], [role="menuitem"] {
   transition-property: color, background-color, border-color;
-  transition-duration: 200ms;
+  transition-duration: 150ms;
   transition-timing-function: ease;
+}
+
+/* Held on <html> for the single frame the theme flips. Guarantees nothing
+   element-level animates through the change: without it the rules above
+   (and every component's own `transition-colors`/`transition-all`) would
+   fire mid-flip, which both re-introduces per-node animation work and makes
+   the View Transition capture the "after" snapshot while colours are still
+   in motion — producing a smeared, double-faded result. */
+html.ic-theme-switching *,
+html.ic-theme-switching *::before,
+html.ic-theme-switching *::after {
+  transition: none !important;
+}
+
+/* The cross-fade itself. The outgoing snapshot simply holds while the
+   incoming one fades in over it — a plain cross-dissolve would draw both
+   sets of glyphs at partial opacity and make all text look blurry at the
+   midpoint. Both layers are composited textures, so this is effectively
+   free regardless of page size. */
+::view-transition-old(root) {
+  animation: none;
+}
+::view-transition-new(root) {
+  animation: ic-theme-fade 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  mix-blend-mode: normal;
+}
+@keyframes ic-theme-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes fadeInScale {
