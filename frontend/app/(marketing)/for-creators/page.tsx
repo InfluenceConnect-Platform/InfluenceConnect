@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import FaqAccordion from '@/components/marketing/FaqAccordion';
 import Reveal from '@/components/marketing/Reveal';
+import CardAccentBar from '@/components/marketing/CardAccentBar';
 import SectionWave from '@/components/marketing/SectionWave';
 import { pageMetadata, faqJsonLd } from '@/lib/seo';
 
@@ -120,7 +121,7 @@ export default function ForCreatorsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {BENEFITS.map((b, i) => (
               <Reveal key={b.title} delay={(i % 3) * 90} className="card-glow group relative bg-gradient-to-br from-white to-[#E0115F]/[0.07] dark:from-[#0E1B2E] border border-gray-200 rounded-2xl p-6 pt-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
-                <span aria-hidden className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${b.bar}`} />
+                <CardAccentBar gradient={b.bar} />
                 <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${b.tint}`}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {b.icon}
