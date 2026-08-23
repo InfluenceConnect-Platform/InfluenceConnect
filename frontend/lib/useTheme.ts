@@ -1,9 +1,16 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, createElement, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 
 export type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'ic-theme';
+
+// The admin console is light-only: it has no theme toggle and its pages are
+// styled for light alone, so a 'dark' left in storage by the same person's
+// creator/brand session must never carry over. Forced, not stored — leaving
+// /admin restores whatever theme they actually chose.
+const isLightOnlyRoute = (path: string | null) => !!path && path.startsWith('/admin');
 
 // Matches --background in globals.css' .dark block — the mobile status bar
 // goes the same near-black the app goes to, regardless of which role's
@@ -95,21 +102,29 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
+  const pathname = usePathname();
+  const lightOnly = isLightOnlyRoute(pathname);
 
+  // Re-runs on every entry to and exit from a light-only route, so a
+  // client-side navigation into /admin drops the dark class and navigating
+  // back out puts the stored theme back.
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-      const resolved: Theme = stored === 'dark' ? 'dark' : 'light';
+      const resolved: Theme = lightOnly ? 'light' : stored === 'dark' ? 'dark' : 'light';
       setTheme(resolved);
       // The inline <head> script already set the class pre-paint; this only
       // reconciles the meta tag, so never animate it.
       applyTheme(resolved, false);
     } catch {}
-  }, []);
+  }, [lightOnly]);
 
   // Persists and applies in one step so callers can't leave the stored value
   // and the <html> class disagreeing.
   const setThemeExplicit = (next: Theme) => {
+    // A stray toggle on a light-only route would fight the effect above and
+    // overwrite the user's real preference; ignore it outright.
+    if (lightOnly) return;
     setTheme(next);
     try { localStorage.setItem(STORAGE_KEY, next); } catch {}
     applyTheme(next, true);

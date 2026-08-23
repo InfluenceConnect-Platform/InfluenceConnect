@@ -85,10 +85,15 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Influence Connect" />
         {/* Anti-flash: apply stored theme before React hydrates. A native inline
             script runs synchronously during HTML parse, so the `dark` class is
-            set before first paint with no flash. */}
+            set before first paint with no flash.
+
+            /admin is deliberately exempt: the console is light-only, so a
+            stored 'dark' from the user's own creator/brand session must not
+            leak into it. ThemeProvider enforces the same rule after hydration
+            and on client-side navigation — this only stops the flash. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('ic-theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}`,
+            __html: `try{var t=localStorage.getItem('ic-theme');if(t==='dark'&&location.pathname.indexOf('/admin')!==0)document.documentElement.classList.add('dark');}catch(e){}`,
           }}
         />
         {/* Same anti-flash pattern, for the boot splash below: only an app
