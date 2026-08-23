@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await api.post('/api/auth/login', { email, password });
+      const response = await api.post('/api/auth/admin/login', { email, password });
       const user = response.data.user;
       if (user.role !== 'admin') {
         setError('Access denied. This portal is for admin accounts only.');

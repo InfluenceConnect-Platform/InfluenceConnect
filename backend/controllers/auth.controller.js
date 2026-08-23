@@ -455,7 +455,13 @@ exports.resendOTP = async (req, res) => {
 // ─────────────────────────────────────────
 // LOGIN
 // ─────────────────────────────────────────
-exports.login = async (req, res) => {
+// `adminPortal` marks a sign-in arriving from the admin console, which is a
+// closed, hand-provisioned surface and so carries no Turnstile widget. The bot
+// check is skipped for it; brute force is still held off by the per-account
+// lockout below and the route's rate limiter. Only real admin accounts may use
+// that path — anything else gets the generic credential error, so it can't be
+// used as a Turnstile-free oracle against ordinary accounts.
+async function loginHandler(req, res, { adminPortal = false } = {}) {
   try {
     const { email, password, role, turnstileToken } = req.body;
 
@@ -466,14 +472,22 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
-    if (!isHuman) {
-      return res.status(400).json({ error: 'Bot verification failed. Please refresh and try again.' });
+    if (!adminPortal) {
+      const isHuman = await verifyTurnstileToken(turnstileToken, req.ip);
+      if (!isHuman) {
+        return res.status(400).json({ error: 'Bot verification failed. Please refresh and try again.' });
+      }
     }
 
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
+      return res.status(400).json({ error: 'Invalid email or password' });
+    }
+
+    // Non-admins can't sign in through the admin console, and are told nothing
+    // more than "wrong credentials" so this route reveals no account details.
+    if (adminPortal && user.role !== 'admin') {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
@@ -592,7 +606,10 @@ exports.login = async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
-};
+}
+
+exports.login = (req, res) => loginHandler(req, res);
+exports.adminLogin = (req, res) => loginHandler(req, res, { adminPortal: true });
 
 // ─────────────────────────────────────────
 // FORGOT PASSWORD

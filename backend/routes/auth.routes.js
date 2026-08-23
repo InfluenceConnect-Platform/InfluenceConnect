@@ -4,7 +4,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const authenticate = require('../middleware/auth.middleware');
 const { sensitiveAuthLimiter, accountActionLimiter } = require('../middleware/rateLimit.middleware');
-const { register, verifyOTP, resendOTP, login, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion, purgeScheduledDeletions, requestEmailChange, verifyEmailChange, requestMobileChange, verifyMobileChange } = require('../controllers/auth.controller');
+const { register, verifyOTP, resendOTP, login, adminLogin, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion, purgeScheduledDeletions, requestEmailChange, verifyEmailChange, requestMobileChange, verifyMobileChange } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
 router.post('/register', accountActionLimiter, register);
@@ -17,6 +17,12 @@ router.post('/resend-otp', accountActionLimiter, resendOTP);
 
 // POST /api/auth/login
 router.post('/login', sensitiveAuthLimiter, login);
+
+// POST /api/auth/admin/login  — admin console sign-in. Same credential checks
+// as /login minus the Turnstile step, since the admin console has no widget;
+// the limiter and account lockout still apply, and only role:'admin' accounts
+// get through.
+router.post('/admin/login', sensitiveAuthLimiter, adminLogin);
 
 // POST /api/auth/send-mobile-otp  (Google OAuth completion step)
 router.post('/send-mobile-otp', accountActionLimiter, sendMobileOtp);
