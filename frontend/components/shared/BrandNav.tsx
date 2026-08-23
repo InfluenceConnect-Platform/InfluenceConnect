@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/lib/useTheme';
+import { useTabBarScroll } from '@/lib/useTabBarScroll';
 import { canUseDarkMode, normalizeTier, tierLabel } from '@/lib/tiers';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import { cdnImg } from '@/lib/img';
@@ -93,6 +94,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
   const pathname = usePathname();
   const router = useRouter();
   const { isDark, setTheme } = useTheme();
+  const tabBarScroll = useTabBarScroll('brand');
   const confirm = useConfirm();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [fetchedLogoUrl, setFetchedLogoUrl] = useState(cachedBrandLogoUrl ?? '');
@@ -438,7 +440,7 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
           ? 'bg-[#0B1725] border-slate-700/50 shadow-[0_1px_3px_rgba(0,0,0,0.3)]'
           : 'bg-white border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
         }`}>
-        <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden px-3 gap-0.5 py-2">
+        <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden px-3 gap-0.5 py-2" {...tabBarScroll}>
           {NAV_ITEMS.map(item => {
             const isMessages  = item.href === '/brand/messages';
             const isInvites   = item.href === '/brand/invitations';
@@ -451,6 +453,9 @@ export default function BrandNav({ user: userProp, logoUrl: logoUrlProp }: Brand
               <Link
                 key={item.href}
                 href={item.href}
+                // Read by useTabBarScroll when there's no saved offset yet, so a
+                // deep link to a far-right tab still lands on screen.
+                data-tab-active={isActive ? 'true' : undefined}
                 className={`relative flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[12px] font-semibold transition-all duration-150 cursor-pointer ${
                   isActive ? activeItemCls : isDark ? 'text-slate-500 hover:bg-slate-800/40' : 'text-gray-400 hover:bg-gray-100'
                 }`}
