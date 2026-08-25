@@ -157,7 +157,7 @@ function CompleteProfilePage() {
         else router.replace('/influencer/dashboard');
       } else {
         // Partial verification — should not happen for Google users but handle gracefully
-        router.replace('/auth/verify-otp');
+        router.replace('/auth/login');
       }
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };

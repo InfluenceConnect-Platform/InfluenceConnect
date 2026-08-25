@@ -202,13 +202,12 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Generate OTPs
+    // Generate the email OTP only. Mobile verification is now its own step,
+    // shown only after the email is confirmed (and for brands it's optional
+    // altogether — see verifyOTP), so its code is sent on-demand from that
+    // step via /resend-otp rather than pre-emptively here.
     const emailOTP = generateOTP();
-    const mobileOTP = generateOTP();
-
-    // Save OTPs to database
     await OTP.create({ userId: user._id, type: 'email', otp: emailOTP });
-    await OTP.create({ userId: user._id, type: 'mobile', otp: mobileOTP });
 
     // In dev, redirect all OTPs to the bypass inbox; in prod, send to the real address
     const devBypass = process.env.DEV_OTP_EMAIL;
@@ -236,27 +235,8 @@ exports.register = async (req, res) => {
       return res.status(500).json({ error: 'Failed to send verification email. Please try again.' });
     }
 
-    // Mobile OTP — MSG91 isn't wired up yet, so it's emailed to the account's
-    // own address instead (bypass inbox in dev, real address otherwise).
-    await resend.emails.send({
-      from: FROM,
-      to: emailRecipient,
-      subject: devBypass
-        ? `[DEV] Mobile OTP for +91${mobile} — Influence Connect`
-        : 'Verify your mobile number — Influence Connect',
-      html: buildOtpEmail({
-        role,
-        heading: 'Verify your mobile number',
-        body: `Use the code below to verify the mobile number <strong>+91${mobile}</strong> on your Influence Connect account.`,
-        otp: mobileOTP,
-        codeLabel: 'Mobile verification code',
-        devNote: devBypass ? `DEV BYPASS — original recipient: +91${mobile}` : null
-      })
-    });
-    console.log(`[OTP] Mobile OTP for ${mobile}: ${mobileOTP}`);
-
     res.status(201).json({
-      message: 'Registration successful. Please verify your email and mobile.',
+      message: 'Registration successful. Please verify your email.',
       userId: user._id
     });
 
@@ -265,6 +245,60 @@ exports.register = async (req, res) => {
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 };
+
+// Activates a fully-verified account and fires the associated notifications.
+// Mobile verification is mandatory for influencers but optional for brands
+// (the client's call — a brand only has to prove its email + GSTIN; mobile
+// can be verified later from account settings), so the two roles reach
+// "activatable" via different conditions. Called from verifyOTP after either
+// leg is confirmed; a no-op (activated: false) if the account isn't eligible
+// yet, or is already active — so it's safe to call again e.g. when a brand
+// verifies mobile after already being activated on email alone.
+async function tryActivateUser(user) {
+  if (user.status === 'active') return { activated: false };
+  if (!user.emailVerified) return { activated: false };
+
+  const mobileRequired = user.role !== 'brand';
+  if (mobileRequired && !user.mobileVerified) return { activated: false };
+
+  // SECURITY: a brand account may never become active without a GSTIN on
+  // file. The standard email and Google flows both submit it before this
+  // point (register / send-mobile-otp create the BrandProfile up front), so
+  // this only blocks accounts that skipped the GST step via direct API calls
+  // (e.g. hitting resend-otp + verify-otp without ever providing a GSTIN).
+  let brandProfile = null;
+  if (user.role === 'brand') {
+    brandProfile = await BrandProfile.findOne({ userId: user._id });
+    if (!brandProfile || !brandProfile.gstin) {
+      return { activated: false, error: 'A GST number is required to activate a brand account. Please complete your brand details.' };
+    }
+  }
+
+  await User.findByIdAndUpdate(user._id, { status: 'active' });
+
+  // Account activated → welcome email (#2)
+  notify.welcome(user.email, { name: user.name, role: user.role });
+
+  // Brands: acknowledge the GSTIN is queued for review. Sent here — only
+  // once the account is fully created and active — rather than at submission
+  // time, so an abandoned signup never receives it.
+  if (user.role === 'brand' && brandProfile) {
+    notify.gstinSubmitted(user.email, {
+      companyName: brandProfile.companyName || user.name,
+      gstin: brandProfile.gstin,
+    });
+    getAdminEmails().then((adminEmails) => {
+      if (!adminEmails.length) return;
+      notify.gstinSubmittedAdmin(adminEmails, {
+        companyName: brandProfile.companyName || user.name,
+        gstin: brandProfile.gstin,
+        brandEmail: user.email,
+      });
+    }).catch((err) => console.error('[EMAIL:gstinSubmittedAdmin] admin lookup failed', err.message));
+  }
+
+  return { activated: true, token: generateToken(user._id) };
+}
 
 // ─────────────────────────────────────────
 // VERIFY OTP
@@ -313,50 +347,14 @@ exports.verifyOTP = async (req, res) => {
       await User.findByIdAndUpdate(userId, mobileUpdate);
     }
 
-    // Check if both are now verified
     const user = await User.findById(userId);
-    if (user.emailVerified && user.mobileVerified) {
-      // SECURITY: a brand account may never become active without a GSTIN on
-      // file. The standard email and Google flows both submit it before this
-      // point (register / send-mobile-otp create the BrandProfile up front), so
-      // this only blocks accounts that skipped the GST step via direct API calls
-      // (e.g. hitting resend-otp + verify-otp without ever providing a GSTIN).
-      let brandProfile = null;
-      if (user.role === 'brand') {
-        brandProfile = await BrandProfile.findOne({ userId: user._id });
-        if (!brandProfile || !brandProfile.gstin) {
-          return res.status(400).json({
-            error: 'A GST number is required to activate a brand account. Please complete your brand details.',
-          });
-        }
-      }
+    const { activated, token, error: activationError } = await tryActivateUser(user);
 
-      await User.findByIdAndUpdate(userId, { status: 'active' });
+    if (activationError) {
+      return res.status(400).json({ error: activationError });
+    }
 
-      // Account fully verified & activated → welcome email (#2)
-      notify.welcome(user.email, { name: user.name, role: user.role });
-
-      // Brands: acknowledge the GSTIN is queued for review. Sent here — only
-      // once the account is fully created (all OTPs verified, account active) —
-      // rather than at submission time, so an abandoned signup never receives it.
-      if (user.role === 'brand' && brandProfile) {
-        notify.gstinSubmitted(user.email, {
-          companyName: brandProfile.companyName || user.name,
-          gstin: brandProfile.gstin,
-        });
-        getAdminEmails().then((adminEmails) => {
-          if (!adminEmails.length) return;
-          notify.gstinSubmittedAdmin(adminEmails, {
-            companyName: brandProfile.companyName || user.name,
-            gstin: brandProfile.gstin,
-            brandEmail: user.email,
-          });
-        }).catch((err) => console.error('[EMAIL:gstinSubmittedAdmin] admin lookup failed', err.message));
-      }
-
-      // Generate JWT token — user is fully verified
-      const token = generateToken(user._id);
-
+    if (activated) {
       return res.json({
         message: 'Account fully verified. Welcome to Influence Connect.',
         token,
@@ -403,6 +401,13 @@ exports.resendOTP = async (req, res) => {
       return res.status(400).json({ error: 'Mobile is already verified.' });
     }
 
+    // Mobile verification is its own step now, triggered from the
+    // verify-mobile page rather than pre-sent at registration — so the very
+    // first mobile code for an account arrives through this endpoint too.
+    // Detect that case so the email reads "Verify your mobile" instead of
+    // "New code", which would be confusing on a first send.
+    const isFirstSend = !(await OTP.exists({ userId, type }));
+
     // Invalidate previous unused OTPs of this type
     await OTP.deleteMany({ userId, type, used: false });
 
@@ -440,18 +445,22 @@ exports.resendOTP = async (req, res) => {
         from: FROM,
         to: recipient,
         subject: devBypass
-          ? `[DEV] New Mobile OTP for ${user.mobile} — Influence Connect`
-          : 'Your new mobile verification code — Influence Connect',
+          ? `[DEV] Mobile OTP for ${user.mobile} — Influence Connect`
+          : isFirstSend
+            ? 'Verify your mobile number — Influence Connect'
+            : 'Your new mobile verification code — Influence Connect',
         html: buildOtpEmail({
           role: user.role,
-          heading: 'New mobile verification code',
-          body: `You requested a new code to verify the mobile number <strong>${user.mobile}</strong>. Your previous code has been invalidated.`,
+          heading: isFirstSend ? 'Verify your mobile number' : 'New mobile verification code',
+          body: isFirstSend
+            ? `Use the code below to verify the mobile number <strong>${user.mobile}</strong> on your Influence Connect account.`
+            : `You requested a new code to verify the mobile number <strong>${user.mobile}</strong>. Your previous code has been invalidated.`,
           otp: newOTP,
           codeLabel: 'Mobile verification code',
           devNote: devBypass ? `DEV BYPASS — original recipient: ${user.mobile}` : null
         })
       });
-      console.log(`[OTP] New mobile OTP for ${user.mobile}: ${newOTP}`);
+      console.log(`[OTP] Mobile OTP for ${user.mobile}: ${newOTP}`);
     }
 
     res.json({ message: `New ${type} OTP sent successfully.` });

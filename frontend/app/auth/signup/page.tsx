@@ -187,7 +187,7 @@ function SignupPage() {
       localStorage.setItem('pendingEmail', email);
       localStorage.setItem('pendingMobile', mobile);
       localStorage.setItem('pendingRole', role);
-      router.push('/auth/verify-otp');
+      router.push('/auth/verify-email');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       if (!e.response) setError('Cannot reach the server. Make sure the backend is running.');
