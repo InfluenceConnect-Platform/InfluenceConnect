@@ -111,12 +111,21 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   // differ between SSR and hydration → the hydration mismatch.
   const [localUser, setLocalUser] = useState<any>(null);
 
+  // True once we actually know the user's tier — either the parent passed one,
+  // or the localStorage read below has run. Until then `user` is null and
+  // darkAllowed would read as false for *everyone*, including paid users whose
+  // real tier just hasn't loaded yet on this fresh mount. Gating the downgrade
+  // effect on this stops it from firing on that false negative and force-
+  // persisting light mode on every navigation (each page mounts its own nav).
+  const [userReady, setUserReady] = useState(!!userProp);
+
   useEffect(() => {
     try {
       const s = localStorage.getItem('user');
       if (s) setLocalUser(JSON.parse(s));
     } catch {}
-  }, []);
+    if (!userProp) setUserReady(true);
+  }, [userProp]);
 
   // Persist the profile picture across navigations so it doesn't flash the
   // letter avatar. Every influencer page already fetches and passes it as a
@@ -142,8 +151,8 @@ export default function InfluencerNav({ user: userProp, profilePicUrl }: Influen
   // downgrade would silently keep a feature they no longer pay for.
   const darkAllowed = canUseDarkMode('influencer', (user as { tier?: string } | null)?.tier);
   useEffect(() => {
-    if (!darkAllowed && isDark) setTheme('light');
-  }, [darkAllowed, isDark, setTheme]);
+    if (userReady && !darkAllowed && isDark) setTheme('light');
+  }, [userReady, darkAllowed, isDark, setTheme]);
 
   // Name the actual tier. The legacy `plan` field only knows freemium/premium,
   // so it badged Silver, Golden and Platinum creators identically.
