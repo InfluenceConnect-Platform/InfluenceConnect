@@ -17,6 +17,7 @@ import { levelBadgeCls } from '@/lib/levelBadge';
 
 const PLATFORMS = ['any', 'instagram', 'youtube', 'facebook'];
 const SORT_OPTIONS = [
+  { value: 'best_match',  label: 'Best match' },
   { value: 'newest',      label: 'Newest first' },
   { value: 'budget_high', label: 'Budget: High → Low' },
   { value: 'budget_low',  label: 'Budget: Low → High' },
@@ -28,6 +29,7 @@ interface Campaign {
   customId?: string;
   title: string;
   description: string;
+  createdAt: string;
   niche: string[];
   deliverables: string;
   budgetMin: number;
@@ -129,7 +131,7 @@ export default function InfluencerCampaigns() {
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState('any');
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('best_match');
   const [showFilters, setShowFilters] = useState(false);
 
   const [applicationsUsed, setApplicationsUsed] = useState(0);
@@ -287,6 +289,10 @@ export default function InfluencerCampaigns() {
       if (sortBy === 'budget_high') return b.budgetMax - a.budgetMax;
       if (sortBy === 'budget_low') return a.budgetMin - b.budgetMin;
       if (sortBy === 'deadline') return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      // 'best_match' — the server already returns campaigns ranked highest
+      // match % first (see backend/controllers/campaign.controller.js), so
+      // leave that order untouched here.
       return 0;
     });
 

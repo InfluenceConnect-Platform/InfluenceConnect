@@ -275,20 +275,20 @@ exports.getCampaigns = async (req, res) => {
 
     if (and.length > 0) query.$and = and;
 
-    // Paginate
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const [campaigns, total] = await Promise.all([
+    // Ranked by match score (highest first, so a 100%-fit campaign always
+    // beats an 86% one), not by recency — so the whole relevant set has to be
+    // scored before paginating rather than paging at the DB level. The query
+    // above already narrows this to campaigns relevant to the influencer, so
+    // it stays a bounded fetch, not the full campaigns table.
+    const [allCampaigns, total] = await Promise.all([
       Campaign.find(query)
         .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit))
         .populate('brandId', 'name'),
       Campaign.countDocuments(query)
     ]);
 
     // Batch-fetch brand profiles for logo and website
-    const brandIds = [...new Set(campaigns.map(c => c.brandId?._id?.toString()).filter(Boolean))];
+    const brandIds = [...new Set(allCampaigns.map(c => c.brandId?._id?.toString()).filter(Boolean))];
     const brandProfiles = await BrandProfile.find(
       { userId: { $in: brandIds } },
       { userId: 1, logoUrl: 1, website: 1, companyName: 1, industry: 1, description: 1, gstinVerified: 1, score: 1, level: 1 }
@@ -296,7 +296,7 @@ exports.getCampaigns = async (req, res) => {
     const brandProfileMap = {};
     brandProfiles.forEach(bp => { brandProfileMap[bp.userId.toString()] = bp; });
 
-    const enriched = campaigns.map(c => {
+    const scored = allCampaigns.map(c => {
       const obj = c.toObject();
       const bp = brandProfileMap[obj.brandId?._id?.toString()];
       return {
@@ -312,6 +312,14 @@ exports.getCampaigns = async (req, res) => {
         match: computeCampaignMatch(influencerProfile, c),
       };
     });
+
+    // Highest match % first; campaigns tied on score fall back to newest
+    // first (the order the DB query already sorted them in).
+    scored.sort((a, b) => (b.match?.score ?? 0) - (a.match?.score ?? 0));
+
+    // Paginate the already-ranked list in memory.
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const enriched = scored.slice(skip, skip + parseInt(limit));
 
     res.json({
       campaigns: enriched,
