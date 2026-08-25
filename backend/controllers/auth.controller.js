@@ -9,6 +9,7 @@ const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 const { getAdminEmails } = require('../utils/getAdminEmails');
 const applyPremiumUpgrade = require('../utils/applyPremiumUpgrade');
 const { verifyTurnstileToken } = require('../utils/verifyTurnstile');
+const { themeFor } = require('../services/email/templates');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || 'Influence Connect <onboarding@resend.dev>';
@@ -41,8 +42,11 @@ async function registerFailedOtpAttempt(otpRecord) {
   return otpRecord.used;
 }
 
-// Professional email OTP template
-function buildOtpEmail({ title, heading, body, otp, codeLabel, devNote }) {
+// Professional email OTP template — themed by role (brand green / creator
+// ruby) to match the rest of the transactional emails in services/email, so
+// it never drifts back to its own one-off palette.
+function buildOtpEmail({ role, heading, body, otp, codeLabel, devNote, warning = true, footerNote }) {
+  const theme = themeFor(role);
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -52,14 +56,14 @@ function buildOtpEmail({ title, heading, body, otp, codeLabel, devNote }) {
       <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
         <!-- Top accent bar -->
-        <tr><td style="height:4px;background:linear-gradient(90deg,#7FA8AD,#5D8A8F,#3D5087);"></td></tr>
+        <tr><td style="height:4px;background:${theme.bar};"></td></tr>
 
         <tr><td style="padding:36px 40px 32px;">
 
           <!-- Logo -->
           <div style="margin-bottom:28px;">
             <table cellpadding="0" cellspacing="0"><tr>
-              <td style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7FA8AD,#3D5087);text-align:center;vertical-align:middle;">
+              <td style="width:32px;height:32px;border-radius:8px;background:${theme.logo};text-align:center;vertical-align:middle;">
                 <span style="color:#fff;font-weight:700;font-size:12px;line-height:32px;">IC</span>
               </td>
               <td style="padding-left:10px;vertical-align:middle;">
@@ -75,23 +79,25 @@ function buildOtpEmail({ title, heading, body, otp, codeLabel, devNote }) {
           <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">${body}</p>
 
           <!-- OTP box -->
-          <div style="text-align:center;background:linear-gradient(135deg,#f0f9fa,#e8f4f5);border:1px solid #c5dfe2;border-radius:12px;padding:28px 20px;margin-bottom:28px;">
-            <p style="margin:0 0 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:#5D8A8F;">${codeLabel}</p>
-            <p style="margin:0;font-size:38px;font-weight:800;letter-spacing:10px;color:#1e3a5f;font-family:'Courier New',monospace;">${otp}</p>
+          <div style="text-align:center;background:${theme.tint};border:1px solid ${theme.tintBorder};border-radius:12px;padding:28px 20px;margin-bottom:28px;">
+            <p style="margin:0 0 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:${theme.accent};">${codeLabel}</p>
+            <p style="margin:0;font-size:38px;font-weight:800;letter-spacing:10px;color:${theme.accent};font-family:'Courier New',monospace;">${otp}</p>
             <p style="margin:10px 0 0;font-size:12px;color:#9ca3af;">Expires in 10 minutes</p>
           </div>
 
-          <!-- Warning -->
+          ${warning ? `<!-- Warning -->
           <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
             <tr>
-              <td width="4" style="background:linear-gradient(180deg,#7FA8AD,#3D5087);border-radius:4px;">&nbsp;</td>
+              <td width="4" style="background:${theme.bar};border-radius:4px;">&nbsp;</td>
               <td style="padding:10px 14px;">
                 <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
                   Never share this code with anyone. Influence Connect will <strong>never</strong> ask for your OTP.
                 </p>
               </td>
             </tr>
-          </table>
+          </table>` : ''}
+
+          ${footerNote ? `<p style="margin:0 0 24px;font-size:13px;color:#9ca3af;line-height:1.6;">${footerNote}</p>` : ''}
 
           <hr style="border:none;border-top:1px solid #f3f4f6;margin:0 0 20px;">
           <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">
@@ -216,6 +222,7 @@ exports.register = async (req, res) => {
         ? `[DEV] OTP for ${email} — Influence Connect`
         : 'Verify your Influence Connect account',
       html: buildOtpEmail({
+        role,
         heading: 'Verify your email address',
         body: `Welcome to Influence Connect! Use the code below to confirm your email address and activate your account.`,
         otp: emailOTP,
@@ -238,6 +245,7 @@ exports.register = async (req, res) => {
         ? `[DEV] Mobile OTP for +91${mobile} — Influence Connect`
         : 'Verify your mobile number — Influence Connect',
       html: buildOtpEmail({
+        role,
         heading: 'Verify your mobile number',
         body: `Use the code below to verify the mobile number <strong>+91${mobile}</strong> on your Influence Connect account.`,
         otp: mobileOTP,
@@ -412,6 +420,7 @@ exports.resendOTP = async (req, res) => {
           ? `[DEV] New OTP for ${user.email} — Influence Connect`
           : 'Your new Influence Connect verification code',
         html: buildOtpEmail({
+          role: user.role,
           heading: 'New verification code',
           body: `You requested a new code to verify your email address. Use the code below — your previous code has been invalidated.`,
           otp: newOTP,
@@ -434,6 +443,7 @@ exports.resendOTP = async (req, res) => {
           ? `[DEV] New Mobile OTP for ${user.mobile} — Influence Connect`
           : 'Your new mobile verification code — Influence Connect',
         html: buildOtpEmail({
+          role: user.role,
           heading: 'New mobile verification code',
           body: `You requested a new code to verify the mobile number <strong>${user.mobile}</strong>. Your previous code has been invalidated.`,
           otp: newOTP,
@@ -653,47 +663,16 @@ exports.forgotPassword = async (req, res) => {
       subject: devBypass
         ? `[DEV] Password Reset for ${email} — Influence Connect`
         : 'Reset your Influence Connect password',
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="utf-8"></head>
-        <body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
-            <tr><td align="center">
-              <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-                <tr><td style="height:4px;background:linear-gradient(90deg,#7FA8AD,#5D8A8F,#3D5087)"></td></tr>
-                <tr><td style="padding:36px 40px 28px;">
-                  <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:28px;">
-                    <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7FA8AD,#3D5087);display:inline-flex;align-items:center;justify-content:center;">
-                      <span style="color:#fff;font-weight:700;font-size:12px;">IC</span>
-                    </div>
-                    <span style="font-weight:600;font-size:14px;color:#374151;">Influence Connect</span>
-                  </div>
-                  ${devBypass ? `<p style="color:#888;font-size:11px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;margin-bottom:20px;">DEV BYPASS — original recipient: ${email}</p>` : ''}
-                  <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">Reset your password</h1>
-                  <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
-                    We received a request to reset the password for your Influence Connect account.
-                    Use the code below — it expires in <strong>10 minutes</strong>.
-                  </p>
-                  <div style="text-align:center;background:linear-gradient(135deg,#f0f9fa,#e8f4f5);border:1px solid #c5dfe2;border-radius:12px;padding:28px;margin-bottom:28px;">
-                    <p style="margin:0 0 8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:#5D8A8F;">Your reset code</p>
-                    <p style="margin:0;font-size:38px;font-weight:800;letter-spacing:10px;color:#1e3a5f;font-family:'Courier New',monospace;">${otp}</p>
-                  </div>
-                  <p style="margin:0 0 24px;font-size:13px;color:#9ca3af;line-height:1.6;">
-                    If you did not request a password reset, you can safely ignore this email.
-                    Your password will remain unchanged.
-                  </p>
-                  <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0;">
-                  <p style="margin:0;font-size:12px;color:#d1d5db;text-align:center;">
-                    © ${new Date().getFullYear()} Influence Connect · India
-                  </p>
-                </td></tr>
-              </table>
-            </td></tr>
-          </table>
-        </body>
-        </html>
-      `
+      html: buildOtpEmail({
+        role: user.role,
+        heading: 'Reset your password',
+        body: 'We received a request to reset the password for your Influence Connect account. Use the code below — it expires in <strong>10 minutes</strong>.',
+        otp,
+        codeLabel: 'Your reset code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: ${email}` : null,
+        warning: false,
+        footerNote: 'If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.',
+      })
     });
 
     if (emailError) {

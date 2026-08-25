@@ -31,11 +31,19 @@ const THEMES = {
     bar:    'linear-gradient(90deg,#3FA34D,#228B22)',
     logo:   'linear-gradient(135deg,#3FA34D,#228B22)',
     button: 'linear-gradient(135deg,#228B22,#1B6E1B)',
+    // Used by the OTP/reset-code box (auth.controller.js) — a light tint of
+    // the same green, plus a solid accent for the label/code text.
+    accent: '#1B6E1B',
+    tint:   'linear-gradient(135deg,#eef9ee,#e2f5e2)',
+    tintBorder: '#bfe6bf',
   },
   influencer: {
     bar:    'linear-gradient(90deg,#F0417B,#E0115F)',
     logo:   'linear-gradient(135deg,#F0417B,#E0115F)',
     button: 'linear-gradient(135deg,#E0115F,#B00D4D)',
+    accent: '#B00D4D',
+    tint:   'linear-gradient(135deg,#fdeef4,#fbe0ea)',
+    tintBorder: '#f3b9d0',
   },
 };
 const BRAND = THEMES.brand;
@@ -107,6 +115,12 @@ function layout({ heading, bodyHtml, theme = CREATOR }) {
 }
 
 module.exports = {
+  // Exposed so other transactional senders (e.g. the OTP/password-reset
+  // emails in auth.controller.js, which don't go through this builder) can
+  // stay on the exact same role palette instead of drifting out of sync.
+  THEMES,
+  themeFor,
+
   // 2 — Welcome (account activated) — themed by the recipient's role
   welcome({ name, role }) {
     const isBrand = role === 'brand';
