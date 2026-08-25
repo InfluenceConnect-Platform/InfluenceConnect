@@ -42,6 +42,32 @@ async function registerFailedOtpAttempt(otpRecord) {
   return otpRecord.used;
 }
 
+// True when `user` is a signup that was started but never finished — the
+// verification email/SMS went out, but nobody ever entered a correct code
+// (app closed, code expired, connection dropped). Its email/mobile are still
+// unproven, so the account is just a "reservation" rather than something
+// someone actually owns yet, and register() below is free to clear it out
+// and let a fresh attempt through instead of permanently blocking that
+// address. `status` stays 'pending' until OTP verification finishes it off —
+// see tryActivateUser — so it alone is enough to detect this for both roles.
+// Google signups are excluded: they don't go through this endpoint at all, so
+// a 'pending' Google account here means a *different* email/password signup
+// is colliding with an already-Google-registered address, which should still
+// be blocked (they need to use "Continue with Google" instead).
+function isReclaimableSignup(user) {
+  return user.status === 'pending' && user.signupMethod !== 'google';
+}
+
+// Deletes an abandoned signup and everything created alongside it (its unused
+// OTPs, and its BrandProfile stub if it was a brand) so a retry with the same
+// email/mobile starts completely clean rather than colliding with orphaned
+// data.
+async function purgeAbandonedSignup(userId) {
+  await OTP.deleteMany({ userId });
+  await BrandProfile.deleteOne({ userId });
+  await User.deleteOne({ _id: userId });
+}
+
 // Professional email OTP template — themed by role (brand green / creator
 // ruby) to match the rest of the transactional emails in services/email, so
 // it never drifts back to its own one-off palette.
@@ -168,22 +194,41 @@ exports.register = async (req, res) => {
       }
     }
 
+    // The email schema path lowercases on save, but a plain findOne() filter
+    // doesn't get that same cast — without normalizing here, "Test@x.com"
+    // then "test@x.com" would both sail past this check and collide on the
+    // DB's unique index instead, surfacing as a raw 500.
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Check if email already exists
-    const emailExists = await User.findOne({ email });
-    if (emailExists) {
+    const emailExists = await User.findOne({ email: normalizedEmail });
+    if (emailExists && !isReclaimableSignup(emailExists)) {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
     // Check if mobile already exists
     const mobileExists = await User.findOne({ mobile });
-    if (mobileExists) {
+    if (mobileExists && !isReclaimableSignup(mobileExists)) {
       return res.status(400).json({ error: 'Mobile number already registered' });
+    }
+
+    // Either or both belong to a signup that was started but never
+    // OTP-verified (app closed, code expired, network died mid-flow — see
+    // isReclaimableSignup) — clear it out so this attempt isn't blocked by a
+    // "reservation" nobody ever proved they own. If the two lookups above
+    // found the same abandoned account (its own email + mobile both match),
+    // this still only deletes it once.
+    const staleIds = new Set(
+      [emailExists, mobileExists].filter(Boolean).map((u) => u._id.toString())
+    );
+    for (const id of staleIds) {
+      await purgeAbandonedSignup(id);
     }
 
     // Create user (password gets hashed automatically via pre-save hook)
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       mobile,
       password,
       role
