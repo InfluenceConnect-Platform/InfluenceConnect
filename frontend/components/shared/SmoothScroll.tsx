@@ -36,9 +36,10 @@ interface SmoothScrollProps {
   catchUp?: number;
   /**
    * Distance travelled per pixel of finger movement while touching, as a
-   * fraction of a native 1:1 drag. Lower = slower. Defaults to `step` so
-   * touch and wheel feel equally damped out of the box; expose separately
-   * only if mobile ever needs its own tuning.
+   * fraction of a native 1:1 drag. Lower = slower. Defaults slightly above
+   * `step` (see TOUCH_STEP_DEFAULT) — a straight 1:1 reuse of the wheel value
+   * read as noticeably slower on a phone than the same value did on a wheel,
+   * since a touch drag tracks the finger directly rather than in notches.
    */
   touchStep?: number;
 }
@@ -68,8 +69,14 @@ const DIRECTION_LOCK_PX = 6;
 const FRICTION = 0.92;
 const MIN_VELOCITY = 0.02; // px/ms
 
+// Bumped a notch above the default wheel `step` (0.6) — first-round feedback
+// was that reusing `step` 1:1 made touch feel too slow, since a finger drag
+// tracking at a fraction of itself reads as more sluggish than the same
+// fraction does on a wheel's already-chunky per-notch jumps.
+const TOUCH_STEP_DEFAULT = 0.75;
+
 export default function SmoothScroll({ step = 0.6, catchUp = 0.15, touchStep }: SmoothScrollProps) {
-  const effectiveTouchStep = touchStep ?? step;
+  const effectiveTouchStep = touchStep ?? TOUCH_STEP_DEFAULT;
 
   // Re-arming on navigation tears down any in-flight glide, so it can't fight
   // the scroll-to-top Next performs during a client-side transition.
