@@ -26,9 +26,22 @@ export default function VerifyEmailPage() {
 
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('pendingUserId') : null;
-  const pendingEmail = typeof window !== 'undefined' ? localStorage.getItem('pendingEmail') : null;
-  const isBrand = (typeof window !== 'undefined' ? localStorage.getItem('pendingRole') : null) === 'brand';
+  // Snapshotted once at mount, NOT re-read on every render. verify-mobile
+  // (the next step) clears these same keys once the whole signup finishes —
+  // if this page read them live instead, that later removal would flip
+  // `userId` to null the moment ANY state update here caused a re-render
+  // (e.g. setLoading(false) in a finally block), and the guard effect below
+  // would then fire router.replace('/auth/signup') and clobber whatever
+  // navigation was already in flight.
+  const [userId] = useState<string | null>(
+    () => (typeof window !== 'undefined' ? localStorage.getItem('pendingUserId') : null)
+  );
+  const [pendingEmail] = useState<string | null>(
+    () => (typeof window !== 'undefined' ? localStorage.getItem('pendingEmail') : null)
+  );
+  const [isBrand] = useState<boolean>(
+    () => (typeof window !== 'undefined' ? localStorage.getItem('pendingRole') : null) === 'brand'
+  );
 
   // No pending signup to verify (e.g. a hard reload after already finishing,
   // or a direct hit with no signup in flight) — nothing useful to show here.

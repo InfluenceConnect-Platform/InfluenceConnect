@@ -33,12 +33,29 @@ export default function VerifyMobilePage() {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const sentRef = useRef(false);
 
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('pendingUserId') : null;
-  const pendingMobile = typeof window !== 'undefined' ? localStorage.getItem('pendingMobile') : null;
-  const isBrand = (typeof window !== 'undefined' ? localStorage.getItem('pendingRole') : null) === 'brand';
+  // Snapshotted once at mount, NOT re-read on every render. finishSignup()
+  // below clears these same keys the instant verification succeeds — if this
+  // page kept reading them live, that removal would flip `userId` to null
+  // the moment ANY state update caused a re-render (setLoading(false) in a
+  // finally block, setSkipping(true), …), and the "no pending signup" guard
+  // effect would then fire router.replace('/auth/signup') in a race against
+  // the router.push('/brand|influencer/dashboard') already in flight —
+  // exactly the bug where a successful verification bounced back to signup
+  // (or, depending on which navigation Next.js lost, landed on a 404).
+  const [userId] = useState<string | null>(
+    () => (typeof window !== 'undefined' ? localStorage.getItem('pendingUserId') : null)
+  );
+  const [pendingMobile] = useState<string | null>(
+    () => (typeof window !== 'undefined' ? localStorage.getItem('pendingMobile') : null)
+  );
+  const [isBrand] = useState<boolean>(
+    () => (typeof window !== 'undefined' ? localStorage.getItem('pendingRole') : null) === 'brand'
+  );
   // Brands are already active by the time they land here (email + GSTIN was
   // enough) — a token from that step means skipping is safe.
-  const alreadyActive = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
+  const [alreadyActive] = useState<boolean>(
+    () => (typeof window !== 'undefined' ? !!localStorage.getItem('token') : false)
+  );
 
   const TH = isBrand
     ? {
