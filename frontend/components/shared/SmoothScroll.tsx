@@ -72,8 +72,9 @@ const MIN_VELOCITY = 0.02; // px/ms
 // Bumped a notch above the default wheel `step` (0.6) — first-round feedback
 // was that reusing `step` 1:1 made touch feel too slow, since a finger drag
 // tracking at a fraction of itself reads as more sluggish than the same
-// fraction does on a wheel's already-chunky per-notch jumps.
-const TOUCH_STEP_DEFAULT = 0.75;
+// fraction does on a wheel's already-chunky per-notch jumps. Nudged up again
+// (0.75 → 0.85) on a second round of "still a bit slow" feedback.
+const TOUCH_STEP_DEFAULT = 0.85;
 
 export default function SmoothScroll({ step = 0.6, catchUp = 0.15, touchStep }: SmoothScrollProps) {
   const effectiveTouchStep = touchStep ?? TOUCH_STEP_DEFAULT;
