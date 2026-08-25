@@ -1017,6 +1017,7 @@ exports.sendMobileOtp = async (req, res) => {
         ? `[DEV] Mobile OTP for ${cleanMobile} — Influence Connect`
         : 'Verify your mobile number — Influence Connect',
       html: buildOtpEmail({
+        role: user.role,
         heading: 'Verify your mobile number',
         body: `Use the code below to verify the mobile number <strong>${cleanMobile}</strong> linked to your Influence Connect account.`,
         otp: mobileOTP,
@@ -1196,6 +1197,7 @@ exports.requestEmailChange = async (req, res) => {
       to: devBypass || newEmail,
       subject: devBypass ? `[DEV] Email change OTP for ${newEmail} — Influence Connect` : 'Confirm your new email — Influence Connect',
       html: buildOtpEmail({
+        role: user.role,
         heading: 'Confirm your new email address',
         body: `You requested to change your Influence Connect email to <strong>${newEmail}</strong>. Use the code below to confirm.`,
         otp: code,
@@ -1286,6 +1288,7 @@ exports.requestMobileChange = async (req, res) => {
         ? `[DEV] Mobile change OTP for ${newMobile} — Influence Connect`
         : 'Confirm your new phone number — Influence Connect',
       html: buildOtpEmail({
+        role: user.role,
         heading: 'Confirm your new phone number',
         body: `You requested to change your phone number to <strong>${newMobile}</strong>. Use the code below to confirm.`,
         otp: code,
