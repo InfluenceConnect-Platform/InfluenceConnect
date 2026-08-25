@@ -9,7 +9,7 @@ const otpSchema = new mongoose.Schema({
 
   type: {
     type: String,
-    enum: ['email', 'mobile', 'password_reset', 'email_change', 'mobile_change'],
+    enum: ['email', 'mobile', 'password_reset', 'email_change', 'mobile_change', 'mobile_correction'],
     required: true
   },
 

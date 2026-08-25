@@ -291,14 +291,21 @@ exports.register = async (req, res) => {
   }
 };
 
-// Activates a fully-verified account and fires the associated notifications.
-// Mobile verification is mandatory for influencers but optional for brands
-// (the client's call — a brand only has to prove its email + GSTIN; mobile
-// can be verified later from account settings), so the two roles reach
-// "activatable" via different conditions. Called from verifyOTP after either
-// leg is confirmed; a no-op (activated: false) if the account isn't eligible
-// yet, or is already active — so it's safe to call again e.g. when a brand
-// verifies mobile after already being activated on email alone.
+// Activates a fully-verified account. Mobile verification is mandatory for
+// influencers but optional for brands (the client's call — a brand only has
+// to prove its email + GSTIN; mobile can be verified later from account
+// settings), so the two roles reach "activatable" via different conditions.
+// Called from verifyOTP after either leg is confirmed; a no-op
+// (activated: false) if the account isn't eligible yet, or is already active
+// — so it's safe to call again e.g. when a brand verifies mobile after
+// already being activated on email alone.
+//
+// Deliberately does NOT send the welcome/GSTIN emails — for an influencer
+// this moment and "finished signing up" are the same thing (mobile is their
+// last, mandatory step), but for a brand activation can happen a full page
+// before that (email alone), with mobile still pending a skip-or-verify
+// decision. See sendActivationNotifications, called separately once the flow
+// actually finishes for the account's role.
 async function tryActivateUser(user) {
   if (user.status === 'active') return { activated: false };
   if (!user.emailVerified) return { activated: false };
@@ -311,9 +318,8 @@ async function tryActivateUser(user) {
   // point (register / send-mobile-otp create the BrandProfile up front), so
   // this only blocks accounts that skipped the GST step via direct API calls
   // (e.g. hitting resend-otp + verify-otp without ever providing a GSTIN).
-  let brandProfile = null;
   if (user.role === 'brand') {
-    brandProfile = await BrandProfile.findOne({ userId: user._id });
+    const brandProfile = await BrandProfile.findOne({ userId: user._id });
     if (!brandProfile || !brandProfile.gstin) {
       return { activated: false, error: 'A GST number is required to activate a brand account. Please complete your brand details.' };
     }
@@ -321,28 +327,39 @@ async function tryActivateUser(user) {
 
   await User.findByIdAndUpdate(user._id, { status: 'active' });
 
-  // Account activated → welcome email (#2)
-  notify.welcome(user.email, { name: user.name, role: user.role });
+  return { activated: true, token: generateToken(user._id) };
+}
 
-  // Brands: acknowledge the GSTIN is queued for review. Sent here — only
-  // once the account is fully created and active — rather than at submission
-  // time, so an abandoned signup never receives it.
-  if (user.role === 'brand' && brandProfile) {
-    notify.gstinSubmitted(user.email, {
-      companyName: brandProfile.companyName || user.name,
-      gstin: brandProfile.gstin,
-    });
-    getAdminEmails().then((adminEmails) => {
-      if (!adminEmails.length) return;
-      notify.gstinSubmittedAdmin(adminEmails, {
+// Fires the welcome email and (for brands) the GSTIN-submitted acknowledgement
+// + admin notice — once, no matter how many times this is called. Guarded by
+// an atomic claim on `activationNotified` rather than a plain read-then-write,
+// so a retry or a double-click on "Skip" can't send the welcome email twice.
+async function sendActivationNotifications(user) {
+  const claimed = await User.findOneAndUpdate(
+    { _id: user._id, activationNotified: { $ne: true } },
+    { activationNotified: true }
+  );
+  if (!claimed) return; // already sent (or lost the race to another request)
+
+  notify.welcome(user.email, { name: user.name, role: user.role, mobileVerified: user.mobileVerified });
+
+  if (user.role === 'brand') {
+    const brandProfile = await BrandProfile.findOne({ userId: user._id });
+    if (brandProfile) {
+      notify.gstinSubmitted(user.email, {
         companyName: brandProfile.companyName || user.name,
         gstin: brandProfile.gstin,
-        brandEmail: user.email,
       });
-    }).catch((err) => console.error('[EMAIL:gstinSubmittedAdmin] admin lookup failed', err.message));
+      getAdminEmails().then((adminEmails) => {
+        if (!adminEmails.length) return;
+        notify.gstinSubmittedAdmin(adminEmails, {
+          companyName: brandProfile.companyName || user.name,
+          gstin: brandProfile.gstin,
+          brandEmail: user.email,
+        });
+      }).catch((err) => console.error('[EMAIL:gstinSubmittedAdmin] admin lookup failed', err.message));
+    }
   }
-
-  return { activated: true, token: generateToken(user._id) };
 }
 
 // ─────────────────────────────────────────
@@ -399,6 +416,16 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ error: activationError });
     }
 
+    // For everyone except a brand activating on email alone, this IS the
+    // signup flow's finish line (mobile was the last, mandatory step) — send
+    // the welcome/GSTIN emails right here. A brand that just activated still
+    // has the mobile skip-or-verify screen ahead of it; its notifications
+    // wait for POST /api/auth/finish-signup, called once it actually reaches
+    // the dashboard either way (see verify-mobile/page.tsx).
+    if (activated && !(user.role === 'brand' && type === 'email')) {
+      await sendActivationNotifications(user);
+    }
+
     if (activated) {
       return res.json({
         message: 'Account fully verified. Welcome to Influence Connect.',
@@ -427,6 +454,94 @@ exports.verifyOTP = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+// FINISH SIGNUP  (brand's mobile step, after skip or verify)
+// ─────────────────────────────────────────
+// A brand activates as soon as its email is verified (see tryActivateUser),
+// but mobile is still optional after that — so the welcome/GSTIN emails are
+// deliberately held until the brand actually leaves the mobile step, whether
+// by verifying it or clicking "Skip for now" (verify-mobile/page.tsx calls
+// this from both paths). Authenticated rather than userId-in-body: by this
+// point the brand already holds the token issued at activation.
+exports.finishSignup = async (req, res) => {
+  try {
+    await sendActivationNotifications(req.user);
+    res.json({ message: 'Signup complete.' });
+  } catch (error) {
+    console.error('Finish signup error:', error);
+    // The account is already active regardless — never block the redirect to
+    // the dashboard over a notification failure.
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// Generates a fresh OTP for `user`/`type`, invalidating any previous unused
+// one, and emails it. Shared by a plain resend and by updatePendingContact
+// (edit-then-resend, when the email/mobile itself was wrong) so the two
+// don't drift out of sync. Wording adapts for a true first send (mobile's
+// code is no longer pre-sent at registration — see register()) vs a
+// resend/correction.
+async function issueOtp(user, type) {
+  const isFirstSend = !(await OTP.exists({ userId: user._id, type }));
+
+  // Invalidate previous unused OTPs of this type
+  await OTP.deleteMany({ userId: user._id, type, used: false });
+
+  const newOTP = generateOTP();
+  await OTP.create({ userId: user._id, type, otp: newOTP });
+
+  const devBypass = process.env.DEV_OTP_EMAIL;
+
+  if (type === 'email') {
+    const recipient = devBypass || user.email;
+    const { error: emailError } = await resend.emails.send({
+      from: FROM,
+      to: recipient,
+      subject: devBypass
+        ? `[DEV] New OTP for ${user.email} — Influence Connect`
+        : 'Your new Influence Connect verification code',
+      html: buildOtpEmail({
+        role: user.role,
+        heading: 'New verification code',
+        body: `You requested a new code to verify your email address. Use the code below — your previous code has been invalidated.`,
+        otp: newOTP,
+        codeLabel: 'Email verification code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: ${user.email}` : null
+      })
+    });
+    if (emailError) {
+      console.error('Resend error:', emailError);
+      return { ok: false, error: 'Failed to send email. Please try again.' };
+    }
+  }
+
+  if (type === 'mobile') {
+    const recipient = devBypass || user.email;
+    await resend.emails.send({
+      from: FROM,
+      to: recipient,
+      subject: devBypass
+        ? `[DEV] Mobile OTP for ${user.mobile} — Influence Connect`
+        : isFirstSend
+          ? 'Verify your mobile number — Influence Connect'
+          : 'Your new mobile verification code — Influence Connect',
+      html: buildOtpEmail({
+        role: user.role,
+        heading: isFirstSend ? 'Verify your mobile number' : 'New mobile verification code',
+        body: isFirstSend
+          ? `Use the code below to verify the mobile number <strong>${user.mobile}</strong> on your Influence Connect account.`
+          : `You requested a new code to verify the mobile number <strong>${user.mobile}</strong>. Your previous code has been invalidated.`,
+        otp: newOTP,
+        codeLabel: 'Mobile verification code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: ${user.mobile}` : null
+      })
+    });
+    console.log(`[OTP] Mobile OTP for ${user.mobile}: ${newOTP}`);
+  }
+
+  return { ok: true };
+}
+
+// ─────────────────────────────────────────
 // RESEND OTP
 // ─────────────────────────────────────────
 exports.resendOTP = async (req, res) => {
@@ -446,72 +561,88 @@ exports.resendOTP = async (req, res) => {
       return res.status(400).json({ error: 'Mobile is already verified.' });
     }
 
-    // Mobile verification is its own step now, triggered from the
-    // verify-mobile page rather than pre-sent at registration — so the very
-    // first mobile code for an account arrives through this endpoint too.
-    // Detect that case so the email reads "Verify your mobile" instead of
-    // "New code", which would be confusing on a first send.
-    const isFirstSend = !(await OTP.exists({ userId, type }));
-
-    // Invalidate previous unused OTPs of this type
-    await OTP.deleteMany({ userId, type, used: false });
-
-    const newOTP = generateOTP();
-    await OTP.create({ userId, type, otp: newOTP });
-
-    const devBypass = process.env.DEV_OTP_EMAIL;
-
-    if (type === 'email') {
-      const recipient = devBypass || user.email;
-      const { error: emailError } = await resend.emails.send({
-        from: FROM,
-        to: recipient,
-        subject: devBypass
-          ? `[DEV] New OTP for ${user.email} — Influence Connect`
-          : 'Your new Influence Connect verification code',
-        html: buildOtpEmail({
-          role: user.role,
-          heading: 'New verification code',
-          body: `You requested a new code to verify your email address. Use the code below — your previous code has been invalidated.`,
-          otp: newOTP,
-          codeLabel: 'Email verification code',
-          devNote: devBypass ? `DEV BYPASS — original recipient: ${user.email}` : null
-        })
-      });
-      if (emailError) {
-        console.error('Resend error:', emailError);
-        return res.status(500).json({ error: 'Failed to send email. Please try again.' });
-      }
-    }
-
-    if (type === 'mobile') {
-      const recipient = devBypass || user.email;
-      await resend.emails.send({
-        from: FROM,
-        to: recipient,
-        subject: devBypass
-          ? `[DEV] Mobile OTP for ${user.mobile} — Influence Connect`
-          : isFirstSend
-            ? 'Verify your mobile number — Influence Connect'
-            : 'Your new mobile verification code — Influence Connect',
-        html: buildOtpEmail({
-          role: user.role,
-          heading: isFirstSend ? 'Verify your mobile number' : 'New mobile verification code',
-          body: isFirstSend
-            ? `Use the code below to verify the mobile number <strong>${user.mobile}</strong> on your Influence Connect account.`
-            : `You requested a new code to verify the mobile number <strong>${user.mobile}</strong>. Your previous code has been invalidated.`,
-          otp: newOTP,
-          codeLabel: 'Mobile verification code',
-          devNote: devBypass ? `DEV BYPASS — original recipient: ${user.mobile}` : null
-        })
-      });
-      console.log(`[OTP] Mobile OTP for ${user.mobile}: ${newOTP}`);
-    }
+    const result = await issueOtp(user, type);
+    if (!result.ok) return res.status(500).json({ error: result.error });
 
     res.json({ message: `New ${type} OTP sent successfully.` });
 
   } catch (error) {
     console.error('Resend OTP error:', error);
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// UPDATE PENDING CONTACT  (fix a typo'd email/mobile mid-signup)
+// ─────────────────────────────────────────
+// "Wrong email/mobile?" on verify-email / verify-mobile used to send the user
+// all the way back to the signup form. This lets them correct it in place —
+// still keyed by userId rather than authenticated, same as verify-otp/
+// resend-otp, since at the email step there's no token yet. Mirrors
+// register()'s uniqueness handling: a genuinely-taken address still blocks
+// the edit, but one that only belongs to someone else's abandoned,
+// never-verified signup is reclaimed rather than blocking forever.
+exports.updatePendingContact = async (req, res) => {
+  try {
+    const { userId, type, value } = req.body;
+    if (!userId || !type || !value) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+    if (type !== 'email' && type !== 'mobile') {
+      return res.status(400).json({ error: 'Invalid field.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (type === 'email') {
+      if (user.emailVerified) {
+        return res.status(400).json({ error: 'Email is already verified.' });
+      }
+      const normalized = String(value).trim().toLowerCase();
+      if (!EMAIL_REGEX.test(normalized)) {
+        return res.status(400).json({ error: 'Please enter a valid email address.' });
+      }
+      const existing = await User.findOne({ email: normalized, _id: { $ne: userId } });
+      if (existing) {
+        if (!isReclaimableSignup(existing)) {
+          return res.status(400).json({ error: 'Email already registered' });
+        }
+        await purgeAbandonedSignup(existing._id);
+      }
+      user.email = normalized;
+    } else {
+      if (user.mobileVerified) {
+        return res.status(400).json({ error: 'Mobile is already verified.' });
+      }
+      const digits = String(value).replace(/\D/g, '').slice(-10);
+      const cleanMobile = `+91${digits}`;
+      if (!MOBILE_REGEX.test(cleanMobile)) {
+        return res.status(400).json({ error: 'Please enter a valid 10-digit mobile number.' });
+      }
+      const existing = await User.findOne({ mobile: cleanMobile, _id: { $ne: userId } });
+      if (existing) {
+        if (!isReclaimableSignup(existing)) {
+          return res.status(400).json({ error: 'Mobile number already registered' });
+        }
+        await purgeAbandonedSignup(existing._id);
+      }
+      user.mobile = cleanMobile;
+    }
+
+    await user.save();
+
+    const result = await issueOtp(user, type);
+    if (!result.ok) return res.status(500).json({ error: result.error });
+
+    res.json({
+      message: `${type === 'email' ? 'Email' : 'Mobile number'} updated. A new code has been sent.`,
+      email: user.email,
+      mobile: user.mobile,
+    });
+
+  } catch (error) {
+    console.error('Update pending contact error:', error);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 };
@@ -985,6 +1116,10 @@ exports.getAccountInfo = async (req, res) => {
       name: user.name,
       email: user.email,
       mobile: user.mobile,
+      // Lets the settings page offer a "Verify" action for a brand's mobile
+      // number when it was skipped at signup (see requestMobileChange, which
+      // now allows re-requesting the SAME number when it isn't verified yet).
+      mobileVerified: user.mobileVerified,
       role: user.role,
       plan: user.plan,
       tier: user.tier,
@@ -1119,7 +1254,14 @@ exports.requestMobileChange = async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
-    if (newMobile === user.mobile) return res.status(400).json({ error: 'This is already your current phone number.' });
+    // A brand can activate having skipped mobile verification at signup (see
+    // tryActivateUser), leaving `mobile` set but `mobileVerified: false`. This
+    // same request+verify pair doubles as that catch-up flow, so only block
+    // "changing" to the current number once it's actually verified — an
+    // unverified one re-requesting itself is the intended way to verify it.
+    if (newMobile === user.mobile && user.mobileVerified) {
+      return res.status(400).json({ error: 'This is already your current, verified phone number.' });
+    }
 
     const exists = await User.findOne({ mobile: newMobile, _id: { $ne: user._id } });
     if (exists) return res.status(409).json({ error: 'This phone number is already in use by another account.' });
@@ -1187,6 +1329,120 @@ exports.verifyMobileChange = async (req, res) => {
     res.json({ message: 'Phone number updated successfully.', mobile: user.mobile });
   } catch (error) {
     console.error('Verify mobile change error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// REQUEST MOBILE CORRECTION  (email fallback for an unreachable number)
+// ─────────────────────────────────────────
+// requestMobileChange above already lets anyone fix a wrong number without
+// needing anything from the OLD one — it only asks for proof of the NEW
+// number. This exists for the narrower case: the account owner doesn't have
+// a working number to hand *at all* right now (lost phone, no replacement
+// yet) but still wants to correct the record, using the one channel they can
+// always reach — their already-verified email. Only offered while mobile is
+// unverified: a verified number's owner has already proven phone possession
+// once and should keep going through the real SMS flow to change it.
+//
+// Deliberately does NOT mark the corrected number as verified — email proves
+// identity (who's asking), not phone possession, and conflating the two
+// would make "Verified" mean something weaker everywhere else it's read
+// (fraud signals, admin views, trust badges). See confirmMobileCorrection.
+exports.requestMobileCorrection = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (user.mobileVerified) {
+      return res.status(400).json({ error: 'Your mobile number is already verified. Use the standard change flow instead.' });
+    }
+
+    await OTP.updateMany({ userId: user._id, type: 'mobile_correction', used: false }, { used: true });
+
+    const code = generateOTP();
+    await OTP.create({ userId: user._id, type: 'mobile_correction', otp: code });
+
+    const devBypass = process.env.DEV_OTP_EMAIL;
+    const { error: emailError } = await resend.emails.send({
+      from: FROM,
+      to: devBypass || user.email,
+      subject: devBypass
+        ? `[DEV] Mobile correction code for ${user.email} — Influence Connect`
+        : "Confirm it's you — Influence Connect",
+      html: buildOtpEmail({
+        role: user.role,
+        heading: "Confirm it's you",
+        body: `You asked to correct the mobile number on your account by email, since the current one can't be reached. Use the code below to confirm it's really you.`,
+        otp: code,
+        codeLabel: 'Confirmation code',
+        devNote: devBypass ? `DEV BYPASS — original recipient: ${user.email}` : null,
+      }),
+    });
+    if (emailError) {
+      console.error('Resend error:', emailError);
+      return res.status(500).json({ error: 'Failed to send confirmation email. Please try again.' });
+    }
+
+    res.json({ message: `A confirmation code has been sent to ${user.email}.` });
+  } catch (error) {
+    console.error('Request mobile correction error:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// CONFIRM MOBILE CORRECTION  (applies the corrected number, still unverified)
+// ─────────────────────────────────────────
+exports.confirmMobileCorrection = async (req, res) => {
+  try {
+    const { otp, mobile } = req.body;
+    if (!otp || !mobile) {
+      return res.status(400).json({ error: 'Confirmation code and mobile number are required.' });
+    }
+
+    const otpRecord = await OTP.findOne({ userId: req.userId, type: 'mobile_correction', used: false });
+    if (!otpRecord) return res.status(400).json({ error: 'No pending request found. Please request a new code.' });
+    if (otpRecord.expiresAt < new Date()) return res.status(400).json({ error: 'Code has expired. Please request a new one.' });
+    if (otpRecord.otp !== otp) {
+      const locked = await registerFailedOtpAttempt(otpRecord);
+      return res.status(400).json({
+        error: locked
+          ? 'Too many incorrect attempts. Please request a new code.'
+          : 'Incorrect code. Please try again.'
+      });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    // Re-checked in case the account was verified through the normal SMS
+    // flow (a different tab, say) in the time between request and confirm.
+    if (user.mobileVerified) {
+      return res.status(400).json({ error: 'Your mobile number is already verified.' });
+    }
+
+    const digits = String(mobile).replace(/\D/g, '').slice(-10);
+    const newMobile = `+91${digits}`;
+    if (!MOBILE_REGEX.test(newMobile)) {
+      return res.status(400).json({ error: 'Please enter a valid 10-digit mobile number.' });
+    }
+
+    const exists = await User.findOne({ mobile: newMobile, _id: { $ne: user._id } });
+    if (exists) return res.status(409).json({ error: 'This phone number is already in use by another account.' });
+
+    await OTP.findByIdAndUpdate(otpRecord._id, { used: true });
+
+    user.mobile = newMobile;
+    user.mobileVerified = false; // corrected, but phone possession still unproven
+    await user.save();
+
+    res.json({
+      message: "Mobile number updated. It's still unverified — verify it via SMS whenever you can access it.",
+      mobile: user.mobile,
+      mobileVerified: false,
+    });
+  } catch (error) {
+    console.error('Confirm mobile correction error:', error);
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };

@@ -4,18 +4,22 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthLayout from '@/components/shared/AuthLayout';
 import Button from '@/components/shared/Button';
+import Input from '@/components/shared/Input';
 import api from '@/lib/api';
 import { useTheme } from '@/lib/useTheme';
 
 // Step 2 of the split signup verification flow — reached only after email is
-// verified. The code is sent for the first time right here (not pre-sent at
-// registration), via /resend-otp's "first send" branch.
+// verified.
 //
 // Mandatory for influencers (mirrors backend/controllers/auth.controller.js
-// tryActivateUser, which won't activate an influencer without it). Optional
-// for brands: a brand already activated on the previous step (email + GSTIN
-// is enough), so this page just offers to verify mobile now or skip to the
-// dashboard and do it later from account settings.
+// tryActivateUser, which won't activate an influencer without it): the code
+// is sent immediately, same as before.
+//
+// Optional for brands: a brand already activated on the previous step (email
+// + GSTIN is enough), so sending a code nobody asked for was pointless —
+// noise in their inbox for a step they might skip outright. Brands instead
+// land on a choice screen first; the code is only sent (via /resend-otp's
+// "first send" branch) once they explicitly choose to verify now.
 export default function VerifyMobilePage() {
   const router = useRouter();
   const { isDark } = useTheme();
@@ -28,7 +32,6 @@ export default function VerifyMobilePage() {
   const [resendTimer, setResendTimer] = useState(42);
   const [resending, setResending] = useState(false);
   const [expiryTimer, setExpiryTimer] = useState(600);
-  const [sending, setSending] = useState(true);
 
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const sentRef = useRef(false);
@@ -45,7 +48,9 @@ export default function VerifyMobilePage() {
   const [userId] = useState<string | null>(
     () => (typeof window !== 'undefined' ? localStorage.getItem('pendingUserId') : null)
   );
-  const [pendingMobile] = useState<string | null>(
+  // Has a setter (unlike userId/isBrand below) — editing the number in place
+  // needs to update what's displayed and re-persist it, not just read it once.
+  const [pendingMobile, setPendingMobile] = useState<string | null>(
     () => (typeof window !== 'undefined' ? localStorage.getItem('pendingMobile') : null)
   );
   const [isBrand] = useState<boolean>(
@@ -56,6 +61,17 @@ export default function VerifyMobilePage() {
   const [alreadyActive] = useState<boolean>(
     () => (typeof window !== 'undefined' ? !!localStorage.getItem('token') : false)
   );
+
+  // Brands start on a choice screen (nothing sent yet); influencers skip
+  // straight to the OTP screen, same as before, since verification isn't
+  // optional for them. 'edit' is reached from 'otp' via "Wrong mobile
+  // number?" — corrects the number in place instead of leaving the page.
+  const [mode, setMode] = useState<'choice' | 'otp' | 'edit'>(isBrand ? 'choice' : 'otp');
+  const [sending, setSending] = useState(!isBrand);
+
+  const [editValue, setEditValue] = useState('');
+  const [editError, setEditError] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const TH = isBrand
     ? {
@@ -88,37 +104,53 @@ export default function VerifyMobilePage() {
     if (!userId) router.replace('/auth/signup');
   }, [userId, router]);
 
-  // Trigger the mobile code — the first time it's sent for this account, now
-  // that the email step is done. Guarded against React StrictMode's double
-  // mount in dev, so it fires exactly once.
+  // Shared by the auto-send (influencer) and the explicit "Verify mobile
+  // now" click (brand) below — sends the code and starts the timers.
+  const sendMobileCode = async () => {
+    setSending(true);
+    setError('');
+    try {
+      await api.post('/api/auth/resend-otp', { userId, type: 'mobile' });
+      setResendTimer(42);
+      setExpiryTimer(600);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string } } };
+      setError(e.response?.data?.error || 'Failed to send the verification code.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Influencers: trigger the mobile code automatically — the first time it's
+  // sent for this account, now that the email step is done. Guarded against
+  // React StrictMode's double mount in dev, so it fires exactly once. Brands
+  // start on the choice screen instead (see handleStartVerify) — sending a
+  // code before they've said they want to verify would just be noise for a
+  // step they might skip outright.
   useEffect(() => {
-    if (!userId || sentRef.current) return;
+    if (!userId || isBrand || sentRef.current) return;
     sentRef.current = true;
-    (async () => {
-      try {
-        await api.post('/api/auth/resend-otp', { userId, type: 'mobile' });
-        setResendTimer(42);
-        setExpiryTimer(600);
-      } catch (err: unknown) {
-        const e = err as { response?: { data?: { error?: string } } };
-        setError(e.response?.data?.error || 'Failed to send the verification code.');
-      } finally {
-        setSending(false);
-      }
-    })();
-  }, [userId]);
+    sendMobileCode();
+  }, [userId, isBrand]);
+
+  const handleStartVerify = () => {
+    setMode('otp');
+    if (sentRef.current) return;
+    sentRef.current = true;
+    sendMobileCode();
+  };
 
   useEffect(() => {
-    if (sending || resendTimer <= 0) return;
+    if (mode !== 'otp' || sending || resendTimer <= 0) return;
     const interval = setInterval(() => setResendTimer(t => t - 1), 1000);
     return () => clearInterval(interval);
-  }, [sending, resendTimer]);
+  }, [mode, sending, resendTimer]);
 
   useEffect(() => {
-    if (sending || expiryTimer <= 0) return;
+    if (mode !== 'otp' || sending || expiryTimer <= 0) return;
     const interval = setInterval(() => setExpiryTimer(t => t - 1), 1000);
     return () => clearInterval(interval);
-  }, [sending, expiryTimer]);
+  }, [mode, sending, expiryTimer]);
 
   const handleInput = (index: number, value: string) => {
     const digit = value.replace(/[^0-9]/g, '').slice(0, 1);
@@ -151,6 +183,14 @@ export default function VerifyMobilePage() {
   };
 
   const finishSignup = (role: string | undefined) => {
+    // A brand activated back on the email step (mobile is optional), so its
+    // welcome/GSTIN-submitted emails were deliberately held back until now —
+    // this is the actual "reached the dashboard" moment, whether they just
+    // verified mobile or skipped it. Fire-and-forget: the account is already
+    // active either way, so a slow or failed notification should never hold
+    // up the redirect (the backend is idempotent if this ever fires twice).
+    if (role === 'brand') api.post('/api/auth/finish-signup').catch(() => {});
+
     localStorage.removeItem('pendingUserId');
     localStorage.removeItem('pendingEmail');
     localStorage.removeItem('pendingMobile');
@@ -177,6 +217,48 @@ export default function VerifyMobilePage() {
       setError(e.response?.data?.error || 'Failed to resend code.');
     } finally {
       setResending(false);
+    }
+  };
+
+  const startEdit = () => {
+    setEditValue(pendingMobile || '');
+    setEditError('');
+    setMode('edit');
+  };
+
+  const cancelEdit = () => {
+    setMode('otp');
+    setEditError('');
+  };
+
+  const handleSaveEdit = async () => {
+    const digits = editValue.replace(/\D/g, '');
+    if (!/^[6-9]\d{9}$/.test(digits)) {
+      setEditError('Enter a valid 10-digit mobile number.');
+      return;
+    }
+    setSavingEdit(true);
+    setEditError('');
+    try {
+      const response = await api.post('/api/auth/update-pending-contact', {
+        userId, type: 'mobile', value: digits,
+      });
+      // Backend stores it as "+91XXXXXXXXXX" — strip back to bare digits for
+      // the same display/localStorage shape pendingMobile already uses.
+      const newMobile: string = (response.data.mobile || `+91${digits}`).replace(/^\+91/, '');
+      setPendingMobile(newMobile);
+      try { localStorage.setItem('pendingMobile', newMobile); } catch {}
+      setOtp(['', '', '', '', '', '']);
+      setResendTimer(42);
+      setExpiryTimer(600);
+      setMode('otp');
+      setSuccess('Mobile number updated — a new code is on its way!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string } } };
+      setEditError(e.response?.data?.error || 'Failed to update mobile number.');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -274,10 +356,15 @@ export default function VerifyMobilePage() {
             </svg>
           </div>
           <h1 className={`text-2xl font-bold mb-2 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Verify your mobile
+            {mode === 'choice' ? 'Verify your mobile?' : mode === 'edit' ? 'Update your mobile number' : 'Verify your mobile'}
           </h1>
           <p className={`text-sm max-w-sm mx-auto leading-relaxed transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            {sending ? (
+            {mode === 'choice' ? (
+              // Nothing has been sent yet at this point — the choice comes first.
+              'Mobile verification is optional for brands. You can verify it now, or skip and do it later from account settings — no code is sent unless you choose to verify.'
+            ) : mode === 'edit' ? (
+              "Enter the correct number below and we'll send a fresh code to it."
+            ) : sending ? (
               'Sending a 6-digit code…'
             ) : (
               <>
@@ -287,58 +374,99 @@ export default function VerifyMobilePage() {
                 </span>.
               </>
             )}
-            {isBrand && ' Mobile verification is optional for brands — verify now, or skip and do it later from account settings.'}
           </p>
         </div>
 
-        {/* OTP boxes */}
-        <div className={`border-2 rounded-xl p-5 mb-5 transition-all duration-300 ${
-          isDark ? 'border-slate-700/60 bg-[#0E1B2E]' : 'border-gray-200 bg-white'
-        }`}>
-          <div className="flex gap-2 justify-center mb-3" onPaste={handlePaste}>
-            {otp.map((digit, i) => (
-              <input
-                key={i}
-                ref={el => { refs.current[i] = el; }}
-                type="text"
-                inputMode="numeric"
-                autoComplete={i === 0 ? 'one-time-code' : 'off'}
-                maxLength={1}
-                value={digit}
-                disabled={sending}
-                onChange={e => handleInput(i, e.target.value)}
-                onKeyDown={e => handleKeyDown(e, i)}
-                className={`flex-1 aspect-square max-w-[48px] text-center text-lg font-bold border-2 rounded-xl focus:outline-none transition-all duration-150 disabled:opacity-50 ${otpInputClass(digit)}`}
-              />
-            ))}
-          </div>
-
-          {!sending && (
-            <>
-              <p className={`text-xs text-center mb-2 transition-colors ${
-                expiryTimer === 0 ? 'text-red-400' :
-                expiryTimer < 60 ? 'text-amber-400' :
-                isDark ? 'text-slate-400' : 'text-gray-400'
-              }`}>
-                {expiryTimer === 0 ? 'Code expired — request a new one' : `Expires in ${formatExpiry(expiryTimer)}`}
-              </p>
-              <div className="flex items-center justify-center gap-1 text-xs">
-                <span className={`transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  {resendTimer > 0 ? `Resend in 0:${String(resendTimer).padStart(2, '0')}` : "Didn't get it?"}
-                </span>
-                {resendTimer <= 0 && (
-                  <button
-                    disabled={resending}
-                    onClick={handleResend}
-                    className={`${TH.link} font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer`}
-                  >
-                    {resending ? 'Sending…' : 'Resend code'}
-                  </button>
-                )}
+        {mode === 'edit' && (
+          /* Edit form — replaces the OTP boxes while correcting the number */
+          <div className={`border-2 rounded-xl p-5 mb-5 transition-all duration-300 ${
+            isDark ? 'border-slate-700/60 bg-[#0E1B2E]' : 'border-gray-200 bg-white'
+          }`}>
+            <Input
+              dark={isDark}
+              accent={isBrand ? '#228B22' : '#E0115F'}
+              name="tel"
+              autoComplete="tel-national"
+              label="Mobile number"
+              type="tel"
+              placeholder="98765 43210"
+              prefix="+91"
+              value={editValue}
+              onChange={v => setEditValue(v.replace(/\D/g, '').slice(0, 10))}
+              error={editError}
+            />
+            <div className="flex gap-2.5 mt-4">
+              <button
+                type="button"
+                onClick={cancelEdit}
+                disabled={savingEdit}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Cancel
+              </button>
+              <div className="flex-[1.4]">
+                <Button fullWidth loading={savingEdit} onClick={handleSaveEdit} colorScheme={isBrand ? 'brand' : 'influencer'}>
+                  Save & send code →
+                </Button>
               </div>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
+
+        {mode === 'otp' && (
+          <>
+            {/* OTP boxes */}
+            <div className={`border-2 rounded-xl p-5 mb-5 transition-all duration-300 ${
+              isDark ? 'border-slate-700/60 bg-[#0E1B2E]' : 'border-gray-200 bg-white'
+            }`}>
+              <div className="flex gap-2 justify-center mb-3" onPaste={handlePaste}>
+                {otp.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={el => { refs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                    maxLength={1}
+                    value={digit}
+                    disabled={sending}
+                    onChange={e => handleInput(i, e.target.value)}
+                    onKeyDown={e => handleKeyDown(e, i)}
+                    className={`flex-1 aspect-square max-w-[48px] text-center text-lg font-bold border-2 rounded-xl focus:outline-none transition-all duration-150 disabled:opacity-50 ${otpInputClass(digit)}`}
+                  />
+                ))}
+              </div>
+
+              {!sending && (
+                <>
+                  <p className={`text-xs text-center mb-2 transition-colors ${
+                    expiryTimer === 0 ? 'text-red-400' :
+                    expiryTimer < 60 ? 'text-amber-400' :
+                    isDark ? 'text-slate-400' : 'text-gray-400'
+                  }`}>
+                    {expiryTimer === 0 ? 'Code expired — request a new one' : `Expires in ${formatExpiry(expiryTimer)}`}
+                  </p>
+                  <div className="flex items-center justify-center gap-1 text-xs">
+                    <span className={`transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                      {resendTimer > 0 ? `Resend in 0:${String(resendTimer).padStart(2, '0')}` : "Didn't get it?"}
+                    </span>
+                    {resendTimer <= 0 && (
+                      <button
+                        disabled={resending}
+                        onClick={handleResend}
+                        className={`${TH.link} font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer`}
+                      >
+                        {resending ? 'Sending…' : 'Resend code'}
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        )}
 
         {success && (
           <div className={`mb-4 p-3.5 border rounded-xl text-sm flex items-center gap-2 ${
@@ -361,29 +489,55 @@ export default function VerifyMobilePage() {
           </div>
         )}
 
-        <Button fullWidth loading={loading} onClick={handleVerify} disabled={!filled || sending} colorScheme={isBrand ? 'brand' : 'influencer'}>
-          Verify mobile →
-        </Button>
-
-        {isBrand && (
-          <button
-            type="button"
-            onClick={handleSkip}
-            disabled={skipping || sending}
-            className={`w-full mt-3 text-sm font-semibold py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-              isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {skipping ? 'Skipping…' : 'Skip for now →'}
-          </button>
+        {mode === 'choice' && (
+          <>
+            <Button fullWidth onClick={handleStartVerify} colorScheme="brand">
+              Verify mobile now →
+            </Button>
+            <button
+              type="button"
+              onClick={handleSkip}
+              disabled={skipping}
+              className={`w-full mt-3 text-sm font-semibold py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {skipping ? 'Skipping…' : 'Skip for now →'}
+            </button>
+          </>
         )}
 
-        <p className={`text-xs text-center mt-4 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-          Wrong mobile number?{' '}
-          <a href="/auth/signup" className={`${TH.link} font-semibold transition-colors`}>
-            Go back and edit
-          </a>
-        </p>
+        {mode === 'otp' && (
+          <>
+            <Button fullWidth loading={loading} onClick={handleVerify} disabled={!filled || sending} colorScheme={isBrand ? 'brand' : 'influencer'}>
+              Verify mobile →
+            </Button>
+
+            {isBrand && (
+              <button
+                type="button"
+                onClick={handleSkip}
+                disabled={skipping || sending}
+                className={`w-full mt-3 text-sm font-semibold py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {skipping ? 'Skipping…' : 'Skip for now →'}
+              </button>
+            )}
+
+            <p className={`text-xs text-center mt-4 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+              Wrong mobile number?{' '}
+              <button
+                type="button"
+                onClick={startEdit}
+                className={`${TH.link} font-semibold transition-colors cursor-pointer`}
+              >
+                Edit it
+              </button>
+            </p>
+          </>
+        )}
 
       </div>
     </AuthLayout>

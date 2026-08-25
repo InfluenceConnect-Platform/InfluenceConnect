@@ -122,7 +122,14 @@ module.exports = {
   themeFor,
 
   // 2 — Welcome (account activated) — themed by the recipient's role
-  welcome({ name, role }) {
+  //
+  // `mobileVerified` distinguishes the two ways an account reaches this: a
+  // brand can activate on email + GSTIN alone and skip mobile entirely (see
+  // tryActivateUser in auth.controller.js), so the copy shouldn't claim a
+  // mobile was verified when it wasn't. Defaults true so every other caller
+  // (influencer, Google signup — both of which always verify both) is
+  // unaffected without having to pass it explicitly.
+  welcome({ name, role, mobileVerified = true }) {
     const isBrand = role === 'brand';
     const theme = themeFor(role);
     const url = `${APP_URL}/${isBrand ? 'brand' : 'influencer'}/dashboard`;
@@ -132,7 +139,11 @@ module.exports = {
         theme,
         heading: `Welcome aboard, ${esc(name || 'there')}!`,
         bodyHtml:
-          para('Your email and mobile are verified and your account is now active.') +
+          para(
+            mobileVerified
+              ? 'Your email and mobile are verified and your account is now active.'
+              : 'Your email is verified and your account is now active.'
+          ) +
           para(
             isBrand
               ? 'Next up: create your first campaign and start discovering creators who fit your brand.'

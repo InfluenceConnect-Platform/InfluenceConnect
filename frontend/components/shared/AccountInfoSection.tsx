@@ -9,6 +9,12 @@ interface AccountInfo {
   name: string;
   email: string;
   mobile: string;
+  // Undefined is treated as verified (safe default for any caller that
+  // hasn't started passing this yet). Explicitly false is what unlocks the
+  // in-place "Verify" action below — a brand that skipped mobile at signup
+  // (see backend tryActivateUser) lands here with a mobile on file that was
+  // never actually confirmed.
+  mobileVerified?: boolean;
   signupMethod: string;
   createdAt: string;
   plan: string;
@@ -58,6 +64,19 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
   const [mobileOtp, setMobileOtp] = useState('');
   const [mobileMsg, setMobileMsg] = useState<FieldMsg | null>(null);
 
+  // "Can't access this number? Verify via email instead" — a fallback for
+  // when the number on file was wrong from the start and can never receive
+  // an SMS. Separate state machine from the mobileState above: this one
+  // confirms identity via a code emailed to the (already-verified) account
+  // email, then applies a corrected number — left unverified, since email
+  // proves identity, not phone possession (see confirmMobileCorrection on
+  // the backend for why that distinction matters).
+  const [correctionState, setCorrectionState] = useState<'idle' | 'sending' | 'form' | 'confirming'>('idle');
+  const [correctionOtp, setCorrectionOtp] = useState('');
+  const [correctionMobile, setCorrectionMobile] = useState('');
+  const [correctionMsg, setCorrectionMsg] = useState<FieldMsg | null>(null);
+  const [correctionExpiryTimer, setCorrectionExpiryTimer] = useState(-1);
+
   const [emailExpiryTimer, setEmailExpiryTimer] = useState(-1);
   const [mobileExpiryTimer, setMobileExpiryTimer] = useState(-1);
 
@@ -72,6 +91,12 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
     const interval = setInterval(() => setMobileExpiryTimer(t => t - 1), 1000);
     return () => clearInterval(interval);
   }, [mobileExpiryTimer, mobileState]);
+
+  useEffect(() => {
+    if (correctionExpiryTimer <= 0 || (correctionState !== 'form' && correctionState !== 'confirming')) return;
+    const interval = setInterval(() => setCorrectionExpiryTimer(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [correctionExpiryTimer, correctionState]);
 
   const formatExpiry = (t: number) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 
@@ -155,8 +180,15 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
   }
 
   // ── Mobile ──
+  // A brand that skipped mobile at signup lands here with mobileVerified:
+  // false and the same number it typed at signup — this lets that exact
+  // request+verify round-trip double as "verify what's already on file"
+  // instead of requiring them to first change it to something else and back.
+  const mobileUnverified = account.mobileVerified === false;
+
   async function handleRequestMobileOtp() {
-    if (!mobile.trim() || mobile.trim() === account.mobile) return;
+    if (!mobile.trim()) return;
+    if (mobile.trim() === account.mobile && !mobileUnverified) return;
     setMobileState('sending');
     setMobileMsg(null);
     try {
@@ -178,13 +210,52 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
     setMobileMsg(null);
     try {
       const res = await api.post('/api/auth/account/mobile/verify', { otp: mobileOtp });
-      onUpdate({ mobile: res.data.mobile });
+      onUpdate({ mobile: res.data.mobile, mobileVerified: true });
       setMobileMsg({ type: 'success', text: res.data.message });
       setMobileState('done');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Verification failed.';
       setMobileMsg({ type: 'error', text: msg });
       setMobileState('otp');
+    }
+  }
+
+  // ── Mobile correction (email fallback) ──
+  async function handleRequestMobileCorrection() {
+    setCorrectionState('sending');
+    setCorrectionMsg(null);
+    try {
+      const res = await api.post('/api/auth/account/mobile/request-email-verification');
+      setCorrectionMsg({ type: 'success', text: res.data.message });
+      setCorrectionState('form');
+      setCorrectionOtp('');
+      setCorrectionMobile('');
+      setCorrectionExpiryTimer(600);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to send confirmation code.';
+      setCorrectionMsg({ type: 'error', text: msg });
+      setCorrectionState('idle');
+    }
+  }
+
+  async function handleConfirmMobileCorrection() {
+    if (correctionOtp.length < 6 || correctionMobile.replace(/\D/g, '').length < 10) return;
+    setCorrectionState('confirming');
+    setCorrectionMsg(null);
+    try {
+      const res = await api.post('/api/auth/account/mobile/confirm-via-email', {
+        otp: correctionOtp,
+        mobile: correctionMobile,
+      });
+      onUpdate({ mobile: res.data.mobile, mobileVerified: false });
+      setMobile(res.data.mobile);
+      setMobileState('idle');
+      setCorrectionMsg({ type: 'success', text: res.data.message });
+      setCorrectionState('idle');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Confirmation failed.';
+      setCorrectionMsg({ type: 'error', text: msg });
+      setCorrectionState('form');
     }
   }
 
@@ -302,7 +373,16 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
 
       {/* Mobile */}
       <div>
-        <label className={labelCls}>Phone Number</label>
+        <div className="flex items-center gap-2 mb-1.5">
+          <label className={`${labelCls} mb-0`}>Phone Number</label>
+          {mobileUnverified && mobileState === 'idle' && (
+            <span className={`text-[0.65rem] font-semibold px-1.5 py-0.5 rounded ${
+              isDark ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-50 text-amber-600'
+            }`}>
+              Not verified
+            </span>
+          )}
+        </div>
 
         {mobileState === 'otp' || mobileState === 'verifying' ? (
           <div className="space-y-2">
@@ -360,20 +440,102 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
             />
             <button
               onClick={handleRequestMobileOtp}
-              disabled={!isDirtyMobile || mobileState === 'sending' || mobileState === 'done'}
-              style={isDirtyMobile && mobileState === 'idle' ? { background: accentColor, borderColor: accentColor, color: '#fff' } : {}}
+              disabled={(!isDirtyMobile && !mobileUnverified) || mobileState === 'sending' || mobileState === 'done'}
+              style={(isDirtyMobile || mobileUnverified) && mobileState === 'idle' ? { background: accentColor, borderColor: accentColor, color: '#fff' } : {}}
               className={`${updateBtnCls} ${
-                isDirtyMobile && mobileState === 'idle'
+                (isDirtyMobile || mobileUnverified) && mobileState === 'idle'
                   ? 'text-white'
                   : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
               }`}
             >
               {mobileState === 'sending' ? <Spinner /> : null}
-              {mobileState === 'done' ? '✓ Updated' : 'Update'}
+              {mobileState === 'done' ? '✓ Updated' : !isDirtyMobile && mobileUnverified ? 'Verify' : 'Update'}
             </button>
           </div>
         )}
         {mobileMsg && msgBanner(mobileMsg)}
+
+        {/* Email fallback — only relevant while the number on file is
+            unverified, and hidden mid-way through the standard SMS flow so
+            the two paths don't visually compete. */}
+        {mobileUnverified && mobileState === 'idle' && correctionState === 'idle' && (
+          <button
+            type="button"
+            onClick={handleRequestMobileCorrection}
+            className={`text-xs mt-2 transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            Can&apos;t access this number? Verify via email instead
+          </button>
+        )}
+
+        {mobileUnverified && correctionState === 'sending' && (
+          <p className={`text-xs mt-2 flex items-center gap-1.5 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+            <Spinner /> Sending a confirmation code to your email…
+          </p>
+        )}
+
+        {(correctionState === 'form' || correctionState === 'confirming') && (
+          <div className={`mt-3 p-3.5 rounded-xl border space-y-2.5 ${isDark ? 'border-slate-700 bg-slate-800/40' : 'border-gray-200 bg-gray-50'}`}>
+            <div className={`text-xs px-3 py-2 rounded-lg ${isDark ? 'bg-slate-800/60 text-slate-400 border border-slate-700' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+              A confirmation code was sent to <strong>{account.email}</strong> to confirm it&apos;s really you — then enter the corrected number below. It&apos;ll be saved as unverified; verify it via SMS once you can access it.
+            </div>
+            <div>
+              <label className={`${labelCls} mb-1`}>Confirmation code</label>
+              <input
+                className={otpInputCls}
+                value={correctionOtp}
+                onChange={e => setCorrectionOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="— — — — — —"
+                maxLength={6}
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className={`${labelCls} mb-1`}>Corrected mobile number</label>
+              <input
+                className={inputCls}
+                value={correctionMobile}
+                onChange={e => setCorrectionMobile(e.target.value)}
+                placeholder="+91 XXXXX XXXXX"
+              />
+            </div>
+            {correctionExpiryTimer >= 0 && (
+              <p className={`text-xs transition-colors ${
+                correctionExpiryTimer === 0 ? 'text-red-400' :
+                correctionExpiryTimer < 60 ? 'text-amber-400' :
+                isDark ? 'text-slate-400' : 'text-gray-400'
+              }`}>
+                {correctionExpiryTimer === 0
+                  ? 'Code expired — go back and request a new one'
+                  : `Expires in ${formatExpiry(correctionExpiryTimer)}`}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={handleConfirmMobileCorrection}
+                disabled={correctionOtp.length < 6 || correctionMobile.replace(/\D/g, '').length < 10 || correctionState === 'confirming'}
+                style={correctionOtp.length === 6 && correctionMobile.replace(/\D/g, '').length >= 10 ? { background: accentColor, borderColor: accentColor, color: '#fff' } : {}}
+                className={`${updateBtnCls} px-4 ${
+                  correctionOtp.length === 6 && correctionMobile.replace(/\D/g, '').length >= 10
+                    ? 'text-white'
+                    : isDark ? 'border-slate-700 text-slate-500 bg-slate-800/40 cursor-not-allowed' : 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
+                }`}
+              >
+                {correctionState === 'confirming' ? <Spinner /> : null}
+                Confirm
+              </button>
+              <button
+                type="button"
+                onClick={() => { setCorrectionState('idle'); setCorrectionMsg(null); setCorrectionExpiryTimer(-1); }}
+                className={`text-xs px-2 ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-gray-400 hover:text-gray-600'} transition-colors`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {correctionMsg && msgBanner(correctionMsg)}
       </div>
 
       <p className={`text-xs pt-2 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>

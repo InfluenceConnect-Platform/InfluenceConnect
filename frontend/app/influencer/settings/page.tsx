@@ -13,6 +13,7 @@ interface AccountInfo {
   name: string;
   email: string;
   mobile: string;
+  mobileVerified?: boolean;
   role: string;
   plan: string;
   tier?: string;

@@ -4,8 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthLayout from '@/components/shared/AuthLayout';
 import Button from '@/components/shared/Button';
+import Input from '@/components/shared/Input';
 import api from '@/lib/api';
 import { useTheme } from '@/lib/useTheme';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Step 1 of the split signup verification flow: email only. Mobile is its own
 // page (verify-mobile) reached only once this succeeds — for influencers it's
@@ -36,12 +39,24 @@ export default function VerifyEmailPage() {
   const [userId] = useState<string | null>(
     () => (typeof window !== 'undefined' ? localStorage.getItem('pendingUserId') : null)
   );
-  const [pendingEmail] = useState<string | null>(
+  // Has a setter (unlike userId/isBrand above) — editing the email in place
+  // below needs to update what's displayed and re-persist it, not just read
+  // it once.
+  const [pendingEmail, setPendingEmail] = useState<string | null>(
     () => (typeof window !== 'undefined' ? localStorage.getItem('pendingEmail') : null)
   );
   const [isBrand] = useState<boolean>(
     () => (typeof window !== 'undefined' ? localStorage.getItem('pendingRole') : null) === 'brand'
   );
+
+  // "Wrong email?" used to send people all the way back to the signup form.
+  // This edits it in place instead: swap the OTP boxes for a single input,
+  // save, and a fresh code goes out to the corrected address without leaving
+  // the page.
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editValue, setEditValue] = useState('');
+  const [editError, setEditError] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   // No pending signup to verify (e.g. a hard reload after already finishing,
   // or a direct hit with no signup in flight) — nothing useful to show here.
@@ -77,16 +92,16 @@ export default function VerifyEmailPage() {
       };
 
   useEffect(() => {
-    if (resendTimer <= 0) return;
+    if (editingEmail || resendTimer <= 0) return;
     const interval = setInterval(() => setResendTimer(t => t - 1), 1000);
     return () => clearInterval(interval);
-  }, [resendTimer]);
+  }, [editingEmail, resendTimer]);
 
   useEffect(() => {
-    if (expiryTimer <= 0) return;
+    if (editingEmail || expiryTimer <= 0) return;
     const interval = setInterval(() => setExpiryTimer(t => t - 1), 1000);
     return () => clearInterval(interval);
-  }, [expiryTimer]);
+  }, [editingEmail, expiryTimer]);
 
   const handleInput = (index: number, value: string) => {
     const digit = value.replace(/[^0-9]/g, '').slice(0, 1);
@@ -135,6 +150,46 @@ export default function VerifyEmailPage() {
       setError(e.response?.data?.error || 'Failed to resend code.');
     } finally {
       setResending(false);
+    }
+  };
+
+  const startEdit = () => {
+    setEditValue(pendingEmail || '');
+    setEditError('');
+    setEditingEmail(true);
+  };
+
+  const cancelEdit = () => {
+    setEditingEmail(false);
+    setEditError('');
+  };
+
+  const handleSaveEdit = async () => {
+    const trimmed = editValue.trim();
+    if (!EMAIL_REGEX.test(trimmed)) {
+      setEditError('Please enter a valid email address.');
+      return;
+    }
+    setSavingEdit(true);
+    setEditError('');
+    try {
+      const response = await api.post('/api/auth/update-pending-contact', {
+        userId, type: 'email', value: trimmed,
+      });
+      const newEmail = response.data.email || trimmed;
+      setPendingEmail(newEmail);
+      try { localStorage.setItem('pendingEmail', newEmail); } catch {}
+      setOtp(['', '', '', '', '', '']);
+      setResendTimer(42);
+      setExpiryTimer(600);
+      setEditingEmail(false);
+      setSuccess('Email updated — a new code is on its way!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string } } };
+      setEditError(e.response?.data?.error || 'Failed to update email.');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -216,17 +271,59 @@ export default function VerifyEmailPage() {
             </svg>
           </div>
           <h1 className={`text-2xl font-bold mb-2 transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Verify your email
+            {editingEmail ? 'Update your email' : 'Verify your email'}
           </h1>
           <p className={`text-sm max-w-sm mx-auto leading-relaxed transition-colors ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            We sent a 6-digit code to{' '}
-            <span className="font-semibold font-mono">
-              {pendingEmail?.replace(/(.{2}).*(@.*)/, '$1***$2') || 'your email'}
-            </span>. Enter it below to continue.
+            {editingEmail ? (
+              "Enter the correct address below and we'll send a fresh code to it."
+            ) : (
+              <>
+                We sent a 6-digit code to{' '}
+                <span className="font-semibold font-mono">
+                  {pendingEmail?.replace(/(.{2}).*(@.*)/, '$1***$2') || 'your email'}
+                </span>. Enter it below to continue.
+              </>
+            )}
           </p>
         </div>
 
-        {/* OTP boxes */}
+        {editingEmail ? (
+          /* Edit form — replaces the OTP boxes while correcting the address */
+          <div className={`border-2 rounded-xl p-5 mb-5 transition-all duration-300 ${
+            isDark ? 'border-slate-700/60 bg-[#0E1B2E]' : 'border-gray-200 bg-white'
+          }`}>
+            <Input
+              dark={isDark}
+              accent={isBrand ? '#228B22' : '#E0115F'}
+              name="email"
+              autoComplete="email"
+              label="Email address"
+              type="email"
+              placeholder="you@example.com"
+              value={editValue}
+              onChange={setEditValue}
+              error={editError}
+            />
+            <div className="flex gap-2.5 mt-4">
+              <button
+                type="button"
+                onClick={cancelEdit}
+                disabled={savingEdit}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Cancel
+              </button>
+              <div className="flex-[1.4]">
+                <Button fullWidth loading={savingEdit} onClick={handleSaveEdit} colorScheme={isBrand ? 'brand' : 'influencer'}>
+                  Save & send code →
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+        /* OTP boxes */
         <div className={`border-2 rounded-xl p-5 mb-5 transition-all duration-300 ${
           isDark ? 'border-slate-700/60 bg-[#0E1B2E]' : 'border-gray-200 bg-white'
         }`}>
@@ -269,6 +366,7 @@ export default function VerifyEmailPage() {
             )}
           </div>
         </div>
+        )}
 
         {success && (
           <div className={`mb-4 p-3.5 border rounded-xl text-sm flex items-center gap-2 ${
@@ -291,16 +389,24 @@ export default function VerifyEmailPage() {
           </div>
         )}
 
-        <Button fullWidth loading={loading} onClick={handleVerify} disabled={!filled} colorScheme={isBrand ? 'brand' : 'influencer'}>
-          Verify email →
-        </Button>
+        {!editingEmail && (
+          <>
+            <Button fullWidth loading={loading} onClick={handleVerify} disabled={!filled} colorScheme={isBrand ? 'brand' : 'influencer'}>
+              Verify email →
+            </Button>
 
-        <p className={`text-xs text-center mt-4 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-          Wrong email?{' '}
-          <a href="/auth/signup" className={`${TH.link} font-semibold transition-colors`}>
-            Go back and edit
-          </a>
-        </p>
+            <p className={`text-xs text-center mt-4 transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+              Wrong email?{' '}
+              <button
+                type="button"
+                onClick={startEdit}
+                className={`${TH.link} font-semibold transition-colors cursor-pointer`}
+              >
+                Edit it
+              </button>
+            </p>
+          </>
+        )}
 
       </div>
     </AuthLayout>

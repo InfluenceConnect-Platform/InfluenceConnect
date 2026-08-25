@@ -4,7 +4,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const authenticate = require('../middleware/auth.middleware');
 const { sensitiveAuthLimiter, accountActionLimiter } = require('../middleware/rateLimit.middleware');
-const { register, verifyOTP, resendOTP, login, adminLogin, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion, purgeScheduledDeletions, requestEmailChange, verifyEmailChange, requestMobileChange, verifyMobileChange } = require('../controllers/auth.controller');
+const { register, verifyOTP, finishSignup, resendOTP, updatePendingContact, login, adminLogin, sendMobileOtp, forgotPassword, resetPassword, upgradePlan, downgradePlan, getAccountInfo, updateAccountInfo, changePassword, scheduleAccountDeletion, cancelAccountDeletion, purgeScheduledDeletions, requestEmailChange, verifyEmailChange, requestMobileChange, verifyMobileChange, requestMobileCorrection, confirmMobileCorrection } = require('../controllers/auth.controller');
 
 // POST /api/auth/register
 router.post('/register', accountActionLimiter, register);
@@ -12,8 +12,17 @@ router.post('/register', accountActionLimiter, register);
 // POST /api/auth/verify-otp
 router.post('/verify-otp', sensitiveAuthLimiter, verifyOTP);
 
+// POST /api/auth/finish-signup — sends the welcome/GSTIN emails a brand's
+// early (email-only) activation deferred. See finishSignup in the controller.
+router.post('/finish-signup', accountActionLimiter, authenticate, finishSignup);
+
 // POST /api/auth/resend-otp
 router.post('/resend-otp', accountActionLimiter, resendOTP);
+
+// POST /api/auth/update-pending-contact — "Wrong email/mobile?" on
+// verify-email / verify-mobile: corrects it in place and sends a fresh code,
+// without sending the user all the way back to the signup form.
+router.post('/update-pending-contact', accountActionLimiter, updatePendingContact);
 
 // POST /api/auth/login
 router.post('/login', sensitiveAuthLimiter, login);
@@ -78,6 +87,16 @@ router.post('/account/mobile/request', authenticate, requestMobileChange);
 
 // POST /api/auth/account/mobile/verify  — verify OTP and apply new mobile
 router.post('/account/mobile/verify', authenticate, verifyMobileChange);
+
+// POST /api/auth/account/mobile/request-email-verification — email fallback
+// when the number on file is unreachable (wrong from the start, no
+// replacement phone yet). Only valid while mobile is unverified.
+router.post('/account/mobile/request-email-verification', authenticate, requestMobileCorrection);
+
+// POST /api/auth/account/mobile/confirm-via-email — applies the corrected
+// number using that email code; leaves it marked unverified (see
+// confirmMobileCorrection for why).
+router.post('/account/mobile/confirm-via-email', authenticate, confirmMobileCorrection);
 
 // Derive the backend/frontend origin from the incoming request so that OAuth
 // works correctly whether the request comes from localhost, a phone on the

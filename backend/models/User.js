@@ -77,6 +77,18 @@ const userSchema = new mongoose.Schema({
     default: 'pending'   // pending until OTP verified
   },
 
+  // Guards the welcome/GSTIN-submitted emails against firing more than once.
+  // A brand activates as soon as its email is verified (mobile is optional —
+  // see tryActivateUser in auth.controller.js), but those emails are held
+  // back until the signup flow actually finishes (mobile verified or
+  // explicitly skipped) so "Welcome to Influence Connect" doesn't land before
+  // the user has even reached their dashboard. Set once, atomically, by
+  // sendActivationNotifications.
+  activationNotified: {
+    type: Boolean,
+    default: false
+  },
+
   // How this account was originally created
   signupMethod: {
     type: String,
