@@ -492,12 +492,20 @@ export default function AccountInfoSection({ account, accentColor, onUpdate, sho
             </div>
             <div>
               <label className={`${labelCls} mb-1`}>Corrected mobile number</label>
-              <input
-                className={inputCls}
-                value={correctionMobile}
-                onChange={e => setCorrectionMobile(e.target.value)}
-                placeholder="+91 XXXXX XXXXX"
-              />
+              <div className="flex">
+                <span className={`flex items-center px-3 rounded-l-xl border border-r-0 text-sm font-medium select-none ${
+                  isDark ? 'bg-slate-800/60 border-slate-700 text-slate-400' : 'bg-gray-50 border-gray-200 text-gray-500'
+                }`}>+91</span>
+                <input
+                  className={`${inputCls} rounded-l-none`}
+                  value={correctionMobile}
+                  // Digits only, capped at 10 — the +91 above is implied, not
+                  // typed, same as every other mobile field in the app.
+                  onChange={e => setCorrectionMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="98765 43210"
+                  inputMode="numeric"
+                />
+              </div>
             </div>
             {correctionExpiryTimer >= 0 && (
               <p className={`text-xs transition-colors ${
