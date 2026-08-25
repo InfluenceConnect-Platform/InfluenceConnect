@@ -77,6 +77,17 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     enum: ['created', 'paid', 'failed'],
     default: 'created'
+  },
+
+  // 'free_trial' marks the one-time, first-purchase-free grant (amount: 0,
+  // no Razorpay order behind it — see claimFreeTrial in payment.controller.js).
+  // Kept as a real Payment row so it shows in the user's billing history like
+  // any other purchase, but tagged so admin revenue/MRR reporting can exclude
+  // it — it was never money changing hands.
+  source: {
+    type: String,
+    enum: ['razorpay', 'free_trial'],
+    default: 'razorpay'
   }
 
 }, { timestamps: true });

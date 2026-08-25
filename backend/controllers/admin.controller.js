@@ -44,7 +44,6 @@ exports.getOverviewStats = async (req, res) => {
       activeCampaigns,
       totalDeals,
       completedDeals,
-      premiumUsers,
       pendingGstin
     ] = await Promise.all([
       User.countDocuments(),
@@ -53,14 +52,14 @@ exports.getOverviewStats = async (req, res) => {
       Campaign.countDocuments({ status: { $in: ['active', 'in-progress'] } }),
       Deal.countDocuments(),
       Deal.countDocuments({ status: 'completed' }),
-      // Must match computePremiumRevenue's definition of "premium": still
-      // within the paid period. `plan` alone goes stale, because it is only
-      // corrected on the user's next request (auth.middleware), so someone who
-      // lapsed and never came back stayed counted here while the Subscriptions
-      // page correctly excluded them — two admin pages disagreeing.
-      User.countDocuments({ plan: 'premium', premiumUntil: { $gt: new Date() } }),
       BrandProfile.countDocuments({ gstinStatus: 'pending' })
     ]);
+    // premiumUsers/trialUsers come from computePremiumRevenue below (once
+    // `premium` is computed) rather than a separate raw count here — a plain
+    // `plan: 'premium', premiumUntil: { $gt: now }` count can't tell a paying
+    // user from someone on the free-trial grant (claimFreeTrial), and a
+    // second definition of "premium" is exactly how this page and the
+    // Subscriptions page end up disagreeing.
 
     // Recent signups (with avatars: creator profile pic / brand logo)
     const recentSignupsRaw = await User.find()
@@ -86,7 +85,7 @@ exports.getOverviewStats = async (req, res) => {
     // dashboards can never disagree on what "Premium revenue" means, and so
     // this card gets its own real trend instead of borrowing GMV's.
     const premium = await computePremiumRevenue();
-    const { mrr, influencerMRR, brandMRR, mrrTrend: premiumTrend } = premium;
+    const { mrr, influencerMRR, brandMRR, totalPremium: premiumUsers, totalTrial: trialUsers, mrrTrend: premiumTrend } = premium;
 
     // ── Monthly signup trend (last 6 months, split by role) ──
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -171,12 +170,17 @@ exports.getOverviewStats = async (req, res) => {
         totalDeals,
         completedDeals,
         premiumUsers,
+        // On the free-trial grant right now (claimFreeTrial) — active but
+        // ₹0, deliberately not part of premiumUsers/mrr above. See
+        // computePremiumRevenue's isTrialFor.
+        trialUsers,
         pendingGstin,
         mrr,
         influencerMRR,
         brandMRR,
         // Same "not currently paying" definition as the Subscriptions page, so
-        // freemiumUsers + premiumUsers reconciles exactly to memberUsers.
+        // freemiumUsers + premiumUsers + trialUsers reconciles exactly to
+        // memberUsers (a trial user is neither freemium nor a paying premium).
         freemiumUsers: await User.countDocuments({
           role: { $in: ['brand', 'influencer'] },
           $or: [

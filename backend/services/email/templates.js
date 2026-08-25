@@ -494,29 +494,41 @@ module.exports = {
   },
 
   // Premium subscription purchased/renewed via Razorpay (to the subscriber)
-  premiumUpgradeConfirmed({ role, billingCycle, tier, amount, premiumUntil }) {
+  // `freeTrial: true` is the one-time first-purchase-free grant (see
+  // claimFreeTrial in payment.controller.js) — same receipt shape, but the
+  // copy must never say "payment" or "amount paid" for a ₹0 grant, and must
+  // say plainly that it's a one-time perk that won't repeat.
+  premiumUpgradeConfirmed({ role, billingCycle, tier, amount, premiumUntil, freeTrial = false }) {
     const theme = themeFor(role);
     const plan = tierLabel(role, tier);
     const until = premiumUntil
       ? new Date(premiumUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
       : null;
     return {
-      subject: plan ? `Payment received — ${plan} is active` : 'Payment received — your plan is active',
+      subject: freeTrial
+        ? `Your free ${plan || 'premium'} month is active 🎉`
+        : plan ? `Payment received — ${plan} is active` : 'Payment received — your plan is active',
       html: layout({
         theme,
-        heading: plan ? `Welcome to ${plan} 🎉` : 'Your plan is active 🎉',
+        heading: freeTrial ? `Enjoy ${plan || 'premium'}, on us 🎉` : plan ? `Welcome to ${plan} 🎉` : 'Your plan is active 🎉',
         bodyHtml:
-          para(`Your payment went through and ${plan || 'your plan'} is now active on your account.`) +
-          details([
-            ['Plan', plan],
-            ['Billing cycle', billingCycle === 'yearly' ? 'Yearly' : 'Monthly'],
-            ['Amount paid', inr(amount)],
-            ['Access until', until],
-          ]) +
+          (freeTrial
+            ? para(`As a first-time perk, ${plan || 'your plan'} is active on your account free of charge — no payment was taken.`)
+            : para(`Your payment went through and ${plan || 'your plan'} is now active on your account.`)) +
+          details(freeTrial
+            ? [['Plan', plan], ['Access until', until]]
+            : [
+                ['Plan', plan],
+                ['Billing cycle', billingCycle === 'yearly' ? 'Yearly' : 'Monthly'],
+                ['Amount paid', inr(amount)],
+                ['Access until', until],
+              ]) +
           // Only the one-time Order path sends this email (subscriptions send
           // subscriptionCharged), so the no-renewal wording is accurate and
           // must stay — telling a one-time buyer it renews would be false.
-          para('This receipt is for your records. This was a one-time payment covering a single period, so it will not renew by itself — start a plan from your billing page to keep access after the date above.') +
+          para(freeTrial
+            ? 'This is a one-time welcome perk and only available once — it will not renew, and it will not repeat on future purchases. Start a plan from your billing page any time to keep access after the date above.'
+            : 'This receipt is for your records. This was a one-time payment covering a single period, so it will not renew by itself — start a plan from your billing page to keep access after the date above.') +
           button('Manage billing', `${APP_URL}/${role}/billing`, theme),
       }),
     };

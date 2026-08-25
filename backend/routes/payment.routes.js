@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authenticate = require('../middleware/auth.middleware');
 const { accountActionLimiter, webhookLimiter } = require('../middleware/rateLimit.middleware');
-const { createOrder, verifyPayment, webhook, reconcile, setAutopay, autopayRenewals } = require('../controllers/payment.controller');
+const { createOrder, verifyPayment, claimFreeTrial, webhook, reconcile, setAutopay, autopayRenewals } = require('../controllers/payment.controller');
 const {
   createSubscription,
   verifySubscription,
@@ -16,6 +16,12 @@ router.post('/create-order', authenticate, accountActionLimiter, createOrder);
 
 // POST /api/payments/verify
 router.post('/verify', authenticate, accountActionLimiter, verifyPayment);
+
+// POST /api/payments/claim-free-trial  — first-purchase-free perk, { tier }.
+// Bypasses Razorpay entirely (see claimFreeTrial for why); rate-limited the
+// same as the real checkout endpoints even though nothing is charged, since
+// it still mutates account state.
+router.post('/claim-free-trial', authenticate, accountActionLimiter, claimFreeTrial);
 
 // POST /api/payments/webhook  (Razorpay server-to-server, unauthenticated —
 // verified via X-Razorpay-Signature inside the controller instead)

@@ -126,6 +126,17 @@ const userSchema = new mongoose.Schema({
     default: null
   },
 
+  // Set exactly once, atomically, the moment this account redeems the
+  // first-purchase-free offer (see claimFreeTrial in payment.controller.js).
+  // Its presence — not a separate boolean — IS the eligibility check: the
+  // claim endpoint's one atomic findOneAndUpdate only succeeds while this is
+  // still null, which is what makes double-claiming structurally impossible
+  // rather than merely checked-for.
+  freeTrialClaimedAt: {
+    type: Date,
+    default: null
+  },
+
   // Login brute-force protection
   loginAttempts: {
     type: Number,

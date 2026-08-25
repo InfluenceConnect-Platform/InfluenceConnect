@@ -54,9 +54,11 @@ async function computePremiumRevenue() {
   )];
   const [paidPayments, liveSubs] = await Promise.all([
     // Newest first so the first row per user is their current period.
+    // `source` is what tells a free-trial grant (see claimFreeTrial in
+    // payment.controller.js) apart from an actual Razorpay payment below.
     Payment.find({ status: 'paid', userId: { $in: premiumUserIds } })
       .sort({ createdAt: -1 })
-      .select('userId billingCycle amount createdAt'),
+      .select('userId billingCycle amount createdAt source'),
     Subscription.find({
       userId: { $in: premiumUserIds },
       status: { $in: Subscription.LIVE_STATUSES },
@@ -82,6 +84,19 @@ async function computePremiumRevenue() {
   const sourceFor = (u) =>
     subByUser.get(u._id.toString()) || latestPaymentByUser.get(u._id.toString()) || null;
 
+  // True while the user's current premium period came from the one-time
+  // free-trial grant rather than an actual charge (see claimFreeTrial). A
+  // live subscription always wins this check — someone who trialed and then
+  // separately subscribed is a real paying user, full stop. Kept out of
+  // every "paying"/revenue count below (they generate ₹0), and reported
+  // separately instead so admin can see them without either inflating
+  // "Premium users" or silently vanishing from the dashboard.
+  const isTrialFor = (u) => {
+    const key = u._id.toString();
+    if (subByUser.has(key)) return false;
+    return latestPaymentByUser.get(key)?.source === 'free_trial';
+  };
+
   const monthlyEquivalentFor = (u) => {
     const src = sourceFor(u);
     if (!src) return getTierConfig(u.role, u.tier)?.priceMonthly || 0;
@@ -100,17 +115,30 @@ async function computePremiumRevenue() {
   let influencerMonthlyCount = 0, influencerYearlyCount = 0;
   let brandMonthlyCount = 0, brandYearlyCount = 0;
   let premiumInfluencers = 0, premiumBrands = 0;
+  let trialInfluencers = 0, trialBrands = 0;
 
   // Paying users and revenue split by tier, so admin can see whether the
   // money is coming from Silver volume or Golden/Platinum value.
+  // `trialUsers` is tracked alongside but never folded into `users`/`mrr` —
+  // those two stay strictly "paying", everywhere on this dashboard, so a
+  // free trial can never read as revenue or as a paying subscriber count.
   const tierBreakdown = { influencer: {}, brand: {} };
   Object.keys(TIERS_BY_ROLE).forEach(role => {
     Object.keys(TIERS_BY_ROLE[role]).forEach(tier => {
-      if (tier !== 'free') tierBreakdown[role][tier] = { users: 0, mrr: 0 };
+      if (tier !== 'free') tierBreakdown[role][tier] = { users: 0, mrr: 0, trialUsers: 0 };
     });
   });
 
   premiumMembers.forEach(u => {
+    const tierKey = u.tier && u.tier !== 'free' ? u.tier : null;
+
+    if (isTrialFor(u)) {
+      if (tierKey && tierBreakdown[u.role]?.[tierKey]) tierBreakdown[u.role][tierKey].trialUsers += 1;
+      if (u.role === 'influencer') trialInfluencers++;
+      else if (u.role === 'brand') trialBrands++;
+      return; // free — excluded from every paying/revenue count below
+    }
+
     const monthlyEquivalent = monthlyEquivalentFor(u);
     const cycles = cyclesFor(u);
     // No paid record at all (legacy/manual grant) — default to the monthly
@@ -118,7 +146,6 @@ async function computePremiumRevenue() {
     const hasMonthly = cycles.has('monthly') || cycles.size === 0;
     const hasYearly = cycles.has('yearly');
 
-    const tierKey = u.tier && u.tier !== 'free' ? u.tier : null;
     if (tierKey && tierBreakdown[u.role] && tierBreakdown[u.role][tierKey]) {
       tierBreakdown[u.role][tierKey].users += 1;
       tierBreakdown[u.role][tierKey].mrr += monthlyEquivalent;
@@ -168,9 +195,16 @@ async function computePremiumRevenue() {
   }
 
   return {
+    // Paying only, everywhere — see isTrialFor above.
     premiumInfluencers,
     premiumBrands,
     totalPremium: premiumInfluencers + premiumBrands,
+    // Currently on the one-time free-trial grant (claimFreeTrial) — active,
+    // but ₹0. Reported separately rather than folded into premium* above so
+    // the revenue-facing numbers never quietly include free users.
+    trialInfluencers,
+    trialBrands,
+    totalTrial: trialInfluencers + trialBrands,
     mrr,
     arr,
     lifetimeRevenue,

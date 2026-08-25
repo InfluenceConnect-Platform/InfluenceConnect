@@ -99,6 +99,14 @@ export default function SubscriptionDetailDrawer({ payment, onClose }: Props) {
                   <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold border bg-indigo-50 text-indigo-700 border-indigo-100 capitalize">
                     {p.billingCycle}
                   </span>
+                  {p.source === 'free_trial' && (
+                    <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full font-semibold border bg-sky-50 text-sky-700 border-sky-200">
+                      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"/>
+                      </svg>
+                      Free trial — no charge
+                    </span>
+                  )}
                 </div>
                 <p className="text-[26px] font-bold text-gray-900 leading-tight mt-3">{inr(p.amount)}</p>
                 {p.customId && <div className="mt-2"><IdChip id={p.customId} size="xs" tone="subtle" /></div>}
@@ -130,10 +138,20 @@ export default function SubscriptionDetailDrawer({ payment, onClose }: Props) {
                 {/* Payment / Razorpay */}
                 <Section title="Payment">
                   <div className="bg-white border border-gray-100 rounded-xl p-4 grid grid-cols-2 gap-x-4 gap-y-3.5 shadow-sm">
-                    <Field label="Method" value={p.method ? (METHOD_LABELS[p.method] || cap(p.method)) : '—'} />
-                    <Field label="Currency" value={p.currency || 'INR'} />
-                    <Field label="Razorpay order ID" value={<span className="font-mono text-[12px] break-all">{p.razorpayOrderId || '—'}</span>} full />
-                    <Field label="Razorpay payment ID" value={<span className="font-mono text-[12px] break-all">{p.razorpayPaymentId || '—'}</span>} full />
+                    {p.source === 'free_trial' ? (
+                      <Field
+                        label="Note"
+                        value="No Razorpay order exists for this row — it's the one-time free-trial grant, recorded here only so it appears in billing history."
+                        full
+                      />
+                    ) : (
+                      <>
+                        <Field label="Method" value={p.method ? (METHOD_LABELS[p.method] || cap(p.method)) : '—'} />
+                        <Field label="Currency" value={p.currency || 'INR'} />
+                        <Field label="Razorpay order ID" value={<span className="font-mono text-[12px] break-all">{p.razorpayOrderId || '—'}</span>} full />
+                        <Field label="Razorpay payment ID" value={<span className="font-mono text-[12px] break-all">{p.razorpayPaymentId || '—'}</span>} full />
+                      </>
+                    )}
                     <Field label="Internal payment ID" value={<span className="font-mono text-[12px] break-all">{p._id}</span>} full />
                   </div>
                 </Section>

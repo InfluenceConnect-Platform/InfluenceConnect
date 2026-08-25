@@ -1126,6 +1126,13 @@ exports.getAccountInfo = async (req, res) => {
       autopay: user.autopay,
       premiumStartedAt: user.premiumStartedAt,
       premiumUntil: user.premiumUntil,
+      freeTrialClaimedAt: user.freeTrialClaimedAt,
+      // Read-only mirror of claimFreeTrial's real eligibility filter (see
+      // payment.controller.js) — drives whether the billing page shows the
+      // offer at all. The actual grant is re-checked atomically server-side
+      // regardless, so this being stale/spoofed can never let anyone through
+      // twice; it only affects whether the button is shown.
+      freeTrialAvailable: !user.freeTrialClaimedAt && user.tier === 'free' && !user.premiumStartedAt && user.status === 'active',
       signupMethod: user.signupMethod,
       createdAt: user.createdAt,
       deleteScheduledAt: user.deleteScheduledAt,

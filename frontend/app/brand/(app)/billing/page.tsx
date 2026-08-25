@@ -7,6 +7,7 @@ import BrandNav from '@/components/shared/BrandNav';
 import api from '@/lib/api';
 import { useLiveData } from '@/lib/useLiveData';
 import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmModal';
 import { openRazorpayCheckout } from '@/lib/razorpay';
 import SubscriptionPanel from '@/components/shared/SubscriptionPanel';
 import { BRAND_TIERS, yearlyPrice } from '@/lib/tiers';
@@ -89,6 +90,7 @@ const TIER_GRADIENT: Record<string, string> = {
 export default function BrandBillingPage() {
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
   const [user, setUser] = useState<{ name: string; plan?: string; tier?: string } | null>(() => {
     if (typeof window === 'undefined') return null;
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -99,6 +101,12 @@ export default function BrandBillingPage() {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [subRefresh, setSubRefresh] = useState(0);
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
+  // First-purchase-free perk — see backend/controllers/payment.controller.js
+  // claimFreeTrial. This flag only decides whether the offer is SHOWN; the
+  // actual grant is re-checked atomically server-side regardless, so a stale
+  // or tampered value here can never let anyone claim twice.
+  const [freeTrialAvailable, setFreeTrialAvailable] = useState(false);
+  const [claimingTrial, setClaimingTrial] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -115,6 +123,7 @@ export default function BrandBillingPage() {
       setPremiumStartedAt(res.data.premiumStartedAt ?? null);
       setPremiumUntil(res.data.premiumUntil ?? null);
       setAccountEmail(res.data.email ?? '');
+      setFreeTrialAvailable(!!res.data.freeTrialAvailable);
     }).catch(() => {});
   };
 
@@ -217,6 +226,37 @@ export default function BrandBillingPage() {
     }
   };
 
+  // First-purchase-free perk — no Razorpay checkout at all, just a direct
+  // authenticated grant. See claimFreeTrial in payment.controller.js for the
+  // eligibility rules this mirrors (this call is the only source of truth;
+  // the button merely reflects what the account is currently allowed to do).
+  const handleClaimFreeTrial = async (tierKey: string) => {
+    const tierDef = BRAND_TIERS.find(t => t.key === tierKey)!;
+    if (!(await confirm({
+      title: `Try ${tierDef.label} free for 30 days?`,
+      description: 'No payment is taken now or later for this trial. It runs once per account, does not auto-renew, and your plan reverts to Free after 30 days unless you subscribe.',
+      confirmLabel: 'Start free trial',
+      variant: 'info',
+    }))) return;
+
+    setClaimingTrial(tierKey);
+    try {
+      const res = await api.post('/api/payments/claim-free-trial', { tier: tierKey });
+      syncUserToStorage(res.data.user);
+      setPremiumStartedAt(res.data.user.premiumStartedAt ?? null);
+      setPremiumUntil(res.data.user.premiumUntil ?? null);
+      setFreeTrialAvailable(false);
+      showToast(`🎉 ${tierDef.label} is active for 30 days, free of charge.`);
+    } catch (error: any) {
+      showToast(error.response?.data?.error || 'Could not start your free trial. Please try again.');
+      // A definitive "not eligible" answer means the offer is gone — stop
+      // showing it rather than let the user hit the same wall again.
+      if (error.response?.status === 409) setFreeTrialAvailable(false);
+    } finally {
+      setClaimingTrial(null);
+    }
+  };
+
   const currentTier = user?.tier || (user?.plan === 'premium' ? 'silver' : 'free');
   const currentTierDef = BRAND_TIERS.find(t => t.key === currentTier);
 
@@ -272,6 +312,19 @@ export default function BrandBillingPage() {
           notify={showToast}
           onChanged={() => { setSubRefresh(n => n + 1); fetchAccount(); }}
         />
+
+        {/* First-purchase-free offer */}
+        {freeTrialAvailable && (
+          <div className="mb-8 relative overflow-hidden bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-300 rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/40 backdrop-blur-sm flex items-center justify-center text-[#7A5A00] shadow-sm flex-shrink-0">
+              <SparkIcon />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-bold text-[#4A3800]">Welcome perk: your first month of Silver or Golden is free</h2>
+              <p className="text-sm text-[#5C4600] mt-0.5">No card charged, no auto-renewal — pick any plan below and try it free for 30 days. One-time, on us.</p>
+            </div>
+          </div>
+        )}
 
         {/* Hero header */}
         <section className="relative overflow-hidden bg-gradient-to-br from-[#0F2E12] via-[#14531D] to-[#2FA84F] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 mb-8 text-center shadow-lg">
@@ -370,6 +423,21 @@ export default function BrandBillingPage() {
                     <div className="w-full py-2.5 border border-[#228B22]/20 rounded-xl text-sm font-semibold text-[#228B22]/60 text-center mb-5 bg-white/50 select-none">
                       Default plan
                     </div>
+                  ) : freeTrialAvailable ? (
+                    <button
+                      onClick={() => handleClaimFreeTrial(t.key)}
+                      disabled={claimingTrial === t.key}
+                      className="w-full py-3 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-[#4A3800] rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2 mb-5 shadow-md hover:shadow-lg cursor-pointer"
+                    >
+                      {claimingTrial === t.key ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-[#4A3800]/40 border-t-[#4A3800] rounded-full animate-spin" />
+                          Starting…
+                        </>
+                      ) : (
+                        <><SparkIcon /> Try free for 30 days</>
+                      )}
+                    </button>
                   ) : (
                     <button
                       onClick={() => handleUpgrade(t.key)}

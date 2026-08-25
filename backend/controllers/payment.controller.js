@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Payment = require('../models/Payment');
 const Subscription = require('../models/Subscription');
+const BrandProfile = require('../models/BrandProfile');
 const notify = require('../services/email');
 const applyTierUpgrade = require('../utils/applyPremiumUpgrade');
 const { BILLING_CYCLES, getPlanAmountPaise } = require('../utils/planPricing');
@@ -149,6 +150,155 @@ exports.verifyPayment = async (req, res) => {
   } catch (error) {
     console.error('Verify payment error:', error);
     res.status(500).json({ error: 'Something went wrong verifying your payment.' });
+  }
+};
+
+// ─────────────────────────────────────────
+// CLAIM FREE TRIAL  (first-purchase-free perk — see PLAN NOTES below)
+//
+// PLAN NOTES:
+//   - Razorpay's minimum chargeable amount is ₹1 — a genuine ₹0 "order"
+//     cannot be created through Checkout at all, so this bypasses Razorpay
+//     entirely rather than trying to force a real order through it.
+//   - Fixed at 30 days no matter which tier is picked or what billing cycle
+//     the billing page's toggle is on — never "a free year". Confirmed with
+//     the client: capping worst-case exposure per claim matters more here
+//     than matching whatever cycle they'd normally pick.
+//   - The ENTIRE state transition (claiming the offer + applying the tier)
+//     happens in ONE atomic MongoDB findOneAndUpdate, filtered on
+//     `freeTrialClaimedAt: null`. That single atomic write is the real
+//     safety guarantee — not a read-then-write-then-check — so two
+//     concurrent requests (double-click, replay, two tabs) can never both
+//     succeed: MongoDB accepts exactly one of them, full stop.
+//   - Extra eligibility conditions (status active, currently on the free
+//     tier, never had premium before) are folded into that same filter as
+//     defense-in-depth, so this can never fire on an account that has
+//     already paid, even if the claimed-flag were somehow desynced.
+//   - Brands additionally can't reclaim under a fresh account using the same
+//     GSTIN — checked before the atomic claim, since GSTIN isn't unique in
+//     BrandProfile and a new email+mobile is otherwise all it'd take to
+//     re-register.
+// ─────────────────────────────────────────
+const FREE_TRIAL_DAYS = 30;
+
+exports.claimFreeTrial = async (req, res) => {
+  try {
+    const { tier } = req.body;
+    const role = req.user.role;
+
+    if (role !== 'brand' && role !== 'influencer') {
+      return res.status(403).json({ error: 'Not available for this account type.' });
+    }
+    if (!tier || !isValidTier(role, tier) || tier === 'free') {
+      return res.status(400).json({ error: 'Invalid plan tier.' });
+    }
+
+    // Brands: block re-claiming under a different account registered with
+    // the same GST number. Influencers have no equivalent identity document
+    // in the system, so this check is brand-only.
+    if (role === 'brand') {
+      const myProfile = await BrandProfile.findOne({ userId: req.userId }).select('gstin');
+      if (myProfile?.gstin) {
+        const sameGstinProfiles = await BrandProfile.find({
+          gstin: myProfile.gstin,
+          userId: { $ne: req.userId },
+        }).select('userId');
+        if (sameGstinProfiles.length) {
+          const priorClaimant = await User.findOne({
+            _id: { $in: sameGstinProfiles.map(p => p.userId) },
+            freeTrialClaimedAt: { $ne: null },
+          }).select('_id');
+          if (priorClaimant) {
+            return res.status(409).json({
+              error: 'A free trial has already been claimed by another account with this GST number.',
+              code: 'GSTIN_ALREADY_CLAIMED',
+            });
+          }
+        }
+      }
+    }
+
+    const now = new Date();
+    const premiumUntil = new Date(now);
+    premiumUntil.setDate(premiumUntil.getDate() + FREE_TRIAL_DAYS);
+
+    // The one atomic write described above. `role` is included in the filter
+    // purely as a belt-and-braces guard against a stale/forged req.user.role
+    // ever mismatching the account's real role.
+    const claimed = await User.findOneAndUpdate(
+      {
+        _id: req.userId,
+        role,
+        status: 'active',
+        freeTrialClaimedAt: null,
+        tier: 'free',
+        premiumStartedAt: null,
+      },
+      {
+        freeTrialClaimedAt: now,
+        tier,
+        plan: 'premium',
+        premiumStartedAt: now,
+        premiumUntil,
+      },
+      { new: true }
+    );
+
+    if (!claimed) {
+      return res.status(409).json({
+        error: 'You are not eligible for the free trial — it may already be used, or you already have a plan.',
+        code: 'TRIAL_NOT_ELIGIBLE',
+      });
+    }
+
+    // Everything from here on is bookkeeping, not financial state — the
+    // grant above is already final and correct even if either of these
+    // fails, so neither is allowed to fail the request or roll anything back.
+    try {
+      await Payment.create({
+        userId: claimed._id,
+        role,
+        billingCycle: 'monthly',
+        tier,
+        amount: 0,
+        currency: 'INR',
+        // No real Razorpay order exists — a unique synthetic id, same
+        // approach applyChargedCycle uses for subscription-cycle rows.
+        razorpayOrderId: `free_trial_${claimed._id}`,
+        status: 'paid',
+        source: 'free_trial',
+      });
+    } catch (err) {
+      console.error('Free trial Payment record error:', err);
+    }
+
+    try {
+      notify.premiumUpgradeConfirmed(claimed.email, {
+        role,
+        tier,
+        premiumUntil: claimed.premiumUntil,
+        freeTrial: true,
+      });
+    } catch (err) {
+      console.error('Free trial confirmation email error:', err);
+    }
+
+    res.json({
+      message: `Your free ${FREE_TRIAL_DAYS}-day trial is active.`,
+      user: {
+        id: claimed._id,
+        name: claimed.name,
+        email: claimed.email,
+        role: claimed.role,
+        plan: claimed.plan,
+        tier: claimed.tier,
+        premiumStartedAt: claimed.premiumStartedAt,
+        premiumUntil: claimed.premiumUntil,
+      },
+    });
+  } catch (error) {
+    console.error('Claim free trial error:', error);
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 };
 

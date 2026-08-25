@@ -466,8 +466,15 @@ export default function AdminDashboard() {
                   className="bg-amber-400 transition-all duration-500"
                   style={{ width: `${memberUsers ? ((stats!.premiumUsers / memberUsers) * 100) : 0}%` }}
                 />
+                {/* On the one-time free-trial grant (claimFreeTrial) — active
+                    but ₹0, kept visually distinct from paying Premium so this
+                    bar can't be read as more revenue than there actually is. */}
+                <div
+                  className="bg-sky-400 transition-all duration-500"
+                  style={{ width: `${memberUsers ? (((stats?.trialUsers ?? 0) / memberUsers) * 100) : 0}%` }}
+                />
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-1.5 text-xs">
                   <span className="w-2.5 h-2.5 rounded-sm bg-[#3E4751] flex-shrink-0" />
                   <span className="text-gray-600 font-medium">Freemium <span className="text-gray-400 font-normal">· {stats?.freemiumUsers ?? 0}</span></span>
@@ -476,6 +483,12 @@ export default function AdminDashboard() {
                   <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 flex-shrink-0" />
                   <span className="text-gray-600 font-medium">Premium <span className="text-gray-400 font-normal">· {stats?.premiumUsers ?? 0}</span></span>
                 </div>
+                {(stats?.trialUsers ?? 0) > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-sky-400 flex-shrink-0" />
+                    <span className="text-gray-600 font-medium">Free trial <span className="text-gray-400 font-normal">· {stats?.trialUsers ?? 0}</span></span>
+                  </div>
+                )}
               </div>
             </div>
 

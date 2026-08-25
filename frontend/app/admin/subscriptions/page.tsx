@@ -160,7 +160,7 @@ export default function AdminSubscriptions() {
             </div>
 
             {/* Quick stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
               {([
                 {
                   label: 'Total Users', value: overview?.totalUsers ?? 0, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100', wash: 'to-blue-50/60',
@@ -169,6 +169,12 @@ export default function AdminSubscriptions() {
                 {
                   label: 'Premium Users', value: overview?.totalPremium ?? 0, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100', wash: 'to-amber-50/60',
                   icon: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
+                },
+                {
+                  // Currently on claimFreeTrial's one-time grant — active but
+                  // ₹0, deliberately not counted in Premium Users/mrr above.
+                  label: 'On Free Trial', value: overview?.totalTrial ?? 0, color: 'text-sky-600', bg: 'bg-sky-50 border-sky-100', wash: 'to-sky-50/60',
+                  icon: <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"/>,
                 },
                 {
                   label: 'Freemium Users', value: overview?.freemiumUsers ?? 0, color: 'text-gray-500', bg: 'bg-gray-100 border-gray-200', wash: 'to-gray-50/80',
@@ -281,7 +287,9 @@ export default function AdminSubscriptions() {
                       </p>
                       <div className="flex flex-col gap-2">
                         {tiers.map(t => {
-                          const row = byTier[t] ?? { users: 0, mrr: 0 };
+                          // `users`/`mrr` are paying-only (see computePremiumRevenue's
+                          // isTrialFor) — trialUsers is reported alongside, never folded in.
+                          const row = byTier[t] ?? { users: 0, mrr: 0, trialUsers: 0 };
                           const pct = roleTotal ? Math.round((row.users / roleTotal) * 100) : 0;
                           const color = t === 'platinum' ? '#8b5cf6' : t === 'golden' ? '#f59e0b' : '#64748b';
                           return (
@@ -294,6 +302,9 @@ export default function AdminSubscriptions() {
                                 <span className="text-[13px] font-semibold text-gray-700 capitalize">{t}</span>
                                 <span className="text-[12px] text-gray-500">
                                   {row.users} {row.users === 1 ? 'user' : 'users'}
+                                  {(row.trialUsers ?? 0) > 0 && (
+                                    <span className="text-sky-500"> · {row.trialUsers} on trial</span>
+                                  )}
                                   <span className="text-gray-300 mx-1.5">·</span>
                                   <span className="font-semibold text-gray-700">₹{fmt(row.mrr)}/mo</span>
                                 </span>
@@ -342,17 +353,22 @@ export default function AdminSubscriptions() {
               <div className="bg-white border border-gray-200/80 rounded-2xl p-5 sm:p-6 shadow-sm">
                 <h3 className="font-semibold text-gray-900 mb-5">User breakdown</h3>
                 <div className="flex flex-col gap-1">
-                  {[
-                    { label: 'Total users',        value: overview?.totalUsers ?? 0,        bold: true,  href: '/admin/users' },
-                    { label: 'Premium users',       value: overview?.totalPremium ?? 0,       bold: false, href: '/admin/users?billing=premium' },
-                    { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false, href: '/admin/users?billing=free' },
-                    { label: 'Premium creators',    value: overview?.premiumInfluencers ?? 0, bold: false, href: '/admin/users?billing=premium&role=influencer' },
-                    { label: 'Premium brands',      value: overview?.premiumBrands ?? 0,      bold: false, href: '/admin/users?billing=premium&role=brand' },
-                  ].map((item, i) => (
+                  {(() => {
+                    const rows = [
+                      { label: 'Total users',        value: overview?.totalUsers ?? 0,        bold: true,  href: '/admin/users' },
+                      { label: 'Premium users',       value: overview?.totalPremium ?? 0,       bold: false, href: '/admin/users?billing=premium' },
+                      { label: 'Freemium users',      value: overview?.freemiumUsers ?? 0,      bold: false, href: '/admin/users?billing=free' },
+                      { label: 'Premium creators',    value: overview?.premiumInfluencers ?? 0, bold: false, href: '/admin/users?billing=premium&role=influencer' },
+                      { label: 'Premium brands',      value: overview?.premiumBrands ?? 0,      bold: false, href: '/admin/users?billing=premium&role=brand' },
+                      // Active on claimFreeTrial's ₹0 grant — separate from
+                      // "Premium users" above so that row stays paying-only.
+                      { label: 'On free trial',       value: overview?.totalTrial ?? 0,         bold: false, href: '/admin/users?billing=premium' },
+                    ];
+                    return rows.map((item, i) => (
                     <button
                       key={i}
                       onClick={() => router.push(item.href)}
-                      className={`group flex items-center justify-between py-3 -mx-2 px-2 rounded-lg text-left hover:bg-gray-50 transition-colors cursor-pointer ${i < 4 ? 'border-b border-gray-50' : ''}`}
+                      className={`group flex items-center justify-between py-3 -mx-2 px-2 rounded-lg text-left hover:bg-gray-50 transition-colors cursor-pointer ${i < rows.length - 1 ? 'border-b border-gray-50' : ''}`}
                     >
                       <span className={`text-sm inline-flex items-center gap-1.5 ${item.bold ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
                         {item.label}
@@ -362,7 +378,8 @@ export default function AdminSubscriptions() {
                       </span>
                       <span className={`text-sm tabular-nums ${item.bold ? 'font-bold text-gray-900' : 'font-semibold text-gray-700'}`}>{item.value}</span>
                     </button>
-                  ))}
+                    ));
+                  })()}
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-gray-100">
@@ -379,8 +396,12 @@ export default function AdminSubscriptions() {
                       className="bg-amber-400 transition-all duration-700"
                       style={{ width: `${overview?.totalUsers ? (((overview.totalPremium ?? 0) / overview.totalUsers) * 100) : 0}%` }}
                     />
+                    <div
+                      className="bg-sky-400 transition-all duration-700"
+                      style={{ width: `${overview?.totalUsers ? (((overview.totalTrial ?? 0) / overview.totalUsers) * 100) : 0}%` }}
+                    />
                   </div>
-                  <div className="flex items-center gap-4 mt-2.5">
+                  <div className="flex items-center gap-4 mt-2.5 flex-wrap">
                     <div className="flex items-center gap-1.5 text-xs">
                       <span className="w-2.5 h-2.5 rounded-sm bg-[#3E4751]" />
                       <span className="text-gray-500">Freemium · {overview?.freemiumUsers ?? 0}</span>
@@ -389,6 +410,12 @@ export default function AdminSubscriptions() {
                       <span className="w-2.5 h-2.5 rounded-sm bg-amber-400" />
                       <span className="text-gray-500">Premium · {overview?.totalPremium ?? 0}</span>
                     </div>
+                    {(overview?.totalTrial ?? 0) > 0 && (
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="w-2.5 h-2.5 rounded-sm bg-sky-400" />
+                        <span className="text-gray-500">Free trial · {overview.totalTrial}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -481,7 +508,14 @@ export default function AdminSubscriptions() {
                                 <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{capWord(p.role)}</p>
                               </td>
                               <td className="px-5 py-3.5 whitespace-nowrap">
-                                {p.recurring ? (
+                                {p.source === 'free_trial' ? (
+                                  <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-semibold border bg-sky-50 text-sky-700 border-sky-200">
+                                    <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"/>
+                                    </svg>
+                                    Free trial
+                                  </span>
+                                ) : p.recurring ? (
                                   <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-semibold border bg-green-50 text-green-700 border-green-200">
                                     <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
@@ -547,10 +581,12 @@ export default function AdminSubscriptions() {
                               : 'bg-gray-50 text-gray-500 border-gray-200'
                             }`}>{p.tier ?? '—'}</span>
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
-                              p.recurring
-                                ? 'bg-green-50 text-green-700 border-green-200'
-                                : 'bg-gray-50 text-gray-500 border-gray-200'
-                            }`}>{p.recurring ? 'Renewal' : 'One-time'}</span>
+                              p.source === 'free_trial'
+                                ? 'bg-sky-50 text-sky-700 border-sky-200'
+                                : p.recurring
+                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  : 'bg-gray-50 text-gray-500 border-gray-200'
+                            }`}>{p.source === 'free_trial' ? 'Free trial' : p.recurring ? 'Renewal' : 'One-time'}</span>
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold border bg-gray-50 text-gray-500 border-gray-200 capitalize">
                               {p.billingCycle}
                             </span>
