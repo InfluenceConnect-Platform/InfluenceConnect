@@ -11,8 +11,8 @@ import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@
 import NichePicker from '@/components/shared/NichePicker';
 import { influencerCaps, normalizeTier, tierLabel, limitLabel } from '@/lib/tiers';
 import { cdnImg } from '@/lib/img';
+import { STATES, CITIES_BY_STATE, STATE_OF_CITY } from '@/lib/locations';
 
-const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata', 'Ahmedabad'];
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 const LEVEL_BADGE: Record<string, string> = {
   elite:        'bg-amber-50 text-amber-700 border border-amber-200',
@@ -310,6 +310,7 @@ function InfluencerProfile() {
   // Name the tier rather than the legacy freemium/premium `plan` flag.
   const profileTier = normalizeTier('influencer', (profile?.userId as { tier?: string } | undefined)?.tier);
   const profilePlanName = tierLabel('influencer', profileTier);
+  const [state, setState] = useState('');
   const [city, setCity] = useState('');
   const [area, setArea] = useState('');
   const [priceRangeMin, setPriceRangeMin] = useState('');
@@ -348,6 +349,9 @@ function InfluencerProfile() {
         setNiche(p.niche || []);
         setSubNiches(p.subNiches || []);
         setSlugInput(p.slug || '');
+        // Legacy profiles have a city but no state — derive it so the state
+        // dropdown pre-selects correctly instead of showing blank.
+        setState(p.state || STATE_OF_CITY[p.city] || '');
         setCity(p.city || '');
         setArea(p.area || '');
         setPriceRangeMin(p.priceRangeMin?.toString() || '');
@@ -368,6 +372,7 @@ function InfluencerProfile() {
     setNiche(profile.niche || []);
     setSubNiches(profile.subNiches || []);
     setSlugInput(profile.slug || '');
+    setState(profile.state || STATE_OF_CITY[profile.city] || '');
     setCity(profile.city || '');
     setArea(profile.area || '');
     setPriceRangeMin(profile.priceRangeMin?.toString() || '');
@@ -422,7 +427,7 @@ function InfluencerProfile() {
     try {
       await api.put('/api/influencer/profile', {
         name: trimmedName,
-        bio, niche, subNiches, city, area: area.trim(),
+        bio, niche, subNiches, state, city, area: area.trim(),
         ...(canCustomUrl && slugInput.trim() !== (profile?.slug || '') ? { slug: slugInput.trim() } : {}),
         priceRangeMin: parseInt(priceRangeMin) || 0,
         priceRangeMax: parseInt(priceRangeMax) || 0,
@@ -1423,18 +1428,44 @@ function InfluencerProfile() {
                     <p className="text-xs text-gray-400 mt-1.5 mb-3">Wherever you're actually based — shown on your profile only.</p>
 
                     <label className="block text-xs font-semibold text-gray-700 mb-2">
+                      State
+                    </label>
+                    <div className="relative mb-3">
+                      <select
+                        value={state}
+                        onChange={e => {
+                          const nextState = e.target.value;
+                          setState(nextState);
+                          // Switching state invalidates a city from the old
+                          // list — clear it rather than leave a mismatched pair.
+                          if (city && !(CITIES_BY_STATE[nextState] || []).includes(city)) setCity('');
+                        }}
+                        className={`w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white appearance-none cursor-pointer pr-9 ${
+                          !state ? 'text-gray-400' : 'text-gray-900'
+                        }`}
+                      >
+                        <option value="" className="text-gray-400">Select your state</option>
+                        {STATES.map(s => <option key={s} value={s} className="text-gray-900">{s}</option>)}
+                      </select>
+                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </div>
+
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">
                       Nearby famous city
                     </label>
                     <div className="relative">
                       <select
                         value={city}
                         onChange={e => setCity(e.target.value)}
-                        className={`w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white appearance-none cursor-pointer pr-9 ${
-                          !city ? 'text-gray-400' : 'text-gray-900'
-                        }`}
+                        disabled={!state}
+                        className={`w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white appearance-none pr-9 ${
+                          !state ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                        } ${!city ? 'text-gray-400' : 'text-gray-900'}`}
                       >
-                        <option value="" className="text-gray-400">Select nearest famous city</option>
-                        {CITIES.map(c => <option key={c} value={c} className="text-gray-900">{c}</option>)}
+                        <option value="" className="text-gray-400">{state ? 'Select nearest famous city' : 'Select a state first'}</option>
+                        {(CITIES_BY_STATE[state] || []).map(c => <option key={c} value={c} className="text-gray-900">{c}</option>)}
                       </select>
                       <svg className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="6 9 12 15 18 9"/>

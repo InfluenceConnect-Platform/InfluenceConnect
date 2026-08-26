@@ -11,8 +11,7 @@ import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS, SUB_NICHE_TO_NICHE 
 import { cdnImg } from '@/lib/img';
 import { levelBadgeCls } from '@/lib/levelBadge';
 import { brandCaps, upgradeTargetFor } from '@/lib/tiers';
-
-const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
+import { STATES, CITIES_BY_STATE, STATE_OF_CITY, ALL_CITIES } from '@/lib/locations';
 
 const AVATAR_GRADIENTS = [
   'from-cyan-500 to-sky-600',
@@ -112,6 +111,14 @@ function FilterPanel({
   activeFilterCount,
   clearFilters,
 }: FilterPanelProps) {
+  // Which state's cities are currently shown as checkboxes. Independent of
+  // `selectedCities` (the actual filter) so switching states to browse never
+  // drops cities already picked from a different state.
+  const [activeState, setActiveState] = useState<string>(() => {
+    const stateOfFirstPick = selectedCities.map(c => STATE_OF_CITY[c]).find(Boolean);
+    return stateOfFirstPick || STATES[0];
+  });
+
   const minVal = minInput.trim() !== '' ? Number(minInput) : null;
   const maxVal = maxInput.trim() !== '' ? Number(maxInput) : null;
   const rangeError =
@@ -184,14 +191,48 @@ function FilterPanel({
 
         <div className="h-px bg-gray-100 mb-5" />
 
-        {/* City */}
+        {/* City — pick a state first, then check cities within it. Already
+            selected cities stay applied (as removable chips) even while
+            browsing a different state's list below. */}
         <div className="mb-5">
           <p className="text-xs font-bold text-gray-600 mb-2.5 flex items-center gap-1.5">
             <span className="w-3 h-3 rounded bg-gradient-to-br from-emerald-500 to-green-600 flex-shrink-0" />
             City
           </p>
-          <div className="flex flex-col gap-2">
-            {CITIES.map(c => (
+
+          {selectedCities.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {selectedCities.map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => toggleCity(c)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                >
+                  {c}
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="relative mb-2.5">
+            <select
+              value={activeState}
+              onChange={e => setActiveState(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] hover:border-gray-300 transition-all appearance-none cursor-pointer pr-9 text-gray-900"
+            >
+              {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <svg className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+
+          <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
+            {(CITIES_BY_STATE[activeState] || []).map(c => (
               <div key={c} role="checkbox" aria-checked={selectedCities.includes(c)} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleCity(c)}>
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
                   selectedCities.includes(c)
@@ -1071,7 +1112,7 @@ function BrandDiscover() {
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-3.5 py-1.5">
                 <svg className="w-3.5 h-3.5 text-blue-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                <span className="text-xs font-semibold text-white">{CITIES.length} cities</span>
+                <span className="text-xs font-semibold text-white">{ALL_CITIES.length}+ cities</span>
               </div>
             </div>
           </div>

@@ -13,9 +13,9 @@ import { NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import MarqueeText from '@/components/shared/MarqueeText';
 import { brandCaps, upgradeCta } from '@/lib/tiers';
+import { STATES, CITIES_BY_STATE, STATE_OF_CITY } from '@/lib/locations';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
-const CITIES = ['all', 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai', 'Kolkata'];
 
 // Compact follower count, e.g. 250000 → "250K", 1500000 → "1.5M".
 const fmtFollowers = (n: number) => {
@@ -37,9 +37,20 @@ const followerRangeLabel = (min: number, max: number) => {
 // Multi-select dropdown for a campaign's target cities. "All India" is mutually
 // exclusive with specific cities: picking it clears the rest, and picking any
 // city clears "All India". Clearing the last city falls back to ['all'].
+//
+// Picking a city is two-step: choose a state from the dropdown at the top of
+// the panel, then check cities within it. Cities already picked from other
+// states stay selected (and shown as chips) while browsing a different state.
 function CityMultiSelect({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const cities = value.filter(c => c && c !== 'all');
+
+  const [activeState, setActiveState] = useState<string>(() => {
+    const stateOfFirstPick = cities.map(c => STATE_OF_CITY[c]).find(Boolean);
+    return stateOfFirstPick || STATES[0];
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -50,7 +61,6 @@ function CityMultiSelect({ value, onChange }: { value: string[]; onChange: (v: s
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
-  const cities = value.filter(c => c && c !== 'all');
   const isAll = cities.length === 0;
 
   const toggle = (c: string) => {
@@ -74,9 +84,52 @@ function CityMultiSelect({ value, onChange }: { value: string[]; onChange: (v: s
         <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto py-1">
-          {CITIES.map(c => {
-            const checked = c === 'all' ? isAll : cities.includes(c);
+        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto py-1">
+          <div
+            role="checkbox"
+            aria-checked={isAll}
+            onClick={() => toggle('all')}
+            className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-gray-50 group border-b border-gray-100 mb-1"
+          >
+            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+              isAll ? 'border-0 bg-gradient-to-br from-emerald-500 to-green-600 shadow-sm' : 'border-gray-300 group-hover:border-emerald-500'
+            }`}>
+              {isAll && (
+                <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              )}
+            </div>
+            <span className={`text-sm transition-colors ${isAll ? 'text-emerald-600 font-semibold' : 'text-gray-700'}`}>All India</span>
+          </div>
+
+          {cities.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 px-3 pb-2">
+              {cities.map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => toggle(c)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                >
+                  {c}
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="px-3 pb-2">
+            <select
+              value={activeState}
+              onChange={e => setActiveState(e.target.value)}
+              onClick={e => e.stopPropagation()}
+              className="w-full px-2.5 py-1.5 text-xs font-medium border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] appearance-none cursor-pointer text-gray-700"
+            >
+              {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+
+          {(CITIES_BY_STATE[activeState] || []).map(c => {
+            const checked = cities.includes(c);
             return (
               <div
                 key={c}
@@ -92,7 +145,7 @@ function CityMultiSelect({ value, onChange }: { value: string[]; onChange: (v: s
                     <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   )}
                 </div>
-                <span className={`text-sm transition-colors ${checked ? 'text-emerald-600 font-semibold' : 'text-gray-700'}`}>{c === 'all' ? 'All India' : c}</span>
+                <span className={`text-sm transition-colors ${checked ? 'text-emerald-600 font-semibold' : 'text-gray-700'}`}>{c}</span>
               </div>
             );
           })}

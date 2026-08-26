@@ -70,6 +70,13 @@ const influencerProfileSchema = new mongoose.Schema({
     enum: SUB_NICHES
   }],
 
+  // Free text (not enum'd against STATES) so legacy/imported data never fails
+  // to save — the frontend picker only ever offers values from lib/locations.
+  state: {
+    type: String,
+    default: ''
+  },
+
   city: {
     type: String,
     default: ''

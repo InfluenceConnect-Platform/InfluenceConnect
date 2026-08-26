@@ -196,6 +196,7 @@ exports.updateProfile = async (req, res) => {
 // CREATE CAMPAIGN
 // ─────────────────────────────────────────
 const { SUB_NICHE_TO_NICHE } = require('../utils/niches');
+const { CITIES_BY_STATE } = require('../utils/locations');
 
 // A campaign's sub-niches must sit under one of its selected niches, or the
 // targeting is meaningless (and the Campaign schema enum would still accept
@@ -898,7 +899,7 @@ exports.discoverInfluencers = async (req, res) => {
 
     const {
       search,
-      niche, subNiche, platform, city,
+      niche, subNiche, platform, state, city,
       minFollowers, maxFollowers,
       minPrice, maxPrice,
       sort = 'relevance',
@@ -943,6 +944,29 @@ exports.discoverInfluencers = async (req, res) => {
       const cities = city.split(',').map(c => c.trim()).filter(Boolean);
       if (cities.length > 0) {
         query.city = cities.length > 1 ? { $in: cities } : cities[0];
+      }
+    } else if (state) {
+      // No specific city chosen — narrow to the whole state. Matches both the
+      // profile's own `state` field (new profiles) and any of that state's
+      // cities on the legacy free-text `city` field (profiles saved before
+      // `state` existed), so old data keeps showing up under its state.
+      const states = state.split(',').map(s => s.trim()).filter(Boolean);
+      if (states.length > 0) {
+        const citiesInStates = states.flatMap(s => CITIES_BY_STATE[s] || []);
+        const stateCond = {
+          $or: [
+            { state: states.length > 1 ? { $in: states } : states[0] },
+            ...(citiesInStates.length ? [{ city: { $in: citiesInStates } }] : []),
+          ],
+        };
+        if (query.$or) {
+          // A free-text `search` term already claimed query.$or — combine both
+          // conditions via $and instead of clobbering one with the other.
+          query.$and = [...(query.$and || []), { $or: query.$or }, stateCond];
+          delete query.$or;
+        } else {
+          Object.assign(query, stateCond);
+        }
       }
     }
 
