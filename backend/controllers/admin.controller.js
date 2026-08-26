@@ -481,6 +481,7 @@ exports.getUserDetails = async (req, res) => {
           companyName: profile.companyName || '',
           industry: profile.industry || '',
           website: profile.website || '',
+          state: profile.state || '',
           city: profile.city || '',
           gstin: profile.gstin || '',
           gstinStatus: profile.gstinStatus || 'not_submitted',

@@ -8,6 +8,8 @@ import IdChip from '@/components/shared/IdChip';
 import { INDUSTRIES, NICHE_STYLES as INDUSTRY_COLORS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import { normalizeTier, tierLabel } from '@/lib/tiers';
+import { STATES, CITIES_BY_STATE } from '@/lib/locations';
+import SearchableSelect from '@/components/shared/SearchableSelect';
 
 // Structural check for an Indian GSTIN (mirrors the backend validator).
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -33,6 +35,8 @@ export default function BrandProfile() {
   const [description, setDescription] = useState('');
   const [industry, setIndustry]       = useState('');
   const [website, setWebsite]         = useState('');
+  const [state, setState]             = useState('');
+  const [city, setCity]               = useState('');
 
   const [gstinInput, setGstinInput]   = useState('');
   const [savingGstin, setSavingGstin] = useState(false);
@@ -56,6 +60,8 @@ export default function BrandProfile() {
       setDescription(p.description || '');
       setIndustry(p.industry || '');
       setWebsite(p.website || '');
+      setState(p.state || '');
+      setCity(p.city || '');
     } catch {
       try {
         await api.post('/api/brand/profile');
@@ -71,7 +77,7 @@ export default function BrandProfile() {
     if (!trimmedName) { setError('Brand name cannot be empty.'); return; }
     setSaving(true); setError('');
     try {
-      await api.put('/api/brand/profile', { name: trimmedName, companyName, description, industry, website });
+      await api.put('/api/brand/profile', { name: trimmedName, companyName, description, industry, website, state, city });
       // Sync the edited display name into localStorage + state so the header and
       // top nav reflect it immediately.
       if (user) {
@@ -96,6 +102,8 @@ export default function BrandProfile() {
     setDescription(profile?.description || '');
     setIndustry(profile?.industry || '');
     setWebsite(profile?.website || '');
+    setState(profile?.state || '');
+    setCity(profile?.city || '');
     setIsEditing(false); setError('');
   };
 
@@ -412,6 +420,34 @@ export default function BrandProfile() {
                     <input type="url" value={website} onChange={e => setWebsite(e.target.value)}
                       placeholder="www.yourbrand.com" className={fieldClass} />
                   </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">State</label>
+                    <SearchableSelect
+                      value={state}
+                      onChange={nextState => {
+                        setState(nextState);
+                        // Switching state invalidates a city from the old
+                        // list — clear it rather than leave a mismatched pair.
+                        if (city && !(CITIES_BY_STATE[nextState] || []).includes(city)) setCity('');
+                      }}
+                      options={STATES}
+                      placeholder="Select your state"
+                      accent="#228B22"
+                      triggerClassName={`${fieldClass} ${!state ? 'text-gray-400' : 'text-gray-900'}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">City</label>
+                    <SearchableSelect
+                      value={city}
+                      onChange={setCity}
+                      options={CITIES_BY_STATE[state] || []}
+                      placeholder={state ? 'Select your city' : 'Select a state first'}
+                      disabled={!state}
+                      accent="#228B22"
+                      triggerClassName={`${fieldClass} ${!state ? 'cursor-not-allowed opacity-60' : ''} ${!city ? 'text-gray-400' : 'text-gray-900'}`}
+                    />
+                  </div>
                 </div>
               </div>
             ) : (
@@ -441,6 +477,14 @@ export default function BrandProfile() {
                     ) : (
                       <p className="text-sm italic text-gray-400">Not set</p>
                     )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Location</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      {profile?.city
+                        ? (profile?.state ? `${profile.city}, ${profile.state}` : profile.city)
+                        : <span className="font-normal italic text-gray-400">Not set</span>}
+                    </p>
                   </div>
                   {profile?.website && (
                     <div className="col-span-2">

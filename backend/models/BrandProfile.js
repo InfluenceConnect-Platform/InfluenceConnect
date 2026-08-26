@@ -31,6 +31,19 @@ const brandProfileSchema = new mongoose.Schema({
     default: ''
   },
 
+  // Free text (not enum'd against STATES) so legacy/imported data never fails
+  // to save — the frontend picker only ever offers values from lib/locations.
+  // Mirrors InfluencerProfile's state/city pair.
+  state: {
+    type: String,
+    default: ''
+  },
+
+  city: {
+    type: String,
+    default: ''
+  },
+
   gstin: {
     type: String,
     default: ''

@@ -433,6 +433,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                         <Field label="Company name" value={brand.companyName} />
                         <Field label="Industry" value={brand.industry ? (NICHE_LABELS[brand.industry] ?? cap(brand.industry)) : '—'} />
+                        <Field label="State" value={brand.state} />
                         <Field label="City" value={brand.city} />
                         <Field label="Website" value={
                           brand.website

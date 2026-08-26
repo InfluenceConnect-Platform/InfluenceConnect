@@ -97,7 +97,7 @@ exports.updateProfile = async (req, res) => {
   try {
     const {
       name, companyName, description, industry,
-      website, gstin
+      website, gstin, state, city
     } = req.body;
 
     const profile = await BrandProfile.findOne({ userId: req.userId });
@@ -118,6 +118,8 @@ exports.updateProfile = async (req, res) => {
     if (companyName !== undefined) profile.companyName = companyName;
     if (description !== undefined) profile.description = description;
     if (industry !== undefined)    profile.industry = industry;
+    if (state !== undefined)       profile.state = state;
+    if (city !== undefined)        profile.city = city;
     // Rendered as a link on campaign cards and in the admin user drawer, so
     // restrict to real http(s) URLs (see utils/validateUrl.js). A bare domain
     // like "acme.com" is still accepted — the UI prefixes https:// itself.
