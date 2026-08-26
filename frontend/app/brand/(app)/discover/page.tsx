@@ -12,6 +12,7 @@ import { cdnImg } from '@/lib/img';
 import { levelBadgeCls } from '@/lib/levelBadge';
 import { brandCaps, upgradeTargetFor } from '@/lib/tiers';
 import { STATES, CITIES_BY_STATE, STATE_OF_CITY, ALL_CITIES } from '@/lib/locations';
+import SearchableSelect from '@/components/shared/SearchableSelect';
 
 const AVATAR_GRADIENTS = [
   'from-cyan-500 to-sky-600',
@@ -138,9 +139,14 @@ function FilterPanel({
       : null;
   const canApplyPrice = (minPriceInput.trim() !== '' || maxPriceInput.trim() !== '') && !priceError;
   const hasPriceApplied = !!(minPrice || maxPrice);
+  // No overflow-hidden on the outer card below — it would clip the State
+  // dropdown's popup (absolutely positioned, can extend past the card's
+  // bottom edge) instead of letting it show/scroll. The header strip
+  // carries its own rounded-t-2xl so the corner still looks clipped
+  // without constraining anything else in the panel.
   return (
-    <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm">
-      <div className="px-5 py-3.5 bg-gradient-to-r from-blue-50/70 to-white dark:from-[#0f1e31] dark:to-[#0E1B2E] border-b border-gray-100 flex items-center justify-between">
+    <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm">
+      <div className="px-5 py-3.5 rounded-t-2xl bg-gradient-to-r from-blue-50/70 to-white dark:from-[#0f1e31] dark:to-[#0E1B2E] border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-1 h-5 rounded-full bg-gradient-to-b from-[#228B22] to-[#1B6E1B]" />
           <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Filters</h4>
@@ -218,17 +224,15 @@ function FilterPanel({
             </div>
           )}
 
-          <div className="relative mb-2.5">
-            <select
+          <div className="mb-2.5">
+            <SearchableSelect
               value={activeState}
-              onChange={e => setActiveState(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] hover:border-gray-300 transition-all appearance-none cursor-pointer pr-9 text-gray-900"
-            >
-              {STATES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <svg className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
+              onChange={setActiveState}
+              options={STATES}
+              placeholder="Select a state"
+              accent="#228B22"
+              triggerClassName="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#228B22]/30 focus:border-[#228B22] hover:border-gray-300 transition-all text-gray-900"
+            />
           </div>
 
           <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
