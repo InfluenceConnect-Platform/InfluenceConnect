@@ -334,6 +334,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                   <>
                     <Section title="Creator Profile">
                       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                        <Field label="State" value={inf.state} />
                         <Field label="City" value={inf.city} />
                         <Field label="Price range" value={
                           inf.priceRangeMin || inf.priceRangeMax

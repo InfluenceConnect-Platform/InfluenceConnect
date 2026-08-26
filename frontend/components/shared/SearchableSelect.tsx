@@ -73,12 +73,17 @@ export default function SearchableSelect({ value, onChange, options, placeholder
       setOpen(false);
     };
     const onResize = () => setOpen(false);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setOpen(false); btnRef.current?.focus(); }
+    };
 
     document.addEventListener('mousedown', onOutsideClick);
+    document.addEventListener('keydown', onKeyDown);
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', onResize);
     return () => {
       document.removeEventListener('mousedown', onOutsideClick);
+      document.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', onResize);
     };

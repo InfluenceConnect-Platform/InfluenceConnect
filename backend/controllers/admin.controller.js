@@ -382,6 +382,7 @@ exports.getUserDetails = async (req, res) => {
         influencer: profile ? {
           bio: profile.bio || '',
           niche: profile.niche || [],
+          state: profile.state || '',
           city: profile.city || '',
           priceRangeMin: profile.priceRangeMin || 0,
           priceRangeMax: profile.priceRangeMax || 0,
