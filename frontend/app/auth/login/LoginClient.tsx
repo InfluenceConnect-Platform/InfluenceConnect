@@ -610,7 +610,7 @@ function LoginRouter() {
 }
 
 // useSearchParams() must be wrapped in Suspense for production builds
-export default function LoginPageWrapper() {
+export default function LoginClient() {
   return (
     <Suspense fallback={null}>
       <LoginRouter />

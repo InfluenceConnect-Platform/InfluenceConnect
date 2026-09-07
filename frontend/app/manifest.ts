@@ -9,7 +9,15 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     display: 'standalone',
     background_color: '#0E1B2E',
-    theme_color: '#228B22',
+    // Neutral app-chrome navy, NOT a role colour. An installed PWA gets one
+    // manifest and one status-bar colour, but the app serves two palettes
+    // (creator ruby #E0115F, brand green #228B22) — so baking either one in
+    // here paints it wrong for the other half. Android/WebAPK locks the
+    // status bar to this value in standalone mode (runtime <meta
+    // name="theme-color"> updates from useThemeColor() are honoured only by
+    // some Chrome versions and not on many Samsung builds), so it stays
+    // role-agnostic and matches the navy boot splash / dark surface.
+    theme_color: '#0E1B2E',
     icons: [
       { src: '/icon', sizes: '32x32', type: 'image/png' },
       { src: '/apple-icon', sizes: '180x180', type: 'image/png' },

@@ -456,7 +456,7 @@ function SignupPage() {
 }
 
 // useSearchParams() must be wrapped in Suspense for production builds
-export default function SignupPageWrapper() {
+export default function SignupClient() {
   return (
     <Suspense fallback={null}>
       <SignupPage />
