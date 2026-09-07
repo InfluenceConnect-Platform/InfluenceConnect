@@ -30,13 +30,42 @@ export function setActiveLightColor(color: string) {
 }
 
 export function writeThemeColorMeta(theme: Theme) {
-  let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+  const color = theme === 'dark' ? DARK_STATUS_BAR : activeLightColor;
+
+  // There can be several <meta name="theme-color"> in the document at once:
+  // Next renders one from the mounted route's `viewport` export (the root's
+  // is green, /influencer's is ruby), and a media-scoped pair is easy to add
+  // elsewhere. The UA honours the *first* tag whose media matches, so a
+  // stale media-scoped or earlier tag would keep winning over an in-place
+  // update to a later one. Collapse them to a single unconditional tag and
+  // make that the one source of truth.
+  const metas = Array.from(
+    document.querySelectorAll('meta[name="theme-color"]')
+  ) as HTMLMetaElement[];
+  let meta = metas.find((m) => !m.hasAttribute('media')) || null;
+  for (const m of metas) {
+    if (m !== meta) m.remove();
+  }
   if (!meta) {
     meta = document.createElement('meta');
     meta.setAttribute('name', 'theme-color');
     document.head.appendChild(meta);
   }
-  meta.setAttribute('content', theme === 'dark' ? DARK_STATUS_BAR : activeLightColor);
+  meta.setAttribute('content', color);
+
+  // Installed PWAs (Android/Chrome): the OS status bar is painted from the
+  // manifest `theme_color` at launch and Chrome frequently won't repaint it
+  // for an in-place `content` change on this tag — it only re-reads the tag
+  // as it enters the DOM. Re-inserting the node forces that re-read, so a
+  // creator page gets its ruby bar instead of the manifest's green.
+  const standalone =
+    window.matchMedia?.('(display-mode: standalone)').matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  if (standalone && meta.parentNode) {
+    const parent = meta.parentNode;
+    parent.removeChild(meta);
+    parent.appendChild(meta);
+  }
 }
 
 /** The whole theme change, as one synchronous DOM mutation. */
