@@ -7,6 +7,7 @@ import { ConfirmProvider } from "@/components/shared/ConfirmModal";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import GoogleAnalytics from "@/components/marketing/GoogleAnalytics";
 import ServiceWorkerRegister from "@/components/shared/ServiceWorkerRegister";
+import NumberInputWheelGuard from "@/components/shared/NumberInputWheelGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -134,6 +135,7 @@ export default function RootLayout({
         </ThemeProvider>
         <GoogleAnalytics />
         <ServiceWorkerRegister />
+        <NumberInputWheelGuard />
       </body>
     </html>
   );
