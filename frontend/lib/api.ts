@@ -26,7 +26,18 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   // Influencer/brand sessions persist in localStorage; admin sessions stay in
   // sessionStorage so admins are logged out when the browser closes.
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  //
+  // Both can be set at the same time: localStorage is shared across every tab
+  // (and across incognito tabs of one session), so a creator/brand logged in
+  // elsewhere leaves a localStorage token that would otherwise shadow the
+  // admin's sessionStorage token here — every /api/admin call would then run
+  // as that creator (403s → empty dashboards) and /api/auth/account would
+  // return the creator's profile on the admin settings page. Pick the store
+  // by which surface the request is coming from; never fall back across them.
+  const onAdmin = window.location.pathname.startsWith('/admin');
+  const token = onAdmin
+    ? sessionStorage.getItem('token')
+    : localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -50,7 +61,11 @@ api.interceptors.response.use(
       handlingSuspension = true;
       let loginPath = '/auth/login';
       try {
-        const stored = localStorage.getItem('user') || sessionStorage.getItem('user');
+        // Same store split as the request interceptor above — read the user
+        // for whichever surface raised the error, not whichever store happens
+        // to hold a value.
+        const onAdmin = window.location.pathname.startsWith('/admin');
+        const stored = onAdmin ? sessionStorage.getItem('user') : localStorage.getItem('user');
         const role = JSON.parse(stored || '{}')?.role;
         if (role === 'admin') loginPath = '/admin/login';
         else if (role === 'brand' || role === 'influencer') loginPath = `/auth/login?role=${role}`;
