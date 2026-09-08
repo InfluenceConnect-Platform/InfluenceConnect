@@ -15,16 +15,18 @@ const { getAdminEmails } = require('../utils/getAdminEmails');
 const { isValidGstin, normalizeGstin } = require('../utils/validateGstin');
 const { migrateIndustryValue, migrateNicheArray, migrateSubNicheArray } = require('../utils/nicheMigration');
 const { isSafeHttpUrl } = require('../utils/validateUrl');
+const { buildCampaignAudienceConditions } = require('../utils/campaignAudience');
 
-// Email influencers when a campaign goes live. Matches on niche overlap (or
-// all active creators if the campaign has no niche), capped to keep the
-// fan-out bounded. Fire-and-forget — never blocks the publish response.
+// Email influencers when a campaign goes live. Uses the same relevance rules
+// as the creator's browse list (niche, budget/price floor, platform+follower
+// range, city) so nobody is mailed a campaign they'd never actually see —
+// e.g. one whose budget can't reach their rate. Capped to keep the fan-out
+// bounded. Fire-and-forget — never blocks the publish response.
 async function notifyInfluencersOfNewCampaign(campaign, brandName) {
   try {
-    const nicheFilter = campaign.niche && campaign.niche.length
-      ? { niche: { $in: campaign.niche } }
-      : {};
-    const profiles = await InfluencerProfile.find(nicheFilter).select('userId').limit(200);
+    const audience = buildCampaignAudienceConditions(campaign);
+    const query = audience.length ? { $and: audience } : {};
+    const profiles = await InfluencerProfile.find(query).select('userId').limit(200);
     if (profiles.length === 0) return;
     const influencers = await User.find({
       _id: { $in: profiles.map(p => p.userId) },
