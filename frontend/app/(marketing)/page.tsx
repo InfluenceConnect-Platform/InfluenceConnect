@@ -194,7 +194,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/auth/signup?role=brand"
-                className="btn-shine group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#0E3D18] bg-white/95 backdrop-blur-md border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_24px_-8px_rgba(0,0,0,0.35)] ring-1 ring-transparent hover:ring-white hover:bg-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_12px_32px_-6px_rgba(34,139,34,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
+                className="btn-shine group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#0E3D18] bg-white/95 backdrop-blur-md border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_24px_-8px_rgba(0,0,0,0.35)] ring-1 ring-transparent hover:ring-white hover:bg-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_12px_32px_-6px_rgba(34,139,34,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 dark:hover:bg-[#228B22] dark:hover:border-[#228B22] dark:hover:text-white"
               >
                 I&apos;m a Brand
                 <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
