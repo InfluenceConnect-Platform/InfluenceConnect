@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -11,7 +12,7 @@ import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@
 import NichePicker from '@/components/shared/NichePicker';
 import { influencerCaps, normalizeTier, tierLabel, limitLabel } from '@/lib/tiers';
 import { cdnImg } from '@/lib/img';
-import { STATES, CITIES_BY_STATE, STATE_OF_CITY, formatCities, profileCities } from '@/lib/locations';
+import { STATES, CITIES_BY_STATE, STATE_OF_CITY, ALL_CITIES, formatCities, profileCities } from '@/lib/locations';
 import SearchableSelect from '@/components/shared/SearchableSelect';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
@@ -263,6 +264,130 @@ const SectionHeader = ({ icon, title, desc }: SectionHeaderProps) => (
     </div>
   </div>
 );
+
+/**
+ * Free-text search across every city in the taxonomy (not just the currently
+ * selected state's list) so a creator can jump straight to e.g. "Kandi"
+ * without first picking West Bengal from the state dropdown. Since a
+ * profile only ever has one state, picking a city from a *different* state
+ * than the one currently selected switches the state and resets the city
+ * list to just that pick (matching what the State dropdown itself does);
+ * picking one from the same state just toggles it like the checkbox list
+ * below does.
+ *
+ * Portaled + fixed-position like SearchableSelect: a plain absolutely-
+ * positioned popup would get clipped by this card's own scroll/overflow
+ * ancestors once the match list runs long.
+ */
+function CitySearchBox({ cities, onPick }: { cities: string[]; onPick: (city: string) => void }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; left: number; width: number } | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const PANEL_MAX_HEIGHT = 260;
+
+  const computePosition = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - r.bottom;
+    const openUp = spaceBelow < PANEL_MAX_HEIGHT && r.top > spaceBelow;
+    setPos(
+      openUp
+        ? { bottom: window.innerHeight - r.top + 4, left: r.left, width: r.width }
+        : { top: r.bottom + 4, left: r.left, width: r.width }
+    );
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    computePosition();
+    const onOutsideClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (wrapRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const onScroll = (e: Event) => {
+      if (panelRef.current && e.target instanceof Node && panelRef.current.contains(e.target)) return;
+      setOpen(false);
+    };
+    const onResize = () => setOpen(false);
+    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onOutsideClick);
+    document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => {
+      document.removeEventListener('mousedown', onOutsideClick);
+      document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open]);
+
+  const q = query.trim().toLowerCase();
+  const matches = q ? ALL_CITIES.filter(c => c.toLowerCase().includes(q)).slice(0, 30) : [];
+
+  const pick = (city: string) => {
+    onPick(city);
+    setQuery('');
+    // Keep the panel open so multiple cities can be added in one go.
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div ref={wrapRef} className="relative mb-2.5">
+      <div className="relative">
+        <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          placeholder="Search any city…"
+          className="w-full pl-8 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 text-gray-900 placeholder:text-gray-400"
+        />
+      </div>
+
+      {open && q && pos && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={panelRef}
+          className="fixed z-[1000] bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+          style={{ top: pos.top, bottom: pos.bottom, left: pos.left, width: pos.width }}
+        >
+          <div className="overflow-y-auto overscroll-contain py-1" style={{ maxHeight: PANEL_MAX_HEIGHT }}>
+            {matches.length === 0 && (
+              <div className="px-3.5 py-2.5 text-sm text-gray-400">No matches</div>
+            )}
+            {matches.map(c => {
+              const selected = cities.includes(c);
+              return (
+                <div
+                  key={c}
+                  role="option"
+                  aria-selected={selected}
+                  onClick={() => pick(c)}
+                  className={`flex items-center justify-between gap-2 px-3.5 py-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors ${selected ? 'text-[#B00D4D] font-semibold' : 'text-gray-700'}`}
+                >
+                  <span className="truncate">{c}</span>
+                  <span className="flex-shrink-0 text-xs text-gray-400">{STATE_OF_CITY[c]}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
 
 function InfluencerProfile() {
   const router = useRouter();
@@ -1464,6 +1589,24 @@ function InfluencerProfile() {
                       <MapPinIcon />
                       State
                     </label>
+
+                    <CitySearchBox
+                      cities={cities}
+                      onPick={city => {
+                        const st = STATE_OF_CITY[city];
+                        if (st && st !== state) {
+                          // Picked a city from a different state than the one
+                          // currently selected — switch state and start the
+                          // city list fresh, same as changing state below.
+                          setState(st);
+                          setCities([city]);
+                        } else {
+                          setCities(prev => prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city]);
+                        }
+                      }}
+                    />
+                    <p className="text-[11px] text-gray-400 mb-2 -mt-1">or pick your state manually</p>
+
                     <div className="mb-3">
                       <SearchableSelect
                         value={state}
