@@ -175,6 +175,20 @@ async function purgeOneAccount(user) {
   user.status = 'suspended'; // permanently blocks login (see login's deletedAt check, which fires first)
   user.deleteScheduledAt = null;
   user.deletedAt = new Date();
+  // The cancelForUser call above only downgrades plan/tier when there was a
+  // live recurring Subscription to cancel — a one-time purchase (this app's
+  // default) or a free-trial grant has no Subscription doc, so it left this
+  // untouched. Without resetting it here explicitly, a deleted account whose
+  // premiumUntil hadn't yet passed kept counting as an active paying member
+  // in every admin dashboard (Overview's premiumUsers/MRR, the Subscriptions
+  // page, tierBreakdown) for as long as a year after the account was gone —
+  // found via a real one on this dev DB (deleted 2026-08-26, still "premium"
+  // until 2027-09-26). A suspended, unusable account should never be able to
+  // still read as revenue.
+  user.plan = 'freemium';
+  user.tier = 'free';
+  user.premiumUntil = null;
+  user.premiumStartedAt = null;
   await user.save();
 }
 
