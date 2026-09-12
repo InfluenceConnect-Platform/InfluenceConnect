@@ -126,6 +126,13 @@ export default function InfluencerDashboard() {
   useLiveData(() => { fetchProfile(); });
 
   const fetchProfile = async () => {
+    // Independent of the profile fetch below (the trend charts have their own
+    // loading state), so it's fired in parallel rather than only starting
+    // once the profile round-trip finishes — same data, sooner.
+    const statsPromise = api.get('/api/influencer/stats-history')
+      .then(res => setStatsHistory(res.data.snapshots ?? []))
+      .catch(() => setStatsHistory([]));
+
     try {
       const response = await api.get('/api/influencer/profile/me');
       setProfile(response.data.profile);
@@ -139,14 +146,7 @@ export default function InfluencerDashboard() {
     } finally {
       setLoading(false);
     }
-    // Real recorded stat history for the trend charts. Non-blocking and
-    // best-effort — the dashboard still renders if this fails.
-    try {
-      const res = await api.get('/api/influencer/stats-history');
-      setStatsHistory(res.data.snapshots ?? []);
-    } catch {
-      setStatsHistory([]);
-    }
+    await statsPromise;
   };
 
   if (loading) {

@@ -242,4 +242,18 @@ influencerProfileSchema.methods.getVisiblePortfolio = function(tier) {
   });
 };
 
+// Discover (brand.controller.js) and the campaign-audience/relevance
+// matching (campaign.controller.js, campaignAudience.js) filter on exactly
+// these fields — niche/subNiches/cities/platforms.name are multikey indexes
+// (array fields), so each still helps even though a query often combines
+// several of these with an $and. Purely additive: same query results, no
+// behavior change, just lets Mongo use an index instead of a collection scan
+// as the number of profiles grows past what fits comfortably in a scan.
+influencerProfileSchema.index({ niche: 1 });
+influencerProfileSchema.index({ subNiches: 1 });
+influencerProfileSchema.index({ cities: 1 });
+influencerProfileSchema.index({ state: 1 });
+influencerProfileSchema.index({ 'platforms.name': 1, 'platforms.followers': 1 });
+influencerProfileSchema.index({ credibilityScore: -1 });
+
 module.exports = mongoose.model('InfluencerProfile', influencerProfileSchema);

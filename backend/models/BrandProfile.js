@@ -118,4 +118,9 @@ brandProfileSchema.methods.calculateLevel = function() {
   return 'starter';
 };
 
+// gstinStatus is aggregated/counted on every load of the admin GST page (and
+// the AdminNav pending-count badge polls it every 12s — see useLiveData), and
+// is one branch of Discover's state-narrowing filter. Purely additive.
+brandProfileSchema.index({ gstinStatus: 1 });
+
 module.exports = mongoose.model('BrandProfile', brandProfileSchema);
