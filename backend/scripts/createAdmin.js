@@ -4,13 +4,26 @@ const User = require('../models/User');
 
 // Bootstrap-only credentials. These just seed the FIRST admin account; the
 // admin is expected to change the email + password from the in-app Admin
-// Settings page afterwards. Prefer env vars so nothing sensitive lives in
-// source control — the literals below are only a development fallback.
+// Settings page afterwards.
+//
+// ADMIN_EMAIL and ADMIN_PASSWORD must be set explicitly — no hardcoded
+// fallback value here. A fallback like 'Admin@Secure2026' would sit in git
+// history forever; anyone who ever had repo access (a former contractor, a
+// leaked clone, this being made public) would know the very first admin
+// account's password if someone forgot to set the real one before running
+// this against production.
+for (const key of ['ADMIN_EMAIL', 'ADMIN_PASSWORD']) {
+  if (!process.env[key]) {
+    console.error(`Missing required env variable: ${key}. Set it in .env before running this script.`);
+    process.exit(1);
+  }
+}
+
 const adminData = {
   name: process.env.ADMIN_NAME || 'Influence Connect Admin',
-  email: (process.env.ADMIN_EMAIL || 'influenceconnect.app@gmail.com').toLowerCase(),
+  email: process.env.ADMIN_EMAIL.toLowerCase(),
   mobile: process.env.ADMIN_MOBILE || '+919000000000',
-  password: process.env.ADMIN_PASSWORD || 'Admin@Secure2026',   // plain text — the model pre-save hook hashes it
+  password: process.env.ADMIN_PASSWORD,   // plain text — the model pre-save hook hashes it
   role: 'admin',
   emailVerified: true,
   mobileVerified: true,

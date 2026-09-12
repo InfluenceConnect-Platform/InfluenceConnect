@@ -1544,7 +1544,11 @@ exports.cancelAccountDeletion = async (req, res) => {
 // backend/utils/purgeAccount.js for what "purge" actually does)
 // ─────────────────────────────────────────
 exports.purgeScheduledDeletions = async (req, res) => {
-  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Require the secret to actually be configured — otherwise
+  // `Bearer ${undefined}` becomes the literal, publicly-known string
+  // "Bearer undefined", which anyone could send to trigger this endpoint
+  // without ever having the real secret.
+  if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 

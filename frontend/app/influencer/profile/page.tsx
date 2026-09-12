@@ -1678,6 +1678,20 @@ function InfluencerProfile() {
                       <p className="text-sm text-gray-400 italic px-1 py-2">Select a state first</p>
                     )}
                     <p className="text-xs text-gray-400 mt-1.5">Helps brands find you when they search by city.</p>
+
+                    <label className="block text-xs font-semibold text-gray-700 mb-2 mt-4">
+                      Area <span className="font-normal text-gray-400">(optional — a neighborhood within one of your cities)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={area}
+                      onChange={e => setArea(e.target.value.slice(0, 100))}
+                      placeholder="e.g. Koramangala, Andheri West"
+                      className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white text-gray-900 placeholder:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      Shown as &ldquo;near {area || '…'}&rdquo; next to your cities — update or clear this if it no longer matches where you&apos;re based.
+                    </p>
                   </div>
 
                   {/* Public profile URL — editable on Silver+ ("Public profile

@@ -3,6 +3,7 @@ const PayoutDetail = require('../models/PayoutDetail');
 const User = require('../models/User');
 const Campaign = require('../models/Campaign');
 const { encrypt, decrypt } = require('../utils/payoutCrypto');
+const { isCloudinaryUrl } = require('../utils/validateUrl');
 const { postDealNotice } = require('../utils/dealNotice');
 const notify = require('../services/email');
 
@@ -191,6 +192,15 @@ exports.markAsPaid = async (req, res) => {
     }
     if (!receiptUrl) {
       return res.status(400).json({ error: 'Attach a payment receipt.' });
+    }
+    // Same rule as every other media field in the app (profile pics, cover
+    // photos, chat attachments): only ever store a URL that actually came
+    // from our own Cloudinary uploads — otherwise a brand could point this
+    // at an arbitrary external link and have it served to the creator (and
+    // to admins reviewing payouts) as if it were a real receipt. See
+    // utils/validateUrl.js for the full threat model.
+    if (!isCloudinaryUrl(receiptUrl)) {
+      return res.status(400).json({ error: 'Invalid receipt file.' });
     }
 
     payout.paid = true;
