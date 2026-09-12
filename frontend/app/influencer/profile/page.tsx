@@ -708,12 +708,10 @@ function InfluencerProfile() {
               {isEditing ? (
                 // Sticky only on mobile (where these stack full-width below the
                 // long edit form) so Save/Cancel stay reachable while scrolling.
-                // Reset to normal flow at sm: where it sits inline in the header.
-                <div
-                  className={`sticky top-[108px] z-20 -mx-5 px-5 py-2.5 flex flex-col gap-2.5 w-full rounded-b-2xl
-                    sm:static sm:top-auto sm:z-auto sm:mx-0 sm:px-0 sm:py-0 sm:flex-row sm:rounded-none sm:w-auto
-                    ${isDark ? 'bg-[#0E1B2E]/95 backdrop-blur-sm sm:bg-transparent' : 'bg-white/95 backdrop-blur-sm sm:bg-transparent'}`}
-                >
+                // No wrapper background/padding — the buttons keep their own
+                // backgrounds and sit exactly where they always did; only their
+                // position becomes sticky once you scroll past it.
+                <div className="sticky top-[108px] z-20 flex flex-col sm:static sm:top-auto sm:z-auto sm:flex-row gap-2.5 w-full sm:w-auto">
                   <button
                     onClick={handleCancelEdit}
                     className={`text-sm px-4 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
