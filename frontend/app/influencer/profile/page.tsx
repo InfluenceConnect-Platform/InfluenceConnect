@@ -1817,7 +1817,7 @@ function InfluencerProfile() {
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
                 </svg>
                 <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-                  <strong className="font-semibold">Tip:</strong> Upload posts, reels, or stories from deals you&apos;ve actually delivered for brands — not just personal content. Real, published sponsored work is what earns brands&apos; trust fastest.
+                  <strong className="font-semibold">Tip:</strong> Upload posts, reels, or stories from deals you&apos;ve actually delivered for brands — not just personal content. Real, published sponsored work is what earns brand&apos;s trust fastest.
                 </p>
               </div>
             )}
