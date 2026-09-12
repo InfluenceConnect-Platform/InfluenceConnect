@@ -185,19 +185,19 @@ export default function HomePage() {
             <div className="anim-fade-up anim-delay-3 flex flex-col sm:flex-row gap-3.5 mb-8">
               <Link
                 href="/auth/signup?role=influencer"
-                className="btn-shine inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#6B0C33] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                className="btn-shine group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#6B0C33] bg-[#fff] ring-1 ring-transparent hover:ring-white hover:bg-[#f3f4f6] shadow-lg hover:shadow-[0_12px_32px_-6px_rgba(224,17,95,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
               >
                 I&apos;m a Creator
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                 </svg>
               </Link>
               <Link
                 href="/auth/signup?role=brand"
-                className="btn-shine inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#0E3D18] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                className="btn-shine group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#0E3D18] bg-[#fff] ring-1 ring-transparent hover:ring-white hover:bg-[#f3f4f6] shadow-lg hover:shadow-[0_12px_32px_-6px_rgba(34,139,34,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
               >
                 I&apos;m a Brand
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                 </svg>
               </Link>
