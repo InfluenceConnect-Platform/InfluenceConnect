@@ -1254,10 +1254,10 @@ function BrandDiscover() {
                   return (
                     <div
                       key={i}
-                      className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group"
+                      className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group h-full flex flex-col"
                     >
                       {/* Gradient mini-banner */}
-                      <div className={`h-20 bg-gradient-to-br ${bannerGrad} relative overflow-hidden`}>
+                      <div className={`h-20 bg-gradient-to-br ${bannerGrad} relative overflow-hidden flex-shrink-0`}>
                         <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full" />
                         <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-white/10 rounded-full" />
                         {/* Credibility badge */}
@@ -1269,7 +1269,7 @@ function BrandDiscover() {
                         )}
                       </div>
 
-                      <div className="px-4 pb-4">
+                      <div className="px-4 pb-4 flex-1 flex flex-col">
                         {/* Avatar + platforms row */}
                         <div className="flex items-end justify-between mt-3 mb-3">
                           <div className={`w-14 h-14 rounded-full border-[3px] border-white shadow-md overflow-hidden bg-gradient-to-br ${avatarGrad} flex items-center justify-center flex-shrink-0`}>
@@ -1359,7 +1359,7 @@ function BrandDiscover() {
                         </div>
 
                         {/* Rate + CTA */}
-                        <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
+                        <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 mt-auto">
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-0.5">Rate</p>
                             <p className={`text-sm font-bold ${influencer.priceRangeMin > 0 ? 'text-emerald-700' : 'text-gray-400 italic text-xs font-normal'}`}>

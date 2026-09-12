@@ -652,19 +652,23 @@ function InfluencerProfile() {
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
 
         {/* Page header */}
-        <div className={`relative overflow-hidden mb-6 md:mb-7 rounded-2xl border shadow-sm ${isDark ? 'bg-[#0E1B2E] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
-          {/* Decorative gradient layer */}
-          <div className={`absolute inset-0 pointer-events-none bg-gradient-to-br ${isDark ? 'from-[#2E0818] via-[#0E1B2E] to-[#1a0510]' : 'from-[#FCE4EC] via-white to-[#FDF2F6]'}`} />
-          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#F0417B]/10 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-10 w-52 h-52 rounded-full bg-[#E0115F]/10 blur-2xl pointer-events-none" />
-          <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" preserveAspectRatio="none">
-            <defs>
-              <pattern id="hdr-dots" width="14" height="14" patternUnits="userSpaceOnUse">
-                <circle cx="1.5" cy="1.5" r="1" fill="#7A0F3D"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#hdr-dots)"/>
-          </svg>
+        <div className={`relative mb-6 md:mb-7 rounded-2xl border shadow-sm ${isDark ? 'bg-[#0E1B2E] border-slate-700/60' : 'bg-white border-gray-200/80'}`}>
+          {/* Decorative layer clipped to the card's rounded corners in its own
+              overflow-hidden wrapper — kept off the card itself so the sticky
+              Save/Cancel bar below isn't clipped by an overflow-hidden ancestor. */}
+          <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+            <div className={`absolute inset-0 bg-gradient-to-br ${isDark ? 'from-[#2E0818] via-[#0E1B2E] to-[#1a0510]' : 'from-[#FCE4EC] via-white to-[#FDF2F6]'}`} />
+            <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#F0417B]/10 blur-2xl" />
+            <div className="absolute -bottom-20 -left-10 w-52 h-52 rounded-full bg-[#E0115F]/10 blur-2xl" />
+            <svg className="absolute inset-0 w-full h-full opacity-[0.04]" preserveAspectRatio="none">
+              <defs>
+                <pattern id="hdr-dots" width="14" height="14" patternUnits="userSpaceOnUse">
+                  <circle cx="1.5" cy="1.5" r="1" fill="#7A0F3D"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#hdr-dots)"/>
+            </svg>
+          </div>
 
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-5 sm:px-7 py-5 sm:py-6">
             <div className="min-w-0">
@@ -702,7 +706,14 @@ function InfluencerProfile() {
                 </span>
               )}
               {isEditing ? (
-                <>
+                // Sticky only on mobile (where these stack full-width below the
+                // long edit form) so Save/Cancel stay reachable while scrolling.
+                // Reset to normal flow at sm: where it sits inline in the header.
+                <div
+                  className={`sticky top-[108px] z-20 -mx-5 px-5 py-2.5 flex flex-col gap-2.5 w-full rounded-b-2xl
+                    sm:static sm:top-auto sm:z-auto sm:mx-0 sm:px-0 sm:py-0 sm:flex-row sm:rounded-none sm:w-auto
+                    ${isDark ? 'bg-[#0E1B2E]/95 backdrop-blur-sm sm:bg-transparent' : 'bg-white/95 backdrop-blur-sm sm:bg-transparent'}`}
+                >
                   <button
                     onClick={handleCancelEdit}
                     className={`text-sm px-4 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
@@ -727,7 +738,7 @@ function InfluencerProfile() {
                       </>
                     )}
                   </button>
-                </>
+                </div>
               ) : (
                 <>
                   <a
@@ -1770,6 +1781,18 @@ function InfluencerProfile() {
                 </button>
               )}
             </div>
+
+            {/* Suggestion — nudge creators to upload proof of real brand deals, not just personal content */}
+            {isEditing && (
+              <div className="mx-5 mt-1 mb-4 flex items-start gap-2.5 px-3.5 py-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/40 rounded-xl">
+                <svg className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                  <strong className="font-semibold">Tip:</strong> Upload posts, reels, or stories from deals you&apos;ve actually delivered for brands — not just personal content. Real, published sponsored work is what earns brands&apos; trust fastest.
+                </p>
+              </div>
+            )}
 
             {/* Tab bar */}
             <div className="flex items-center px-2 border-b border-gray-100 overflow-x-auto [&::-webkit-scrollbar]:hidden">

@@ -185,7 +185,7 @@ export default function HomePage() {
             <div className="anim-fade-up anim-delay-3 flex flex-col sm:flex-row gap-3.5 mb-8">
               <Link
                 href="/auth/signup?role=influencer"
-                className="btn-shine inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-[#7A0F3D] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                className="btn-shine inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#6B0C33] bg-[#fff] hover:bg-[#f3f4f6] shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
               >
                 I&apos;m a Creator
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -194,7 +194,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/auth/signup?role=brand"
-                className="btn-shine inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-white bg-white/10 border border-white/40 hover:bg-white/20 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                className="btn-shine inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-white bg-white/15 border-2 border-white/70 hover:bg-white/25 hover:border-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
               >
                 I&apos;m a Brand
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
