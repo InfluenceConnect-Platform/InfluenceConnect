@@ -73,9 +73,11 @@ function buildCampaignAudienceConditions(campaign) {
     });
   }
 
-  // 4. CITY — the creator's city is one the campaign targets. A campaign that
-  //    targets everyone ([], or the 'all' sentinel) qualifies for anyone.
-  //    Creators with no city set aren't gated out.
+  // 4. CITY — one of the creator's cities (multi-select `cities`, or the
+  //    legacy singular `city` for profiles saved before that shipped) is one
+  //    the campaign targets. A campaign that targets everyone ([], or the
+  //    'all' sentinel) qualifies for anyone. Creators with no city set at
+  //    all aren't gated out.
   const targetsAllCities =
     !Array.isArray(campaign.targetCity) ||
     campaign.targetCity.length === 0 ||
@@ -83,10 +85,9 @@ function buildCampaignAudienceConditions(campaign) {
   if (!targetsAllCities) {
     conditions.push({
       $or: [
+        { cities: { $in: campaign.targetCity } },
         { city: { $in: campaign.targetCity } },
-        { city: '' },
-        { city: { $exists: false } },
-        { city: null },
+        { $and: [{ $or: [{ cities: { $size: 0 } }, { cities: { $exists: false } }] }, { $or: [{ city: '' }, { city: { $exists: false } }, { city: null }] }] },
       ],
     });
   }

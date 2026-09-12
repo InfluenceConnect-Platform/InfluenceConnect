@@ -77,9 +77,23 @@ const influencerProfileSchema = new mongoose.Schema({
     default: ''
   },
 
+  // Legacy single-city field. Kept (rather than dropped) so every old query,
+  // export and admin view that still reads `city` keeps working; new saves
+  // mirror the first entry of `cities` into it. New code should read/match
+  // against `cities` via utils/locations.js' profileCities() helper, which
+  // falls back to this field for profiles saved before multi-select shipped.
   city: {
     type: String,
     default: ''
+  },
+
+  // Multi-select cities within the chosen state — an influencer can cover
+  // more than one city (e.g. "Kolkata, Howrah, Kandi"). Free text, same as
+  // `city` above, for the same legacy-data-never-fails-to-save reason; the
+  // frontend picker only ever offers values from lib/locations.
+  cities: {
+    type: [String],
+    default: []
   },
 
   // Free-text neighborhood/locality (e.g. "Koramangala", "Andheri West").
@@ -151,7 +165,7 @@ influencerProfileSchema.methods.calculateCredibilityScore = function() {
   let completeness = 0;
   if (this.bio && this.bio.length > 50) completeness += 15;
   if (this.niche && this.niche.length > 0) completeness += 10;
-  if (this.city) completeness += 10;
+  if ((this.cities && this.cities.length > 0) || this.city) completeness += 10;
   if (this.priceRangeMin > 0) completeness += 10;
   if (this.platforms && this.platforms.length > 0) completeness += 10;
   if (this.portfolioItems && this.portfolioItems.length >= 1) completeness += 15;

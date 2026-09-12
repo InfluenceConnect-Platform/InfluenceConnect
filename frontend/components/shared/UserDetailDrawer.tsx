@@ -8,6 +8,7 @@ import IdChip from '@/components/shared/IdChip';
 import { NICHE_LABELS } from '@/lib/niches';
 import { downloadUrlFor } from '@/lib/chatAttachments';
 import { cdnImg } from '@/lib/img';
+import { formatCities } from '@/lib/locations';
 
 const TEAL = '#7FA8AD';
 
@@ -335,7 +336,7 @@ export default function UserDetailDrawer({ userId, onClose, onChanged }: Props) 
                     <Section title="Creator Profile">
                       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                         <Field label="State" value={inf.state} />
-                        <Field label="City" value={inf.city} />
+                        <Field label={inf.cities?.length > 1 ? 'Cities' : 'City'} value={formatCities(inf)} />
                         <Field label="Price range" value={
                           inf.priceRangeMin || inf.priceRangeMax
                             ? `${inr(inf.priceRangeMin)} – ${inr(inf.priceRangeMax)}`

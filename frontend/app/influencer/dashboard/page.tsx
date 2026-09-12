@@ -38,6 +38,7 @@ interface Profile {
   bio: string;
   niche: string[];
   city: string;
+  cities?: string[];
   priceRangeMin: number;
   priceRangeMax: number;
   credibilityScore: number;
@@ -170,7 +171,7 @@ export default function InfluencerDashboard() {
     !!profile?.bio,
     (profile?.platforms?.length ?? 0) > 0,
     (profile?.portfolioItems?.length ?? 0) > 0,
-    !!profile?.city,
+    (profile?.cities?.length ?? 0) > 0 || !!profile?.city,
     (profile?.niche?.length ?? 0) > 0,
   ];
   const completionPct = Math.round((completionFlags.filter(Boolean).length / completionFlags.length) * 100);

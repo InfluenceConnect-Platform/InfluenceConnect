@@ -8,7 +8,7 @@
 const REQUIRED_FIELDS = [
   { key: 'bio', label: 'Bio', check: (p) => !!p.bio && p.bio.trim().length > 0 },
   { key: 'niche', label: 'At least one niche', check: (p) => (p.niche ?? []).length > 0 },
-  { key: 'city', label: 'City', check: (p) => !!p.city && p.city.trim().length > 0 },
+  { key: 'city', label: 'City', check: (p) => (p.cities ?? []).length > 0 || (!!p.city && p.city.trim().length > 0) },
   {
     key: 'rateRange',
     label: 'Rate range',

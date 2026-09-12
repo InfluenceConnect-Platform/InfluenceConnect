@@ -169,7 +169,7 @@ exports.getBrandInvitations = async (req, res) => {
     const [users, profiles] = await Promise.all([
       User.find({ _id: { $in: influencerIds } }).select('name'),
       InfluencerProfile.find({ userId: { $in: influencerIds } })
-        .select('userId slug profilePicUrl city niche bio platforms credibilityScore level priceRangeMin priceRangeMax customId'),
+        .select('userId slug profilePicUrl city cities niche bio platforms credibilityScore level priceRangeMin priceRangeMax customId'),
     ]);
     const nameByUser = new Map(users.map(u => [u._id.toString(), u.name]));
     const profByUser = new Map(profiles.map(p => [p.userId.toString(), p]));
@@ -190,6 +190,7 @@ exports.getBrandInvitations = async (req, res) => {
           profilePicUrl: prof?.profilePicUrl || '',
           customId: prof?.customId || '',
           city: prof?.city || '',
+          cities: prof?.cities || [],
           niche: prof?.niche || [],
           bio: prof?.bio || '',
           platforms: prof?.platforms || [],

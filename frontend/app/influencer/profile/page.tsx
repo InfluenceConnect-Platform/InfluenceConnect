@@ -11,7 +11,7 @@ import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@
 import NichePicker from '@/components/shared/NichePicker';
 import { influencerCaps, normalizeTier, tierLabel, limitLabel } from '@/lib/tiers';
 import { cdnImg } from '@/lib/img';
-import { STATES, CITIES_BY_STATE, STATE_OF_CITY } from '@/lib/locations';
+import { STATES, CITIES_BY_STATE, STATE_OF_CITY, formatCities, profileCities } from '@/lib/locations';
 import SearchableSelect from '@/components/shared/SearchableSelect';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
@@ -320,7 +320,11 @@ function InfluencerProfile() {
   const profileTier = normalizeTier('influencer', (profile?.userId as { tier?: string } | undefined)?.tier);
   const profilePlanName = tierLabel('influencer', profileTier);
   const [state, setState] = useState('');
-  const [city, setCity] = useState('');
+  // Multi-select: an influencer can cover more than one city within their
+  // chosen state (e.g. "Kolkata, Howrah, Kandi"). `city` (singular) is kept
+  // only as the legacy display fallback for profiles saved before this
+  // shipped — see profileCities()/formatCities() in lib/locations.
+  const [cities, setCities] = useState<string[]>([]);
   const [area, setArea] = useState('');
   const [priceRangeMin, setPriceRangeMin] = useState('');
   const [priceRangeMax, setPriceRangeMax] = useState('');
@@ -387,7 +391,7 @@ function InfluencerProfile() {
         // Legacy profiles have a city but no state — derive it so the state
         // dropdown pre-selects correctly instead of showing blank.
         setState(p.state || STATE_OF_CITY[p.city] || '');
-        setCity(p.city || '');
+        setCities(p.cities?.length ? p.cities : (p.city ? [p.city] : []));
         setArea(p.area || '');
         setPriceRangeMin(p.priceRangeMin?.toString() || '');
         setPriceRangeMax(p.priceRangeMax?.toString() || '');
@@ -408,7 +412,7 @@ function InfluencerProfile() {
     setSubNiches(profile.subNiches || []);
     setSlugInput(profile.slug || '');
     setState(profile.state || STATE_OF_CITY[profile.city] || '');
-    setCity(profile.city || '');
+    setCities(profile.cities?.length ? profile.cities : (profile.city ? [profile.city] : []));
     setArea(profile.area || '');
     setPriceRangeMin(profile.priceRangeMin?.toString() || '');
     setPriceRangeMax(profile.priceRangeMax?.toString() || '');
@@ -462,7 +466,7 @@ function InfluencerProfile() {
     try {
       await api.put('/api/influencer/profile', {
         name: trimmedName,
-        bio, niche, subNiches, state, city, area: area.trim(),
+        bio, niche, subNiches, state, cities, area: area.trim(),
         ...(canCustomUrl && slugInput.trim() !== (profile?.slug || '') ? { slug: slugInput.trim() } : {}),
         priceRangeMin: parseInt(priceRangeMin) || 0,
         priceRangeMax: parseInt(priceRangeMax) || 0,
@@ -928,12 +932,12 @@ function InfluencerProfile() {
                     )}
 
                     <div className="flex flex-wrap items-center gap-3 text-[13px] text-gray-500 mb-5">
-                      {profile.city && (
+                      {(profile.area || formatCities(profile)) && (
                         <span className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
                           <svg className="w-3 h-3 text-[#E0115F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                           </svg>
-                          {profile.area ? (profile.city ? `${profile.area} · near ${profile.city}` : profile.area) : profile.city}
+                          {profile.area ? (formatCities(profile) ? `${profile.area} · near ${formatCities(profile)}` : profile.area) : formatCities(profile)}
                         </span>
                       )}
                       {(profile.platforms ?? []).map((p: any) => p.profileUrl && (
@@ -1373,9 +1377,9 @@ function InfluencerProfile() {
                 )}
 
                 <div className="flex flex-wrap items-center gap-2 mt-3">
-                  {profile?.city && (
+                  {(profile?.area || formatCities(profile)) && (
                     <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">
-                      <MapPinIcon />{profile.area ? (profile.city ? `${profile.area} · near ${profile.city}` : profile.area) : profile.city}
+                      <MapPinIcon />{profile.area ? (formatCities(profile) ? `${profile.area} · near ${formatCities(profile)}` : profile.area) : formatCities(profile)}
                     </span>
                   )}
                   {(showAllNiches ? (profile?.niche || []) : (profile?.niche || []).slice(0, 3)).map((n: string, idx: number) => {
@@ -1465,9 +1469,10 @@ function InfluencerProfile() {
                         value={state}
                         onChange={nextState => {
                           setState(nextState);
-                          // Switching state invalidates a city from the old
-                          // list — clear it rather than leave a mismatched pair.
-                          if (city && !(CITIES_BY_STATE[nextState] || []).includes(city)) setCity('');
+                          // Switching state invalidates any cities picked from
+                          // the old list — drop the ones that don't belong to
+                          // the new state rather than leave a mismatched set.
+                          setCities(prev => prev.filter(c => (CITIES_BY_STATE[nextState] || []).includes(c)));
                         }}
                         options={STATES}
                         placeholder="Select your state"
@@ -1479,19 +1484,56 @@ function InfluencerProfile() {
                     </div>
 
                     <label className="block text-xs font-semibold text-gray-700 mb-2 mt-3">
-                      City
+                      Cities <span className="font-normal text-gray-400">(pick as many as apply)</span>
                     </label>
-                    <SearchableSelect
-                      value={city}
-                      onChange={setCity}
-                      options={CITIES_BY_STATE[state] || []}
-                      placeholder={state ? 'Select your city' : 'Select a state first'}
-                      disabled={!state}
-                      accent="#F0417B"
-                      triggerClassName={`w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F0417B]/30 focus:border-[#F0417B] transition-all duration-150 bg-white ${
-                        !state ? 'cursor-not-allowed opacity-60' : ''
-                      } ${!city ? 'text-gray-400' : 'text-gray-900'}`}
-                    />
+
+                    {cities.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2.5">
+                        {cities.map(c => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setCities(prev => prev.filter(x => x !== c))}
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-[#FCE4EC] text-[#B00D4D] border border-[#F0417B]/30 hover:bg-[#F0417B]/10 transition-colors cursor-pointer"
+                          >
+                            {c}
+                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {state ? (
+                      <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1 border border-gray-200 rounded-xl p-3">
+                        {(CITIES_BY_STATE[state] || []).map(c => {
+                          const checked = cities.includes(c);
+                          return (
+                            <div
+                              key={c}
+                              role="checkbox"
+                              aria-checked={checked}
+                              className="flex items-center gap-2.5 cursor-pointer group"
+                              onClick={() => setCities(prev => checked ? prev.filter(x => x !== c) : [...prev, c])}
+                            >
+                              <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                                checked ? 'border-0 bg-gradient-to-br from-[#E0115F] to-[#F0417B] shadow-sm' : 'border-gray-300 group-hover:border-[#F0417B]'
+                              }`}>
+                                {checked && (
+                                  <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                  </svg>
+                                )}
+                              </div>
+                              <span className={`text-sm ${checked ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>{c}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-400 italic px-1 py-2">Select a state first</p>
+                    )}
                     <p className="text-xs text-gray-400 mt-1.5">Helps brands find you when they search by city.</p>
                   </div>
 
@@ -1599,12 +1641,21 @@ function InfluencerProfile() {
                   <div className="flex flex-wrap gap-4">
                     <div className="min-w-[120px]">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <MapPinIcon /> City
+                        <MapPinIcon /> {profileCities(profile).length > 1 ? 'Cities' : 'City'}
                       </p>
-                      {profile?.city ? (
-                        <span className="inline-block bg-[#FCE4EC] text-[#7A0F3D] px-3 py-1 rounded-full text-xs font-semibold">
-                          {profile.area ? (profile.city ? `${profile.area} · near ${profile.city}` : profile.area) : profile.city}
-                        </span>
+                      {profileCities(profile).length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {profileCities(profile).map((c: string) => (
+                            <span key={c} className="inline-block bg-[#FCE4EC] text-[#7A0F3D] px-3 py-1 rounded-full text-xs font-semibold">
+                              {c}
+                            </span>
+                          ))}
+                          {profile?.area && (
+                            <span className="inline-block bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-medium">
+                              near {profile.area}
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <p className="text-sm text-gray-400 italic">Not set</p>
                       )}

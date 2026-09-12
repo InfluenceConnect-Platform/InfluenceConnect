@@ -139,7 +139,7 @@ exports.getStatsHistory = async (req, res) => {
 // ─────────────────────────────────────────
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, slug, bio, niche, subNiches, state, city, area, priceRangeMin, priceRangeMax, platforms } = req.body;
+    const { name, slug, bio, niche, subNiches, state, city, cities, area, priceRangeMin, priceRangeMax, platforms } = req.body;
 
     const profile = await InfluencerProfile.findOne({ userId: req.userId });
     if (!profile) {
@@ -191,7 +191,21 @@ exports.updateProfile = async (req, res) => {
     if (niche !== undefined)        profile.niche = niche;
     if (subNiches !== undefined)    profile.subNiches = subNiches;
     if (state !== undefined)        profile.state = state;
-    if (city !== undefined)         profile.city = city;
+    // `cities` (multi-select, the field the current picker sends) takes
+    // priority; a lone `city` is still accepted for any caller still on the
+    // old single-select shape. Either way we keep `city` mirroring the first
+    // chosen city so every read path that hasn't been migrated to `cities`
+    // yet (admin views, exports, older matching code) still sees something.
+    if (cities !== undefined) {
+      const cleaned = (Array.isArray(cities) ? cities : [cities])
+        .map(c => String(c).trim())
+        .filter(Boolean);
+      profile.cities = [...new Set(cleaned)].slice(0, 20);
+      profile.city = profile.cities[0] || '';
+    } else if (city !== undefined) {
+      profile.city = city;
+      profile.cities = city ? [city] : [];
+    }
     if (area !== undefined)         profile.area = area;
     if (priceRangeMin !== undefined) profile.priceRangeMin = priceRangeMin;
     if (priceRangeMax !== undefined) profile.priceRangeMax = priceRangeMax;

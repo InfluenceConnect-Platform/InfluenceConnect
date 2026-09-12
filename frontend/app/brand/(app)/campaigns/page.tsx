@@ -13,7 +13,7 @@ import { NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import MarqueeText from '@/components/shared/MarqueeText';
 import { brandCaps, upgradeCta } from '@/lib/tiers';
-import { STATES, CITIES_BY_STATE, STATE_OF_CITY } from '@/lib/locations';
+import { STATES, CITIES_BY_STATE, STATE_OF_CITY, formatCities } from '@/lib/locations';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
 
@@ -1478,7 +1478,7 @@ function ApplicationsList({
                     {engRate}% eng.
                   </span>
                 )}
-                {app.influencerProfile?.city && <span>· {app.influencerProfile.city}</span>}
+                {formatCities(app.influencerProfile) && <span>· {formatCities(app.influencerProfile)}</span>}
                 {app.influencerProfile?.credibilityScore > 0 && (
                   <span className="flex items-center gap-0.5 text-amber-600 font-semibold" title="Credibility score (0–100)">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>

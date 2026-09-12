@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import IdChip from '@/components/shared/IdChip';
 import { NICHE_STYLES as NICHE_COLORS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
+import { formatCities } from '@/lib/locations';
 
 const ACCENT = '#1B6E1B';   // brand forest green — this drawer is brand-only
 
@@ -145,12 +146,12 @@ export default function InvitationDetailDrawer({ invitation, onClose }: Props) {
                         {creator.level || 'starter'}
                       </span>
                     </div>
-                    {creator.city && (
+                    {formatCities(creator) && (
                       <p className="text-[12.5px] text-gray-500 font-medium mt-1 inline-flex items-center gap-1.5">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1B6E1B]/70">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                         </svg>
-                        {creator.city}
+                        {formatCities(creator)}
                       </p>
                     )}
                     {creator.customId && <div className="mt-2"><IdChip id={creator.customId} size="xs" tone="subtle" /></div>}

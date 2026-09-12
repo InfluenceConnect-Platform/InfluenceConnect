@@ -8,6 +8,7 @@ const User = require('../models/User');
 const { expireOverdueCampaigns } = require('../utils/expireCampaigns');
 const { getMissingProfileFields, isInfluencerProfileComplete } = require('../utils/profileCompleteness');
 const { getTierConfig } = require('../utils/tiers');
+const { profileCities } = require('../utils/locations');
 const notify = require('../services/email');
 
 // ─────────────────────────────────────────
@@ -66,17 +67,18 @@ function buildProfileMatchConditions(profile) {
     conditions.push({ $or: perPlatform });
   }
 
-  // 4. CITY — the influencer's city must be one the campaign targets. Campaigns
-  //    that target everyone (no targetCity, or the 'all' sentinel) qualify for
-  //    anyone. Skipped when the profile has no city set, so an unfilled city
-  //    doesn't over-hide.
-  const city = profile.city;
-  if (city) {
+  // 4. CITY — at least one of the influencer's cities (multi-select `cities`,
+  //    falling back to the legacy singular `city`) must be one the campaign
+  //    targets. Campaigns that target everyone (no targetCity, or the 'all'
+  //    sentinel) qualify for anyone. Skipped when the profile has no city set
+  //    at all, so an unfilled city doesn't over-hide.
+  const cities = profileCities(profile);
+  if (cities.length > 0) {
     conditions.push({
       $or: [
         { targetCity: { $size: 0 } },
         { targetCity: 'all' },
-        { targetCity: city },
+        { targetCity: { $in: cities } },
       ],
     });
   }
@@ -167,16 +169,20 @@ function computeCampaignMatch(profile, campaign) {
   }
 
   // City — is the influencer in one of the campaign's targeted cities? Campaigns
-  // that target everyone ('all' / no city) give full credit to anyone.
+  // that target everyone ('all' / no city) give full credit to anyone. Checks
+  // every city the influencer picked (multi-select `cities`, falling back to
+  // the legacy singular `city`), not just one.
   let cityQ = 1, city = 'na';
   const cCities = (campaign.targetCity ?? []).filter(c => c && c !== 'all');
+  const profileCityList = profileCities(profile);
   if (cCities.length === 0) {
     city = 'open';
-  } else if (profile.city) {
-    const inCity = cCities.includes(profile.city);
+  } else if (profileCityList.length > 0) {
+    const matchedCities = profileCityList.filter(c => cCities.includes(c));
+    const inCity = matchedCities.length > 0;
     cityQ = inCity ? 1 : 0;
     city = inCity ? 'full' : 'none';
-    if (inCity) reasons.push(`Based in ${profile.city}`);
+    if (inCity) reasons.push(`Based in ${matchedCities.join(', ')}`);
   }
 
   const score = Math.round(100 * (
@@ -215,7 +221,7 @@ exports.getCampaigns = async (req, res) => {
     // Fetch this influencer's profile for automatic relevance matching
     // (niche, budget vs price card, platforms, follower range).
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city');
+      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city cities');
 
     // Campaigns only mean something once we know enough about the creator to
     // judge fit — an incomplete profile sees no campaigns rather than every
@@ -405,7 +411,7 @@ exports.applyToCampaign = async (req, res) => {
     // Profile must be complete before applying — mirrors the gate on browsing
     // campaigns, in case this is hit directly rather than via the browse list.
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city');
+      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city cities');
     const missingFields = getMissingProfileFields(influencerProfile);
     if (missingFields.length > 0) {
       return res.status(403).json({
@@ -602,7 +608,7 @@ exports.getNewSinceCount = async (req, res) => {
 
     // Count only campaigns relevant to this influencer, matching the browse list.
     const influencerProfile = await InfluencerProfile.findOne({ userId: req.userId })
-      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city');
+      .select('bio niche subNiches priceRangeMin priceRangeMax platforms city cities');
     if (!isInfluencerProfileComplete(influencerProfile)) return res.json({ count: 0 });
 
     const and = buildProfileMatchConditions(influencerProfile);

@@ -556,7 +556,7 @@ exports.getCampaignApplications = async (req, res) => {
 
     const [profiles, deals] = await Promise.all([
       InfluencerProfile.find({ userId: { $in: userIds } })
-        .select('userId niche city platforms profilePicUrl credibilityScore level slug'),
+        .select('userId niche city cities platforms profilePicUrl credibilityScore level slug'),
       Deal.find({ applicationId: { $in: acceptedAppIds } }).select('status applicationId customId'),
     ]);
 
@@ -725,7 +725,7 @@ exports.getMyDeals = async (req, res) => {
 
     const [profiles, lastMessages, unreadCounts] = await Promise.all([
       InfluencerProfile.find({ userId: { $in: influencerIds } })
-        .select('userId niche city platforms profilePicUrl slug'),
+        .select('userId niche city cities platforms profilePicUrl slug'),
       Message.aggregate([
         { $match: { dealId: { $in: dealIds } } },
         { $sort: { createdAt: -1 } },
@@ -921,7 +921,9 @@ exports.discoverInfluencers = async (req, res) => {
     const activeInfluencerUsers = await User.find({ role: 'influencer', status: 'active' }).select('_id');
     query.userId = { $in: activeInfluencerUsers.map(u => u._id) };
 
-    // Free-text search across name (on User), slug, bio, city and niche.
+    // Free-text search across name (on User), slug, bio, cities and niche.
+    // Checks both the multi-select `cities` array and the legacy singular
+    // `city` string so a search term matches either shape of saved data.
     if (search && search.trim()) {
       const safe = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const rx = new RegExp(safe, 'i');
@@ -930,6 +932,7 @@ exports.discoverInfluencers = async (req, res) => {
         { slug: rx },
         { bio: rx },
         { city: rx },
+        { cities: rx },
         { niche: rx },
         { userId: { $in: matchedUsers.map(u => u._id) } },
       ];
@@ -943,34 +946,47 @@ exports.discoverInfluencers = async (req, res) => {
       query.subNiches = { $in: subNiche.split(',') };
     }
 
+    // Combines a new condition (city or state) into the query, ANDing it with
+    // whatever a free-text `search` already put in query.$or rather than
+    // clobbering one with the other.
+    const addCondition = (cond) => {
+      if (query.$or) {
+        query.$and = [...(query.$and || []), { $or: query.$or }, cond];
+        delete query.$or;
+      } else {
+        Object.assign(query, cond);
+      }
+    };
+
     if (city) {
       // Accept a single city or a comma-separated list (e.g. "Delhi,Mumbai").
+      // Matches a profile whose multi-select `cities` array contains any of
+      // them, OR (for profiles saved before that field existed) the legacy
+      // singular `city` string.
       const cities = city.split(',').map(c => c.trim()).filter(Boolean);
       if (cities.length > 0) {
-        query.city = cities.length > 1 ? { $in: cities } : cities[0];
+        addCondition({
+          $or: [
+            { cities: { $in: cities } },
+            { city: cities.length > 1 ? { $in: cities } : cities[0] },
+          ],
+        });
       }
     } else if (state) {
-      // No specific city chosen — narrow to the whole state. Matches both the
+      // No specific city chosen — narrow to the whole state. Matches the
       // profile's own `state` field (new profiles) and any of that state's
-      // cities on the legacy free-text `city` field (profiles saved before
-      // `state` existed), so old data keeps showing up under its state.
+      // cities on `cities` or the legacy free-text `city` field (profiles
+      // saved before `state` existed), so old data keeps showing up under
+      // its state.
       const states = state.split(',').map(s => s.trim()).filter(Boolean);
       if (states.length > 0) {
         const citiesInStates = states.flatMap(s => CITIES_BY_STATE[s] || []);
-        const stateCond = {
+        addCondition({
           $or: [
             { state: states.length > 1 ? { $in: states } : states[0] },
-            ...(citiesInStates.length ? [{ city: { $in: citiesInStates } }] : []),
+            ...(citiesInStates.length ? [{ cities: { $in: citiesInStates } }, { city: { $in: citiesInStates } }] : []),
           ],
-        };
-        if (query.$or) {
-          // A free-text `search` term already claimed query.$or — combine both
-          // conditions via $and instead of clobbering one with the other.
-          query.$and = [...(query.$and || []), { $or: query.$or }, stateCond];
-          delete query.$or;
-        } else {
-          Object.assign(query, stateCond);
-        }
+        });
       }
     }
 
@@ -1127,7 +1143,7 @@ exports.getDashboardStats = async (req, res) => {
     // Enrich with influencer profiles (single batched query).
     const recentUserIds = recentApplications.map(app => app.influencerId._id);
     const recentProfiles = await InfluencerProfile.find({ userId: { $in: recentUserIds } })
-      .select('userId niche city platforms profilePicUrl credibilityScore level');
+      .select('userId niche city cities platforms profilePicUrl credibilityScore level');
     const recentProfileByUser = new Map(recentProfiles.map(p => [p.userId.toString(), p]));
 
     const enrichedApplications = recentApplications.map(app => ({

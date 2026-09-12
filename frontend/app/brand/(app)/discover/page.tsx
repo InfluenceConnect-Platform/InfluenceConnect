@@ -11,7 +11,7 @@ import { NICHES, NICHE_STYLES as NICHE_COLORS, NICHE_LABELS, SUB_NICHE_TO_NICHE 
 import { cdnImg } from '@/lib/img';
 import { levelBadgeCls } from '@/lib/levelBadge';
 import { brandCaps, upgradeTargetFor } from '@/lib/tiers';
-import { STATES, CITIES_BY_STATE, STATE_OF_CITY, ALL_CITIES } from '@/lib/locations';
+import { STATES, CITIES_BY_STATE, STATE_OF_CITY, ALL_CITIES, formatCities } from '@/lib/locations';
 import SearchableSelect from '@/components/shared/SearchableSelect';
 
 const AVATAR_GRADIENTS = [
@@ -1302,12 +1302,12 @@ function BrandDiscover() {
                         </div>
                         <div className="flex items-center gap-2 mb-3 min-w-0">
                           <p className="text-xs text-gray-400 font-mono truncate">@{influencer.slug}</p>
-                          {influencer.city && (
+                          {formatCities(influencer) && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0" />
-                              <div className="flex items-center gap-1 flex-shrink-0">
-                                <svg className="w-3 h-3 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                <p className="text-xs text-gray-400">{influencer.city}</p>
+                              <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
+                                <svg className="w-3 h-3 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <p className="text-xs text-gray-400 truncate">{formatCities(influencer)}</p>
                               </div>
                             </>
                           )}
