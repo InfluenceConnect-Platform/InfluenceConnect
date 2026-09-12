@@ -7,7 +7,7 @@ import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS } from '@/lib/niches';
 import { cdnImg } from '@/lib/img';
 import { useThemeColor } from '@/lib/useThemeColor';
 import { tierLabel, influencerCaps, limitLabel } from '@/lib/tiers';
-import { formatCities } from '@/lib/locations';
+import { formatCities, formatLocationLine } from '@/lib/locations';
 
 /* ─── constants ────────────────────────────────────── */
 
@@ -499,12 +499,12 @@ export default function CreatorProfilePage() {
 
             {/* Location + platform links */}
             <div className="flex flex-wrap items-center gap-3 text-[13px] text-gray-500 mb-5">
-              {(profile.area || formatCities(profile)) && (
+              {(profile.area || profile.state || formatCities(profile)) && (
                 <span className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
                   <svg className="w-3 h-3 text-[#228B22]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                   </svg>
-                  {profile.area ? (formatCities(profile) ? `${profile.area} · near ${formatCities(profile)}` : profile.area) : formatCities(profile)}
+                  {formatLocationLine(profile)}
                 </span>
               )}
               {(profile.platforms ?? []).map((p: any) => p.profileUrl && (

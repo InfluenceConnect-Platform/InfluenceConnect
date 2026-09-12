@@ -12,7 +12,7 @@ import { NICHE_STYLES as NICHE_CHIPS, NICHE_LABELS, SUB_NICHE_TO_NICHE } from '@
 import NichePicker from '@/components/shared/NichePicker';
 import { influencerCaps, normalizeTier, tierLabel, limitLabel } from '@/lib/tiers';
 import { cdnImg } from '@/lib/img';
-import { STATES, CITIES_BY_STATE, STATE_OF_CITY, ALL_CITIES, formatCities, profileCities } from '@/lib/locations';
+import { STATES, CITIES_BY_STATE, STATE_OF_CITY, ALL_CITIES, formatCities, formatLocationLine, profileCities } from '@/lib/locations';
 import SearchableSelect from '@/components/shared/SearchableSelect';
 
 const PLATFORMS = ['instagram', 'youtube', 'facebook'];
@@ -1057,12 +1057,12 @@ function InfluencerProfile() {
                     )}
 
                     <div className="flex flex-wrap items-center gap-3 text-[13px] text-gray-500 mb-5">
-                      {(profile.area || formatCities(profile)) && (
+                      {(profile.area || profile.state || formatCities(profile)) && (
                         <span className="flex items-center gap-1.5 font-semibold bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
                           <svg className="w-3 h-3 text-[#E0115F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                           </svg>
-                          {profile.area ? (formatCities(profile) ? `${profile.area} · near ${formatCities(profile)}` : profile.area) : formatCities(profile)}
+                          {formatLocationLine(profile)}
                         </span>
                       )}
                       {(profile.platforms ?? []).map((p: any) => p.profileUrl && (
@@ -1502,9 +1502,9 @@ function InfluencerProfile() {
                 )}
 
                 <div className="flex flex-wrap items-center gap-2 mt-3">
-                  {(profile?.area || formatCities(profile)) && (
+                  {(profile?.area || profile?.state || formatCities(profile)) && (
                     <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full font-medium">
-                      <MapPinIcon />{profile.area ? (formatCities(profile) ? `${profile.area} · near ${formatCities(profile)}` : profile.area) : formatCities(profile)}
+                      <MapPinIcon />{formatLocationLine(profile)}
                     </span>
                   )}
                   {(showAllNiches ? (profile?.niche || []) : (profile?.niche || []).slice(0, 3)).map((n: string, idx: number) => {
@@ -1587,7 +1587,7 @@ function InfluencerProfile() {
                   <div>
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
                       <MapPinIcon />
-                      State
+                      City
                     </label>
 
                     <CitySearchBox
@@ -1786,13 +1786,18 @@ function InfluencerProfile() {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
                         <MapPinIcon /> {profileCities(profile).length > 1 ? 'Cities' : 'City'}
                       </p>
-                      {profileCities(profile).length > 0 ? (
+                      {(profileCities(profile).length > 0 || profile?.state) ? (
                         <div className="flex flex-wrap gap-1.5">
                           {profileCities(profile).map((c: string) => (
                             <span key={c} className="inline-block bg-[#FCE4EC] text-[#7A0F3D] px-3 py-1 rounded-full text-xs font-semibold">
                               {c}
                             </span>
                           ))}
+                          {profile?.state && (
+                            <span className="inline-block bg-white text-gray-600 border border-gray-200 px-3 py-1 rounded-full text-xs font-medium">
+                              {profile.state}
+                            </span>
+                          )}
                           {profile?.area && (
                             <span className="inline-block bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-medium">
                               near {profile.area}

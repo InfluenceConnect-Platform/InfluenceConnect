@@ -86,3 +86,20 @@ export function profileCities(profile: { cities?: string[] | null; city?: string
 export function formatCities(profile: { cities?: string[] | null; city?: string | null } | null | undefined): string {
   return profileCities(profile).join(', ');
 }
+
+// Single formatted location line for profile header badges: the
+// currently-selected (fully editable) cities and state come first since
+// they're the source of truth, and the legacy free-text `area` — no longer
+// collected by any form, so it can go stale relative to a since-changed
+// city/state — trails at the end, de-emphasized with "near". `area` must
+// never lead the line: a profile can carry an old `area` value from before
+// the state/cities picker existed that has nothing to do with its current
+// cities (e.g. "Haldia · near Kandi, Tamluk" reads as if Haldia were the
+// real location and Kandi/Tamluk were merely nearby — backwards from what
+// the creator actually chose).
+export function formatLocationLine(profile: { cities?: string[] | null; city?: string | null; state?: string | null; area?: string | null } | null | undefined): string {
+  const parts = [formatCities(profile), profile?.state].filter(Boolean);
+  const line = parts.join(' · ');
+  if (!profile?.area) return line;
+  return line ? `${line} · near ${profile.area}` : profile.area;
+}
