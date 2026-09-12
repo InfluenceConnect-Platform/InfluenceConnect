@@ -271,6 +271,14 @@ function InfluencerProfile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const profilePicInputRef = useRef<HTMLInputElement>(null);
   const coverPhotoInputRef = useRef<HTMLInputElement>(null);
+  // Tracks the header's Cancel/Save row and the bottom save bar so the
+  // floating mobile action bar shows only while neither is already on
+  // screen — avoids fighting position:sticky's containing-block limits
+  // (a sticky element can't stick past its own parent's bounds, which is
+  // why the header's short card made an earlier attempt vanish on scroll).
+  const editActionsRef = useRef<HTMLDivElement>(null);
+  const bottomActionsRef = useRef<HTMLDivElement>(null);
+  const [showFloatingActions, setShowFloatingActions] = useState(false);
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -335,6 +343,30 @@ function InfluencerProfile() {
       setIsEditing(true);
     }
   }, [searchParams]);
+
+  // Show the floating mobile Save/Cancel bar only while BOTH the header's
+  // row and the bottom save bar are scrolled out of view, so it appears
+  // exactly for the stretch of a long edit form where neither is reachable.
+  useEffect(() => {
+    if (!isEditing) { setShowFloatingActions(false); return; }
+    const headerEl = editActionsRef.current;
+    const bottomEl = bottomActionsRef.current;
+    if (!headerEl || !bottomEl) return;
+    const visible = new Set<Element>();
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) visible.add(entry.target);
+          else visible.delete(entry.target);
+        });
+        setShowFloatingActions(visible.size === 0);
+      },
+      { rootMargin: '-108px 0px 0px 0px' } // account for the fixed top nav + mobile tab bar
+    );
+    observer.observe(headerEl);
+    observer.observe(bottomEl);
+    return () => observer.disconnect();
+  }, [isEditing]);
 
   const fetchProfile = async (portfolioOnlyUpdate = false) => {
     try {
@@ -706,12 +738,10 @@ function InfluencerProfile() {
                 </span>
               )}
               {isEditing ? (
-                // Sticky only on mobile (where these stack full-width below the
-                // long edit form) so Save/Cancel stay reachable while scrolling.
-                // No wrapper background/padding — the buttons keep their own
-                // backgrounds and sit exactly where they always did; only their
-                // position becomes sticky once you scroll past it.
-                <div className="sticky top-[108px] z-20 flex flex-col sm:static sm:top-auto sm:z-auto sm:flex-row gap-2.5 w-full sm:w-auto">
+                // Ref lets the floating mobile Save/Cancel bar (rendered near
+                // the bottom of the page) know when this original row has
+                // scrolled off-screen, via IntersectionObserver below.
+                <div ref={editActionsRef} className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
                   <button
                     onClick={handleCancelEdit}
                     className={`text-sm px-4 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
@@ -2059,7 +2089,7 @@ function InfluencerProfile() {
 
         {/* Bottom save bar — mirrors the header actions so long profiles don't
             require scrolling back up to save or cancel. */}
-        <div className={`mt-6 flex items-center justify-end gap-2.5 rounded-2xl border px-5 py-4 shadow-sm ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'}`}>
+        <div ref={bottomActionsRef} className={`mt-6 flex items-center justify-end gap-2.5 rounded-2xl border px-5 py-4 shadow-sm ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'}`}>
           {saved && (
             <span className="mr-auto flex items-center gap-1.5 text-sm text-[#7A0F3D] font-semibold bg-[#FCE4EC] px-3 py-2 rounded-xl border border-[#F3B8CB] shadow-sm">
               <CheckIcon />
@@ -2093,6 +2123,41 @@ function InfluencerProfile() {
         </div>
         </>)}
       </main>
+
+      {/* Floating mobile Save/Cancel bar — appears only once the header's row
+          scrolls out of view and disappears again once the bottom save bar
+          scrolls into view, so it's reachable throughout a long edit form
+          without duplicating the buttons on screen at the same time. */}
+      {isEditing && showFloatingActions && (
+        <div className={`sm:hidden fixed bottom-0 inset-x-0 z-30 flex items-center gap-2.5 px-4 pt-3 border-t shadow-[0_-4px_16px_rgba(0,0,0,0.08)] ${isDark ? 'bg-[#0E1B2E] border-slate-700' : 'bg-white border-gray-200'}`}
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        >
+          <button
+            onClick={handleCancelEdit}
+            className={`flex-1 text-sm px-4 py-2.5 border rounded-xl transition-all duration-150 cursor-pointer font-semibold shadow-sm ${isDark ? 'text-slate-300 bg-slate-800/60 border-slate-700 hover:bg-slate-700/60 hover:text-slate-100' : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-300'}`}>
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-[#E0115F] to-[#F0417B] hover:from-[#8C1F52] hover:to-[#D6799A] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-md cursor-pointer">
+            {saving ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+                Saving…
+              </>
+            ) : (
+              <>
+                <CheckIcon />
+                Save changes
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
