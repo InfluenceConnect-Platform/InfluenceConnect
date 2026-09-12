@@ -185,8 +185,13 @@ export default function HomePage() {
             <div className="anim-fade-up anim-delay-3 flex flex-col sm:flex-row gap-3.5 mb-8">
               <Link
                 href="/auth/signup?role=influencer"
-                className="btn-shine group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#6B0C33] bg-white/95 backdrop-blur-md border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_24px_-8px_rgba(0,0,0,0.35)] ring-1 ring-transparent hover:ring-white hover:bg-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_12px_32px_-6px_rgba(224,17,95,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
+                className="btn-shine group inline-flex items-center justify-center gap-3 pl-3 pr-6 py-3 rounded-xl text-sm font-bold text-[#6B0C33] bg-white/95 backdrop-blur-md border-2 border-[#E0115F]/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_6px_20px_-4px_rgba(224,17,95,0.4)] hover:border-[#E0115F]/70 hover:bg-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_14px_36px_-6px_rgba(224,17,95,0.65)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
               >
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#E0115F] to-[#F0417B] text-white flex-shrink-0 shadow-sm">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7"/>
+                  </svg>
+                </span>
                 I&apos;m a Creator
                 <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -194,8 +199,13 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/auth/signup?role=brand"
-                className="btn-shine group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-[#0E3D18] bg-white/95 backdrop-blur-md border border-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_24px_-8px_rgba(0,0,0,0.35)] ring-1 ring-transparent hover:ring-white hover:bg-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_12px_32px_-6px_rgba(34,139,34,0.55)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 dark:hover:bg-[#228B22] dark:hover:border-[#228B22] dark:hover:text-white"
+                className="btn-shine group inline-flex items-center justify-center gap-3 pl-3 pr-6 py-3 rounded-xl text-sm font-bold text-[#0E3D18] bg-white/95 backdrop-blur-md border-2 border-[#228B22]/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_6px_20px_-4px_rgba(34,139,34,0.4)] hover:border-[#228B22]/80 hover:bg-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_14px_36px_-6px_rgba(34,139,34,0.65)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 dark:hover:bg-[#228B22] dark:hover:border-[#228B22] dark:hover:text-white"
               >
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-[#228B22] to-[#3FA34D] text-white flex-shrink-0 shadow-sm dark:group-hover:bg-white dark:group-hover:from-white dark:group-hover:to-white dark:group-hover:text-[#228B22]">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </span>
                 I&apos;m a Brand
                 <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>

@@ -348,7 +348,9 @@ function InfluencerProfile() {
   // row and the bottom save bar are scrolled out of view, so it appears
   // exactly for the stretch of a long edit form where neither is reachable.
   useEffect(() => {
-    if (!isEditing) { setShowFloatingActions(false); return; }
+    // Render gates the floating bar on `isEditing` too, so leaving edit mode
+    // hides it immediately without needing a synchronous reset here.
+    if (!isEditing) return;
     const headerEl = editActionsRef.current;
     const bottomEl = bottomActionsRef.current;
     if (!headerEl || !bottomEl) return;
