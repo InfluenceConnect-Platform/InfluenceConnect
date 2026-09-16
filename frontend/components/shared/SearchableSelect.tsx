@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useAnchoredPanel } from '@/lib/useAnchoredPanel';
 
 interface Props {
   value: string;
@@ -30,70 +31,26 @@ interface Props {
  *     panel is portaled to <body> with `position: fixed` computed from the
  *     trigger's real screen position, so it always renders on top, fully
  *     visible, regardless of what scrollable box the trigger sits inside.
+ *
+ * Placement and closing live in useAnchoredPanel, which also covers why the
+ * panel must never close itself on scroll/resize (it vanished on phones).
  */
 export default function SearchableSelect({ value, onChange, options, placeholder, disabled, accent, triggerClassName }: Props) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
-  const [pos, setPos] = useState<{ top?: number; bottom?: number; left: number; width: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Whether the press that opened the list was a finger/stylus rather than a
+  // mouse or keyboard. Autofocusing the search box then would raise the
+  // on-screen keyboard over the list the user is about to scroll through.
+  const openedByTouch = useRef(false);
 
-  const PANEL_MAX_HEIGHT = 320;
-
-  const computePosition = () => {
-    const el = btnRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - r.bottom;
-    const openUp = spaceBelow < PANEL_MAX_HEIGHT && r.top > spaceBelow;
-    setPos(
-      openUp
-        ? { bottom: window.innerHeight - r.top + 4, left: r.left, width: r.width }
-        : { top: r.bottom + 4, left: r.left, width: r.width }
-    );
-  };
+  const panelRef = useAnchoredPanel({ open, onClose: () => setOpen(false), anchorRef: btnRef, maxHeight: 320 });
 
   useEffect(() => {
-    if (!open) return;
-    computePosition();
-
-    const onOutsideClick = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (btnRef.current?.contains(target)) return;
-      if (panelRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    // Any scroll of an ancestor invalidates the computed position — close
-    // rather than show a stale/misplaced panel. Scrolling *inside* the
-    // panel's own list must not close it, so ignore events whose target is
-    // the panel itself.
-    const onScroll = (e: Event) => {
-      if (panelRef.current && e.target instanceof Node && panelRef.current.contains(e.target)) return;
-      setOpen(false);
-    };
-    const onResize = () => setOpen(false);
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setOpen(false); btnRef.current?.focus(); }
-    };
-
-    document.addEventListener('mousedown', onOutsideClick);
-    document.addEventListener('keydown', onKeyDown);
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', onResize);
-    return () => {
-      document.removeEventListener('mousedown', onOutsideClick);
-      document.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onResize);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (open) {
-      // Let the panel mount before focusing so it doesn't steal the click.
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
+    if (!open || openedByTouch.current) return;
+    // Let the panel mount before focusing so it doesn't steal the click.
+    requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
   }, [open]);
 
   const toggleOpen = () => {
@@ -111,6 +68,8 @@ export default function SearchableSelect({ value, onChange, options, placeholder
         ref={btnRef}
         type="button"
         disabled={disabled}
+        onPointerDown={e => { openedByTouch.current = e.pointerType !== 'mouse'; }}
+        onKeyDown={() => { openedByTouch.current = false; }}
         onClick={toggleOpen}
         className={`${triggerClassName} flex items-center justify-between gap-2 text-left`}
       >
@@ -120,14 +79,13 @@ export default function SearchableSelect({ value, onChange, options, placeholder
         </svg>
       </button>
 
-      {open && !disabled && pos && typeof document !== 'undefined' && createPortal(
+      {open && !disabled && typeof document !== 'undefined' && createPortal(
         <div
           ref={panelRef}
-          className="fixed z-[1000] bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
-          style={{ top: pos.top, bottom: pos.bottom, left: pos.left, width: pos.width }}
+          className="fixed z-[1000] flex flex-col bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
         >
           {options.length > 8 && (
-            <div className="p-2 border-b border-gray-100">
+            <div className="flex-shrink-0 p-2 border-b border-gray-100">
               <input
                 ref={inputRef}
                 type="text"
@@ -138,7 +96,7 @@ export default function SearchableSelect({ value, onChange, options, placeholder
               />
             </div>
           )}
-          <div className="overflow-y-auto overscroll-contain py-1" style={{ maxHeight: PANEL_MAX_HEIGHT - 48 }}>
+          <div className="min-h-0 overflow-y-auto overscroll-contain py-1">
             {filtered.length === 0 && (
               <div className="px-3.5 py-2.5 text-sm text-gray-400">No matches</div>
             )}

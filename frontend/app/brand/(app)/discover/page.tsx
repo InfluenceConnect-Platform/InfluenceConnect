@@ -14,6 +14,7 @@ import { levelBadgeCls } from '@/lib/levelBadge';
 import { brandCaps, upgradeTargetFor } from '@/lib/tiers';
 import { STATES, CITIES_BY_STATE, STATE_OF_CITY, ALL_CITIES, formatCities } from '@/lib/locations';
 import SearchableSelect from '@/components/shared/SearchableSelect';
+import { useAnchoredPanel } from '@/lib/useAnchoredPanel';
 
 const AVATAR_GRADIENTS = [
   'from-cyan-500 to-sky-600',
@@ -81,52 +82,9 @@ const FIELD_CLASS = 'w-full px-3 py-2 text-sm text-gray-900 border border-gray-2
 function CitySearchBox({ selectedCities, onPick }: { selectedCities: string[]; onPick: (city: string) => void }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top?: number; bottom?: number; left: number; width: number } | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const PANEL_MAX_HEIGHT = 260;
-
-  const computePosition = () => {
-    const el = inputRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - r.bottom;
-    const openUp = spaceBelow < PANEL_MAX_HEIGHT && r.top > spaceBelow;
-    setPos(
-      openUp
-        ? { bottom: window.innerHeight - r.top + 4, left: r.left, width: r.width }
-        : { top: r.bottom + 4, left: r.left, width: r.width }
-    );
-  };
-
-  useEffect(() => {
-    if (!open) return;
-    computePosition();
-    const onOutsideClick = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (wrapRef.current?.contains(target)) return;
-      if (panelRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    const onScroll = (e: Event) => {
-      if (panelRef.current && e.target instanceof Node && panelRef.current.contains(e.target)) return;
-      setOpen(false);
-    };
-    const onResize = () => setOpen(false);
-    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', onOutsideClick);
-    document.addEventListener('keydown', onKeyDown);
-    window.addEventListener('scroll', onScroll, true);
-    window.addEventListener('resize', onResize);
-    return () => {
-      document.removeEventListener('mousedown', onOutsideClick);
-      document.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onResize);
-    };
-  }, [open]);
+  const panelRef = useAnchoredPanel({ open, onClose: () => setOpen(false), anchorRef: inputRef, containerRef: wrapRef, maxHeight: 260 });
 
   const q = query.trim().toLowerCase();
   const matches = q ? ALL_CITIES.filter(c => c.toLowerCase().includes(q)).slice(0, 30) : [];
@@ -156,13 +114,12 @@ function CitySearchBox({ selectedCities, onPick }: { selectedCities: string[]; o
         />
       </div>
 
-      {open && q && pos && typeof document !== 'undefined' && createPortal(
+      {open && q && typeof document !== 'undefined' && createPortal(
         <div
           ref={panelRef}
-          className="fixed z-[1000] bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
-          style={{ top: pos.top, bottom: pos.bottom, left: pos.left, width: pos.width }}
+          className="fixed z-[1000] flex flex-col bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
         >
-          <div className="overflow-y-auto overscroll-contain py-1" style={{ maxHeight: PANEL_MAX_HEIGHT }}>
+          <div className="min-h-0 overflow-y-auto overscroll-contain py-1">
             {matches.length === 0 && (
               <div className="px-3.5 py-2.5 text-sm text-gray-400">No matches</div>
             )}
