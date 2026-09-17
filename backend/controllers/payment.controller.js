@@ -416,7 +416,11 @@ const STUCK_AFTER_MS = 30 * 60 * 1000; // Razorpay checkout sessions expire well
 exports.reconcile = async (req, res) => {
   // Vercel Cron automatically sends `Authorization: Bearer $CRON_SECRET` when
   // a CRON_SECRET env var is set on the project — no extra config needed.
-  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Require the secret to actually be configured — otherwise `Bearer
+  // ${undefined}` becomes the literal, publicly-known string "Bearer
+  // undefined", which anyone could send to trigger this endpoint without
+  // ever having the real secret.
+  if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 
@@ -507,7 +511,8 @@ exports.setAutopay = async (req, res) => {
 const SUB_STALE_MS = 6 * 60 * 60 * 1000; // re-check anything unsynced for 6h
 
 exports.autopayRenewals = async (req, res) => {
-  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+  // See reconcile() above for why the empty-secret case must fail closed.
+  if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 

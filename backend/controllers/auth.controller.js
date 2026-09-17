@@ -535,7 +535,6 @@ async function issueOtp(user, type) {
         devNote: devBypass ? `DEV BYPASS — original recipient: ${user.mobile}` : null
       })
     });
-    console.log(`[OTP] Mobile OTP for ${user.mobile}: ${newOTP}`);
   }
 
   return { ok: true };
@@ -1025,7 +1024,6 @@ exports.sendMobileOtp = async (req, res) => {
         devNote: devBypass ? `DEV BYPASS — original recipient: ${cleanMobile}` : null
       })
     });
-    console.log(`[OTP] Mobile OTP for ${cleanMobile}: ${mobileOTP}`);
 
     res.json({ message: 'OTP sent to your mobile number.' });
 
@@ -1296,7 +1294,6 @@ exports.requestMobileChange = async (req, res) => {
         devNote: devBypass ? `DEV BYPASS — original recipient: ${newMobile}` : null,
       }),
     });
-    console.log(`[OTP] Mobile change OTP for ${newMobile}: ${code}`);
 
     res.json({ message: `A verification code has been sent to ${newMobile}.` });
   } catch (error) {

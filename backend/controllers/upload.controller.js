@@ -25,6 +25,37 @@ async function resolveOwnDealId(dealId, userId) {
   return isParty ? deal._id.toString() : null;
 }
 
+// Extensions Cloudinary will accept for a given context — signed as
+// `allowed_formats` so Cloudinary itself rejects anything else server-side.
+// Without this, the signature only pins `timestamp`/`folder`; a client could
+// still POST any file (an executable, a disguised script, etc.) to
+// Cloudinary's raw/video/image upload endpoint under our account.
+//
+// Deliberately broad, matching the app's existing policy (see
+// BLOCKED_EXTENSIONS in frontend/lib/chatAttachments.ts): block only
+// executables/scripts, allow everything else — this list exists to close the
+// "no server-side check at all" gap, not to relitigate which file types
+// creators/brands are allowed to share.
+const IMAGE_FORMATS = 'jpg,jpeg,png,webp,gif,heic,heif,bmp,tiff,tif,avif,svg';
+const VIDEO_FORMATS = 'mp4,mov,webm,m4v,avi,mkv,wmv,flv,3gp,3g2,mpeg,mpg';
+const RAW_FORMATS = 'pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,rtf,odt,ods,odp,zip,rar,7z,tar,gz,mp3,wav,m4a,aac,ogg,flac,json,psd,ai,eps,key,numbers,pages';
+
+function allowedFormatsFor(context, resourceType) {
+  if (context === 'profile-pic' || context === 'brand-logo' || context === 'cover-photo') {
+    return IMAGE_FORMATS;
+  }
+  if (context === 'payout-receipt') {
+    return `${IMAGE_FORMATS},pdf`;
+  }
+  if (context === 'chat-attachment') {
+    if (resourceType === 'video') return VIDEO_FORMATS;
+    if (resourceType === 'raw') return RAW_FORMATS;
+    return IMAGE_FORMATS;
+  }
+  // portfolio (default)
+  return resourceType === 'video' ? VIDEO_FORMATS : IMAGE_FORMATS;
+}
+
 // ─────────────────────────────────────────
 // GET SIGNATURE
 // Frontend uses this to upload directly to Cloudinary
@@ -33,6 +64,10 @@ exports.getSignature = async (req, res) => {
   try {
     const timestamp = Math.round(new Date().getTime() / 1000);
     const context = req.query.context || 'portfolio';
+    // Which Cloudinary resource-type endpoint (image/video/raw) the client
+    // intends to upload to — only used to pick the matching allowed_formats
+    // list, defaults to image for contexts that are always one type.
+    const resourceType = ['image', 'video', 'raw'].includes(req.query.type) ? req.query.type : 'image';
 
     let folder;
     if (context === 'profile-pic') {
@@ -52,8 +87,10 @@ exports.getSignature = async (req, res) => {
       folder = `influence-connect/portfolio/${req.userId}`;
     }
 
+    const allowed_formats = allowedFormatsFor(context, resourceType);
+
     const signature = cloudinary.utils.api_sign_request(
-      { timestamp, folder },
+      { timestamp, folder, allowed_formats },
       process.env.CLOUDINARY_API_SECRET
     );
 
@@ -62,7 +99,8 @@ exports.getSignature = async (req, res) => {
       timestamp,
       apiKey: process.env.CLOUDINARY_API_KEY,
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-      folder
+      folder,
+      allowedFormats: allowed_formats
     });
 
   } catch (error) {

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '@/lib/api';
 import { useTheme } from '@/lib/useTheme';
-import { ChatAttachment, validateChatFile, uploadChatAttachment, downloadUrlFor } from '@/lib/chatAttachments';
+import { ChatAttachment, validateChatFile, uploadChatAttachment, triggerDownload } from '@/lib/chatAttachments';
 
 export interface Payout {
   method: 'bank' | 'upi';
@@ -199,6 +199,14 @@ export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid =
     }
   };
 
+  const handleDownloadReceipt = async (receiptUrl: string, receiptFileName: string) => {
+    try {
+      await triggerDownload({ url: receiptUrl, fileName: receiptFileName });
+    } catch {
+      setError('Failed to download receipt.');
+    }
+  };
+
   if (!open) return null;
 
   const cardClass = `w-full max-w-md rounded-2xl shadow-2xl p-5 max-h-[85vh] overflow-y-auto ${isDark ? 'bg-[#0E1B2E] border border-slate-700/60' : 'bg-white border border-gray-200'}`;
@@ -253,14 +261,13 @@ export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid =
                     Txn ID: <span className="font-semibold">{payout.transactionRef}</span>
                   </p>
                   {payout.receiptUrl && (
-                    <a
-                      href={downloadUrlFor({ url: payout.receiptUrl, fileName: payout.receiptFileName, type: 'raw', fileSize: 0, mimeType: '' })}
-                      download={payout.receiptFileName || true}
+                    <button
+                      onClick={() => handleDownloadReceipt(payout.receiptUrl, payout.receiptFileName)}
                       className="self-start text-[12px] font-semibold underline underline-offset-2 cursor-pointer"
                       style={{ color: accentText }}
                     >
                       View receipt
-                    </a>
+                    </button>
                   )}
                 </div>
               ) : canMarkPaid ? (
@@ -342,14 +349,13 @@ export default function PayoutPanel({ dealId, role, open, onClose, canMarkPaid =
                   Txn ID: <span className="font-semibold">{payout.transactionRef}</span>
                 </p>
                 {payout.receiptUrl && (
-                  <a
-                    href={downloadUrlFor({ url: payout.receiptUrl, fileName: payout.receiptFileName, type: 'raw', fileSize: 0, mimeType: '' })}
-                    download={payout.receiptFileName || true}
+                  <button
+                    onClick={() => handleDownloadReceipt(payout.receiptUrl, payout.receiptFileName)}
                     className="self-start text-[12px] font-semibold underline underline-offset-2 cursor-pointer"
                       style={{ color: accentText }}
                   >
                     View receipt
-                  </a>
+                  </button>
                 )}
               </div>
             ) : (

@@ -56,8 +56,8 @@ export function validateChatFile(file: File, maxFileMB: number = Infinity): stri
 export async function uploadChatAttachment(file: File, dealId: string, context: string = 'chat-attachment'): Promise<ChatAttachment> {
   const type = resourceTypeFor(file);
 
-  const sigRes = await api.get(`/api/upload/signature?context=${context}&dealId=${dealId}`);
-  const { signature, timestamp, apiKey, cloudName, folder } = sigRes.data;
+  const sigRes = await api.get(`/api/upload/signature?context=${context}&dealId=${dealId}&type=${type}`);
+  const { signature, timestamp, apiKey, cloudName, folder, allowedFormats } = sigRes.data;
 
   const formData = new FormData();
   formData.append('file', file);
@@ -65,6 +65,7 @@ export async function uploadChatAttachment(file: File, dealId: string, context: 
   formData.append('timestamp', timestamp.toString());
   formData.append('api_key', apiKey);
   formData.append('folder', folder);
+  formData.append('allowed_formats', allowedFormats);
 
   const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${type}/upload`, {
     method: 'POST',
@@ -93,12 +94,25 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-// Routes every attachment download (image/video/raw) through our own backend
-// so we can force a real download (Content-Disposition: attachment) with the
-// original file name — a plain Cloudinary URL just opens inline in the
-// browser (image viewer / PDF viewer / video player) instead of saving.
-export function downloadUrlFor(attachment: ChatAttachment): string {
-  const base = api.defaults.baseURL || '';
+// Downloads an attachment/receipt through our own backend so we can force a
+// real download (Content-Disposition: attachment) with the original file
+// name — a plain Cloudinary URL just opens inline in the browser (image
+// viewer / PDF viewer / video player) instead of saving.
+//
+// This has to be a fetch (not a plain <a href>) because the backend now
+// requires the caller's auth token and verifies they actually own this
+// attachment/receipt — a bare link can't carry an Authorization header, and
+// the token can't be passed as a URL query param without leaking it into
+// browser history and server access logs.
+export async function triggerDownload(attachment: Pick<ChatAttachment, 'url' | 'fileName'>): Promise<void> {
   const params = new URLSearchParams({ url: attachment.url, filename: attachment.fileName || 'file' });
-  return `${base}/api/messages/download?${params.toString()}`;
+  const res = await api.get(`/api/messages/download?${params.toString()}`, { responseType: 'blob' });
+  const blobUrl = URL.createObjectURL(res.data);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = attachment.fileName || 'file';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(blobUrl);
 }

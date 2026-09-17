@@ -6,7 +6,6 @@ const {
   getCampaignById,
   applyToCampaign,
   getMyApplications,
-  seedCampaigns,
   getNewSinceCount,
   getApplicationUpdatesSince
 } = require('../controllers/campaign.controller');
@@ -20,8 +19,5 @@ router.get('/application-updates-since', authenticate, getApplicationUpdatesSinc
 router.get('/my-applications', authenticate, getMyApplications);
 router.get('/:id', authenticate, getCampaignById);
 router.post('/:id/apply', authenticate, applyToCampaign);
-
-// Seed sample data (temporary — remove before production)
-router.post('/seed', authenticate, seedCampaigns);
 
 module.exports = router;

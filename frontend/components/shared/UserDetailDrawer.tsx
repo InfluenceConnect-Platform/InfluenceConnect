@@ -6,7 +6,7 @@ import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
 import IdChip from '@/components/shared/IdChip';
 import { NICHE_LABELS } from '@/lib/niches';
-import { downloadUrlFor } from '@/lib/chatAttachments';
+import { triggerDownload } from '@/lib/chatAttachments';
 import { cdnImg } from '@/lib/img';
 import { formatCities } from '@/lib/locations';
 
@@ -752,13 +752,13 @@ function DealList({ deals, nameKey, nameLabel }: { deals: any[]; nameKey: string
                   {revealed[d.dealId].receiptUrl && (
                     <>
                       {' · '}
-                      <a
-                        href={downloadUrlFor({ url: revealed[d.dealId].receiptUrl, fileName: revealed[d.dealId].receiptFileName, type: 'raw', fileSize: 0, mimeType: '' })}
-                        download={revealed[d.dealId].receiptFileName || true}
+                      <button
+                        type="button"
+                        onClick={() => triggerDownload({ url: revealed[d.dealId].receiptUrl, fileName: revealed[d.dealId].receiptFileName }).catch(() => toast.error('Failed to download receipt.'))}
                         className="font-semibold text-teal-700 underline underline-offset-2 cursor-pointer"
                       >
                         View receipt
-                      </a>
+                      </button>
                     </>
                   )}
                 </p>

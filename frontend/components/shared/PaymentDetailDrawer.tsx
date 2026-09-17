@@ -4,7 +4,7 @@ import { useState, useEffect, ReactNode } from 'react';
 import api from '@/lib/api';
 import { useToast } from '@/components/shared/Toast';
 import IdChip from '@/components/shared/IdChip';
-import { downloadUrlFor } from '@/lib/chatAttachments';
+import { triggerDownload } from '@/lib/chatAttachments';
 
 const TEAL = '#7FA8AD';
 
@@ -189,13 +189,13 @@ export default function PaymentDetailDrawer({ payment, onClose }: Props) {
                       label="Receipt"
                       value={payment.receiptUrl
                         ? (
-                          <a
-                            href={downloadUrlFor({ url: payment.receiptUrl, fileName: payment.receiptFileName || 'receipt', type: 'raw', fileSize: 0, mimeType: '' })}
-                            download={payment.receiptFileName || true}
+                          <button
+                            type="button"
+                            onClick={() => triggerDownload({ url: payment.receiptUrl, fileName: payment.receiptFileName || 'receipt' }).catch(() => toast.error('Failed to download receipt.'))}
                             className="text-[#3E4751] underline"
                           >
                             View receipt
-                          </a>
+                          </button>
                         )
                         : '—'}
                       full

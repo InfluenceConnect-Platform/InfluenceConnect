@@ -13,7 +13,7 @@ import InfluencerNav from '@/components/shared/InfluencerNav';
 import { useTheme } from '@/lib/useTheme';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmModal';
-import { ChatAttachment, validateChatFile, uploadChatAttachment, formatFileSize, downloadUrlFor, MAX_ATTACHMENTS_PER_MESSAGE } from '@/lib/chatAttachments';
+import { ChatAttachment, validateChatFile, uploadChatAttachment, formatFileSize, triggerDownload, MAX_ATTACHMENTS_PER_MESSAGE } from '@/lib/chatAttachments';
 import { cdnImg } from '@/lib/img';
 import { dealStatusMeta } from '@/lib/dealStatus';
 
@@ -950,10 +950,10 @@ function MessagesPage() {
                                       </span>
                                     </button>
                                   ) : (
-                                    <a
+                                    <button
                                       key={i}
-                                      href={downloadUrlFor(att)}
-                                      download={att.fileName || true}
+                                      type="button"
+                                      onClick={() => triggerDownload(att).catch(() => toast.error('Failed to download file.'))}
                                       className={`flex items-center gap-2.5 px-3.5 py-2.5 min-w-[180px] cursor-pointer ${bubbleShape} ${
                                         isMine
                                           ? 'bg-[#B00D4D] text-white'
@@ -970,7 +970,7 @@ function MessagesPage() {
                                         <span className={`block text-[10.5px] ${isMine ? 'text-white/70' : isDark ? 'text-slate-400' : 'text-gray-400'}`}>{formatFileSize(att.fileSize)}</span>
                                       </span>
                                       <span className={isMine ? 'text-white/80' : isDark ? 'text-slate-400' : 'text-gray-400'}><DownloadIcon /></span>
-                                    </a>
+                                    </button>
                                   )
                                 ))}
                               </div>
@@ -1236,15 +1236,14 @@ function MessagesPage() {
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6 cursor-zoom-out"
           onClick={() => setLightbox(null)}
         >
-          <a
-            href={downloadUrlFor(lightbox)}
-            download={lightbox.fileName || true}
-            onClick={e => e.stopPropagation()}
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); triggerDownload(lightbox).catch(() => toast.error('Failed to download file.')); }}
             title="Download"
             className="absolute top-4 right-16 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
           >
             <DownloadIcon />
-          </a>
+          </button>
           <button
             onClick={() => setLightbox(null)}
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"

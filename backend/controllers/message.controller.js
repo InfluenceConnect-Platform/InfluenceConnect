@@ -1,6 +1,7 @@
 const Message = require('../models/Message');
 const Deal = require('../models/Deal');
 const User = require('../models/User');
+const PayoutDetail = require('../models/PayoutDetail');
 const { getTierConfig } = require('../utils/tiers');
 const notify = require('../services/email');
 const { isCloudinaryUrl } = require('../utils/validateUrl');
@@ -29,12 +30,15 @@ async function countMessagesToday(userId) {
 
 // ─────────────────────────────────────────
 // DOWNLOAD ATTACHMENT
-// Chat attachments live on Cloudinary as public "upload" resources, so this
-// isn't gating access to anything private — it exists only to force a real
-// download (Content-Disposition: attachment) instead of the browser's PDF
-// viewer opening the file inline, which Cloudinary's own fl_attachment flag
-// doesn't reliably do for raw files. The host/path check keeps this from
-// becoming an open URL-fetching proxy.
+// Proxies a Cloudinary file so we can force a real download
+// (Content-Disposition: attachment) instead of the browser's PDF/image
+// viewer opening it inline, which Cloudinary's own fl_attachment flag
+// doesn't reliably do for raw files. This URL is also used for payout/
+// payment receipts (financial documents), so beyond pinning the host to our
+// own Cloudinary account, the caller must actually be a party to the
+// message or payout that references this exact URL — otherwise anyone who
+// ever sees a receipt/attachment URL (logs, screenshots, browser history)
+// could fetch it forever with no auth at all.
 // ─────────────────────────────────────────
 exports.downloadAttachment = async (req, res) => {
   try {
@@ -47,6 +51,22 @@ exports.downloadAttachment = async (req, res) => {
     const expectedPrefix = `/${process.env.CLOUDINARY_CLOUD_NAME}/`;
     if (parsed.hostname !== 'res.cloudinary.com' || !parsed.pathname.startsWith(expectedPrefix)) {
       return res.status(400).json({ error: 'Invalid attachment url' });
+    }
+
+    if (req.user.role !== 'admin') {
+      const [ownsMessage, ownsPayout] = await Promise.all([
+        Message.exists({
+          'attachments.url': url,
+          $or: [{ senderId: req.userId }, { receiverId: req.userId }],
+        }),
+        PayoutDetail.exists({
+          receiptUrl: url,
+          $or: [{ influencerId: req.userId }, { brandId: req.userId }],
+        }),
+      ]);
+      if (!ownsMessage && !ownsPayout) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     const upstream = await fetch(parsed.toString());

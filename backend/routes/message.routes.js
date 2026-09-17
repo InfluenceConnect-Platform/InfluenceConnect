@@ -5,7 +5,7 @@ const { getMessages, sendMessage, getUnreadCount, downloadAttachment } = require
 
 router.get('/unread-count', authenticate, getUnreadCount);
 // Must come before the /:dealId catch-all below.
-router.get('/download', downloadAttachment);
+router.get('/download', authenticate, downloadAttachment);
 router.get('/:dealId', authenticate, getMessages);
 router.post('/:dealId', authenticate, sendMessage);
 

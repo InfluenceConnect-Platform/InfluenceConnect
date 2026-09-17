@@ -596,8 +596,8 @@ function InfluencerProfile() {
     setUploading(true);
     setContentError('');
     try {
-      const sigResponse = await api.get('/api/upload/signature');
-      const { signature, timestamp, apiKey, cloudName, folder } = sigResponse.data;
+      const sigResponse = await api.get(`/api/upload/signature?type=${isVideo ? 'video' : 'image'}`);
+      const { signature, timestamp, apiKey, cloudName, folder, allowedFormats } = sigResponse.data;
 
       const formData = new FormData();
       formData.append('file', file);
@@ -605,6 +605,7 @@ function InfluencerProfile() {
       formData.append('timestamp', timestamp.toString());
       formData.append('api_key', apiKey);
       formData.append('folder', folder);
+      formData.append('allowed_formats', allowedFormats);
 
       const uploadResponse = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/${isVideo ? 'video' : 'image'}/upload`,
@@ -650,13 +651,14 @@ function InfluencerProfile() {
     setUploadingCover(true); setError('');
     try {
       const sigRes = await api.get('/api/upload/signature?context=cover-photo');
-      const { signature, timestamp, apiKey, cloudName, folder } = sigRes.data;
+      const { signature, timestamp, apiKey, cloudName, folder, allowedFormats } = sigRes.data;
       const formData = new FormData();
       formData.append('file', file);
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
       formData.append('api_key', apiKey);
       formData.append('folder', folder);
+      formData.append('allowed_formats', allowedFormats);
       const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: formData });
       const data = await uploadRes.json();
       if (data.error) throw new Error(data.error.message);
@@ -683,13 +685,14 @@ function InfluencerProfile() {
     setUploadingPic(true); setError('');
     try {
       const sigRes = await api.get('/api/upload/signature?context=profile-pic');
-      const { signature, timestamp, apiKey, cloudName, folder } = sigRes.data;
+      const { signature, timestamp, apiKey, cloudName, folder, allowedFormats } = sigRes.data;
       const formData = new FormData();
       formData.append('file', file);
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
       formData.append('api_key', apiKey);
       formData.append('folder', folder);
+      formData.append('allowed_formats', allowedFormats);
       const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: formData });
       const data = await uploadRes.json();
       if (data.error) throw new Error(data.error.message);
